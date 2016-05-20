@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Traffigram - Analysis</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./vendor/bootstrap-darkly.min.css">
+    <link rel="stylesheet" href="./vendor/bootstrap-slider.min.css">
+    <link rel="stylesheet" href="./css/traffigram.css">
+    <link rel="stylesheet" href="http://openlayers.org/en/v3.11.2/css/ol.css" type="text/css">
+  </head>
+
+  <body>
+    <div class="container" style="margin-top:20px; margin-bottom:20px">
+      <div class="row" style="width:1500px">
+
+        <!-- Left Options Panel -->
+        <div class="col-sm-2" style="width:250px;">
+
+          <!-- City -->
+
+          <h4>City</h4>
+          <div class="radio">
+            <label><input type="radio" name="cityRadio" id="citySeattleRB" checked>Seattle</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="cityRadio" id="cityNYRB" disabled>New York</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="cityRadio" id="citySFRB" disabled>San Francisco</label>
+          </div>
+          <hr>
+
+          <!-- Map Style -->
+
+          <h4>Map style</h4>
+          <div class="radio">
+            <label><input type="radio" name="mapStyleRadio" id="mapStyleSimpleRB" checked>Simple</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="mapStyleRadio" id="mapStyleSatelliteRB">Satellite</label>
+          </div>
+          <hr>
+
+          <!-- Road representation -->
+          
+          <h4>Road representation</h4>
+          <div class="checkbox">
+            <label><input type="checkbox" id="highwayCB" checked/>H: Highways</label>
+          </div>
+          <div class="checkbox">
+            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="motorwayCB" checked/>H1: Expressway</label>
+          </div>
+          <div class="checkbox">
+            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="trunkCB" checked/>H2: Trunk highway</label>
+          </div>
+
+          <div class="checkbox" style="margin-top: 5px">
+            <label><input type="checkbox" id="arterialRoadCB" checked/>A: Arterial Roads</label>
+          </div>
+          <div class="checkbox">
+            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="primaryCB" checked/>A1: Primary roads</label>
+          </div>
+          <div class="checkbox">
+            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="secondaryCB" checked/>A2: Secondary roads</label>
+          </div>
+          <div class="checkbox">
+            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="tertiaryCB" checked/>A3: Tertiary roads</label>
+          </div>
+
+          <div class="checkbox" style="margin-top: 10px">
+            <label><input type="checkbox" id="linkRoadCB" checked/>L: Links</label>
+          </div>
+          <div class="checkbox">
+            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="motorwayLinkCB" checked/>L: Expressway links</label>
+          </div>
+          <div class="checkbox">
+            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="trunkLinkCB" checked/>L2: Trunk link</label>
+          </div>
+          <div class="checkbox">
+            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="primaryLinkCB" checked/>L3: Primary links</label>
+          </div>
+          <div class="checkbox">
+            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="secondaryLinkCB" checked/>L4: Secondary links</label>
+          </div>
+          <div class="checkbox">
+            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="tertiaryLinkCB" checked/>L5: Tertiary links</label>
+          </div>
+          <hr>
+
+          <!-- Network representation -->
+
+          <h4>Network representation</h4>
+          <div class="checkbox">
+            <label><input type="checkbox" id="dispOriginalRoadsCB" checked/>Display Original Roads</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="edgesCB" checked/>Edges</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="nodesCB" checked/>Nodes</label>
+          </div>
+
+          <br>
+          <p>Network Level</p>
+          <div class="radio">
+            <label><input type="radio" name="levelradio" id="networkLevelNoRB">Do not display</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="levelradio" id="networkLevel0RB">Level 1 (H, A, L)</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="levelradio" id="networkLevel1RB">Level 2 (H, A1, A2)</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="levelradio" id="networkLevel2RB" checked>Level 3 (H)</label>
+          </div>
+    
+        </div>
+
+
+        <!-- Map -->
+
+        <div class="col-sm-8" style="width:850px">
+          <div id='displayText1'></div>
+          <div id="ol_map" class="ol_map" style="width:800px; height:800px"></div>
+        </div>
+
+        <!-- Right Options Panel -->
+        <div class="col-sm-2" style="width:250px">
+
+          <!-- Locations -->
+
+          <h4>Locations</h4>
+
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="locationNoRB" checked>Do not display</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="location0RB">Restaurants</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="location1RB" disabled>Gardens and parks</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="location2RB" disabled>Bars</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="location3RB" disabled>Movie Theaters</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="location4RB" disabled>Museums</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="location5RB" disabled>Coffee &amp; desserts</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="location6RB" disabled>Groceries</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="location7RB" disabled>Sports activities</label>
+          </div>
+          <hr>
+
+          <!-- Network selection algorithm -->
+
+          <h4>Network selection algorithm</h4>
+
+          <div class="radio">
+            <label><input type="radio" name="algorithmRadio" checked>A</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="algorithmRadio">B</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="algorithmRadio">C</label>
+          </div>
+          <hr>
+
+          <!-- Future... -->
+
+          <h4>Future Controls...</h4>
+          <p>to be listed here</p>
+        </div>
+      </div>
+    </div>
+
+
+
+
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>-->
+    <!-- <script src="../../lib/vendor/jquery-ui-1.11.1.custom/external/jquery/jquery.js"></script> -->
+    <!-- <script src="http://openlayers.org/en/v3.11.2/build/ol.js"></script> -->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.5.0/ol.js"></script>
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js"></script>
+    <script src="vendor/bootstrap.min.js"></script>
+    <script src="vendor/bootstrap-slider.min.js"></script>
+    <script src="vendor/dijkstra.js"></script>
+    <script src="vendor/tps.js"></script>
+
+    <script src="data/tol_0.js"></script>
+    <script src="data/tol_1.js"></script>
+    <script src="data/tol_2.js"></script>
+    <script src="data/tol_3.js"></script>
+    <script src="data/tol_4.js"></script>
+    <script src="data/tol_5.js"></script>
+    <script src="data/tol_6.js"></script>
+    <script src="data/tol_7.js"></script>
+    <script src="data/predata.js"></script>
+    -->
+    <!--<script src="data/shortestTime1.js"></script>-->
+    <!--<script src="data/shortestTime2.js"></script>-->
+
+    <!-- <script src="data/seattle_washington_roads_gen0.js"></script> -->
+    <!--<script src="data/nodes_org_reduced.js"></script>
+    <script src="data/edges_org_reduced.js"></script>-->
+    <!-- <script src="data/points.js"></script> -->
+
+    
+    <!--
+    <script src="js/nem/nodeEdgeMaker.js"></script>
+    <script src="js/nem/nem_clean.js"></script>
+    <script src="js/nem/nem_merge.js"></script>
+    <script src="js/nem/nem_intersect.js"></script>
+    <script src="js/nem/nem_partition.js"></script>
+
+    <script src="js/utils.js"></script>
+    <script src="js/options.js"></script>
+    <script src="js/traffigram_objects.js"></script>
+    <script src="js/traffigram.js"></script>
+    <script src="js/traffigram_utils.js"></script>
+    <script src="js/traffigram_data.js"></script>
+    <script src="js/traffigram_graph.js"></script>
+    <script src="js/traffigram_graph2.js"></script>
+    <script src="js/traffigram_map.js"></script>
+    <script src="js/traffigram_map2.js"></script>
+    <script src="js/main.js"></script>-->
+
+    <script src="data/seattle_washington_roads_gen0.js"></script>
+    <script src="data/tol_0.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.5.0/ol.js"></script>
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>-->
+    <script src="./vendor/jquery-2.2.3.min.js"></script>
+    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>-->
+    <script src="./vendor/bootstrap.min.js"></script>
+    <script src="vendor/bootstrap-slider.min.js"></script>
+
+    <script src="./js/tgConfig.js"></script>
+    <script src="./js/tgMap.js"></script>
+    <script src="./js/tgAnalysis.js"></script>
+    <script src="./js/tgRoadNetwork.js"></script>
+    <script src="./js/tgRoadNetworkAlgorithm.js"></script>
+    <script src="./js/tgUtil.js"></script>
+    <script src="./js/mainAnalysis.js"></script>
+  </body>
+</html>

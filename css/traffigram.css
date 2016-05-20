@@ -1,0 +1,22 @@
+.cb {
+	margin-right: 15px;
+	margin-top: 5px;
+}
+
+.ol_map {
+	height: 800px;
+	width: 100%;
+	background-color: rgba(255,255,255,1);
+	margin: 10px; 
+}
+
+.ol-control.ol-zoom{
+  left: calc(100% - 33px);
+}
+
+#displayText1 {
+  position: absolute;
+  top: .5em;
+  left: .5em;
+  color: #222;
+}
