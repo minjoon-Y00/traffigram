@@ -24,16 +24,16 @@
             <label><input type="radio" name="cityRadio" id="citySeattleRB" checked>Seattle</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="cityRadio" id="cityNYRB" disabled>New York</label>
+            <label><input type="radio" class="disabled" name="cityRadio" id="cityNYRB" disabled>New York</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="cityRadio" id="citySFRB" disabled>San Francisco</label>
+            <label><input type="radio" class="disabled" style="color:red" name="cityRadio" id="citySFRB" disabled>San Francisco</label>
           </div>
           <hr>
 
           <!-- Map Style -->
 
-          <h4>Map style</h4>
+          <h4>Map Style</h4>
           <div class="radio">
             <label><input type="radio" name="mapStyleRadio" id="mapStyleSimpleRB" checked>Simple</label>
           </div>
@@ -44,7 +44,7 @@
 
           <!-- Road representation -->
           
-          <h4>Road representation</h4>
+          <h4>Road Class</h4>
           <div class="checkbox">
             <label><input type="checkbox" id="highwayCB" checked/>H: Highways</label>
           </div>
@@ -88,12 +88,20 @@
           </div>
           <hr>
 
-          <!-- Network representation -->
+          <!-- Visual Elements representation -->
 
-          <h4>Network representation</h4>
+          <h4>Visual Elements</h4>
           <div class="checkbox">
             <label><input type="checkbox" id="dispOriginalRoadsCB" checked/>Display Original Roads</label>
           </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="dispCenterPositionCB" checked/>Display Center Position</label>
+          </div>
+          <hr>
+
+          <!-- Network representation -->
+
+          <h4>Network</h4>
           <div class="checkbox">
             <label><input type="checkbox" id="edgesCB" checked/>Edges</label>
           </div>
@@ -122,8 +130,17 @@
         <!-- Map -->
 
         <div class="col-sm-8" style="width:850px">
-          <div id='displayText1'></div>
+          <div id='displayTextLT1'></div>
+          <div id='displayTextLT2'></div>
+          <div id='displayTextLT3'></div>
+          <div id='displayTextLT4'></div>
+          <div id='displayTextLB1'></div>
+          <div id='displayTextLB2'></div>
+
           <div id="ol_map" class="ol_map" style="width:800px; height:800px"></div>
+          <div class="container">
+            <p>Information Display Panel</p>
+          </div>
         </div>
 
         <!-- Right Options Panel -->
@@ -134,10 +151,10 @@
           <h4>Locations</h4>
 
           <div class="radio">
-            <label><input type="radio" name="locationRadio" id="locationNoRB" checked>Do not display</label>
+            <label><input type="radio" name="locationRadio" id="locationNoRB">Do not display</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="locationRadio" id="location0RB">Restaurants</label>
+            <label><input type="radio" name="locationRadio" id="location0RB" checked>Restaurants</label>
           </div>
           <div class="radio">
             <label><input type="radio" name="locationRadio" id="location1RB" disabled>Gardens and parks</label>
@@ -162,9 +179,39 @@
           </div>
           <hr>
 
+          <!-- Control Points -->
+
+          <h4>Control Points</h4>
+          <div class="checkbox">
+            <label><input type="checkbox" id="dispControlPointsCB" checked/>Display Control Points</label>
+          </div>
+          <label style="margin-right:0px">Randomness</label>
+            <input id="randomSlider" data-slider-id='randomSlider' type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="0"/>
+          <br/>
+          <hr>
+
+          
+
+          <!-- Go Directly -->
+
+          <h4>Go Directly</h4>
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control" id="goLat" placeholder="lat" style="width:100px">
+            <input type="text" class="form-control" id="goLng" placeholder="lng" style="width:100px; margin-left:5px">
+            <button type="button" class="btn btn-success btn-sm" style="margin-top:5px" onclick="goLatLng()">Go!</button>
+          </div>
+          <hr>
+
+
+          <!-- Future... -->
+
+          <h4>Future Controls...</h4>
+          <p>to be listed here</p>
+
+          
           <!-- Network selection algorithm -->
 
-          <h4>Network selection algorithm</h4>
+          <!-- <h4>Network Selection Algorithm</h4>
 
           <div class="radio">
             <label><input type="radio" name="algorithmRadio" checked>A</label>
@@ -175,12 +222,8 @@
           <div class="radio">
             <label><input type="radio" name="algorithmRadio">C</label>
           </div>
-          <hr>
-
-          <!-- Future... -->
-
-          <h4>Future Controls...</h4>
-          <p>to be listed here</p>
+          <hr> -->
+          
         </div>
       </div>
     </div>
@@ -247,6 +290,8 @@
     <script src="vendor/bootstrap-slider.min.js"></script>
 
     <script src="./js/tgConfig.js"></script>
+    <script src="./js/tgObjects.js"></script>
+    <script src="./js/tgData.js"></script>
     <script src="./js/tgMap.js"></script>
     <script src="./js/tgAnalysis.js"></script>
     <script src="./js/tgRoadNetwork.js"></script>

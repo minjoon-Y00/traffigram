@@ -2,7 +2,7 @@ var tg = new TGAnalysis('ol_map');
 
 // Checkboxes
 
-if ($("#tileCB").is(':checked')) tg.map.addTileLayer = true;
+if ($("#tileCB").is(':checked')) tg.map.dispTileLayer = true;
 
 if ($("#motorwayCB").is(':checked')) { tg.map.addToDisplayedRoads('motorway') }
 if ($("#trunkCB").is(':checked')) { tg.map.addToDisplayedRoads('trunk') }
@@ -22,7 +22,7 @@ if ($("#primaryLinkCB").is(':checked')) { tg.map.addToDisplayedRoads('primary_li
 if ($("#secondaryLinkCB").is(':checked')) { tg.map.addToDisplayedRoads('secondary_link') }
 if ($("#tertiaryLinkCB").is(':checked')) { tg.map.addToDisplayedRoads('tertiary_link') }
 
-//if ($("#waterCB").is(':checked')) tg.map.addWaterLayer = true;
+//if ($("#waterCB").is(':checked')) tg.map.dispWaterLayer = true;
 
 //
 //
@@ -48,14 +48,14 @@ $("#citySFRB").change(function(ev){
 //
 $("#mapStyleSimpleRB").change(function(ev){
 	if (ev.target.checked) {
-		tg.map.addTileLayer = false;
+		tg.map.dispTileLayer = false;
 		tg.map.updateLayers();		
 	} 
 });
 
 $("#mapStyleSatelliteRB").change(function(ev){
 	if (ev.target.checked) {
-		tg.map.addTileLayer = true;
+		tg.map.dispTileLayer = true;
 		tg.map.updateLayers();
 	}
 });
@@ -184,32 +184,42 @@ $("#tertiaryLinkCB").change(function(ev){
 
 //
 //
-// Network Representation Options
+// Visual Elements Representation Options
 //
 //
 $("#dispOriginalRoadsCB").change(function(ev){ 
-	tg.map.addOriginalRoadLayer = ev.target.checked;
+	tg.map.dispOriginalRoadLayer = ev.target.checked;
 	tg.map.updateLayers();
 });
 
+$("#dispCenterPositionCB").change(function(ev){ 
+	tg.map.dispCenterPositionLayer = ev.target.checked;
+	tg.map.updateLayers();
+});
+
+//
+//
+// Network Representation Options
+//
+//
 $("#edgesCB").change(function(ev){
-	tg.map.addEdgeLayer = ev.target.checked;
+	tg.map.dispEdgeLayer = ev.target.checked;
 	tg.map.updateLayers();
 });
 
 $("#nodesCB").change(function(ev){
-	tg.map.addNodeLayer = ev.target.checked;
+	tg.map.dispNodeLayer = ev.target.checked;
 	tg.map.updateLayers();
 });
 
 $("#networkLevelNoRB").change(function(ev){
-	tg.map.addNetworkLayer = !ev.target.checked;
+	tg.map.dispNetworkLayer = !ev.target.checked;
 	tg.map.updateLayers();
 });
 
 $("#networkLevel0RB").change(function(ev){
   if (ev.target.checked) {
-  	tg.map.addNetworkLayer = true;
+  	tg.map.dispNetworkLayer = true;
   	tg.map.NetworkLevel = 0;
   	tg.map.updateLayers();
   }
@@ -217,7 +227,7 @@ $("#networkLevel0RB").change(function(ev){
 
 $("#networkLevel1RB").change(function(ev){
   if (ev.target.checked) {
-  	tg.map.addNetworkLayer = true;
+  	tg.map.dispNetworkLayer = true;
   	tg.map.NetworkLevel = 1;
   	tg.map.updateLayers();
   }
@@ -225,7 +235,7 @@ $("#networkLevel1RB").change(function(ev){
 
 $("#networkLevel2RB").change(function(ev){
   if (ev.target.checked) {
-  	tg.map.addNetworkLayer = true;
+  	tg.map.dispNetworkLayer = true;
   	tg.map.NetworkLevel = 2;
   	tg.map.updateLayers();
   }
@@ -238,7 +248,7 @@ $("#networkLevel2RB").change(function(ev){
 //
 $("#locationNoRB").change(function(ev){
 	if (ev.target.checked) {
-		tg.map.addLocationLayer = false;
+		tg.map.dispLocationLayer = false;
 		tg.map.updateLayers();
 	} 
 });
@@ -246,14 +256,55 @@ $("#locationNoRB").change(function(ev){
 $("#location0RB").change(function(ev){
 	if (ev.target.checked) {
 		tg.data.locationType = 'restaurants';
-		tg.map.addLocationLayer = true;
+		tg.map.dispLocationLayer = true;
 		tg.map.updateLayers();
 	} 
 });
 
+
+//
+//
+// Control Points
+//
+//
+$("#dispControlPointsCB").change(function(ev){
+	if (ev.target.checked) {
+		tg.map.dispControlPointLayer = true;
+		tg.map.updateLayers();
+	} 
+});
+
+var randomSlider = new Slider("#randomSlider");
+//$("#randomSlider").on("change", function(evt) {
+$("#randomSlider").on("slideStop", function(evt) {
+  tg.data.randomness = evt.value / 100;
+  tg.data.moveControlPoints();
+  tg.map.updateLayers();
+});
+
+
+
+//
+//
+// Go Directly
+//
+//
+function goLatLng() {
+	var lat = Number($("#goLat").val());
+	var lng = Number($("#goLng").val());
+
+	if ((lat >= tg.opt.boundary.seattle.south) && (lat <= tg.opt.boundary.seattle.north) 
+		&& (lng >= tg.opt.boundary.seattle.west) && (lng <= tg.opt.boundary.seattle.east)) {
+		tg.map.setCenter(Number(lat), Number(lng));
+	}
+	else {
+		console.log('out of boundary...');
+	}
+}
+
 /*
 $("#waterCB").change(function(ev){ 
-	tg.map.addWaterLayer = ev.target.checked;
+	tg.map.dispWaterLayer = ev.target.checked;
 	tg.map.updateLayers();
 });
 */

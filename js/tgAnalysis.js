@@ -2,22 +2,12 @@ class TGAnalysis {
 
 	constructor(map_id) {
 		this.opt = options;
-		this.data = {};
 		this.util = new tgUtil();
+		this.data = new TGData(options);
 		this.net = new TGRoadNetwork(this.data, options);
 		this.map = new TGMap('ol_map', this.data, this.net, options);
 
-		this.setArea('Seattle');
-
-		this.data.verbose = {};
-		this.data.level0 = {};
-		this.data.level1 = {};
-		this.data.level2 = {};
-		this.data.locations = {};
-		this.data.locations.restaurants = restaurants.locations;
-	  this.data.locationType = 'restaurants';
-
-
+	  this.setArea('Seattle');
 		this.readFilesAndStart();
 	}
 

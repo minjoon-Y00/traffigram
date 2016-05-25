@@ -8,6 +8,8 @@ const options = {
 		edge: '#F90047',
 		node: '#000',
 		location: '#33cc33',
+		controlPoint: '#FFD700',
+		controlPointLine: '#FFD700',
 
 		motorway: '#969696',
 		trunk: '#969696',
@@ -43,14 +45,17 @@ const options = {
 		secondary_link: 1, 
 		tertiary_link: 1,
 		edge: 1,
+		controlPointLine: 1,
 	},
 
 	radius: {
 		node: 4,
 		location: 5,
+		controlPoint: 6,
 	},
 
 	image: {
+		center: 'img/icon_origin.png',
 		location: 'img/map_loc.png',
 	},
 
@@ -76,7 +81,23 @@ const options = {
 			south: 47.3956,
 			north: 47.8591
 		}
-	}
+	},
+
+	box: {
+		left: 0,
+		right: 0,
+		top: 0,
+		bottom: 0
+	},
+
+	resolution: {
+		gridX: 10,
+		gridY: 10,
+	},
+
+	constant: {
+		randomness: 0.01,
+	},
 
 }
 
