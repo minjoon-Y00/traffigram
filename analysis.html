@@ -24,10 +24,10 @@
             <label><input type="radio" name="cityRadio" id="citySeattleRB" checked>Seattle</label>
           </div>
           <div class="radio">
-            <label><input type="radio" class="disabled" name="cityRadio" id="cityNYRB" disabled>New York</label>
+            <label style="color:gray"><input type="radio" name="cityRadio" id="cityNYRB" disabled>New York</label>
           </div>
           <div class="radio">
-            <label><input type="radio" class="disabled" style="color:red" name="cityRadio" id="citySFRB" disabled>San Francisco</label>
+            <label style="color:gray"><input type="radio" name="cityRadio" id="citySFRB" disabled>San Francisco</label>
           </div>
           <hr>
 
@@ -157,25 +157,25 @@
             <label><input type="radio" name="locationRadio" id="location0RB" checked>Restaurants</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="locationRadio" id="location1RB" disabled>Gardens and parks</label>
+            <label style="color:gray"><input type="radio" name="locationRadio" id="location1RB" disabled>Gardens and parks</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="locationRadio" id="location2RB" disabled>Bars</label>
+            <label style="color:gray"><input type="radio" name="locationRadio" id="location2RB" disabled>Bars</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="locationRadio" id="location3RB" disabled>Movie Theaters</label>
+            <label style="color:gray"><input type="radio" name="locationRadio" id="location3RB" disabled>Movie Theaters</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="locationRadio" id="location4RB" disabled>Museums</label>
+            <label style="color:gray"><input type="radio" name="locationRadio" id="location4RB" disabled>Museums</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="locationRadio" id="location5RB" disabled>Coffee &amp; desserts</label>
+            <label style="color:gray"><input type="radio" name="locationRadio" id="location5RB" disabled>Coffee &amp; desserts</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="locationRadio" id="location6RB" disabled>Groceries</label>
+            <label style="color:gray"><input type="radio" name="locationRadio" id="location6RB" disabled>Groceries</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="locationRadio" id="location7RB" disabled>Sports activities</label>
+            <label style="color:gray"><input type="radio" name="locationRadio" id="location7RB" disabled>Sports activities</label>
           </div>
           <hr>
 
@@ -188,6 +188,8 @@
           <label style="margin-right:0px">Randomness</label>
             <input id="randomSlider" data-slider-id='randomSlider' type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="0"/>
           <br/>
+          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="calTPS()">cal TPS</button>
+          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="moveLocations()">Move Locs</button>
           <hr>
 
           
@@ -198,7 +200,7 @@
           <div class="input-group input-group-sm">
             <input type="text" class="form-control" id="goLat" placeholder="lat" style="width:100px">
             <input type="text" class="form-control" id="goLng" placeholder="lng" style="width:100px; margin-left:5px">
-            <button type="button" class="btn btn-success btn-sm" style="margin-top:5px" onclick="goLatLng()">Go!</button>
+            <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="goLatLng()">Go!</button>
           </div>
           <hr>
 
@@ -287,11 +289,13 @@
     <script src="./vendor/jquery-2.2.3.min.js"></script>
     <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>-->
     <script src="./vendor/bootstrap.min.js"></script>
-    <script src="vendor/bootstrap-slider.min.js"></script>
+    <script src="./vendor/bootstrap-slider.min.js"></script>
+    <script src="./vendor/tps.js"></script>
 
     <script src="./js/tgConfig.js"></script>
     <script src="./js/tgObjects.js"></script>
     <script src="./js/tgData.js"></script>
+    <script src="./js/tgGraph.js"></script>
     <script src="./js/tgMap.js"></script>
     <script src="./js/tgAnalysis.js"></script>
     <script src="./js/tgRoadNetwork.js"></script>

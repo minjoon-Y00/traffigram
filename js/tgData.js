@@ -1,6 +1,7 @@
 class TGData {
 
-	constructor(options) {
+	constructor(graph, options) {
+		this.graph = graph;
 		this.opt = options;
 
 		this.verbose = {};
@@ -30,11 +31,11 @@ class TGData {
 		this.noi = [];
 
 		for(var i = 0; i < len; i++) {
-			lng = Number(nodes[i].loc_y);
-			lat = Number(nodes[i].loc_x);
+			lat = Number(nodes[i].loc_y);
+			lng = Number(nodes[i].loc_x);
 
-			if ((lng < this.opt.box.top) && (lng > this.opt.box.bottom) 
-				&& (lat < this.opt.box.right)	&& (lat > this.opt.box.left)) {
+			if ((lat < this.opt.box.top) && (lat > this.opt.box.bottom) 
+				&& (lng < this.opt.box.right)	&& (lng > this.opt.box.left)) {
 				this.noi.push(new Node(lat, lng));
 			}
 		}
@@ -83,14 +84,15 @@ class TGData {
 		for(var i = 0; i < this.opt.resolution.gridX; i++) {
 			for(var j = 0; j < this.opt.resolution.gridY; j++) {
 				if (this.cpGrid[i][j].length > 1) {
-					var r = avgLatLng(this.cpGrid[i][j]);
-					//var r = this.cpGrid[i][j][0];
+					//var r = avgLatLng(this.cpGrid[i][j]);
+					var r = this.cpGrid[i][j][0];
 					this.cpGrid[i][j] = [];
 					this.cpGrid[i][j].push({"lat":r.lat, "lng":r.lng});
 				}
 			}
 		}
 
+		this.controlPoints = [];
 		for(var i = 0; i < this.opt.resolution.gridX; i++) {
 			for(var j = 0; j < this.opt.resolution.gridY; j++) {
 				if (this.cpGrid[i][j].length > 0) {
@@ -119,6 +121,23 @@ class TGData {
 			this.controlPoints[i].target.lng = this.controlPoints[i].original.lng + Math.randomGaussian(0, 1) * tg.opt.constant.randomness * this.randomness;
 
 			//console.log(this.controlPoints[i].original.lat + ' -> ' + this.controlPoints[i].target.lat);
+		}
+	}
+
+	calTPS() {
+		this.graph.TPSSolve(this.controlPoints);
+	}
+
+	testTPS() {
+		return this.graph.TPSTest(this.opt.center.seattle.lat, this.opt.center.seattle.lng);
+	}
+
+	moveLocations() {
+		var pos;
+		for(var i = 0; i < this.noi.length; i++) {
+			pos = this.graph.transform(this.noi[i].original.lat, this.noi[i].original.lng);
+			this.noi[i].target.lat = pos.lat;
+			this.noi[i].target.lng = pos.lng;
 		}
 	}
 

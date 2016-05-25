@@ -8,6 +8,7 @@ const options = {
 		edge: '#F90047',
 		node: '#000',
 		location: '#33cc33',
+		locationLine: '#33cc33',
 		controlPoint: '#FFD700',
 		controlPointLine: '#FFD700',
 
@@ -45,6 +46,7 @@ const options = {
 		secondary_link: 1, 
 		tertiary_link: 1,
 		edge: 1,
+		locationLine: 1,
 		controlPointLine: 1,
 	},
 

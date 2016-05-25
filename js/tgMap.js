@@ -60,6 +60,7 @@ class TGMap {
 	      this.calBoundaryBox();
 	      this.data.calNOI();
 	      this.data.calControlPointsGrid();
+	      this.updateLayers();
 		 		this.displayTexts();
 	    break;
 		} 
@@ -69,6 +70,7 @@ class TGMap {
 		this.calBoundaryBox();
 		this.data.calNOI();
 		this.data.calControlPointsGrid();
+    this.updateLayers();
 	 	this.displayTexts();
 	}
 
@@ -146,7 +148,8 @@ class TGMap {
 
 		// Locations
 
-		if (this.dispLocationLayer) this.drawLocationLayer(this.data.locations[this.data.locationType]);
+		//if (this.dispLocationLayer) this.drawLocationLayer(this.data.locations[this.data.locationType]);
+		if (this.dispLocationLayer) this.drawLocationLayer(this.data.noi);
 		else this.removeLayer(this.map.locationLayer);
 
 		// Control Points
@@ -209,7 +212,7 @@ class TGMap {
 
 	drawControlPointLayer() {
 		this.removeLayer(this.map.controlPointLayer);
-		this.map.controlPointLayer = this.createControlPointLayer();
+		this.map.controlPointLayer = this.createControlPointLayer(this.data.controlPoints);
 	  this.map.addLayer(this.map.controlPointLayer);
 	}
 
@@ -374,13 +377,21 @@ class TGMap {
 		return this.olVectorFromFeatures(arr);
 	}
 
-	createLocationLayer(locations) {
+	createLocationLayer(nodes) {
 		var arr = [];
-		for(var i = 0; i < locations.length; i++) {
+		for(var i = 0; i < nodes.length; i++) {
 			this.olFeaturesFromPoints(arr, 
-				Number(locations[i].loc_x), Number(locations[i].loc_y), 
+				nodes[i].target.lng, nodes[i].target.lat, 
 				this.nodeStyleFunc(this.opt.color.location, this.opt.radius.location));
 				//this.imageStyleFunc(this.opt.image.location));
+
+			if ((nodes[i].target.lng != nodes[i].original.lng) 
+				|| (nodes[i].target.lat != nodes[i].original.lat)) {
+				this.olFeaturesFromLineStrings(arr, 
+					nodes[i].original.lng, nodes[i].original.lat,
+					nodes[i].target.lng, nodes[i].target.lat,
+					this.lineStyleFunc(this.opt.color.locationLine, this.opt.width.locationLine));
+			}
 		}
 		return this.olVectorFromFeatures(arr);
 	}
@@ -393,18 +404,15 @@ class TGMap {
 		return this.olVectorFromFeatures(arr);
 	}
 
-	createControlPointLayer() {
+	createControlPointLayer(nodes) {
 		var arr = [];
-		for(var i = 0; i < this.data.controlPoints.length; i++) {
-			this.olFeaturesFromPoints(arr, 
-				this.data.controlPoints[i].target.lng, this.data.controlPoints[i].target.lat, 
+		for(var i = 0; i < nodes.length; i++) {
+			this.olFeaturesFromPoints(arr, nodes[i].target.lng, nodes[i].target.lat, 
 				this.nodeStyleFunc(this.opt.color.controlPoint, this.opt.radius.controlPoint));
 
-			if ((this.data.controlPoints[i].target.lng != this.data.controlPoints[i].original.lng) 
-				|| (this.data.controlPoints[i].target.lat != this.data.controlPoints[i].original.lat)) {
+			if ((nodes[i].target.lng != nodes[i].original.lng) || (nodes[i].target.lat != nodes[i].original.lat)) {
 				this.olFeaturesFromLineStrings(arr, 
-					this.data.controlPoints[i].original.lng, this.data.controlPoints[i].original.lat,
-					this.data.controlPoints[i].target.lng, this.data.controlPoints[i].target.lat,
+					nodes[i].original.lng, nodes[i].original.lat, nodes[i].target.lng, nodes[i].target.lat,
 					this.lineStyleFunc(this.opt.color.controlPointLine, this.opt.width.controlPointLine));
 			}
 		}

@@ -268,10 +268,8 @@ $("#location0RB").change(function(ev){
 //
 //
 $("#dispControlPointsCB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.dispControlPointLayer = true;
-		tg.map.updateLayers();
-	} 
+	tg.map.dispControlPointLayer = ev.target.checked;
+	tg.map.updateLayers();
 });
 
 var randomSlider = new Slider("#randomSlider");
@@ -281,6 +279,18 @@ $("#randomSlider").on("slideStop", function(evt) {
   tg.data.moveControlPoints();
   tg.map.updateLayers();
 });
+
+function calTPS() {
+	tg.data.calTPS();
+
+	if (tg.data.testTPS()) console.log('TPS complete.');
+	else console.log('TPS failed...');
+}
+
+function moveLocations() {
+	tg.data.moveLocations();
+	tg.map.updateLayers();
+}
 
 
 

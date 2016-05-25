@@ -14,8 +14,9 @@
   left: calc(100% - 33px);
 }
 
-.disabled {
-	color: '#222';
+.disabledText {
+	//color: '#222';
+	color: 'red';
 }
 
 #displayTextLT1, #displayTextLT2, #displayTextLT3, #displayTextLT4,

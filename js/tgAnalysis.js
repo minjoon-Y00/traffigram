@@ -2,8 +2,9 @@ class TGAnalysis {
 
 	constructor(map_id) {
 		this.opt = options;
-		this.util = new tgUtil();
-		this.data = new TGData(options);
+		this.util = new TGUtil();
+		this.graph = new TGGraph(this.util, options);
+		this.data = new TGData(this.graph, options);
 		this.net = new TGRoadNetwork(this.data, options);
 		this.map = new TGMap('ol_map', this.data, this.net, options);
 
