@@ -29,9 +29,9 @@ const options = {
 		secondary_link: '#00ADEE',
 		tertiary_link: '#00ADEE',
 		originalNode: '#FFA500',
-		originalEdge: '#FF69B4',
+		originalRoad: '#FF69B4',
 		simplifiedNode: '#A52A2A',
-		simplifiedEdge: '#8A2BE2',
+		simplifiedRoad: '#8A2BE2',
 		nodeOrder: [
 			'#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF'],
 			// black, red, green, blue, yellow, cyan, magenta
@@ -56,8 +56,8 @@ const options = {
 		edge: 1,
 		locationLine: 1,
 		controlPointLine: 1,
-		originalEdge: 1,
-		simplifiedEdge: 1,
+		originalRoad: 1,
+		simplifiedRoad: 1,
 	},
 
 	radius: {

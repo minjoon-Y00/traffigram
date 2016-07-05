@@ -25,7 +25,7 @@ class TGAnalysis {
 	  //return;
 	  
 	  this.data.original.nodes = rawData.nodes;
-	  this.data.original.edges = rawData.edges;
+	  this.data.original.roads = rawData.edges;
 
 	  console.log(this.data.original);
 

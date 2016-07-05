@@ -20,8 +20,8 @@ class TGData {
 	  this.cpGrid = [];
 	  this.controlPoints = [];
 
-	  this.dispEdges = [];
-	  this.simpEdges = [];
+	  this.dispRoads = [];
+	  this.simpRoads = [];
 
 	  this.initGrids();
 	}
@@ -46,47 +46,60 @@ class TGData {
 		}
 	}
 
-	calDispEdges() {
-		var edges = this.original.edges;
+	//
+	// Calculate displayed roads
+	//
+	calDispRoads() {
+		var roads = this.original.roads;
 		var nodes = this.original.nodes;
-		var len = edges.length;
+		var len = roads.length;
 		var lat, lng;
-		this.dispEdges = [];
+		this.dispRoads = [];
 
 		for(var i = 0; i < len; i++) {
-			lat = nodes[edges[i].nodes[0]].lat;
-			lng = nodes[edges[i].nodes[0]].lng;
+
+			// If the start node of a road is in the screen, add the road.
+			lat = nodes[roads[i].nodes[0]].lat;
+			lng = nodes[roads[i].nodes[0]].lng;
 
 			if ((lat < this.opt.box.top) && (lat > this.opt.box.bottom) 
 				&& (lng < this.opt.box.right)	&& (lng > this.opt.box.left)) {
-				this.dispEdges.push(edges[i]);
+				this.dispRoads.push(roads[i]);
 				continue;
 			}
 
-			lat = nodes[edges[i].nodes[edges[i].nodes.length - 1]].lat;
-			lng = nodes[edges[i].nodes[edges[i].nodes.length - 1]].lng;
+			// If the last node of a road is in the screen, add the road.
+			lat = nodes[roads[i].nodes[roads[i].nodes.length - 1]].lat;
+			lng = nodes[roads[i].nodes[roads[i].nodes.length - 1]].lng;
 
 			if ((lat < this.opt.box.top) && (lat > this.opt.box.bottom) 
 				&& (lng < this.opt.box.right)	&& (lng > this.opt.box.left)) {
-				this.dispEdges.push(edges[i]);
+				this.dispRoads.push(roads[i]);
 			}
 		}
-		this.calSimpEdges();
+
+		// then, copy dispRoads to simpRoads
+		this.copySimpRoads();
 	}
 
-	calSimpEdges() {
-		this.simpEdges = this.util.clone(this.dispEdges);
-		//console.log(this.simpEdges);
+	//
+	// Copy displayed roads to simplified roads
+	//
+	copySimpRoads() {
+		this.simpRoads = this.util.clone(this.dispRoads);
 	}
 
-	calUniqueNodesLength(nodes, edges) {
-		var len = edges.length;
+	//
+	// Calculate the number of unique nodes in roads
+	//
+	calUniqueNodesLength(nodes, roads) {
+		var len = roads.length;
 		var unqNodes = [];
 
 		for(var i = 0; i < len; i++) {
-			for(var j = 0; j < edges[i].nodes.length; j++) {
-				if (unqNodes.indexOf(edges[i].nodes[j]) === -1) {
-					unqNodes.push(edges[i].nodes[j]);
+			for(var j = 0; j < roads[i].nodes.length; j++) {
+				if (unqNodes.indexOf(roads[i].nodes[j]) === -1) {
+					unqNodes.push(roads[i].nodes[j]);
 				}
 			}
 		}

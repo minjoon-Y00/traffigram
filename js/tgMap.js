@@ -31,7 +31,7 @@ class TGMap {
 	  this.dispOrders = false;
 	  this.dispCenterPositionLayer = false;
 
-	  this.dispEdgeLayer = false;
+	  this.dispRoadLayer = false;
 	  this.dispNodeLayer = false;
 	  this.dispNetworkLayer = false;
 	  this.NetworkLevel = 2;
@@ -59,7 +59,7 @@ class TGMap {
 	}
 
 	//
-	//
+	// When zooming in / out
 	//
 	propertyChange(e) {
 	  switch (e.key) {
@@ -68,7 +68,7 @@ class TGMap {
 	      this.calBoundaryBox();
 	      this.data.calNOI();
 	      this.data.calControlPointsGrid();
-	      this.data.calDispEdges();
+	      this.data.calDispRoads();
 	      this.updateLayers();
 		 		this.displayTexts();
 		 		this.dispMapText();
@@ -76,21 +76,28 @@ class TGMap {
 		} 
 	}
 
+	//
+	// When finising the mouse move
+	//
 	onMoveEnd(e) {
 		this.calBoundaryBox();
 		this.data.calNOI();
 		this.data.calControlPointsGrid();
-		this.data.calDispEdges();
+		this.data.calDispRoads();
     this.updateLayers();
 	 	this.displayTexts();
 	 	this.dispMapText();
 	}
 
+	//
+	// When mouse button is clicked
+	//
 	onClicked(e) {
 		var pt = ol.proj.transform([e.coordinate[0], e.coordinate[1]], 'EPSG:3857', 'EPSG:4326');
 		var clickedLat = pt[1];
 		var clickedLng = pt[0];
 
+		/*
 		var edges = this.data['level' + this.NetworkLevel].edges;
 		var nodes = this.net.calNodes(edges);
 
@@ -112,27 +119,35 @@ class TGMap {
 			}
 		}
 		this.updateLayers();
+		*/
 	}
 
+	//
+	// Display overlapped information in the map
+	//
 	displayTexts() {
 		var precision = 3;
+
+		// Display the total number of nodes & roads
 		var totalN = this.data.original.nodes.length;
-		var totalE = this.data.original.edges.length;
-		var str = 'Total N(' + totalN + ') E(' + totalE + ')';
+		var totalR = this.data.original.roads.length;
+		var str = 'Total N(' + totalN + ') R(' + totalR + ')';
 		$('#displayTextLT1').text(str);
 
-		var dispN = this.data.calUniqueNodesLength(this.data.original.nodes, this.data.dispEdges);
-		var dispE = this.data.dispEdges.length;
+		// Display the number of displayed (original) nodes & roads
+		var dispN = this.data.calUniqueNodesLength(this.data.original.nodes, this.data.dispRoads);
+		var dispR = this.data.dispRoads.length;
 		var percN = (dispN / totalN * 100).toPrecision(precision);
-		var percE = (dispE / totalE * 100).toPrecision(precision);
-		str = 'Disp N(' + dispN + ') E(' + dispE + ') (' + percN + '% ,' + percE + '%)';
+		var percR = (dispR / totalR * 100).toPrecision(precision);
+		str = 'Disp N(' + dispN + ') R(' + dispR + ') (' + percN + '% ,' + percR + '%)';
 		$('#displayTextLT2').text(str);
 
-		var simpN = this.data.calUniqueNodesLength(this.data.original.nodes, this.data.simpEdges);
-		var simpE = this.data.simpEdges.length;
+		// Display the number of simplified nodes & roads
+		var simpN = this.data.calUniqueNodesLength(this.data.original.nodes, this.data.simpRoads);
+		var simpR = this.data.simpRoads.length;
 		percN = (simpN / dispN * 100).toPrecision(precision);
-		percE = (simpE / dispE * 100).toPrecision(precision);
-		str = 'Simp N(' + simpN + ') E(' + simpE + ') (' + percN + '% ,' + percE + '%)';
+		percR = (simpR / dispR * 100).toPrecision(precision);
+		str = 'Simp N(' + simpN + ') R(' + simpR + ') (' + percN + '% ,' + percR + '%)';
 		$('#displayTextLT3').text(str);
 
 		//$('#displayTextLT1').text(this.currentZoom + ' Map Level');
@@ -173,11 +188,12 @@ class TGMap {
 	}
 
 	setCenterByNodeID(id) {
+		/*
 		var edges = this.data['level' + this.NetworkLevel].edges;
 		var nodes = this.net.calNodes(edges);
 
 		if (id < nodes.length) {
-			this.setCenter(nodes[id].lat, nodes[id].lng);
+			this.setCenter(nodes[id].lat, nodes[id].lng);*/
 
 			/*var lat = nodes[id].lat;
 			var lng = nodes[id].lng;
@@ -185,7 +201,7 @@ class TGMap {
 			this.data.centerPosition.lng = lng;
 			this.data.centerPosition.lat = lat;*/
 			//this.updateLayers();
-		}
+		//}
 	}
 
 	setZoom(zoom) {
@@ -212,7 +228,7 @@ class TGMap {
 	}
 
 	//
-	//
+	// Redraw all layers of displayed elements
 	//
 	updateLayers() {
 
@@ -246,6 +262,7 @@ class TGMap {
 
 		// Network
 
+		/*
 		if (this.dispNetworkLayer) {
 			var edges = this.data['level' + this.NetworkLevel].edges;
 
@@ -258,7 +275,7 @@ class TGMap {
 		else {
 			this.removeLayer(this.map.edgeLayer);
 			this.removeLayer(this.map.nodeLayer);
-		}
+		}*/
 
 		// Locations
 
@@ -297,15 +314,15 @@ class TGMap {
 	drawOriginalRoadLayer() {
 		this.removeLayer(this.map.originalRoadLayer);
 		this.map.originalRoadLayer = this.createRoadLayer(
-			this.data.original.nodes, this.data.dispEdges, 
-			this.opt.color.originalEdge, this.opt.width.originalEdge);
+			this.data.original.nodes, this.data.dispRoads, 
+			this.opt.color.originalRoad, this.opt.width.originalRoad);
 	  this.map.addLayer(this.map.originalRoadLayer);
 	}
 
 	drawOriginalNodeLayer() {
 		this.removeLayer(this.map.originalNodeLayer);
 		this.map.originalNodeLayer = this.createNodeLayer(
-			this.data.original.nodes, this.data.dispEdges, 
+			this.data.original.nodes, this.data.dispRoads, 
 			this.opt.color.originalNode, this.opt.radius.originalNode);
 	  this.map.addLayer(this.map.originalNodeLayer);
 	}
@@ -313,15 +330,15 @@ class TGMap {
 	drawSimplifiedRoadLayer() {
 		this.removeLayer(this.map.simplifiedRoadLayer);
 		this.map.simplifiedRoadLayer = this.createRoadLayer(
-			this.data.original.nodes, this.data.simpEdges, 
-			this.opt.color.simplifiedEdge, this.opt.width.simplifiedEdge);
+			this.data.original.nodes, this.data.simpRoads, 
+			this.opt.color.simplifiedRoad, this.opt.width.simplifiedRoad);
 	  this.map.addLayer(this.map.simplifiedRoadLayer);
 	}
 
 	drawSimplifiedNodeLayer() {
 		this.removeLayer(this.map.simplifiedNodeLayer);
 		this.map.simplifiedNodeLayer = this.createNodeLayer(
-			this.data.original.nodes, this.data.simpEdges, 
+			this.data.original.nodes, this.data.simpRoads, 
 			this.opt.color.simplifiedNode, this.opt.radius.simplifiedNode);
 	  this.map.addLayer(this.map.simplifiedNodeLayer);
 	}
@@ -332,6 +349,7 @@ class TGMap {
 	  this.map.addLayer(this.map.centerPositionLayer);		
 	}
 
+	/*
 	drawEdgeLayer(edges) {
 		this.removeLayer(this.map.edgeLayer);
 		this.map.edgeLayer = this.createEdgeLayer(edges);
@@ -343,6 +361,7 @@ class TGMap {
 		this.map.nodeLayer = this.createNodeLayer(edges);
 	  this.map.addLayer(this.map.nodeLayer);
 	}
+	*/
 
 	drawLocationLayer(locations) {
 		this.removeLayer(this.map.locationLayer);
