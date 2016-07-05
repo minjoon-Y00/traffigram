@@ -51,6 +51,14 @@ class TGUtil {
 	  return Math.floor(Math.random() * (max - min)) + min;
 	}
 
+	// clone object
+	clone(obj) {
+  	return JSON.parse(JSON.stringify(obj));
+	}
+
+	degrees(radians) {
+	  return radians * 180 / Math.PI;
+	};
 }
 
 Math.randomGaussian = function(mean, standardDeviation) {
@@ -73,4 +81,12 @@ Math.randomGaussian = function(mean, standardDeviation) {
     Math.randomGaussian.nextGaussian = v2 * multiplier;
     return (v1 * multiplier * standardDeviation) + mean;
   }
+};
+
+$.arrayIntersect = function(a, b)
+{
+    return $.grep(a, function(i)
+    {
+        return $.inArray(i, b) > -1;
+    });
 };

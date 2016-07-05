@@ -25,21 +25,29 @@ class TGMap {
 
 	  this.displayedRoads = [];
 	  this.dispOriginalRoadLayer = true;
-	  this.dispCenterPositionLayer = true;
+	  this.dispOriginalNodeLayer = true;
+	  this.dispSimplifiedRoadLayer = true;
+	  this.dispSimplifiedNodeLayer = true;
+	  this.dispOrders = false;
+	  this.dispCenterPositionLayer = false;
 
-	  this.dispEdgeLayer = true;
-	  this.dispNodeLayer = true;
-	  this.dispNetworkLayer = true;
+	  this.dispEdgeLayer = false;
+	  this.dispNodeLayer = false;
+	  this.dispNetworkLayer = false;
 	  this.NetworkLevel = 2;
 
-	  this.dispLocationLayer = true;
-	  this.dispControlPointLayer = true;
+	  this.dispLocationLayer = false;
+	  this.dispControlPointLayer = false;
 
 	  this.viewCenterPos = {lat:0, lng:0};
+	  this.clickRange = {lat:0, lng:0};
+	  this.readAllObjects = false;
+	  this.selectedNodeID = -1;
 
 	  // Event Handlers
 		this.map.getView().on('propertychange', this.propertyChange.bind(this));
 		this.map.on('moveend', this.onMoveEnd.bind(this));
+		this.map.on('click', this.onClicked.bind(this));
 
 		// For displaying texts in the map
 	  $('#displayTextLT1').appendTo($('.ol-overlaycontainer'));
@@ -60,8 +68,10 @@ class TGMap {
 	      this.calBoundaryBox();
 	      this.data.calNOI();
 	      this.data.calControlPointsGrid();
+	      this.data.calDispEdges();
 	      this.updateLayers();
 		 		this.displayTexts();
+		 		this.dispMapText();
 	    break;
 		} 
 	}
@@ -70,27 +80,112 @@ class TGMap {
 		this.calBoundaryBox();
 		this.data.calNOI();
 		this.data.calControlPointsGrid();
+		this.data.calDispEdges();
     this.updateLayers();
 	 	this.displayTexts();
+	 	this.dispMapText();
+	}
+
+	onClicked(e) {
+		var pt = ol.proj.transform([e.coordinate[0], e.coordinate[1]], 'EPSG:3857', 'EPSG:4326');
+		var clickedLat = pt[1];
+		var clickedLng = pt[0];
+
+		var edges = this.data['level' + this.NetworkLevel].edges;
+		var nodes = this.net.calNodes(edges);
+
+		var found = false;
+		for(var i = 0; i < nodes.length; i++) {
+
+			if ((Math.abs(nodes[i].lat - clickedLat) <= this.clickRange.lat)
+				&&(Math.abs(nodes[i].lng - clickedLng) <= this.clickRange.lng)) {
+				//console.log(i);
+				this.dispNodeText(i);
+				this.selectedNodeID = i;
+				found = true;
+				break;
+			}
+
+			if (!found) {
+				this.dispNodeText(-1);
+				this.selectedNodeID = -1;	
+			}
+		}
+		this.updateLayers();
 	}
 
 	displayTexts() {
-		$('#displayTextLT1').text(this.currentZoom + ' Map Level');
-		$('#displayTextLT2').text(this.data.locations[this.data.locationType].length + ' Total Nodes');
-		$('#displayTextLT3').text(this.data.noi.length + ' Selected Nodes');
-		$('#displayTextLT4').text(this.data.controlPoints.length + ' Control Points');
+		var precision = 3;
+		var totalN = this.data.original.nodes.length;
+		var totalE = this.data.original.edges.length;
+		var str = 'Total N(' + totalN + ') E(' + totalE + ')';
+		$('#displayTextLT1').text(str);
 
-		$('#displayTextLB2').text('center(lat, lng):');
+		var dispN = this.data.calUniqueNodesLength(this.data.original.nodes, this.data.dispEdges);
+		var dispE = this.data.dispEdges.length;
+		var percN = (dispN / totalN * 100).toPrecision(precision);
+		var percE = (dispE / totalE * 100).toPrecision(precision);
+		str = 'Disp N(' + dispN + ') E(' + dispE + ') (' + percN + '% ,' + percE + '%)';
+		$('#displayTextLT2').text(str);
 
-		var centerLat = (this.opt.box.top + this.opt.box.bottom)/2;
-		var centerLng = (this.opt.box.left + this.opt.box.right)/2;
-		$('#displayTextLB1').text('(' + centerLat.toPrecision(8) + ', ' + centerLng.toPrecision(9) + ')');
+		var simpN = this.data.calUniqueNodesLength(this.data.original.nodes, this.data.simpEdges);
+		var simpE = this.data.simpEdges.length;
+		percN = (simpN / dispN * 100).toPrecision(precision);
+		percE = (simpE / dispE * 100).toPrecision(precision);
+		str = 'Simp N(' + simpN + ') E(' + simpE + ') (' + percN + '% ,' + percE + '%)';
+		$('#displayTextLT3').text(str);
+
+		//$('#displayTextLT1').text(this.currentZoom + ' Map Level');
+		//$('#displayTextLT1').text(this.data.locations[this.data.locationType].length + ' Total Nodes');
+
+		//console.log('dispEdges = ' + this.dispEdges.length);
+		//this.calDispNodeLength();
+		
+		//$('#displayTextLT2').text(this.data.noi.length + ' Selected Nodes');
+		//$('#displayTextLT3').text(this.data.controlPoints.length + ' Control Points');
+
 	}
+
+  dispMapText() {
+  	var centerLat = (this.opt.box.top + this.opt.box.bottom)/2;
+		var centerLng = (this.opt.box.left + this.opt.box.right)/2;
+
+  	var str = 'Map Level: ' + this.currentZoom 
+  		+ ', Center (' + centerLat.toPrecision(8) + ', ' + centerLng.toPrecision(9) + ')';
+  	$("#mapTextDisplay").text(str);
+  }
+
+  dispNodeText(id) {
+  	var str = "";
+
+  	if (id > 0) {
+  		str = 'Clicked Node: Lv ' + (this.NetworkLevel + 1) + ', ID ' + id;
+  	} 
+
+  	$("#nodeTextDisplay").text(str);
+  }
+
 
 	setCenter(lat, lng) {
 		this.map.getView().setCenter(ol.proj.fromLonLat([lng, lat]));
 		this.data.centerPosition.lng = lng;
 		this.data.centerPosition.lat = lat;
+	}
+
+	setCenterByNodeID(id) {
+		var edges = this.data['level' + this.NetworkLevel].edges;
+		var nodes = this.net.calNodes(edges);
+
+		if (id < nodes.length) {
+			this.setCenter(nodes[id].lat, nodes[id].lng);
+
+			/*var lat = nodes[id].lat;
+			var lng = nodes[id].lng;
+			this.map.getView().setCenter(ol.proj.fromLonLat([lng, lat]));
+			this.data.centerPosition.lng = lng;
+			this.data.centerPosition.lat = lat;*/
+			//this.updateLayers();
+		}
 	}
 
 	setZoom(zoom) {
@@ -106,6 +201,14 @@ class TGMap {
 	  this.opt.box.bottom = bottomLeft[1];
 	  this.opt.box.right = topRight[0];
 	  this.opt.box.top = topRight[1];
+
+	  var height = this.opt.box.top - this.opt.box.bottom;
+  	var width = this.opt.box.right - this.opt.box.left;
+
+  	this.clickRange = {
+  		lat: height * this.opt.constant.clickSensibility, 
+  		lng: width * this.opt.constant.clickSensibility
+  	};
 	}
 
 	//
@@ -114,6 +217,7 @@ class TGMap {
 	updateLayers() {
 
 		var start = (new Date()).getTime();
+		if (!this.readAllObjects) return;
 
 		// Tile
 
@@ -127,8 +231,18 @@ class TGMap {
 
 		// Original Roads
 
-		if (this.dispOriginalRoadLayer) this.drawOriginalRoadLayer(this.data.verbose.edges);
+		if (this.dispOriginalRoadLayer) this.drawOriginalRoadLayer();
 		else this.removeLayer(this.map.originalRoadLayer);
+
+		if (this.dispOriginalNodeLayer) this.drawOriginalNodeLayer();
+		else this.removeLayer(this.map.originalNodeLayer);
+
+		if (this.dispSimplifiedRoadLayer) this.drawSimplifiedRoadLayer();
+		else this.removeLayer(this.map.simplifiedRoadLayer);
+
+		if (this.dispSimplifiedNodeLayer) this.drawSimplifiedNodeLayer();
+		else this.removeLayer(this.map.simplifiedNodeLayer);
+
 
 		// Network
 
@@ -180,10 +294,36 @@ class TGMap {
 	  this.map.addLayer(this.map.waterLayer);
 	}
 
-	drawOriginalRoadLayer(edges) {
+	drawOriginalRoadLayer() {
 		this.removeLayer(this.map.originalRoadLayer);
-		this.map.originalRoadLayer = this.createRoadLayer(edges);
+		this.map.originalRoadLayer = this.createRoadLayer(
+			this.data.original.nodes, this.data.dispEdges, 
+			this.opt.color.originalEdge, this.opt.width.originalEdge);
 	  this.map.addLayer(this.map.originalRoadLayer);
+	}
+
+	drawOriginalNodeLayer() {
+		this.removeLayer(this.map.originalNodeLayer);
+		this.map.originalNodeLayer = this.createNodeLayer(
+			this.data.original.nodes, this.data.dispEdges, 
+			this.opt.color.originalNode, this.opt.radius.originalNode);
+	  this.map.addLayer(this.map.originalNodeLayer);
+	}
+
+	drawSimplifiedRoadLayer() {
+		this.removeLayer(this.map.simplifiedRoadLayer);
+		this.map.simplifiedRoadLayer = this.createRoadLayer(
+			this.data.original.nodes, this.data.simpEdges, 
+			this.opt.color.simplifiedEdge, this.opt.width.simplifiedEdge);
+	  this.map.addLayer(this.map.simplifiedRoadLayer);
+	}
+
+	drawSimplifiedNodeLayer() {
+		this.removeLayer(this.map.simplifiedNodeLayer);
+		this.map.simplifiedNodeLayer = this.createNodeLayer(
+			this.data.original.nodes, this.data.simpEdges, 
+			this.opt.color.simplifiedNode, this.opt.radius.simplifiedNode);
+	  this.map.addLayer(this.map.simplifiedNodeLayer);
 	}
 
 	drawCenterPositionLayer() {
@@ -328,6 +468,7 @@ class TGMap {
 		});
 	}
 
+	/*
 	createRoadLayer(edges) {
 		var arr = [];
 		this.createRoadLayerByType(edges, arr, ['rail', 'monorail', 'light_rail', 'tram', 'disused']);
@@ -348,13 +489,63 @@ class TGMap {
 				edges[i].startNode.lng, edges[i].startNode.lat, edges[i].endNode.lng, edges[i].endNode.lat, 
 				this.lineStyleFunc(this.opt.color[edges[i].type], this.opt.width[edges[i].type]));
 		}
-		/*
+	}*/
+	/*
 		var clr = this.opt.color[edges[i].type];
 		clr = clr.slice(5, clr.length-1);
 		clr = clr.split(',');
 		clr = 'rgba(' + clr[0] + ',' + clr[1] + ',' + clr[2] + ',' + alpha + ')';
 		feature.setStyle(this.lineStyleFunc(clr, this.opt.width[edges[i].type]));
 		*/
+
+	createRoadLayer(nodes, edges, clr, width) {
+		var arr = [];
+		this.createRoadLayerByType(nodes, edges, clr, width, arr, []);
+		//this.createRoadLayerByType(ne, arr, ['motorway_link', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link']);
+		//this.createRoadLayerByType(ne, arr, ['primary', 'secondary', 'tertiary']);
+		//this.createRoadLayerByType(ne, arr, ['motorway', 'trunk']);
+
+		return this.olVectorFromFeatures(arr);
+	}
+
+	createRoadLayerByType(nodes, edges, clr, width, arr, typeArr) {
+		for(var i = 0; i < edges.length; i++) {
+
+			//if ($.arrayIntersect(ne.edges[i].tag, typeArr).length == 0) continue;
+			//if ($.inArray(ne.edges[i].tag[0], typeArr) === -1) continue;
+
+			if (this.displayedRoads.indexOf(edges[i].tag[0]) === -1) continue;
+
+			for(var j = 0; j < edges[i].nodes.length - 1; j++) {
+
+				var new_width = (edges[i].oneway) ? width : width + 1;
+
+				this.olFeaturesFromLineStrings(arr, 
+					nodes[edges[i].nodes[j]].lng, 
+					nodes[edges[i].nodes[j]].lat, 
+					nodes[edges[i].nodes[j + 1]].lng, 
+					nodes[edges[i].nodes[j + 1]].lat, 
+					this.lineStyleFunc(clr, new_width));
+			}
+		}
+	}
+
+	createNodeLayer(nodes, edges, clr, radius) {
+		var arr = [];
+		for(var i = 0; i < edges.length; i++) {
+			for(var j = 0; j < edges[i].nodes.length; j++) {
+
+				if (this.dispOrders) {
+					var order = nodes[edges[i].nodes[j]].tag.length;
+					clr = this.opt.color.nodeOrder[order - 1];
+				}
+
+				this.olFeaturesFromPoints(arr, 
+					nodes[edges[i].nodes[j]].lng, nodes[edges[i].nodes[j]].lat, 
+					this.nodeStyleFunc(clr, radius));
+			}
+		}
+		return this.olVectorFromFeatures(arr);
 	}
 
 	createEdgeLayer(edges) {
@@ -367,15 +558,22 @@ class TGMap {
 		return this.olVectorFromFeatures(arr);
 	}
 
+	/*
 	createNodeLayer(nodes) {
 		var arr = [];
 		for(var i = 0; i < nodes.length; i++) {
+
+			var clr = this.opt.color.node;
+
+			if (i === this.selectedNodeID) clr = this.opt.color.selectedNode;
+			
 			this.olFeaturesFromPoints(arr, 
 				nodes[i].lng, nodes[i].lat, 
-				this.nodeStyleFunc(this.opt.color.node, this.opt.radius.node));
+				this.nodeStyleFunc(clr, this.opt.radius.node));
 		}
 		return this.olVectorFromFeatures(arr);
 	}
+	*/
 
 	createLocationLayer(nodes) {
 		var arr = [];

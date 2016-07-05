@@ -4,12 +4,16 @@ class TGAnalysis {
 		this.opt = options;
 		this.util = new TGUtil();
 		this.graph = new TGGraph(this.util, options);
-		this.data = new TGData(this.graph, options);
-		this.net = new TGRoadNetwork(this.data, options);
+		this.data = new TGData(this.graph, this.util, options);
+		this.net = new TGRoadNetwork(this.data, this.util, options);
 		this.map = new TGMap('ol_map', this.data, this.net, options);
 
-	  this.setArea('Seattle');
-		this.readFilesAndStart();
+	  //this.setArea('Seattle');
+	  this.map.setCenter(47.467360, -122.219276); // intersection
+	  //this.map.setCenter(47.611476, -122.340284); // downtown
+
+		//this.readFilesAndStart();
+		this.start();
 	}
 
 	//
@@ -17,16 +21,23 @@ class TGAnalysis {
 	//
 	start() {
 
-		this.map.updateLayers();
+	  //this.net.parseRawData(rawData);
+	  //return;
+	  
+	  this.data.original.nodes = rawData.nodes;
+	  this.data.original.edges = rawData.edges;
 
+	  console.log(this.data.original);
 
+	  this.map.readAllObjects = true;
+		//this.map.updateLayers();
 	}
 
 	//
 	//
 	//
 	readFilesAndStart() {
-		this.numberOfFiles = 5;
+		this.numberOfFiles = 0; //5;
 		this.readCnt = 0;
 		
 		this.readScript('data/nodes_filtered.js', 'verbose', 'nodes');

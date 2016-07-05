@@ -22,6 +22,8 @@ if ($("#primaryLinkCB").is(':checked')) { tg.map.addToDisplayedRoads('primary_li
 if ($("#secondaryLinkCB").is(':checked')) { tg.map.addToDisplayedRoads('secondary_link') }
 if ($("#tertiaryLinkCB").is(':checked')) { tg.map.addToDisplayedRoads('tertiary_link') }
 
+tg.map.updateLayers();
+
 //if ($("#waterCB").is(':checked')) tg.map.dispWaterLayer = true;
 
 //
@@ -192,6 +194,26 @@ $("#dispOriginalRoadsCB").change(function(ev){
 	tg.map.updateLayers();
 });
 
+$("#dispOriginalNodesCB").change(function(ev){ 
+	tg.map.dispOriginalNodeLayer = ev.target.checked;
+	tg.map.updateLayers();
+});
+
+$("#dispSimplifiedRoadsCB").change(function(ev){ 
+	tg.map.dispSimplifiedRoadLayer = ev.target.checked;
+	tg.map.updateLayers();
+});
+
+$("#dispSimplifiedNodesCB").change(function(ev){ 
+	tg.map.dispSimplifiedNodeLayer = ev.target.checked;
+	tg.map.updateLayers();
+});
+
+$("#dispOrdersCB").change(function(ev){ 
+	tg.map.dispOrders = ev.target.checked;
+	tg.map.updateLayers();
+});
+
 $("#dispCenterPositionCB").change(function(ev){ 
 	tg.map.dispCenterPositionLayer = ev.target.checked;
 	tg.map.updateLayers();
@@ -305,11 +327,40 @@ function goLatLng() {
 
 	if ((lat >= tg.opt.boundary.seattle.south) && (lat <= tg.opt.boundary.seattle.north) 
 		&& (lng >= tg.opt.boundary.seattle.west) && (lng <= tg.opt.boundary.seattle.east)) {
-		tg.map.setCenter(Number(lat), Number(lng));
+		tg.map.setCenter(lat, lng);
 	}
 	else {
 		console.log('out of boundary...');
 	}
+}
+
+function goCenterNode() {
+	var id = Number($("#goNode").val());
+	tg.map.setCenterByNodeID(id);
+}
+
+//
+//
+// Simplification
+//
+//
+var angleSlider = new Slider("#angleSlider");
+$("#angleSlider").on("slideStop", function(evt) {
+  tg.data.simpThresholdAngle = evt.value;
+});
+
+function simpReduceByAngle() {
+	tg.data.calSimpEdges();
+	tg.net.alg.reduceByAngle();
+	tg.map.updateLayers();
+	tg.map.displayTexts();
+}
+
+function simpRemove2Degree() {
+	tg.data.calSimpEdges();
+	tg.net.alg.remove2DegreeNodes();
+	tg.map.updateLayers();
+	tg.map.displayTexts();
 }
 
 /*

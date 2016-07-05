@@ -95,7 +95,20 @@
             <label><input type="checkbox" id="dispOriginalRoadsCB" checked/>Display Original Roads</label>
           </div>
           <div class="checkbox">
-            <label><input type="checkbox" id="dispCenterPositionCB" checked/>Display Center Position</label>
+            <label><input type="checkbox" id="dispOriginalNodesCB" checked/>Display Original Nodes</label>
+          </div>
+
+          <div class="checkbox">
+            <label><input type="checkbox" id="dispSimplifiedRoadsCB" checked/>Display Simplified Roads</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="dispSimplifiedNodesCB" checked/>Display Simplified Nodes</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="dispOrdersCB"/>Display Orders</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="dispCenterPositionCB"/>Display Center Position</label>
           </div>
           <hr>
 
@@ -139,7 +152,27 @@
 
           <div id="ol_map" class="ol_map" style="width:800px; height:800px"></div>
           <div class="container">
-            <p>Information Display Panel</p>
+            <div class="row">
+              <div class="col-sm-4">
+                <span id='mapTextDisplay'></span>
+              </div>
+              <div class="col-sm-6 input-group input-group-sm">
+                <input type="text" class="form-control" id="goLat" placeholder="lat" style="width:100px; height:30px">
+                <input type="text" class="form-control" id="goLng" placeholder="lng" style="width:100px; height:30px; margin-left:5px">
+                <button type="button" class="btn btn-default btn-sm" style="margin-left:5px" onclick="goLatLng()">Set</button>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-sm-4">
+                <span id='nodeTextDisplay'></span>
+              </div>
+              <div class="col-sm-6 input-group input-group-sm">
+                <input type="text" class="form-control" id="goNode" placeholder="node ID" style="width:100px; height:30px">
+                <button type="button" class="btn btn-default btn-sm" style="margin-left:5px" onclick="goCenterNode()">Set</button>
+              </div>
+            </div>
+       
           </div>
         </div>
 
@@ -151,10 +184,10 @@
           <h4>Locations</h4>
 
           <div class="radio">
-            <label><input type="radio" name="locationRadio" id="locationNoRB">Do not display</label>
+            <label><input type="radio" name="locationRadio" id="locationNoRB" checked>Do not display</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="locationRadio" id="location0RB" checked>Restaurants</label>
+            <label><input type="radio" name="locationRadio" id="location0RB">Restaurants</label>
           </div>
           <div class="radio">
             <label style="color:gray"><input type="radio" name="locationRadio" id="location1RB" disabled>Gardens and parks</label>
@@ -183,7 +216,7 @@
 
           <h4>Control Points</h4>
           <div class="checkbox">
-            <label><input type="checkbox" id="dispControlPointsCB" checked/>Display Control Points</label>
+            <label><input type="checkbox" id="dispControlPointsCB"/>Display Control Points</label>
           </div>
           <label style="margin-right:0px">Randomness</label>
             <input id="randomSlider" data-slider-id='randomSlider' type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="0"/>
@@ -192,23 +225,15 @@
           <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="moveLocations()">Move Locs</button>
           <hr>
 
-          
-
-          <!-- Go Directly -->
-
-          <h4>Go Directly</h4>
-          <div class="input-group input-group-sm">
-            <input type="text" class="form-control" id="goLat" placeholder="lat" style="width:100px">
-            <input type="text" class="form-control" id="goLng" placeholder="lng" style="width:100px; margin-left:5px">
-            <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="goLatLng()">Go!</button>
-          </div>
-          <hr>
+        
 
 
-          <!-- Future... -->
+          <!-- Simplification-->
 
-          <h4>Future Controls...</h4>
-          <p>to be listed here</p>
+          <h4>Simplification</h4>
+          <input id="angleSlider" data-slider-id='angleSlider' type="text" data-slider-min="0" data-slider-max="180" data-slider-step="1" data-slider-value="20"/>
+          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="simpReduceByAngle()">Reduction by Angle</button>
+          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="simpRemove2Degree()">Remove 2-degree nodes</button>
 
           
           <!-- Network selection algorithm -->
@@ -230,19 +255,9 @@
       </div>
     </div>
 
-
-
-
-    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>-->
-    <!-- <script src="../../lib/vendor/jquery-ui-1.11.1.custom/external/jquery/jquery.js"></script> -->
-    <!-- <script src="http://openlayers.org/en/v3.11.2/build/ol.js"></script> -->
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.5.0/ol.js"></script>
+    <!--
     <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js"></script>
-    <script src="vendor/bootstrap.min.js"></script>
-    <script src="vendor/bootstrap-slider.min.js"></script>
     <script src="vendor/dijkstra.js"></script>
-    <script src="vendor/tps.js"></script>
-
     <script src="data/tol_0.js"></script>
     <script src="data/tol_1.js"></script>
     <script src="data/tol_2.js"></script>
@@ -251,39 +266,15 @@
     <script src="data/tol_5.js"></script>
     <script src="data/tol_6.js"></script>
     <script src="data/tol_7.js"></script>
-    <script src="data/predata.js"></script>
     -->
-    <!--<script src="data/shortestTime1.js"></script>-->
-    <!--<script src="data/shortestTime2.js"></script>-->
 
-    <!-- <script src="data/seattle_washington_roads_gen0.js"></script> -->
-    <!--<script src="data/nodes_org_reduced.js"></script>
-    <script src="data/edges_org_reduced.js"></script>-->
-    <!-- <script src="data/points.js"></script> -->
 
-    
-    <!--
-    <script src="js/nem/nodeEdgeMaker.js"></script>
-    <script src="js/nem/nem_clean.js"></script>
-    <script src="js/nem/nem_merge.js"></script>
-    <script src="js/nem/nem_intersect.js"></script>
-    <script src="js/nem/nem_partition.js"></script>
+    <!--<script src="data/seattle_washington_roads_gen0.js"></script>-->
+    <script src="data/restaurants.js"></script>
+    <!--<script src="data/graph.js"></script>-->
+    <script src="data/rawData_seattle.js"></script>
 
-    <script src="js/utils.js"></script>
-    <script src="js/options.js"></script>
-    <script src="js/traffigram_objects.js"></script>
-    <script src="js/traffigram.js"></script>
-    <script src="js/traffigram_utils.js"></script>
-    <script src="js/traffigram_data.js"></script>
-    <script src="js/traffigram_graph.js"></script>
-    <script src="js/traffigram_graph2.js"></script>
-    <script src="js/traffigram_map.js"></script>
-    <script src="js/traffigram_map2.js"></script>
-    <script src="js/main.js"></script>-->
-
-    <script src="data/seattle_washington_roads_gen0.js"></script>
-    <script src="data/tol_0.js"></script>
-
+    <!--<script src="http://openlayers.org/en/v3.11.2/build/ol.js"></script>-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.5.0/ol.js"></script>
     <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>-->
     <script src="./vendor/jquery-2.2.3.min.js"></script>

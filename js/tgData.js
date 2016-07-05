@@ -1,10 +1,11 @@
 class TGData {
 
-	constructor(graph, options) {
+	constructor(graph, util, options) {
 		this.graph = graph;
+		this.util = util;
 		this.opt = options;
 
-		this.verbose = {};
+		this.original = {};
 		this.level0 = {};
 		this.level1 = {};
 		this.level2 = {};
@@ -12,11 +13,15 @@ class TGData {
 		this.locations.restaurants = restaurants.locations;
 	  this.locationType = 'restaurants';
 	  this.randomness = 0;
+	  this.simpThresholdAngle = 20;
 	  this.centerPosition = {};
 
 	  this.noi = [];
 	  this.cpGrid = [];
 	  this.controlPoints = [];
+
+	  this.dispEdges = [];
+	  this.simpEdges = [];
 
 	  this.initGrids();
 	}
@@ -39,6 +44,53 @@ class TGData {
 				this.noi.push(new Node(lat, lng));
 			}
 		}
+	}
+
+	calDispEdges() {
+		var edges = this.original.edges;
+		var nodes = this.original.nodes;
+		var len = edges.length;
+		var lat, lng;
+		this.dispEdges = [];
+
+		for(var i = 0; i < len; i++) {
+			lat = nodes[edges[i].nodes[0]].lat;
+			lng = nodes[edges[i].nodes[0]].lng;
+
+			if ((lat < this.opt.box.top) && (lat > this.opt.box.bottom) 
+				&& (lng < this.opt.box.right)	&& (lng > this.opt.box.left)) {
+				this.dispEdges.push(edges[i]);
+				continue;
+			}
+
+			lat = nodes[edges[i].nodes[edges[i].nodes.length - 1]].lat;
+			lng = nodes[edges[i].nodes[edges[i].nodes.length - 1]].lng;
+
+			if ((lat < this.opt.box.top) && (lat > this.opt.box.bottom) 
+				&& (lng < this.opt.box.right)	&& (lng > this.opt.box.left)) {
+				this.dispEdges.push(edges[i]);
+			}
+		}
+		this.calSimpEdges();
+	}
+
+	calSimpEdges() {
+		this.simpEdges = this.util.clone(this.dispEdges);
+		//console.log(this.simpEdges);
+	}
+
+	calUniqueNodesLength(nodes, edges) {
+		var len = edges.length;
+		var unqNodes = [];
+
+		for(var i = 0; i < len; i++) {
+			for(var j = 0; j < edges[i].nodes.length; j++) {
+				if (unqNodes.indexOf(edges[i].nodes[j]) === -1) {
+					unqNodes.push(edges[i].nodes[j]);
+				}
+			}
+		}
+		return unqNodes.length;
 	}
 
 	//
