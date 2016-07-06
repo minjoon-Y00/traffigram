@@ -350,14 +350,14 @@ $("#angleSlider").on("slideStop", function(evt) {
 });
 
 function simpReduceByAngle() {
-	tg.data.calSimpEdges();
+	tg.data.copySimpRoads();
 	tg.net.alg.reduceByAngle();
 	tg.map.updateLayers();
 	tg.map.displayTexts();
 }
 
 function simpRemove2Degree() {
-	tg.data.calSimpEdges();
+	tg.data.copySimpRoads();
 	tg.net.alg.remove2DegreeNodes();
 	tg.map.updateLayers();
 	tg.map.displayTexts();

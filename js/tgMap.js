@@ -527,40 +527,47 @@ class TGMap {
 		return this.olVectorFromFeatures(arr);
 	}
 
-	createRoadLayerByType(nodes, edges, clr, width, arr, typeArr) {
-		for(var i = 0; i < edges.length; i++) {
+	createRoadLayerByType(nodes, roads, clr, width, arr, typeArr) {
+		var lenRoads = roads.length;
+
+		for(var i = 0; i < lenRoads; i++) {
 
 			//if ($.arrayIntersect(ne.edges[i].tag, typeArr).length == 0) continue;
 			//if ($.inArray(ne.edges[i].tag[0], typeArr) === -1) continue;
 
-			if (this.displayedRoads.indexOf(edges[i].tag[0]) === -1) continue;
+			if (this.displayedRoads.indexOf(roads[i].tag[0]) === -1) continue;
 
-			for(var j = 0; j < edges[i].nodes.length - 1; j++) {
+			for(var j = 0; j < roads[i].nodes.length - 1; j++) {
 
-				var new_width = (edges[i].oneway) ? width : width + 1;
+				var new_width = (roads[i].oneway) ? width : width + 1;
 
 				this.olFeaturesFromLineStrings(arr, 
-					nodes[edges[i].nodes[j]].lng, 
-					nodes[edges[i].nodes[j]].lat, 
-					nodes[edges[i].nodes[j + 1]].lng, 
-					nodes[edges[i].nodes[j + 1]].lat, 
+					nodes[roads[i].nodes[j]].lng, 
+					nodes[roads[i].nodes[j]].lat, 
+					nodes[roads[i].nodes[j + 1]].lng, 
+					nodes[roads[i].nodes[j + 1]].lat, 
 					this.lineStyleFunc(clr, new_width));
 			}
 		}
 	}
 
-	createNodeLayer(nodes, edges, clr, radius) {
+	createNodeLayer(nodes, roads, clr, radius) {
 		var arr = [];
-		for(var i = 0; i < edges.length; i++) {
-			for(var j = 0; j < edges[i].nodes.length; j++) {
+		var lenRoads = roads.length;
+
+		for(var i = 0; i < lenRoads; i++) {
+			for(var j = 0; j < roads[i].nodes.length; j++) {
 
 				if (this.dispOrders) {
-					var order = nodes[edges[i].nodes[j]].tag.length;
-					clr = this.opt.color.nodeOrder[order - 1];
+					//var order = nodes[edges[i].nodes[j]].tag.length;
+					var order = nodes[roads[i].nodes[j]].order;
+
+					if (order == 0) clr = '#CCC';
+					else clr = this.opt.color.nodeOrder[order - 1];
 				}
 
 				this.olFeaturesFromPoints(arr, 
-					nodes[edges[i].nodes[j]].lng, nodes[edges[i].nodes[j]].lat, 
+					nodes[roads[i].nodes[j]].lng, nodes[roads[i].nodes[j]].lat, 
 					this.nodeStyleFunc(clr, radius));
 			}
 		}

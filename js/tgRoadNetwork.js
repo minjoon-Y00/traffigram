@@ -4,7 +4,7 @@ class TGRoadNetwork {
 		this.data = data;
 		this.util = util;
 		this.opt = options;
-		this.alg = new TGRoadNetworkAlgorithm(data, util, options);
+		this.alg = new TGRoadNetworkAlgorithm(data, this, util, options);
 	}
 
 	//
@@ -191,6 +191,28 @@ class TGRoadNetwork {
 	isOneway(tags) {
 		return (tags.indexOf('oneway_IS_yes') != -1)
 	}
+
+	calOrderOfNodes(nodes, roads) {
+		var nodes = nodes || this.data.original.nodes;
+		var roads = roads || this.data.original.roads;
+		var lenNodes = nodes.length;
+		var lenRoads = roads.length;
+
+		for(var i = 0; i < lenNodes; i++) {
+			nodes[i].order = 0;
+		}
+		for(var i = 0; i < lenRoads; i++) {
+			//for(var j = 0; j < roads[i].nodes.length; j++) {
+			//	nodes[roads[i].nodes[j]].order++;
+			//}
+			nodes[roads[i].nodes[0]].order++;
+			nodes[roads[i].nodes[roads[i].nodes.length - 1]].order++;
+		}
+	}
+
+
+
+
 
 	
 }

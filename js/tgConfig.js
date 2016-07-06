@@ -1,7 +1,7 @@
 const options = {
 	maxZoom: 18,
 	minZoom: 10,
-	zoom: 15, //13,
+	zoom: 16, //13,
 
 	color: {
 		water: 'rgba(146, 219, 238, 1)',
