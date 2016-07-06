@@ -50,6 +50,7 @@ class TGRoadNetworkAlgorithm {
 		this.separateRoads();
 		this.net.calOrderOfNodes(null, this.data.dispRoads);
 		this.mergeRoads();
+		this.simplifyRDP();
 	}
 
 	reduceNodesByAngleInEdgeNodes(nodes, refNode, threshold_angle) {
@@ -179,8 +180,7 @@ class TGRoadNetworkAlgorithm {
 		console.log('R(' + this.data.dispRoads.length + ') => (' + outRoads.length + ')');
 		this.data.dispRoads = outRoads;
 
-		// min = 57
-
+		//
 
 		function findAndMerge(startOrEnd, r) {
 			var found = 'none';
@@ -291,136 +291,95 @@ class TGRoadNetworkAlgorithm {
 			}
 			return true;
 		}
-
-
-
 	}
 
-	mergeRoads2() {
+	//
+	//
+	//
+	simplifyRDP() {
 		var nodes = this.data.original.nodes;
 		//var roads = this.data.original.roads;
 		var roads = this.data.dispRoads;
-		var outRoads = [];
 		var lenNodes = nodes.length;
 		var lenRoads = roads.length;
-		var cnt = 0;
-		var modified = true;
 
-		while(modified) {
+		var eps = 0.0005; //0.0015598972646812205;
 
-			modified = false;
-			lenRoads = roads.length;
-
-			for(var i = 0; i < lenRoads; i++) {
-				roads[i].deleted = false;
-			}
-
-			for(var i = 0; i < lenRoads; i++) {
-				if (nodes[roads[i].nodes[0]].order == 2) {
-					var startNode = roads[i].nodes[0];
-
-					for(var j = i + 1; j < lenRoads; j++) {
-
-						if (roads[j].deleted) continue;
-
-						if (roads[j].nodes[0] == startNode) {
-
-							if (!validateTagAndOneway(roads[i], roads[j])) break;
-
-						
-							//var road = {tag:roads[i].tag, oneway:roads[i].oneway};
-							console.log('s - s : i = ' + i + ', j = ' + j);
-							cnt++;
-							roads[j].deleted = true;
-							break;
-						}
-						else if (roads[j].nodes[roads[j].nodes.length - 1] == startNode) {
-							
-							if (!validateTagAndOneway(roads[i], roads[j])) break;
-
-							var road = {tag:roads[i].tag, oneway:roads[i].oneway};
-							road.nodes = roads[j].nodes.concat(roads[i].nodes);
-							roads[i] = road;
-							modified = true;
-
-							console.log('s - e : i = ' + i + ', j = ' + j);
-							cnt++;
-
-							roads[j].deleted = true;
-							break;
-						}
-					}
-				}
-				else if (nodes[roads[i].nodes[roads[i].nodes.length - 1]].order == 2) {
-					var endNode = roads[i].nodes[roads[i].nodes.length - 1];
-					
-					for(var j = i + 1; j < lenRoads; j++) {
-
-						if (roads[j].deleted) continue;
-
-						if (roads[j].nodes[0] == endNode) {
-
-							if (!validateTagAndOneway(roads[i], roads[j])) break;
-
-							var road = {tag:roads[i].tag, oneway:roads[i].oneway};
-							road.nodes = roads[i].nodes.concat(roads[j].nodes);
-							roads[i] = road;
-							modified = true;
-
-							console.log('e - s : i = ' + i + ', j = ' + j);
-							cnt++;
-							roads[j].deleted = true;
-							break;
-						}
-						else if (roads[j].nodes[roads[j].nodes.length - 1] == endNode) {
-							
-							if (!validateTagAndOneway(roads[i], roads[j])) break;
-
-							console.log('e - e : i = ' + i + ', j = ' + j);
-							cnt++;
-							roads[j].deleted = true;
-							break;
-						}
-					}
-				}
-			}
-
-			for(var i = 0; i < lenRoads; i++) {
-				if (!roads[i].deleted) {
-					outRoads.push(roads[i]);
-				}
-			}
-			roads = outRoads;
-			console.log('iterate...');
-			break;
-		}
-
+		for(var i = 0; i < lenRoads; i++) {
 		
+			//var i = 59;
+		
+			//console.log(roads[i].nodes);
+			var startNode = nodes[roads[i].nodes[0]];
+			var endNode = nodes[roads[i].nodes[roads[i].nodes.length - 1]];
+			//console.log(startNode);
+			//console.log(endNode);
+			//console.log('---');
 
-		//this.data.dispRoads = roads;
-		this.data.dispRoads = outRoads;
+			roads[i].nodes = RDPSimp(roads[i].nodes, eps);
 
+			//console.log(roads[i].nodes);
 
-		console.log('cnt = ' + cnt);
-
-		function validateTagAndOneway(road1, road2) {
-			if (road1.tag[0] != road2.tag[0]) {
-				console.log('tag is not same');
-				console.log('roads[i].tag[0] = ' + road1.tag[0]);
-				console.log('roads[j].tag[0] = ' + road2.tag[0]);
-				return false;
+			/*var maxD = 0;
+			for(var j = 1; j < roads[i].nodes.length - 1; j++) {
+				var testNode = nodes[roads[i].nodes[j]];
+				var d = this.distanceBetweenLineAndPoint(
+					startNode.lat, startNode.lng, endNode.lat, endNode.lng, testNode.lat, testNode.lng);
+				if (d > maxD) maxD = d;
+				console.log(d);
 			}
-
-			if (road1.oneway != road2.oneway) {
-				console.log('oneway is not same');
-				console.log('roads[i].oneway = ' + roads[i].oneway);
-				console.log('roads[j].oneway= ' + roads[j].oneway);
-				return false;
-			}
-			return true;
+			console.log('maxD = ' + maxD);*/
 		}
 
+		function RDPSimp(nodeArr, eps) {
+			// Find the point with the maximum distance
+			var dmax = 0;
+			var index = 0;
+			var startNode = nodes[nodeArr[0]];
+			var endNode = nodes[nodeArr[nodeArr.length - 1]];
+
+			for(var i = 1; i < nodeArr.length - 1; i++) {
+				var testNode = nodes[nodeArr[i]];
+				var d = distanceBetweenLineAndPoint(
+					startNode.lat, startNode.lng, endNode.lat, endNode.lng, testNode.lat, testNode.lng);
+				//console.log(d);
+				if (d > dmax) {
+					index = i;
+					dmax = d;
+				}
+			}
+
+			//console.log('index = ' + index);
+			//console.log('dmax = ' + dmax);
+
+			// If max distance is greater than eps, recursively simplify
+			if (dmax > eps) {
+				// Recursive call
+				var result1 = RDPSimp(nodeArr.slice(0, index + 1), eps);
+				var result2 = RDPSimp(nodeArr.slice(index, nodeArr.length), eps);
+
+				// Build the result list
+				var results = result1.concat(result2);
+			}
+			else {
+				results = [nodeArr[0], nodeArr[nodeArr.length - 1]];
+			}
+			return results;
+		}
+
+		function distanceBetweenLineAndPoint(L1x, L1y, L2x, L2y, Px, Py) {
+			var t = Math.abs((L2y - L1y) * Px - (L2x - L1x) * Py + L2x * L1y - L2y * L1x);
+			var b = Math.sqrt((L2y - L1y) * (L2y - L1y) + (L2x - L1x) * (L2x - L1x));
+			return t / b;
+		}
 	}
+
+
+
+
+	// 59, 69, 3, 41, 42, 60, 
+
+	
 
 
 }
