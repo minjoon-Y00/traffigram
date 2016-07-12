@@ -344,21 +344,21 @@ function goCenterNode() {
 // Simplification
 //
 //
-var angleSlider = new Slider("#angleSlider");
-$("#angleSlider").on("slideStop", function(evt) {
-  tg.data.simpThresholdAngle = evt.value;
+var rdpSlider = new Slider("#rdpSlider");
+$("#rdpSlider").on("slideStop", function(evt) {
+  tg.data.simpDistanceRDP = evt.value;
 });
 
-function simpReduceByAngle() {
+function simpSeperateMerge() {
 	tg.data.copySimpRoads();
-	tg.net.alg.reduceByAngle();
+	tg.net.alg.seperateAndMerge();
 	tg.map.updateLayers();
 	tg.map.displayTexts();
 }
 
-function simpRemove2Degree() {
+function simpRDP() {
 	tg.data.copySimpRoads();
-	tg.net.alg.remove2DegreeNodes();
+	tg.net.alg.simplifyRDP();
 	tg.map.updateLayers();
 	tg.map.displayTexts();
 }

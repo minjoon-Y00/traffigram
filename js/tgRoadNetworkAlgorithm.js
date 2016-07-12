@@ -31,7 +31,7 @@ class TGRoadNetworkAlgorithm {
 		return unique;
 	}
 
-	reduceByAngle() {
+	seperateAndMerge() {
 		//var nodes = this.data.original.nodes;
 		//var edges = this.data.simpEdges;
 		//var len = edges.length;
@@ -47,10 +47,10 @@ class TGRoadNetworkAlgorithm {
 			edges[i].nodes = this.reduceNodesByAngleInEdgeNodes(edges[i].nodes, nodes, this.data.simpThresholdAngle);
 		}
 		*/
+		this.net.calOrderOfNodes(null, this.data.dispRoads);
 		this.separateRoads();
 		this.net.calOrderOfNodes(null, this.data.dispRoads);
 		this.mergeRoads();
-		this.simplifyRDP();
 	}
 
 	reduceNodesByAngleInEdgeNodes(nodes, refNode, threshold_angle) {
@@ -303,32 +303,11 @@ class TGRoadNetworkAlgorithm {
 		var lenNodes = nodes.length;
 		var lenRoads = roads.length;
 
-		var eps = 0.0005; //0.0015598972646812205;
+		var eps = this.data.simpDistanceRDP * 0.0001; // 0-20 --> 0.0000-0.0020
+		 //0.0005; //0.0015598972646812205;
 
 		for(var i = 0; i < lenRoads; i++) {
-		
-			//var i = 59;
-		
-			//console.log(roads[i].nodes);
-			var startNode = nodes[roads[i].nodes[0]];
-			var endNode = nodes[roads[i].nodes[roads[i].nodes.length - 1]];
-			//console.log(startNode);
-			//console.log(endNode);
-			//console.log('---');
-
 			roads[i].nodes = RDPSimp(roads[i].nodes, eps);
-
-			//console.log(roads[i].nodes);
-
-			/*var maxD = 0;
-			for(var j = 1; j < roads[i].nodes.length - 1; j++) {
-				var testNode = nodes[roads[i].nodes[j]];
-				var d = this.distanceBetweenLineAndPoint(
-					startNode.lat, startNode.lng, endNode.lat, endNode.lng, testNode.lat, testNode.lng);
-				if (d > maxD) maxD = d;
-				console.log(d);
-			}
-			console.log('maxD = ' + maxD);*/
 		}
 
 		function RDPSimp(nodeArr, eps) {
@@ -342,15 +321,11 @@ class TGRoadNetworkAlgorithm {
 				var testNode = nodes[nodeArr[i]];
 				var d = distanceBetweenLineAndPoint(
 					startNode.lat, startNode.lng, endNode.lat, endNode.lng, testNode.lat, testNode.lng);
-				//console.log(d);
 				if (d > dmax) {
 					index = i;
 					dmax = d;
 				}
 			}
-
-			//console.log('index = ' + index);
-			//console.log('dmax = ' + dmax);
 
 			// If max distance is greater than eps, recursively simplify
 			if (dmax > eps) {
@@ -374,12 +349,6 @@ class TGRoadNetworkAlgorithm {
 		}
 	}
 
-
-
-
-	// 59, 69, 3, 41, 42, 60, 
-
-	
 
 
 }

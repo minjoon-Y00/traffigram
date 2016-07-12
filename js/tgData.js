@@ -13,7 +13,7 @@ class TGData {
 		this.locations.restaurants = restaurants.locations;
 	  this.locationType = 'restaurants';
 	  this.randomness = 0;
-	  this.simpThresholdAngle = 20;
+	  this.simpDistanceRDP = 1;
 	  this.centerPosition = {};
 
 	  this.noi = [];
