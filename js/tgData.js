@@ -79,14 +79,14 @@ class TGData {
 		}
 
 		// then, copy dispRoads to simpRoads
-		this.copySimpRoads();
+		//this.copySimpRoads(this.dispRoads);
 	}
 
 	//
 	// Copy displayed roads to simplified roads
 	//
-	copySimpRoads() {
-		this.simpRoads = this.util.clone(this.dispRoads);
+	copySimpRoads(roads) {
+		this.simpRoads = this.util.clone(roads);
 	}
 
 	//

@@ -9,7 +9,8 @@ class TGAnalysis {
 		this.map = new TGMap('ol_map', this.data, this.net, options);
 
 	  //this.setArea('Seattle');
-	  this.map.setCenter(47.468419, -122.217903); // intersection
+	  //this.map.setCenter(47.468419, -122.217903); // intersection
+	  this.map.setCenter(47.462007, -122.265110); // intersection2
 	  //this.map.setCenter(47.611476, -122.340284); // downtown
 
 		//this.readFilesAndStart();

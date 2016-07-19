@@ -92,10 +92,10 @@
 
           <h4>Visual Elements</h4>
           <div class="checkbox">
-            <label><input type="checkbox" id="dispOriginalRoadsCB" checked/>Display Original Roads</label>
+            <label><input type="checkbox" id="dispOriginalRoadsCB"/>Display Original Roads</label>
           </div>
           <div class="checkbox">
-            <label><input type="checkbox" id="dispOriginalNodesCB" checked/>Display Original Nodes</label>
+            <label><input type="checkbox" id="dispOriginalNodesCB"/>Display Original Nodes</label>
           </div>
 
           <div class="checkbox">
@@ -105,7 +105,7 @@
             <label><input type="checkbox" id="dispSimplifiedNodesCB" checked/>Display Simplified Nodes</label>
           </div>
           <div class="checkbox">
-            <label><input type="checkbox" id="dispOrdersCB"/>Display Orders</label>
+            <label><input type="checkbox" id="dispOrdersCB" checked/>Display Orders</label>
           </div>
           <div class="checkbox">
             <label><input type="checkbox" id="dispCenterPositionCB"/>Display Center Position</label>
@@ -231,7 +231,11 @@
           <!-- Simplification-->
 
           <h4>Simplification</h4>
-          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="simpSeperateMerge()">Separation &amp; Merge</button>
+          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="simpSeperate()">I. Separate Roads</button>
+          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="simpMerge()">II. Merge Roads</button>
+          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="simpStraightenLinks()">III. Straighten Links</button>
+
+
           <input id="rdpSlider" data-slider-id='rdpSlider' type="text" data-slider-min="0" data-slider-max="20" data-slider-step="1" data-slider-value="1"/>
           <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="simpRDP()">RDP Simplification</button>
 

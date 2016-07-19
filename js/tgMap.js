@@ -24,11 +24,11 @@ class TGMap {
 	  this.dispTileLayer = false;
 
 	  this.displayedRoads = [];
-	  this.dispOriginalRoadLayer = true;
-	  this.dispOriginalNodeLayer = true;
+	  this.dispOriginalRoadLayer = false;
+	  this.dispOriginalNodeLayer = false;
 	  this.dispSimplifiedRoadLayer = true;
 	  this.dispSimplifiedNodeLayer = true;
-	  this.dispOrders = false;
+	  this.dispOrders = true;
 	  this.dispCenterPositionLayer = false;
 
 	  this.dispRoadLayer = false;
@@ -554,8 +554,12 @@ class TGMap {
 	createNodeLayer(nodes, roads, clr, radius) {
 		var arr = [];
 		var lenRoads = roads.length;
+		var new_clr;
 
 		for(var i = 0; i < lenRoads; i++) {
+			
+			if (this.displayedRoads.indexOf(roads[i].tag[0]) === -1) continue;
+
 			for(var j = 0; j < roads[i].nodes.length; j++) {
 
 				if (this.dispOrders) {
@@ -566,9 +570,14 @@ class TGMap {
 					else clr = this.opt.color.nodeOrder[order - 1];
 				}
 
+				if (nodes[roads[i].nodes[j]].special)
+					new_clr = '#000';
+				else
+					new_clr = clr;
+
 				this.olFeaturesFromPoints(arr, 
 					nodes[roads[i].nodes[j]].lng, nodes[roads[i].nodes[j]].lat, 
-					this.nodeStyleFunc(clr, radius));
+					this.nodeStyleFunc(new_clr, radius));
 			}
 		}
 		return this.olVectorFromFeatures(arr);

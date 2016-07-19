@@ -344,6 +344,26 @@ function goCenterNode() {
 // Simplification
 //
 //
+function simpSeperate() {
+	tg.data.copySimpRoads(tg.data.dispRoads);
+	tg.net.calOrderOfNodes(null, tg.data.simpRoads);
+	tg.net.alg.separateRoads();
+	tg.map.updateLayers();
+	tg.map.displayTexts();
+}
+
+function simpMerge() {
+	tg.net.alg.mergeRoads();
+	tg.map.updateLayers();
+	tg.map.displayTexts();
+}
+
+function simpStraightenLinks() {
+	tg.net.alg.straightenLink();
+	tg.map.updateLayers();
+	tg.map.displayTexts();
+}
+
 var rdpSlider = new Slider("#rdpSlider");
 $("#rdpSlider").on("slideStop", function(evt) {
   tg.data.simpDistanceRDP = evt.value;
@@ -359,6 +379,13 @@ function simpSeperateMerge() {
 function simpRDP() {
 	tg.data.copySimpRoads();
 	tg.net.alg.simplifyRDP();
+	tg.map.updateLayers();
+	tg.map.displayTexts();
+}
+
+function simpMergeRoads() {
+	tg.data.copySimpRoads();
+	tg.net.alg.simpMergeRoads();
 	tg.map.updateLayers();
 	tg.map.displayTexts();
 }
