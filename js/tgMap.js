@@ -128,28 +128,33 @@ class TGMap {
 	displayTexts() {
 		var precision = 3;
 
-		// Display the total number of nodes & roads
-		var totalN = this.data.original.nodes.length;
-		var totalR = this.data.original.roads.length;
-		var str = 'Total N(' + totalN + ') R(' + totalR + ')';
+		// Display the total number of original nodes & roads
+		var orgN = this.data.original.nodes.length;
+		var orgR = this.data.original.roads.length;
+		var str = 'Total N(' + orgN + ') R(' + orgR + ')';
 		$('#displayTextLT1').text(str);
 
-		// Display the number of displayed (original) nodes & roads
-		var dispN = this.data.calUniqueNodesLength(this.data.original.nodes, this.data.dispRoads);
-		var dispR = this.data.dispRoads.length;
-		var percN = (dispN / totalN * 100).toPrecision(precision);
-		var percR = (dispR / totalR * 100).toPrecision(precision);
-		str = 'Disp N(' + dispN + ') R(' + dispR + ') (' + percN + '% ,' + percR + '%)';
+		// Display the total number of simplified nodes & roads
+		var simpN = this.data.simple.nodes.length;
+		var simpR = this.data.simple.roads.length;
+		var percN = (simpN / orgN * 100).toPrecision(precision);
+		var percR = (simpR / orgR * 100).toPrecision(precision);
+		var str = 'Total N(' + simpN + ') R(' + simpR + ') (' + percN + '% ,' + percR + '%)';
 		$('#displayTextLT2').text(str);
 
-		// Display the number of simplified nodes & roads
-		var simpN = this.data.calUniqueNodesLength(this.data.original.nodes, this.data.simpRoads);
-		var simpR = this.data.simpRoads.length;
-		percN = (simpN / dispN * 100).toPrecision(precision);
-		percR = (simpR / dispR * 100).toPrecision(precision);
-		str = 'Simp N(' + simpN + ') R(' + simpR + ') (' + percN + '% ,' + percR + '%)';
+		// Display the number of displayed (original) nodes & roads
+		var orgDispN = this.data.calUniqueNodesLength(this.data.original.nodes, this.data.original.dispRoads);
+		var orgDispR = this.data.original.dispRoads.length;
+		str = 'Disp N(' + orgDispN + ') R(' + orgDispR + ')';
 		$('#displayTextLT3').text(str);
 
+		// Display the number of displayed (simplified) nodes & roads
+		var simpDispN = this.data.calUniqueNodesLength(this.data.simple.nodes, this.data.simple.dispRoads);
+		var simpDispR = this.data.simple.dispRoads.length;
+		str = 'Simp N(' + simpDispN + ') R(' + simpDispR + ')';
+		$('#displayTextLT4').text(str);
+
+		
 		//$('#displayTextLT1').text(this.currentZoom + ' Map Level');
 		//$('#displayTextLT1').text(this.data.locations[this.data.locationType].length + ' Total Nodes');
 
@@ -314,7 +319,7 @@ class TGMap {
 	drawOriginalRoadLayer() {
 		this.removeLayer(this.map.originalRoadLayer);
 		this.map.originalRoadLayer = this.createRoadLayer(
-			this.data.original.nodes, this.data.dispRoads, 
+			this.data.original.nodes, this.data.original.dispRoads, 
 			this.opt.color.originalRoad, this.opt.width.originalRoad);
 	  this.map.addLayer(this.map.originalRoadLayer);
 	}
@@ -322,7 +327,7 @@ class TGMap {
 	drawOriginalNodeLayer() {
 		this.removeLayer(this.map.originalNodeLayer);
 		this.map.originalNodeLayer = this.createNodeLayer(
-			this.data.original.nodes, this.data.dispRoads, 
+			this.data.original.nodes, this.data.original.dispRoads, 
 			this.opt.color.originalNode, this.opt.radius.originalNode);
 	  this.map.addLayer(this.map.originalNodeLayer);
 	}
@@ -330,7 +335,7 @@ class TGMap {
 	drawSimplifiedRoadLayer() {
 		this.removeLayer(this.map.simplifiedRoadLayer);
 		this.map.simplifiedRoadLayer = this.createRoadLayer(
-			this.data.original.nodes, this.data.simpRoads, 
+			this.data.simple.nodes, this.data.simple.dispRoads, 
 			this.opt.color.simplifiedRoad, this.opt.width.simplifiedRoad);
 	  this.map.addLayer(this.map.simplifiedRoadLayer);
 	}
@@ -338,7 +343,7 @@ class TGMap {
 	drawSimplifiedNodeLayer() {
 		this.removeLayer(this.map.simplifiedNodeLayer);
 		this.map.simplifiedNodeLayer = this.createNodeLayer(
-			this.data.original.nodes, this.data.simpRoads, 
+			this.data.simple.nodes, this.data.simple.dispRoads, 
 			this.opt.color.simplifiedNode, this.opt.radius.simplifiedNode);
 	  this.map.addLayer(this.map.simplifiedNodeLayer);
 	}

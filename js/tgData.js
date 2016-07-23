@@ -20,8 +20,7 @@ class TGData {
 	  this.cpGrid = [];
 	  this.controlPoints = [];
 
-	  this.dispRoads = [];
-	  this.simpRoads = [];
+	  this.simple = {};
 
 	  this.initGrids();
 	}
@@ -50,11 +49,14 @@ class TGData {
 	// Calculate displayed roads
 	//
 	calDispRoads() {
-		var roads = this.original.roads;
-		var nodes = this.original.nodes;
+		this.original.dispRoads = this.calDispRoadsByKind(this.original.nodes, this.original.roads);
+		this.simple.dispRoads = this.calDispRoadsByKind(this.simple.nodes, this.simple.roads);
+	}
+
+	calDispRoadsByKind(nodes, roads) {
 		var len = roads.length;
 		var lat, lng;
-		this.dispRoads = [];
+		var dispRoads = [];
 
 		for(var i = 0; i < len; i++) {
 
@@ -64,7 +66,7 @@ class TGData {
 
 			if ((lat < this.opt.box.top) && (lat > this.opt.box.bottom) 
 				&& (lng < this.opt.box.right)	&& (lng > this.opt.box.left)) {
-				this.dispRoads.push(roads[i]);
+				dispRoads.push(roads[i]);
 				continue;
 			}
 
@@ -74,19 +76,10 @@ class TGData {
 
 			if ((lat < this.opt.box.top) && (lat > this.opt.box.bottom) 
 				&& (lng < this.opt.box.right)	&& (lng > this.opt.box.left)) {
-				this.dispRoads.push(roads[i]);
+				dispRoads.push(roads[i]);
 			}
 		}
-
-		// then, copy dispRoads to simpRoads
-		//this.copySimpRoads(this.dispRoads);
-	}
-
-	//
-	// Copy displayed roads to simplified roads
-	//
-	copySimpRoads(roads) {
-		this.simpRoads = this.util.clone(roads);
+		return dispRoads;
 	}
 
 	//

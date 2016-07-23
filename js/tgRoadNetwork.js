@@ -193,21 +193,72 @@ class TGRoadNetwork {
 	}
 
 	calOrderOfNodes(nodes, roads) {
-		var nodes = nodes || this.data.original.nodes;
-		var roads = roads || this.data.original.roads;
 		var lenNodes = nodes.length;
 		var lenRoads = roads.length;
 
 		for(var i = 0; i < lenNodes; i++) {
 			nodes[i].order = 0;
 		}
+
 		for(var i = 0; i < lenRoads; i++) {
-			//for(var j = 0; j < roads[i].nodes.length; j++) {
-			//	nodes[roads[i].nodes[j]].order++;
-			//}
 			nodes[roads[i].nodes[0]].order++;
 			nodes[roads[i].nodes[roads[i].nodes.length - 1]].order++;
 		}
+	}
+
+	saveFileOfSaperateRoads() {
+
+		this.data.simple.nodes = this.util.clone(this.data.original.nodes);
+		this.data.simple.roads = this.util.clone(this.data.original.roads);
+		this.calOrderOfNodes(this.data.simple.nodes, this.data.simple.roads);
+
+		console.log(':' + this.data.simple.roads.length);
+
+		this.data.simple.roads = this.alg.separateRoads(this.data.simple.nodes, this.data.simple.roads);
+		this.calOrderOfNodes(this.data.simple.nodes, this.data.simple.roads);
+
+		console.log('::' + this.data.simple.roads.length);
+
+		this.data.simple.roads = this.alg.mergeRoads(this.data.simple.nodes, this.data.simple.roads);
+		this.calOrderOfNodes(this.data.simple.nodes, this.data.simple.roads);
+
+		console.log(':::' + this.data.simple.roads.length);
+
+
+
+		console.log(this.data.simple.nodes.length);
+		console.log(this.data.simple.roads.length);
+
+		//console.log(this.data.simple.nodes);
+		//console.log(this.data.simple.roads);
+
+		var out = {'nodes':[], 'roads':[]};
+		var lenNodes = this.data.simple.nodes.length;
+		var lenRoads = this.data.simple.roads.length;
+
+		for(var i = 0; i < lenNodes; i++) {
+			out.nodes.push({
+				lat: this.data.simple.nodes[i].lat,
+				lng: this.data.simple.nodes[i].lng,
+				order: this.data.simple.nodes[i].order 
+			});
+		}
+
+		for(var i = 0; i < lenRoads; i++) {
+			out.roads.push({
+				nodes: this.data.simple.roads[i].nodes,
+				oneway: this.data.simple.roads[i].oneway,
+				tag: this.data.simple.roads[i].tag
+			});
+		}
+		//this.data.simple.roads = simpData.roads;
+		this.util.saveTextAsFile(out, 'simpData.js');
+
+		console.log(out.nodes.length);
+		console.log(out.roads.length);
+
+
+
 	}
 
 

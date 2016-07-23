@@ -121,8 +121,6 @@ class TGRoadNetworkAlgorithm {
 	// Seperate roads which have intersections.
 	//
 	separateRoads(nodes, roads) {
-		var nodes = nodes || this.data.original.nodes;
-		var roads = roads || this.data.simpRoads;
 		var outRoads = [];
 		var lenNodes = nodes.length;
 		var lenRoads = roads.length;
@@ -152,23 +150,20 @@ class TGRoadNetworkAlgorithm {
 			}
 		}
 
-		console.log('R(' + roads.length + ') => (' + outRoads.length + ')');
+		console.log('separateRoads R(' + roads.length + ') => (' + outRoads.length + ')');
 
-		this.net.calOrderOfNodes(null, outRoads);
-		this.data.simpRoads = outRoads;
+		return outRoads;
 	}
 
 	//
 	// Merge roads which have 2 order
 	//
 	mergeRoads(nodes, roads) {
-		var nodes = nodes || this.data.original.nodes;
-		var roads = roads || this.data.simpRoads;
 		var outRoads = [];
-
-		// Check if each end node has 2 order
 		var lenRoads = roads.length;
 		var startNodeIdx, endNodeIdx;
+
+		// Check if each end node has 2 order
 		for(var i = 0; i < lenRoads; i++) {
 			startNodeIdx = roads[i].nodes[0]; 
 			endNodeIdx = roads[i].nodes[roads[i].nodes.length - 1];
@@ -235,10 +230,9 @@ class TGRoadNetworkAlgorithm {
 			if (!roads[i].deleted)
 				outRoads.push(roads[i]);
 		}
-		console.log('R(' + roads.length + ') => (' + outRoads.length + ')');
+		console.log('mergeRoads R(' + roads.length + ') => (' + outRoads.length + ')');
 
-		this.net.calOrderOfNodes(null, outRoads);
-		this.data.simpRoads = outRoads;
+		return outRoads;
 
 
 		function validateTagAndOneway(road1, road2) {
@@ -255,25 +249,24 @@ class TGRoadNetworkAlgorithm {
 	//
 	// make links straight lines
 	//
-	straightenLink() {
-		var roads = this.data.simpRoads;
-
+	straightenLink(roads) {
 		var links = ['motorway_link', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link'];
-
 		var lenRoads = roads.length;
+
 		for(var i = 0; i < lenRoads; i++) {
 			// If road type is link
 			if (links.indexOf(roads[i].tag[0]) >= 0) {
+				console.log(roads[i].tag[0]);
 				roads[i].nodes = [roads[i].nodes[0], roads[i].nodes[roads[i].nodes.length - 1]];
 			}
 		}
-		this.data.simpRoads = roads;
+		return roads;
 	}
 
-
+	/*
 	mergeRoads2(nodes, roads) {
 		var nodes = nodes || this.data.original.nodes;
-		var roads = roads || this.data.simpRoads;
+		var roads = roads || this.data.simple.roads;
 		//var nodes = this.data.original.nodes;
 		//var roads = this.util.clone(this.data.dispRoads);
 		var outRoads = [];
@@ -415,23 +408,20 @@ class TGRoadNetworkAlgorithm {
 			return true;
 		}
 	}
+	*/
 
 	//
 	//
 	//
-	simplifyRDP() {
-		var nodes = this.data.original.nodes;
-		//var roads = this.data.original.roads;
-		var roads = this.data.dispRoads;
+	simplifyRDP(nodes, roads) {
 		var lenNodes = nodes.length;
 		var lenRoads = roads.length;
-
 		var eps = this.data.simpDistanceRDP * 0.0001; // 0-20 --> 0.0000-0.0020
-		 //0.0005; //0.0015598972646812205;
 
 		for(var i = 0; i < lenRoads; i++) {
 			roads[i].nodes = RDPSimp(roads[i].nodes, eps);
 		}
+		return roads;
 
 		function RDPSimp(nodeArr, eps) {
 			// Find the point with the maximum distance

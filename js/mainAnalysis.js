@@ -345,21 +345,29 @@ function goCenterNode() {
 //
 //
 function simpSeperate() {
-	tg.data.copySimpRoads(tg.data.dispRoads);
-	tg.net.calOrderOfNodes(null, tg.data.simpRoads);
-	tg.net.alg.separateRoads();
+
+	tg.data.simple.nodes = tg.util.clone(tg.data.original.nodes);
+	tg.data.simple.roads = tg.util.clone(tg.data.original.roads);
+	tg.net.calOrderOfNodes(tg.data.simple.nodes, tg.data.simple.roads);
+
+	tg.data.simple.roads = tg.net.alg.separateRoads(tg.data.simple.nodes, tg.data.simple.roads);
+	tg.net.calOrderOfNodes(tg.data.simple.nodes, tg.data.simple.roads);
+
 	tg.map.updateLayers();
 	tg.map.displayTexts();
 }
 
 function simpMerge() {
-	tg.net.alg.mergeRoads();
+	tg.data.simple.roads = tg.net.alg.mergeRoads(tg.data.simple.nodes, tg.data.simple.roads);
+	tg.net.calOrderOfNodes(tg.data.simple.nodes, tg.data.simple.roads);
+
 	tg.map.updateLayers();
 	tg.map.displayTexts();
 }
 
 function simpStraightenLinks() {
-	tg.net.alg.straightenLink();
+	tg.data.simple.roads = tg.net.alg.straightenLink(tg.data.simple.roads);
+	console.log(tg.data.simple.roads);
 	tg.map.updateLayers();
 	tg.map.displayTexts();
 }
@@ -369,16 +377,9 @@ $("#rdpSlider").on("slideStop", function(evt) {
   tg.data.simpDistanceRDP = evt.value;
 });
 
-function simpSeperateMerge() {
-	tg.data.copySimpRoads();
-	tg.net.alg.seperateAndMerge();
-	tg.map.updateLayers();
-	tg.map.displayTexts();
-}
-
 function simpRDP() {
-	tg.data.copySimpRoads();
-	tg.net.alg.simplifyRDP();
+	tg.data.simple.roads = tg.net.alg.simplifyRDP(tg.data.simple.nodes, tg.data.simple.roads);
+	tg.net.calOrderOfNodes(tg.data.simple.nodes, tg.data.simple.roads);
 	tg.map.updateLayers();
 	tg.map.displayTexts();
 }
@@ -388,6 +389,10 @@ function simpMergeRoads() {
 	tg.net.alg.simpMergeRoads();
 	tg.map.updateLayers();
 	tg.map.displayTexts();
+}
+
+function save() {
+	tg.net.saveFileOfSaperateRoads();
 }
 
 /*
