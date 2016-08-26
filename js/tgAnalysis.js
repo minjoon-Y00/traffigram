@@ -9,9 +9,10 @@ class TGAnalysis {
 		this.map = new TGMap('ol_map', this.data, this.net, options);
 
 	  //this.setArea('Seattle');
-	  this.map.setCenter(47.468419, -122.217903); // intersection
+	  //this.map.setCenter(47.468419, -122.217903); // intersection
 	  //this.map.setCenter(47.462007, -122.265110); // intersection2
 	  //this.map.setCenter(47.611476, -122.340284); // downtown
+	  this.map.setCenter(47.658316, -122.312035); // UW
 
 		//this.readFilesAndStart();
 		this.start();
@@ -22,28 +23,95 @@ class TGAnalysis {
 	//
 	start() {
 
-	  //this.net.parseRawData(rawData);
-	  //return;
+		//getTravelTime();
+
+	
+	  //this.net.parseRawData(rawData); // step 1
+	  //this.net.separateRoads(rawData.nodes, rawData.edges); // step 2
+	  //this.net.eliminateLinks(nr.nodes, nr.roads); // step 3
+	  //nr = this.net.mergeRoads(nr.nodes, nr.roads); // step 4
 	  
-	  this.data.original.nodes = rawData.nodes;
-	  this.data.original.roads = rawData.edges;
+	  //this.net.eliminate2Orders(nr.nodes, nr.roads); // step 4
+	  
+	  //nr = this.net.simplifyRDP(nr.nodes, nr.roads); // step 5
+	  //nr = this.net.simplifyRDP(nr.nodes, nr.roads);
+	  //return;
+
+
+	  //this.data.original.nodes = rawData.nodes;
+	  //this.data.original.roads = rawData.roads;
+	  
+	  this.data.original.nodes = nr.nodes;
+	  this.data.original.roads = nr.roads;
 	  this.data.original.dispRoads = [];
+
+	  console.log(this.data.original.nodes);
+	  console.log(this.data.original.roads);
+
+	  
+
 
 	  //this.data.simple.nodes = rawData.nodes;
 	  //this.data.simple.roads = rawData.edges;
-	  this.data.simple.nodes = simpData.nodes;
-	  this.data.simple.roads = simpData.roads;
+	  this.data.simple.nodes = nr.nodes;
+	  this.data.simple.roads = nr.roads;
 	  this.data.simple.dispRoads = [];
 
-	  console.log(this.data.original);
-	  console.log(this.data.original.roads.length);
-	  console.log(this.data.simple.roads.length);
+	  
+	  //console.log(this.data.original.roads.length);
+	  //console.log(this.data.simple.roads.length);
 
-	  this.net.calOrderOfNodes(this.data.original.nodes, this.data.original.roads);
+	  //this.net.calOrderOfNodes(this.data.original.nodes, this.data.original.roads);
 	  //this.net.separateRoads();
 
 	  this.map.readAllObjects = true;
 		//this.map.updateLayers();
+	}
+
+	getTravelTime() {
+		//this.data.tt.setStartLocation(47.658316, -122.312035); // UW
+		//this.data.tt.setStartLocation(47.648172, -122.336375); // Fremont
+		//this.data.tt.setStartLocation(47.610409, -122.316805); // Capitol_hill
+		this.data.tt.setStartLocation(47.620179, -122.185630); // Bellevue
+
+		//8.19.9am
+		this.data.tt.addDestLocation(-122.1631709, 47.58380614);
+		this.data.tt.addDestLocation(-122.1662674, 47.6265411);
+		this.data.tt.addDestLocation(-122.164508, 47.70398453);
+		this.data.tt.addDestLocation(-122.15995, 47.758263);
+		this.data.tt.addDestLocation(-122.1433615, 47.53523402);
+		this.data.tt.addDestLocation(-122.144096, 47.580078);
+		this.data.tt.addDestLocation(-122.141429, 47.732252);
+		this.data.tt.addDestLocation(-122.1467983, 47.73423564);
+		this.data.tt.addDestLocation(-122.1421007, 47.73236033);
+		this.data.tt.addDestLocation(-122.1528538, 47.7332236);
+		this.data.tt.addDestLocation(-122.12557, 47.64378);
+		this.data.tt.addDestLocation(-122.1369629, 47.64598846);
+		this.data.tt.addDestLocation(-122.1305771, 47.63682938);
+		this.data.tt.addDestLocation(-122.13694, 47.6445084);
+		this.data.tt.addDestLocation(-122.137603, 47.644348);
+		this.data.tt.addDestLocation(-122.1274345, 47.67680772);
+		this.data.tt.addDestLocation(-122.1296894, 47.6747227);
+		this.data.tt.addDestLocation(-122.1204139, 47.4888823);
+		this.data.tt.addDestLocation(-122.1248631, 47.67369925);
+		this.data.tt.addDestLocation(-122.12394, 47.67387);
+		this.data.tt.addDestLocation(-122.1211472, 47.6704102);
+		this.data.tt.addDestLocation(-122.1194751, 47.67013304);
+		this.data.tt.addDestLocation(-122.1204343, 47.66969939);
+		this.data.tt.addDestLocation(-122.119592, 47.668776);
+		this.data.tt.addDestLocation(-122.119173, 47.8472794);
+		this.data.tt.addDestLocation(-122.09925, 47.6665599);
+		this.data.tt.addDestLocation(-122.098319, 47.74987);
+
+		var util = this.util;
+
+		var func = function(data) {
+			console.log('TT = ');
+			console.log(data);
+			util.saveTextAsFile(data, 'data_bell_9.js');
+		}
+
+		this.data.tt.getTravelTime(func);
 	}
 
 	//

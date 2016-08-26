@@ -44,6 +44,26 @@ $("#citySFRB").change(function(ev){
 });
 
 //
+
+$("#centerUWRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(47.658316, -122.312035);
+});
+
+$("#centerGasworksRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(47.648172, -122.336375);
+});
+
+$("#centerSeattleUnivRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(47.610409, -122.316805);
+});
+
+$("#centerBellevueRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(47.620179, -122.185630);
+});
+
+
+
+//
 //
 // Map Style Options
 //
@@ -277,7 +297,17 @@ $("#locationNoRB").change(function(ev){
 
 $("#location0RB").change(function(ev){
 	if (ev.target.checked) {
-		tg.data.locationType = 'restaurants';
+		//tg.data.locationType = 'restaurants';
+		tg.data.locationType = 'japanese';
+		tg.map.dispLocationLayer = true;
+		tg.map.updateLayers();
+	} 
+});
+
+$("#location1RB").change(function(ev){
+	if (ev.target.checked) {
+		//tg.data.locationType = 'restaurants';
+		tg.data.locationType = 'french';
 		tg.map.dispLocationLayer = true;
 		tg.map.updateLayers();
 	} 
@@ -294,6 +324,11 @@ $("#dispControlPointsCB").change(function(ev){
 	tg.map.updateLayers();
 });
 
+$("#dispGridCB").change(function(ev){
+	tg.map.dispGridLayer = ev.target.checked;
+	tg.map.updateLayers();
+});
+
 var randomSlider = new Slider("#randomSlider");
 //$("#randomSlider").on("change", function(evt) {
 $("#randomSlider").on("slideStop", function(evt) {
@@ -301,6 +336,10 @@ $("#randomSlider").on("slideStop", function(evt) {
   tg.data.moveControlPoints();
   tg.map.updateLayers();
 });
+
+function getTT() {
+	tg.data.getTravelTime();
+}
 
 function calTPS() {
 	tg.data.calTPS();
@@ -392,7 +431,8 @@ function simpMergeRoads() {
 }
 
 function save() {
-	tg.net.saveFileOfSaperateRoads();
+	//tg.net.saveFileOfSaperateRoads();
+	tg.net.changeFormat();
 }
 
 /*

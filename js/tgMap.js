@@ -38,6 +38,7 @@ class TGMap {
 
 	  this.dispLocationLayer = false;
 	  this.dispControlPointLayer = false;
+	  this.dispGridLayer = false;
 
 	  this.viewCenterPos = {lat:0, lng:0};
 	  this.clickRange = {lat:0, lng:0};
@@ -293,6 +294,9 @@ class TGMap {
 		if (this.dispControlPointLayer) this.drawControlPointLayer();
 		else this.removeLayer(this.map.controlPointLayer);
 
+		if (this.dispGridLayer) this.drawGridLayer();
+		else this.removeLayer(this.map.gridLayer);
+
 
 		// Center Position
 		if (this.dispCenterPositionLayer) this.drawCenterPositionLayer();
@@ -380,6 +384,12 @@ class TGMap {
 	  this.map.addLayer(this.map.controlPointLayer);
 	}
 
+	drawGridLayer() {
+		this.removeLayer(this.map.gridLayer);
+		this.map.gridLayer = this.createGridLayer();
+	  this.map.addLayer(this.map.gridLayer);
+	}
+
 	//
 	//
 	//
@@ -454,11 +464,11 @@ class TGMap {
 	//
 	//
 	addToDisplayedRoads(type) {
-		this.displayedRoads.push(type);
+		this.displayedRoads.push(this.opt.type[type]);
 	}
 
 	removeToDisplayedRoads(type) {
-		var idx = this.displayedRoads.indexOf(type);
+		var idx = this.displayedRoads.indexOf(this.opt.type[type]);
 		if (idx >= 0) this.displayedRoads.splice(idx, 1);
 	}
 
@@ -540,7 +550,9 @@ class TGMap {
 			//if ($.arrayIntersect(ne.edges[i].tag, typeArr).length == 0) continue;
 			//if ($.inArray(ne.edges[i].tag[0], typeArr) === -1) continue;
 
-			if (this.displayedRoads.indexOf(roads[i].tag[0]) === -1) continue;
+			//console.log(this.displayedRoads);
+
+			if (this.displayedRoads.indexOf(roads[i].type) === -1) continue;
 
 			for(var j = 0; j < roads[i].nodes.length - 1; j++) {
 
@@ -563,13 +575,12 @@ class TGMap {
 
 		for(var i = 0; i < lenRoads; i++) {
 			
-			if (this.displayedRoads.indexOf(roads[i].tag[0]) === -1) continue;
+			if (this.displayedRoads.indexOf(roads[i].type) === -1) continue;
 
 			for(var j = 0; j < roads[i].nodes.length; j++) {
 
 				if (this.dispOrders) {
-					//var order = nodes[edges[i].nodes[j]].tag.length;
-					var order = nodes[roads[i].nodes[j]].order;
+					var order = nodes[roads[i].nodes[j]].roads.length;
 
 					if (order == 0) clr = '#CCC';
 					else clr = this.opt.color.nodeOrder[order - 1];
@@ -653,6 +664,30 @@ class TGMap {
 					nodes[i].original.lng, nodes[i].original.lat, nodes[i].target.lng, nodes[i].target.lat,
 					this.lineStyleFunc(this.opt.color.controlPointLine, this.opt.width.controlPointLine));
 			}
+		}
+		return this.olVectorFromFeatures(arr);
+	}
+
+	createGridLayer() {
+		var arr = [];
+		var grids = this.data.grids;
+
+		for(var i = 0; i < grids.length; i++) {
+			this.olFeaturesFromLineStrings(arr, 
+				grids[i].lngL, grids[i].latB, grids[i].lngR, grids[i].latB,
+				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
+
+			this.olFeaturesFromLineStrings(arr, 
+				grids[i].lngL, grids[i].latT, grids[i].lngR, grids[i].latT,
+				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
+
+			this.olFeaturesFromLineStrings(arr, 
+				grids[i].lngL, grids[i].latB, grids[i].lngL, grids[i].latT,
+				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
+
+			this.olFeaturesFromLineStrings(arr, 
+				grids[i].lngR, grids[i].latB, grids[i].lngR, grids[i].latT,
+				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
 		}
 		return this.olVectorFromFeatures(arr);
 	}

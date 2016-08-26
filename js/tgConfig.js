@@ -1,7 +1,20 @@
 const options = {
 	maxZoom: 18,
 	minZoom: 10,
-	zoom: 16, //13,
+	zoom: 14, //13,
+
+	type: {
+		motorway: 1,
+		trunk: 2,
+		primary: 11,
+		secondary: 12,
+		tertiary: 13,
+		motorway_link: 21,
+		trunk_link: 22,
+		primary_link: 23,
+		secondary_link: 24,
+		tertiary_link: 25
+	},
 
 	color: {
 		water: 'rgba(146, 219, 238, 1)',
@@ -12,6 +25,8 @@ const options = {
 		locationLine: '#33cc33',
 		controlPoint: '#FFD700',
 		controlPointLine: '#FFD700',
+		gridPoint: '#FFA07A',
+		gridLine: '#FFA07A',
 
 		motorway: '#969696',
 		trunk: '#969696',
@@ -56,6 +71,7 @@ const options = {
 		edge: 1,
 		locationLine: 1,
 		controlPointLine: 1,
+		gridLine: 1,
 		originalRoad: 1,
 		simplifiedRoad: 1,
 	},
@@ -64,6 +80,7 @@ const options = {
 		node: 4,
 		location: 5,
 		controlPoint: 6,
+		gridPoint: 2,
 		originalNode: 2,
 		simplifiedNode: 2,
 	},
@@ -105,8 +122,8 @@ const options = {
 	},
 
 	resolution: {
-		gridX: 10,
-		gridY: 10,
+		gridLng: 10,
+		gridLat: 10,
 	},
 
 	constant: {

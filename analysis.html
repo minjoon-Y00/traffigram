@@ -19,8 +19,10 @@
 
           <!-- City -->
 
-          <h4>City</h4>
-          <div class="radio">
+          <!--<h4>City</h4>-->
+          <h4>Center</h4>
+
+          <!--<div class="radio">
             <label><input type="radio" name="cityRadio" id="citySeattleRB" checked>Seattle</label>
           </div>
           <div class="radio">
@@ -28,6 +30,19 @@
           </div>
           <div class="radio">
             <label style="color:gray"><input type="radio" name="cityRadio" id="citySFRB" disabled>San Francisco</label>
+          </div>-->
+
+          <div class="radio">
+            <label><input type="radio" name="centerRadio" id="centerUWRB" checked>UW</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="centerRadio" id="centerGasworksRB">Gasworks</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="centerRadio" id="centerSeattleUnivRB">Seattle Univ.</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="centerRadio" id="centerBellevueRB">Bellevue</label>
           </div>
           <hr>
 
@@ -187,6 +202,12 @@
             <label><input type="radio" name="locationRadio" id="locationNoRB" checked>Do not display</label>
           </div>
           <div class="radio">
+            <label><input type="radio" name="locationRadio" id="location0RB">Japanese</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="location1RB">French</label>
+          </div>
+          <!--<div class="radio">
             <label><input type="radio" name="locationRadio" id="location0RB">Restaurants</label>
           </div>
           <div class="radio">
@@ -209,18 +230,34 @@
           </div>
           <div class="radio">
             <label style="color:gray"><input type="radio" name="locationRadio" id="location7RB" disabled>Sports activities</label>
-          </div>
+          </div>-->
           <hr>
 
           <!-- Control Points -->
 
           <h4>Control Points</h4>
+
+          <div class="radio">
+            <label><input type="radio" name="controlPointRadio" id="cpLocationRB">Location</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="controlPointRadio" id="cpGridPointRB" checked>Grid Points</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="controlPointRadio" id="cpNodesRB">Nodes</label>
+          </div>
+
+          <br/>
           <div class="checkbox">
             <label><input type="checkbox" id="dispControlPointsCB"/>Display Control Points</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="dispGridCB"/>Display Grid</label>
           </div>
           <label style="margin-right:0px">Randomness</label>
             <input id="randomSlider" data-slider-id='randomSlider' type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="0"/>
           <br/>
+          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="getTT()">get Travel Time</button>
           <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="calTPS()">cal TPS</button>
           <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="moveLocations()">Move Locs</button>
           <hr>
@@ -274,11 +311,16 @@
     -->
 
 
-    <!--<script src="data/seattle_washington_roads_gen0.js"></script>-->
+    <!--<script src="../raw/org_rawData_seattle.js"></script>-->
+    <!--<script src="data/rawData_seattle.js"></script>-->
+    <!--<script src="data/nr_seattle_merge.js"></script>-->
+    <script src="data/nr_seattle_rdp.js"></script>
+
     <script src="data/restaurants.js"></script>
-    <!--<script src="data/graph.js"></script>-->
-    <script src="data/rawData_seattle.js"></script>
-    <script src="data/simpData_seattle.js"></script>
+    <script src="data/uw_japanese.js"></script>
+    <script src="data/uw_french.js"></script>
+    
+    <!--<script src="data/simpData_seattle.js"></script>-->
 
     <!--<script src="http://openlayers.org/en/v3.11.2/build/ol.js"></script>-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.5.0/ol.js"></script>

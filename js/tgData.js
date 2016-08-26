@@ -10,19 +10,24 @@ class TGData {
 		this.level1 = {};
 		this.level2 = {};
 		this.locations = {};
-		this.locations.restaurants = restaurants.locations;
-	  this.locationType = 'restaurants';
+		//this.locations.restaurants = restaurants.locations;
+		this.locations.japanese = uw_japanese.locations;
+		this.locations.french = uw_french.locations;
+	  //this.locationType = 'restaurants';
+	  this.locationType = 'japanese';
 	  this.randomness = 0;
 	  this.simpDistanceRDP = 1;
 	  this.centerPosition = {};
 
+	  this.tt = new TravelTime();
 	  this.noi = [];
-	  this.cpGrid = [];
+	  this.grids = [];
+	  this.controlPointType = 'grid'; //'location', 'node'
 	  this.controlPoints = [];
 
 	  this.simple = {};
 
-	  this.initGrids();
+	  //this.initGrids();
 	}
 
 	//
@@ -103,60 +108,165 @@ class TGData {
 	//
 	//
 	initGrids() {
+		/*
 		this.cpGrid = new Array(this.opt.resolution.gridX);
 		for(var i = 0; i < this.opt.resolution.gridX; i++) {
 			this.cpGrid[i] = new Array(this.opt.resolution.gridY);
 		}
+
+		this.gridPoints = new Array(this.opt.resolution.gridX + 1);
+		for(var i = 0; i < this.opt.resolution.gridX + 1; i++) {
+			this.gridPoints[i] = new Array(this.opt.resolution.gridY + 1);
+		}
+		*/
+
 	}
 
 	resetGrids() {
-		for(var i = 0; i < this.opt.resolution.gridX; i++) {
+		/*for(var i = 0; i < this.opt.resolution.gridX; i++) {
 			for(var j = 0; j < this.opt.resolution.gridY; j++) {
 				this.cpGrid[i][j] = [];
 			}
 		}
+
+		for(var i = 0; i < this.opt.resolution.gridX + 1; i++) {
+			for(var j = 0; j < this.opt.resolution.gridY + 1; j++) {
+				this.gridPoints[i][j] = [];
+			}
+		}*/
 	}
 
 	calControlPointsGrid() {
 		var candidates = this.locations[this.locationType];
-		var dLat = (this.opt.box.top - this.opt.box.bottom) / this.opt.resolution.gridY;
-		var dLng = (this.opt.box.right - this.opt.box.left) / this.opt.resolution.gridX;
-		var lat, lng, latIdx, lngIdx;
+		var dLat = (this.opt.box.top - this.opt.box.bottom) / this.opt.resolution.gridLat;
+		var dLng = (this.opt.box.right - this.opt.box.left) / this.opt.resolution.gridLng;
+		var latB, latT, lngL, lngR, lat, lng;
 
-		this.resetGrids();
+		this.grids = [];
+
+		for(var i = 0; i < this.opt.resolution.gridLng; i++) {
+			for(var j = 0; j < this.opt.resolution.gridLat; j++) {
+
+				lngL = this.opt.box.left + dLng * i;
+				lngR = this.opt.box.left + dLng * (i + 1);
+				latB = this.opt.box.bottom + dLat * j;
+				latT = this.opt.box.bottom + dLat * (j + 1);
+
+				this.grids.push({
+					latT:latT, latB:latB, 
+					lngL:lngL, lngR:lngR,
+					locs:[]
+				});
+			}
+		}
 
 		for(var i = 0; i < candidates.length; i++) {
 			lat = Number(candidates[i].loc_y);
 			lng = Number(candidates[i].loc_x);
 
-			if ((lat <= this.opt.box.top) && (lat >= this.opt.box.bottom)
-			  && (lng <= this.opt.box.right) && (lng >= this.opt.box.left)) {
+			if ((lat >= this.opt.box.bottom) && (lat < this.opt.box.top)
+			  && (lng >= this.opt.box.left) && (lng < this.opt.box.right)) {
 
-				latIdx = Math.floor((lat - this.opt.box.bottom) / dLat);
-				lngIdx = Math.floor((lng - this.opt.box.left) / dLng);
-
-				this.cpGrid[latIdx][lngIdx].push({"lat":lat, "lng":lng});
-			}
-		}
-
-		for(var i = 0; i < this.opt.resolution.gridX; i++) {
-			for(var j = 0; j < this.opt.resolution.gridY; j++) {
-				if (this.cpGrid[i][j].length > 1) {
-					//var r = avgLatLng(this.cpGrid[i][j]);
-					var r = this.cpGrid[i][j][0];
-					this.cpGrid[i][j] = [];
-					this.cpGrid[i][j].push({"lat":r.lat, "lng":r.lng});
+				for(var j = 0; j < this.grids.length; j++) {
+					if ((lat >= this.grids[j].latB) && (lat < this.grids[j].latT)
+						&& (lng >= this.grids[j].lngL) && (lng < this.grids[j].lngR)) {
+						this.grids[j].locs.push({i:i, lat:lat, lng:lng});
+						break;
+					}
 				}
 			}
 		}
 
-		this.controlPoints = [];
-		for(var i = 0; i < this.opt.resolution.gridX; i++) {
-			for(var j = 0; j < this.opt.resolution.gridY; j++) {
-				if (this.cpGrid[i][j].length > 0) {
-					this.controlPoints.push(new Node(this.cpGrid[i][j][0].lat, this.cpGrid[i][j][0].lng));
+		// To Do: seperation and adaptive grids
+		/*
+		var removedGrids = [];
+		var latBTM, lngLRM, grid;
+		for(var i = 0; i < this.grids.length; i++) {
+			if (this.grids[i].locs.length >= 10) {
+				latT = this.grids[i].latT;
+				latB = this.grids[i].latB;
+				lngL = this.grids[i].lngL;
+				lngR = this.grids[i].lngR;
+				latBTM = (latB + latT) / 2;
+				lngLRM = (lngL + lngR) / 2;
+				grid = {latT:latT, latB:latBTM, lngL:lngL, lngR:lngLRM, locs:[]};
+				pushLocsInGrid(grid, this.grids[i].locs, this.util.clone);
+				this.grids.push(grid);
+
+				grid = {latT:latT, latB:latBTM, lngL:lngLRM, lngR:lngR, locs:[]};
+				pushLocsInGrid(grid, this.grids[i].locs, this.util.clone);
+				this.grids.push(grid);
+
+				grid = {latT:latBTM, latB:latB, lngL:lngL, lngR:lngLRM, locs:[]};
+				pushLocsInGrid(grid, this.grids[i].locs, this.util.clone);
+				this.grids.push(grid);
+
+				grid = {latT:latBTM, latB:latB, lngL:lngLRM, lngR:lngR, locs:[]};
+				pushLocsInGrid(grid, this.grids[i].locs, this.util.clone);
+				this.grids.push(grid);
+
+				removedGrids.push(i);
+			}
+		}
+
+		for(var i = removedGrids.length - 1; i >= 0; i--) {
+			this.grids.splice(removedGrids[i], 1);
+		}
+		*/
+
+
+		this.controlPoints = [];	
+		var cLng, cLat, r;
+		for(var i = 0; i < this.grids.length; i++) {
+
+			if (this.controlPointType == 'location') {
+				if (this.grids[i].locs.length > 0) {
+					cLng = (this.grids[i].lngL + this.grids[i].lngR) / 2;
+					cLat = (this.grids[i].latB + this.grids[i].latT) / 2;
+					r = findNearestCenterLatLng(this.grids[i].locs, cLng, cLat, this.util.D2);
+					this.controlPoints.push(new Node(r.lat, r.lng));
 				}
 			}
+			else if (this.controlPointType == 'grid') {
+				cLng = (this.grids[i].lngL + this.grids[i].lngR) / 2;
+				cLat = (this.grids[i].latB + this.grids[i].latT) / 2;
+				this.controlPoints.push(new Node(cLat, cLng));
+			}
+			else if (this.controlPointType == 'node') {
+				// TO DO: implementation
+			}
+
+			
+		}	
+
+		//console.log(this.grids);
+		console.log(this.controlPoints);
+
+
+		function pushLocsInGrid(grid, locs, clone) {
+			for(var j = 0; j < locs.length; j++) {
+				if ((locs[j].lat >= grid.latB) && (locs[j].lat < grid.latT)
+					&& (locs[j].lng >= grid.lngL) && (locs[j].lng < grid.lngR)) {
+					grid.locs.push(clone(locs[j]));
+				}
+			}
+		}
+
+
+		function findNearestCenterLatLng(arr, cLng, cLat, D2) {
+			var len = arr.length;
+			var min = 1000;
+			var min_i = -1;
+			var dist;
+			
+			for(var i = 0; i < len; i++) {
+				dist = D2(arr[i].lat, arr[i].lng, cLat, cLng);
+				if (dist < min) {
+					min = dist;
+					min_i = i;
+				}
+			}
+			return {lat: arr[min_i].lat, lng: arr[min_i].lng};
 		}
 
 		function avgLatLng(arr) {
@@ -168,6 +278,20 @@ class TGData {
 			}
 			return {lat: sumLat / len, lng: sumLng / len};
 		}
+	}
+
+	getTravelTime() {
+
+		//for(var i = 0; i < this.controlPoints.length; i++) {
+		for(var i = 0; i < 49; i++) {
+			this.tt.addDestLocation(this.controlPoints[i].original.lat, this.controlPoints[i].original.lng);
+		}
+
+		var func = function(data) {
+			console.log('TT = ');
+			console.log(data);
+		}
+		this.tt.getTravelTime(func);
 	}
 
 	//
@@ -197,6 +321,15 @@ class TGData {
 			this.noi[i].target.lat = pos.lat;
 			this.noi[i].target.lng = pos.lng;
 		}
+
+		for(var i = 0; i < this.gridPoints.length; i++) {
+			for(var j = 0; j < this.gridPoints[i].length; j++) {
+				pos = this.graph.transform(this.gridPoints[i][j].lat, this.gridPoints[i][j].lng);
+				this.gridPoints[i][j].lat = pos.lat;
+				this.gridPoints[i][j].lng = pos.lng;
+			}
+		}
+
 	}
 
 
