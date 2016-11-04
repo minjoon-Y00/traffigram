@@ -1,0 +1,51 @@
+.cb {
+	margin-right: 15px;
+	margin-top: 5px;
+}
+
+.ol_map {
+	height: 800px;
+	width: 100%;
+	background-color: rgba(255,255,255,1);
+	margin: 10px; 
+}
+
+.ol-control.ol-zoom {
+  left: calc(100% - 33px);
+}
+
+.disabledText {
+	//color: '#222';
+	color: 'red';
+}
+
+#displayTextLT1, #displayTextLT2, #displayTextLT3, #displayTextLT4,
+#displayTextLB1, #displayTextLB2 {
+	position: absolute;
+  color: #222;
+	left: .5em;
+}
+
+#displayTextLT1 {
+  top: 10px;
+}
+
+#displayTextLT2 {
+  top: 30px;
+}
+
+#displayTextLT3 {
+  top: 50px;
+}
+
+#displayTextLT4 {
+  top: 70px;
+}
+
+#displayTextLB1 {
+  bottom: 10px;
+}
+
+#displayTextLB2 {
+  bottom: 30px;
+}
