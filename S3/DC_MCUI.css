@@ -1,0 +1,225 @@
+body{
+	margin: 0px;
+	padding: 0px;
+	font-family: 'Source Sans Pro', sans serif;
+	font-weight: 400;
+	background-color:"#fff";
+}
+	#header{
+		width: 100%;
+		height: 40px;
+		padding: 5px;
+		color: #fff;
+		background-color:#333;
+	}
+
+	#display_bg{
+		position: relative;
+		width: 100%;
+		height: 100%;
+	}
+		#display_content{
+			position: relative;
+			margin: auto;
+			margin-top: 20px;
+			top: 20px;
+			width: 1100px;
+			height: 840px;
+			padding:15px;
+			padding-bottom:20px;
+			z-index:10;
+			background-color: rgba(221,221,221,0.8);
+			-webkit-box-shadow: 4px 4px 20px -1px rgba(0,0,0,0.56);
+			-moz-box-shadow: 4px 4px 20px -1px rgba(0,0,0,0.56);
+			box-shadow: 4px 4px 20px -1px rgba(0,0,0,0.56);
+		}
+
+			#bg_scenario{
+				padding: 10px;		
+				font-size: 16px;		
+				background-color:#fff;
+			}
+
+			#display_content_factor_selector{
+				position: absolute;
+				left: 0px;
+				top: 203px;
+				width: 430px;
+				padding:15px;
+				padding-bottom:20px;
+				z-index:10;
+				/*background: #0f0*/;
+			}
+			#display_content_locations{
+				position: absolute;
+				left: 460px;
+				top: 203px;
+				width: 610px;
+				padding:15px;
+				padding-bottom:20px;
+				z-index:10;
+				/*background: #00f*/;
+			}
+				#loc_map{
+					height:560px;
+					background:rgba(255,255,255,1);
+				}
+				#loc_table{
+					float: left;
+					height: 400px;
+					width: 540px;
+					border-top: 1px solid #ccc;
+					border-bottom: 1px solid #ccc;
+					overflow-y: scroll;
+				}
+
+					.loc_item{
+						padding: 7px;
+						border-bottom:1px solid #ccc;
+					}
+					.loc_item_img{
+						float:left;
+						left:0px;
+						top:0px;
+					}
+					.loc_item_text{
+						float:left;
+						margin-left:10px;
+						left:100px;
+						top:0px;
+					}
+						.loc_item_text_name{
+							font-size:14px;
+							font-weight: 400;
+						}
+				.name {
+					text-decoration: underline;
+				}
+				.name, .time, .dist, .rat, .price_dollar, .rat_cnt{
+					font-size: 18px;
+				} 
+
+		#display_content h1{
+			margin-bottom: 0px;
+		}
+			#factor_selector label{
+				width: 86px;
+			}
+
+		
+		#blacksheet{
+			z-index: 10;
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			width: 100%;
+			height: 100%;
+			background-color: black;
+			opacity: 0.8;
+		}
+		#popup{
+			z-index: 11;
+			padding-top: 10px;
+			padding-left: 20px;
+			padding-right: 20px;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -60%);
+			width: 400px;
+			height: 250px;	
+			background-color: #FFF;
+			overflow-y: auto;
+			overflow-x: hidden;
+			-webkit-box-shadow: 0 0px 10px 1px black;
+			-moz-box-shadow: 0 0px 10px 1px black;
+			box-shadow: 0 0px 10px 1px black;
+		}		
+
+		.c1_row{
+			position: relative;
+			width: 430px;
+			height: 40px;
+			font-family: 'PT Sans Narrow', sans serif;
+			font-size: 13px;
+			padding:0px;
+			margin:0px;
+		}
+		.c1_row_left{
+			position: absolute;
+			text-align: center;
+			margin-top: 8px;
+			margin-right: 13px;
+			left:0px;
+			top:0px;
+			width: 105px;
+			font-family: 'PT Sans Narrow', sans serif;
+			font-size: 18px;
+			font-weight: 400;
+		}
+		.c1_row_right{
+			position: absolute;
+			left: 105px;
+			top:0px;
+			width: 325px;
+		}
+			.c1_row_right_label{
+				float:left;
+				text-align: center;
+				width: 60px;
+			}
+
+		.c5_row{
+			position: relative;
+			width: 430px;
+			height: 40px;
+			font-family: 'PT Sans Narrow', sans serif;
+			font-size: 12px;
+			padding:0px;
+			margin:0px;
+		}
+		.c5_row_left, .c5_row_right{
+			position: absolute;
+			text-align: center;
+			width: 65px;
+			margin-top: 8px;
+			margin-right: 13px;
+			font-family: 'PT Sans Narrow', sans serif;
+			font-size: 18px;
+			font-weight: 400;
+		}
+		.c5_row_left{
+			left:0px;
+			top:0px;
+		}
+		.c5_row_right{
+			left:340px;
+			top:0px;
+		}		
+		.c5_row_middle{
+			position: absolute;
+			left: 65px;
+			top:0px;
+			width: 300px;
+		}
+			.c5_row_middle_label{
+				float:left;
+				text-align: center;
+				width: 60px;
+			}
+
+.heading1{
+	font-size: 20px;
+	font-weight: 700;
+	padding-bottom: 5px;
+}
+
+.stress{
+	text-decoration: underline;
+	font-weight: 800;
+}
+
+.checkbox_and_okay{
+	text-align: center;
+	width: 1000px;
+}

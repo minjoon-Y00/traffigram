@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!-- 
+/ Developer : Sungsoo (Ray) Hong
+/ Project : Distance Cartogram: Multi Criteria Weight User Interface
+/ Started at: 2016.8.12
+-->
+<html>
+	<head>
+		<title> Distance Cartogram S3 </title>
+		<meta charset="utf-8"/>
+
+		<!-- CSS, logo image, Font -->
+		<link href="DC_MCUI.css" type="text/css" rel="stylesheet"/>
+		<link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,300italic,400,400italic,700|PT+Sans+Narrow|Fjalla+One|Carrois+Gothic+SC" rel="stylesheet" type="text/css"/>
+		<link href='img/logo.png' type='image/gif' rel='short icon'/>
+		<link type="text/css" href="lib/jquery-ui-1.11.0.custom/jquery-ui.min.css" rel="stylesheet"/>
+		<!-- D3 -->
+		<script src="https://d3js.org/d3.v3.js"></script>
+		<!-- Jquery -->
+		<script type="text/javascript" src="lib/jquery-ui-1.11.0.custom/external/jquery/jquery.js"></script>
+		<script type="text/javascript" src="lib/jquery-ui-1.11.0.custom/jquery-ui.min.js"></script>	
+		<!-- OL -->
+		<link rel="stylesheet" href="../css/ol.css" type="text/css">	
+		<script src="../vendor/ol.js"></script>
+		<!--SELF SCRIPTING-->
+		<script type="text/javascript" src="lib/numeric-1.2.6.min.js"></script>
+		<script type="text/javascript" src="lib/chi16_s3_var.js"></script>
+		<script type="text/javascript" src="lib/chi16_s3.js"></script>
+		<script type="text/javascript" src="lib/map.js"></script>
+	</head>
+	
+	<body>
+		<div id="display_bg">
+			<div id="display_content">
+					<div class="heading1"> Scenario </div>
+					<div id="bg_scenario"> Display some scenario here. </div>
+					<div id="display_content_factor_selector">
+						<div class="heading1"> Set the importance of each dimension </div>
+						<div id="factor_weight_controller" style="padding-bottom:20px;"></div>
+					</div>
+					<div id="display_content_locations">
+						<div class="heading1"> Seattle </div>
+						<div id="ol_map" class="ol_map"></div>
+					</div>
+			</div>
+		</div>
+		<!--<div id="controller_right">c</div>-->
+	</body>
+</html>

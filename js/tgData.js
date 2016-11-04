@@ -1,6 +1,7 @@
 class TGData {
 
-	constructor(graph, util, options) {
+	constructor(tg, graph, util, options) {
+		this.tg = tg;
 		this.graph = graph;
 		this.util = util;
 		this.opt = options;
@@ -11,8 +12,8 @@ class TGData {
 		this.level2 = {};
 		this.locations = {};
 		//this.locations.restaurants = restaurants.locations;
-		this.locations.japanese = uw_japanese.locations;
-		this.locations.french = uw_french.locations;
+		this.locations.japanese = uw_japanese;
+		this.locations.french = uw_french;
 	  //this.locationType = 'restaurants';
 	  this.locationType = 'japanese';
 	  this.randomness = 0;
@@ -22,12 +23,16 @@ class TGData {
 	  this.tt = new TravelTime();
 	  this.noi = [];
 	  this.grids = [];
-	  this.controlPointType = 'grid'; //'location', 'node'
+	  this.controlPointType = 'grid'; //'location', 'grid', node'
 	  this.controlPoints = [];
 
 	  this.simple = {};
 
-	  //this.initGrids();
+	  // [TYPE]
+	  // motorway(1), trunk(2), primary(11), secondary(12), tertiary(13)
+		// motorway_link(21), trunk_link(22), primary_link(23), secondary_link(24)
+		// tertiary_link(25)
+
 	}
 
 	//
@@ -48,6 +53,8 @@ class TGData {
 				this.noi.push(new Node(lat, lng));
 			}
 		}
+
+		//console.log(this.noi.length);
 	}
 
 	//
@@ -56,6 +63,7 @@ class TGData {
 	calDispRoads() {
 		this.original.dispRoads = this.calDispRoadsByKind(this.original.nodes, this.original.roads);
 		this.simple.dispRoads = this.calDispRoadsByKind(this.simple.nodes, this.simple.roads);
+
 	}
 
 	calDispRoadsByKind(nodes, roads) {
@@ -64,6 +72,12 @@ class TGData {
 		var dispRoads = [];
 
 		for(var i = 0; i < len; i++) {
+
+			// put all motorway and trunks.
+			if ((roads[i].type == 1)||(roads[i].type == 2)) {
+				dispRoads.push(roads[i]);
+				continue;
+			}
 
 			// If the start node of a road is in the screen, add the road.
 			lat = nodes[roads[i].nodes[0]].lat;
@@ -107,45 +121,64 @@ class TGData {
 	//
 	//
 	//
-	initGrids() {
+
+
+	calControlPoints() {
+		this.controlPoints = []
+
+		for(var i = 0; i < this.grids.length; i++) {
+			for(var j = 0; j < this.grids[i].pts.length; j++) {
+				this.controlPoints.push(
+					new Node(this.grids[i].pts[j].original.lat, this.grids[i].pts[j].original.lng))
+			}
+		}
+
+		//console.log(default_tt)
+
+		for(var i = 0; i < this.controlPoints.length; i++) {
+			this.controlPoints[i].travelTime = default_tt.one_to_many[0][i + 1].time
+		}
+
+		var centerIdx = parseInt(this.controlPoints.length / 2)
+		this.controlPoints[centerIdx].travelTime = 0;
+
+
+		
+	}
+
+	calGrids() {
+		this.grids = []
+		var dLat = (this.opt.box.top - this.opt.box.bottom) / (this.opt.resolution.gridLat - 1)
+		var dLng = (this.opt.box.right - this.opt.box.left) / (this.opt.resolution.gridLng - 1)
+		var latL, lngB
+		
+		for(var i = 0; i < this.opt.resolution.gridLat; i++) {
+			var obj = {level:0, pts:[]}
+
+			for(var j = 0; j < this.opt.resolution.gridLng; j++) {
+				latL = this.opt.box.bottom + dLat * i
+				lngB = this.opt.box.left + dLng * j
+				obj.pts.push(new Node(latL, lngB))
+			}
+			this.grids.push(obj)
+		}
+
+		console.log(this.grids)
+
+
+
+
+
 		/*
-		this.cpGrid = new Array(this.opt.resolution.gridX);
-		for(var i = 0; i < this.opt.resolution.gridX; i++) {
-			this.cpGrid[i] = new Array(this.opt.resolution.gridY);
-		}
-
-		this.gridPoints = new Array(this.opt.resolution.gridX + 1);
-		for(var i = 0; i < this.opt.resolution.gridX + 1; i++) {
-			this.gridPoints[i] = new Array(this.opt.resolution.gridY + 1);
-		}
-		*/
-
-	}
-
-	resetGrids() {
-		/*for(var i = 0; i < this.opt.resolution.gridX; i++) {
-			for(var j = 0; j < this.opt.resolution.gridY; j++) {
-				this.cpGrid[i][j] = [];
-			}
-		}
-
-		for(var i = 0; i < this.opt.resolution.gridX + 1; i++) {
-			for(var j = 0; j < this.opt.resolution.gridY + 1; j++) {
-				this.gridPoints[i][j] = [];
-			}
-		}*/
-	}
-
-	calControlPointsGrid() {
 		var candidates = this.locations[this.locationType];
-		var dLat = (this.opt.box.top - this.opt.box.bottom) / this.opt.resolution.gridLat;
-		var dLng = (this.opt.box.right - this.opt.box.left) / this.opt.resolution.gridLng;
+		var dLat = (this.opt.box.top - this.opt.box.bottom) / (this.opt.resolution.gridLng - 1);
+		var dLng = (this.opt.box.right - this.opt.box.left) / (this.opt.resolution.gridLat - 1);
 		var latB, latT, lngL, lngR, lat, lng;
 
 		this.grids = [];
 
-		for(var i = 0; i < this.opt.resolution.gridLng; i++) {
-			for(var j = 0; j < this.opt.resolution.gridLat; j++) {
+		for(var i = 0; i < this.opt.resolution.gridLng - 1; i++) {
+			for(var j = 0; j < this.opt.resolution.gridLat - 1; j++) {
 
 				lngL = this.opt.box.left + dLng * i;
 				lngR = this.opt.box.left + dLng * (i + 1);
@@ -153,8 +186,14 @@ class TGData {
 				latT = this.opt.box.bottom + dLat * (j + 1);
 
 				this.grids.push({
-					latT:latT, latB:latB, 
-					lngL:lngL, lngR:lngR,
+					latT:latT,
+					latB:latB,
+					lngL:lngL,
+					lngR:lngR,
+					TL: {lat:latT, lng:lngL},
+					TR: {lat:latT, lng:lngR},
+					BR: {lat:latB, lng:lngR},
+					BL: {lat:latB, lng:lngL},
 					locs:[]
 				});
 			}
@@ -178,7 +217,7 @@ class TGData {
 		}
 
 		// To Do: seperation and adaptive grids
-		/*
+		
 		var removedGrids = [];
 		var latBTM, lngLRM, grid;
 		for(var i = 0; i < this.grids.length; i++) {
@@ -212,11 +251,12 @@ class TGData {
 		for(var i = removedGrids.length - 1; i >= 0; i--) {
 			this.grids.splice(removedGrids[i], 1);
 		}
-		*/
+		
 
 
 		this.controlPoints = [];	
 		var cLng, cLat, r;
+
 		for(var i = 0; i < this.grids.length; i++) {
 
 			if (this.controlPointType == 'location') {
@@ -228,9 +268,33 @@ class TGData {
 				}
 			}
 			else if (this.controlPointType == 'grid') {
-				cLng = (this.grids[i].lngL + this.grids[i].lngR) / 2;
-				cLat = (this.grids[i].latB + this.grids[i].latT) / 2;
+
+				//if (i > 13) continue;
+
+				cLng = this.grids[i].lngL;
+				cLat = this.grids[i].latT;
 				this.controlPoints.push(new Node(cLat, cLng));
+
+				if (i % 9 == 0) { 
+					cLng = this.grids[i].lngL;
+					cLat = this.grids[i].latB;
+					this.controlPoints.push(new Node(cLat, cLng));
+					//console.log('%9');
+				}
+
+				if (parseInt(i / 9) == 8) {  // 72-80
+					cLng = this.grids[i].lngR;
+					cLat = this.grids[i].latT;
+					this.controlPoints.push(new Node(cLat, cLng));
+				}
+
+				if (i == 80) {
+					cLng = this.grids[i].lngR;
+					cLat = this.grids[i].latB;
+					this.controlPoints.push(new Node(cLat, cLng));
+				}
+
+				//this.controlPoints.push(new Node(cLat, cLng));
 			}
 			else if (this.controlPointType == 'node') {
 				// TO DO: implementation
@@ -238,9 +302,10 @@ class TGData {
 
 			
 		}	
+		*/
 
 		//console.log(this.grids);
-		console.log(this.controlPoints);
+		//console.log(this.controlPoints);
 
 
 		function pushLocsInGrid(grid, locs, clone) {
@@ -281,38 +346,75 @@ class TGData {
 	}
 
 	getTravelTime() {
+		this.tt.setStartLocation(this.centerPosition.lat, this.centerPosition.lng)
 
-		//for(var i = 0; i < this.controlPoints.length; i++) {
-		for(var i = 0; i < 49; i++) {
-			this.tt.addDestLocation(this.controlPoints[i].original.lat, this.controlPoints[i].original.lng);
+		for(var i = 0; i < this.grids.length; i++) {
+			for(var j = 0; j < this.grids[i].pts.length; j++) {
+				this.tt.addDestLocation(
+					this.grids[i].pts[j].original.lng, 
+					this.grids[i].pts[j].original.lat)
+			}
 		}
 
-		var func = function(data) {
-			console.log('TT = ');
-			console.log(data);
+		var util = this.util
+		var start = (new Date()).getTime()
+		this.tt.getTravelTime(func.bind(this))
+
+		function func(data) {
+			var end = (new Date()).getTime()
+			console.log('elapsed: ' + (end - start)/1000 + ' sec.')
+
+			console.log(data)
+
+			//util.saveTextAsFile(data, 'data_tt.js')
+
+			for(var i = 0; i < this.controlPoints.length; i++) {
+				this.controlPoints[i].travelTime = data.one_to_many[0][i + 1].time
+			}
+
+			var centerIdx = parseInt(this.controlPoints.length / 2)
+			this.controlPoints[centerIdx].travelTime = 0
+			this.tg.map.updateLayers()
+
 		}
-		this.tt.getTravelTime(func);
 	}
 
 	//
 	//
 	//
-	moveControlPoints() {
-		for(var i = 0; i < this.controlPoints.length; i++) {
-			this.controlPoints[i].target.lat = this.controlPoints[i].original.lat + Math.randomGaussian(0, 1) * tg.opt.constant.randomness * this.randomness;
-			this.controlPoints[i].target.lng = this.controlPoints[i].original.lng + Math.randomGaussian(0, 1) * tg.opt.constant.randomness * this.randomness;
+	
+	moveGrids() {
+		var pos
 
-			//console.log(this.controlPoints[i].original.lat + ' -> ' + this.controlPoints[i].target.lat);
+		for(var i = 0; i < this.grids.length; i++) {
+			for(var j = 0; j < this.grids[i].pts.length - 1; j++) {
+				pos = this.graph.transform(this.grids[i].pts[j].original.lat, this.grids[i].pts[j].original.lng)
+				this.grids[i].pts[j].target.lat = pos.lat
+				this.grids[i].pts[j].target.lng = pos.lng
+			}
 		}
+
+
+
+		/*for(var i = 0; i < this.controlPoints.length; i++) {
+			pos = this.graph.transform(this.controlPoints[i].original.lat, this.controlPoints[i].original.lng)
+			this.controlPoints[i].target.lat = pos.lat
+			this.controlPoints[i].target.lng = pos.lng
+			
+			console.log(this.controlPoints[i].original.lat + ' -> ' + this.controlPoints[i].target.lat);
+		}*/
 	}
+	
 
 	calTPS() {
 		this.graph.TPSSolve(this.controlPoints);
 	}
 
 	testTPS() {
-		return this.graph.TPSTest(this.opt.center.seattle.lat, this.opt.center.seattle.lng);
+		return this.graph.TPSTest(this.centerPosition.lat, this.centerPosition.lng);
 	}
+
+
 
 	moveLocations() {
 		var pos;
@@ -322,12 +424,19 @@ class TGData {
 			this.noi[i].target.lng = pos.lng;
 		}
 
-		for(var i = 0; i < this.gridPoints.length; i++) {
-			for(var j = 0; j < this.gridPoints[i].length; j++) {
-				pos = this.graph.transform(this.gridPoints[i][j].lat, this.gridPoints[i][j].lng);
-				this.gridPoints[i][j].lat = pos.lat;
-				this.gridPoints[i][j].lng = pos.lng;
-			}
+		for(var i = 0; i < this.grids.length; i++) {
+			pos = this.graph.transform(this.grids[i].TL.lat, this.grids[i].TL.lng);
+			this.grids[i].TL.lat = pos.lat;
+			this.grids[i].TL.lng = pos.lng;
+			pos = this.graph.transform(this.grids[i].TR.lat, this.grids[i].TR.lng);
+			this.grids[i].TR.lat = pos.lat;
+			this.grids[i].TR.lng = pos.lng;
+			pos = this.graph.transform(this.grids[i].BR.lat, this.grids[i].BR.lng);
+			this.grids[i].BR.lat = pos.lat;
+			this.grids[i].BR.lng = pos.lng;
+			pos = this.graph.transform(this.grids[i].BL.lat, this.grids[i].BL.lng);
+			this.grids[i].BL.lat = pos.lat;
+			this.grids[i].BL.lng = pos.lng;
 		}
 
 	}

@@ -300,6 +300,7 @@ $("#location0RB").change(function(ev){
 		//tg.data.locationType = 'restaurants';
 		tg.data.locationType = 'japanese';
 		tg.map.dispLocationLayer = true;
+		tg.data.calNOI();
 		tg.map.updateLayers();
 	} 
 });
@@ -309,6 +310,7 @@ $("#location1RB").change(function(ev){
 		//tg.data.locationType = 'restaurants';
 		tg.data.locationType = 'french';
 		tg.map.dispLocationLayer = true;
+		tg.data.calNOI();
 		tg.map.updateLayers();
 	} 
 });
@@ -337,15 +339,25 @@ $("#randomSlider").on("slideStop", function(evt) {
   tg.map.updateLayers();
 });
 
-function getTT() {
-	tg.data.getTravelTime();
+function getTravelTime() {
+	tg.data.getTravelTime()
+}
+
+function calWarping() {
+	tg.graph.calWarping()
+	tg.map.updateLayers()
 }
 
 function calTPS() {
-	tg.data.calTPS();
+	tg.data.calTPS()
 
-	if (tg.data.testTPS()) console.log('TPS complete.');
-	else console.log('TPS failed...');
+	if (tg.data.testTPS()) console.log('TPS complete.')
+	else console.log('TPS failed...')
+}
+
+function moveGrids() {
+	tg.data.moveGrids()
+	tg.map.updateLayers()
 }
 
 function moveLocations() {
@@ -432,7 +444,8 @@ function simpMergeRoads() {
 
 function save() {
 	//tg.net.saveFileOfSaperateRoads();
-	tg.net.changeFormat();
+	//tg.net.changeFormat();
+	tg.saveTravelTime();
 }
 
 /*

@@ -53,8 +53,8 @@ const options = {
 	},
 
 	width: {
-		motorway: 1, //7,
-		trunk: 1, //7,
+		motorway: 7, //7,
+		trunk: 7, //7,
 		primary: 1, //5,
 		secondary: 1, //3,
 		tertiary: 1,
@@ -122,8 +122,8 @@ const options = {
 	},
 
 	resolution: {
-		gridLng: 10,
-		gridLat: 10,
+		gridLng: 5,
+		gridLat: 9,
 	},
 
 	constant: {

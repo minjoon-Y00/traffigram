@@ -9,14 +9,15 @@ class TGUtil {
 	  var downloadLink = document.createElement("a");
 	  downloadLink.download = fileNameToSaveAs;
 	  downloadLink.innerHTML = "Download File";
-	  if (window.webkitURL != null)
-	  {
+	  downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+
+	  /*
+	  if (window.webkitURL != null) {
 	    // Chrome allows the link to be clicked
 	    // without actually adding it to the DOM.
 	    downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
 	  }
-	  else
-	  {
+	  else {
 	    // Firefox requires the link to be added to the DOM
 	    // before it can be clicked.
 	    downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
@@ -24,12 +25,13 @@ class TGUtil {
 	    downloadLink.style.display = "none";
 	    document.body.appendChild(downloadLink);
 	  }
+	  */
 	  downloadLink.click();
 	}
 
 	distance(lat1, lng1, lat2, lng2) {
-	  //var R = 6371; // km
-	  var R = 3959; // 6371*0.621371; // miles
+	  var R = 6371; // km
+	  //var R = 3959; // 6371*0.621371; // miles
 	  var dLat = (lat2 - lat1) * Math.PI / 180;
 	  var dLng = (lng2 - lng1) * Math.PI / 180; 
 	  var a = Math.sin(dLat / 2) * 

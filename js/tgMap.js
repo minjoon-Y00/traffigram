@@ -68,7 +68,8 @@ class TGMap {
 	      this.currentZoom = this.map.getView().getZoom();
 	      this.calBoundaryBox();
 	      this.data.calNOI();
-	      this.data.calControlPointsGrid();
+	      this.data.calGrids()
+	      this.data.calControlPoints()
 	      this.data.calDispRoads();
 	      this.updateLayers();
 		 		this.displayTexts();
@@ -83,7 +84,8 @@ class TGMap {
 	onMoveEnd(e) {
 		this.calBoundaryBox();
 		this.data.calNOI();
-		this.data.calControlPointsGrid();
+		this.data.calGrids()
+		this.data.calControlPoints()
 		this.data.calDispRoads();
     this.updateLayers();
 	 	this.displayTexts();
@@ -127,6 +129,7 @@ class TGMap {
 	// Display overlapped information in the map
 	//
 	displayTexts() {
+		return;
 		var precision = 3;
 
 		// Display the total number of original nodes & roads
@@ -231,6 +234,11 @@ class TGMap {
   		lat: height * this.opt.constant.clickSensibility, 
   		lng: width * this.opt.constant.clickSensibility
   	};
+
+  	//console.log('left : ' + this.opt.box.left);
+  	//console.log('right : ' + this.opt.box.right);
+  	//console.log('top : ' + this.opt.box.top);
+  	//console.log('bottom : ' + this.opt.box.bottom);
 	}
 
 	//
@@ -421,6 +429,19 @@ class TGMap {
 		});
 	};
 
+	textStyleFunc(text, color, font) {
+	  return new ol.style.Style({
+	  	text: new ol.style.Text({
+	    	textAlign: 'Center',
+	    	font: font,
+	    	text: text,
+	    	fill: new ol.style.Fill({color: color}),
+	    	offsetX: 0,
+	    	offsetY: 0
+	    })
+	  });
+	}
+
 	//
 	//
 	//
@@ -534,7 +555,9 @@ class TGMap {
 
 	createRoadLayer(nodes, edges, clr, width) {
 		var arr = [];
-		this.createRoadLayerByType(nodes, edges, clr, width, arr, []);
+		this.createRoadLayerByType(nodes, edges, clr, 1, arr, [21, 22, 23, 24, 25]);
+		this.createRoadLayerByType(nodes, edges, clr, 1, arr, [11, 12, 13]);
+		this.createRoadLayerByType(nodes, edges, clr, 5, arr, [1, 2]);
 		//this.createRoadLayerByType(ne, arr, ['motorway_link', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link']);
 		//this.createRoadLayerByType(ne, arr, ['primary', 'secondary', 'tertiary']);
 		//this.createRoadLayerByType(ne, arr, ['motorway', 'trunk']);
@@ -545,18 +568,42 @@ class TGMap {
 	createRoadLayerByType(nodes, roads, clr, width, arr, typeArr) {
 		var lenRoads = roads.length;
 
+
+
+		//console.log(clr);
+
 		for(var i = 0; i < lenRoads; i++) {
+
+			if (typeArr.indexOf(roads[i].type) == -1) continue;
 
 			//if ($.arrayIntersect(ne.edges[i].tag, typeArr).length == 0) continue;
 			//if ($.inArray(ne.edges[i].tag[0], typeArr) === -1) continue;
 
 			//console.log(this.displayedRoads);
+			//var r = Math.floor((Math.random() * 255));
+			//var g = Math.floor((Math.random() * 255));
+			//var b = Math.floor((Math.random() * 255));
+			//clr = 'rgb(' + r + ',' + g + ',' + b + ')';
+
+			var new_width;
+			if ((roads[i].type == 1)||(roads[i].type == 2)||(roads[i].type == 21)||(roads[i].type == 22)||(roads[i].type == 23)) {
+				new_width = 1;
+				clr = '#F00';
+			}
+			else {
+				new_width = 1;
+				clr = '#BBB';
+			}
+
+			clr = '#BBB';
+
 
 			if (this.displayedRoads.indexOf(roads[i].type) === -1) continue;
 
 			for(var j = 0; j < roads[i].nodes.length - 1; j++) {
 
-				var new_width = (roads[i].oneway) ? width : width + 1;
+				//var new_width = (roads[i].oneway) ? width : width + 1;
+				
 
 				this.olFeaturesFromLineStrings(arr, 
 					nodes[roads[i].nodes[j]].lng, 
@@ -574,22 +621,43 @@ class TGMap {
 		var new_clr;
 
 		for(var i = 0; i < lenRoads; i++) {
-			
+
 			if (this.displayedRoads.indexOf(roads[i].type) === -1) continue;
 
 			for(var j = 0; j < roads[i].nodes.length; j++) {
 
+				if (nodes[roads[i].nodes[j]].deleted) continue;
+
 				if (this.dispOrders) {
 					var order = nodes[roads[i].nodes[j]].roads.length;
 
+					if (order == 0) continue;
+
+
+					if (order > 7) order = 7;
 					if (order == 0) clr = '#CCC';
 					else clr = this.opt.color.nodeOrder[order - 1];
 				}
 
-				if (nodes[roads[i].nodes[j]].special)
-					new_clr = '#000';
-				else
-					new_clr = clr;
+
+				if (order == 0) {
+					// intermediate nodes
+					clr = '#000';
+					radius = 2;
+				}
+				else { 
+					// terminal nodes
+					clr = '#000';
+					radius = 2;
+				}
+
+				if (nodes[roads[i].nodes[j]].deleted) new_clr = '#000';
+				else new_clr = clr;
+
+	
+
+
+				
 
 				this.olFeaturesFromPoints(arr, 
 					nodes[roads[i].nodes[j]].lng, nodes[roads[i].nodes[j]].lat, 
@@ -664,31 +732,77 @@ class TGMap {
 					nodes[i].original.lng, nodes[i].original.lat, nodes[i].target.lng, nodes[i].target.lat,
 					this.lineStyleFunc(this.opt.color.controlPointLine, this.opt.width.controlPointLine));
 			}
+
+			//var str = nodes[i].time + '(' + nodes[i].distance + ')';
+			var str = nodes[i].travelTime
+			//var str = i
+
+			this.olFeaturesFromPoints(arr, nodes[i].target.lng, nodes[i].target.lat, 
+				this.textStyleFunc(str, '#000', '14px Source Sans Pro'));
+
+			
 		}
 		return this.olVectorFromFeatures(arr);
 	}
 
 	createGridLayer() {
-		var arr = [];
-		var grids = this.data.grids;
+		var arr = []
+		var grids = this.data.grids
 
 		for(var i = 0; i < grids.length; i++) {
+			for(var j = 0; j < grids[i].pts.length - 1; j++) {
+				this.olFeaturesFromLineStrings(arr, 
+					grids[i].pts[j].target.lng, 
+					grids[i].pts[j].target.lat, 
+					grids[i].pts[j + 1].target.lng, 
+					grids[i].pts[j + 1].target.lat, 
+					this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
+			}
+		}
+
+		for(var i = 0; i < grids[0].pts.length; i++) {
+			for(var j = 0; j < grids.length - 1; j++) {
+				this.olFeaturesFromLineStrings(arr, 
+					grids[j].pts[i].target.lng, 
+					grids[j].pts[i].target.lat, 
+					grids[j + 1].pts[i].target.lng, 
+					grids[j + 1].pts[i].target.lat, 
+					this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
+			}
+		}
+
+
+
+		/*for(var i = 0; i < grids.length; i++) {
+			for(var j = 0; j < grids[i].pts.length; j++) {
+				this.olFeaturesFromPoints(arr, grids[i].pts[j].original.lng, grids[i].pts[j].original.lat, 
+				//this.olFeaturesFromPoints(arr, -122.312035, 47.658311, 
+					this.nodeStyleFunc(this.opt.color.controlPoint, this.opt.radius.controlPoint));
+
+			console.log(grids[i].pts[j].original.lng)
+			console.log(grids[i].pts[j].original.lat)
+			}
+		}*/
+
+		/*
+		for(var i = 0; i < grids.length; i++) {
 			this.olFeaturesFromLineStrings(arr, 
-				grids[i].lngL, grids[i].latB, grids[i].lngR, grids[i].latB,
+				grids[i].TL.lng, grids[i].TL.lat, grids[i].TR.lng, grids[i].TR.lat,
 				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
 
 			this.olFeaturesFromLineStrings(arr, 
-				grids[i].lngL, grids[i].latT, grids[i].lngR, grids[i].latT,
+				grids[i].TR.lng, grids[i].TR.lat, grids[i].BR.lng, grids[i].BR.lat,
 				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
 
 			this.olFeaturesFromLineStrings(arr, 
-				grids[i].lngL, grids[i].latB, grids[i].lngL, grids[i].latT,
+				grids[i].BR.lng, grids[i].BR.lat, grids[i].BL.lng, grids[i].BL.lat,
 				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
 
 			this.olFeaturesFromLineStrings(arr, 
-				grids[i].lngR, grids[i].latB, grids[i].lngR, grids[i].latT,
+				grids[i].BL.lng, grids[i].BL.lat, grids[i].TL.lng, grids[i].TL.lat,
 				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
 		}
+		*/
 		return this.olVectorFromFeatures(arr);
 	}
 

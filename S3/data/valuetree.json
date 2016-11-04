@@ -1,0 +1,60 @@
+{
+	"id": "1",
+	"text": "Total value",
+	"is_terminal": false,
+	"weight": 0,
+	"children": [
+		{
+			"id": "1-1",
+			"text": "Travel cost",
+			"is_terminal": false,
+			"weight": 0,
+			"children": [
+				{
+					"id": "1-1-1",
+					"text": "Travel time",
+					"is_terminal": true,
+					"is_set": true,
+					"color": "rgb(255, 140, 0)",
+					"weight": 0.2
+				}, {
+					"id": "1-1-2",
+					"text": "Distance",
+					"is_terminal": true,
+					"is_set": true,
+					"color": "rgb(208, 116, 60)",
+					"weight": 0.2
+				}]
+		}, 
+		{
+			"id": "1-2",
+			"text": "Destination quality",
+			"is_terminal": false,
+			"weight": 0,
+			"children": [
+				{
+					"id": "1-2-1",
+					"text": "Ratings",
+					"is_terminal": true,
+					"is_set": true,
+					"color": "rgb(152, 171, 197)",
+					"weight": 0.2
+				}, {
+					"id": "1-2-2",
+					"text": "Price",
+					"is_terminal": true,
+					"is_set": true,
+					"color": "rgb(107, 72, 107)",
+					"weight": 0.2
+				}, {
+					"id": "1-2-3",
+					"text": "# of reviews",
+					"is_terminal": true,
+					"is_set": true,
+					"color": "rgb(138, 137, 166)",
+					"weight": 0.2
+				}
+			]
+		}
+	]
+}
