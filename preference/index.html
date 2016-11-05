@@ -4,27 +4,32 @@
     <title>Traffigram - Preference</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="./vendor/bootstrap-darkly.min.css">
+    <link rel="stylesheet" href="./vendor/bootstrap-slate.min.css">
     <link rel="stylesheet" href="./vendor/bootstrap-slider.min.css">
     <!--<link rel="stylesheet" href="http://openlayers.org/en/v3.11.2/css/ol.css" type="text/css">-->
     <link rel="stylesheet" href="./vendor/ol.css">
     <link rel="stylesheet" href="./css/traffigram.css">
-
   </head>
 
   <body>
     <div class="container" style="margin-top:20px; margin-bottom:20px">
       <div class="row" style="width:1500px">
 
-        <!-- Left Options Panel -->
-        <div class="col-sm-2" style="width:250px;">
+        <!-- Map -->
 
-          <!-- City -->
+        <div class="col-sm-9" style="width:600px">
+          <div id="ol_map" class="ol_map"></div>
+          <div id='mapInfo1'></div>
+          <div id='mapInfo2'></div>
+          <div id='mapInfo3'></div>
 
-          <!--<h4>City</h4>-->
-          <h4>Center</h4>
+        </div>
 
-          <!--<div class="radio">
+        <!-- Right Options Panel -->
+        <div class="col-sm-3" style="width:250px">
+
+          <!--<h4>City</h4>
+          <div class="radio">
             <label><input type="radio" name="cityRadio" id="citySeattleRB" checked>Seattle</label>
           </div>
           <div class="radio">
@@ -34,179 +39,47 @@
             <label style="color:gray"><input type="radio" name="cityRadio" id="citySFRB" disabled>San Francisco</label>
           </div>-->
 
+          <!-- Center -->
+
+          <h4>Center</h4>
           <div class="radio">
             <label><input type="radio" name="centerRadio" id="centerUWRB" checked>UW</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="centerRadio" id="centerGasworksRB">Gasworks</label>
+            <label class='disabledText'><input type="radio" name="centerRadio" id="centerGasworksRB" disabled>Gasworks</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="centerRadio" id="centerSeattleUnivRB">Seattle Univ.</label>
+            <label class='disabledText'><input type="radio" name="centerRadio" id="centerSeattleUnivRB" disabled>Seattle Univ.</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="centerRadio" id="centerBellevueRB">Bellevue</label>
+            <label class='disabledText'><input type="radio" name="centerRadio" id="centerBellevueRB" disabled>Bellevue</label>
           </div>
           <hr>
 
-          <!-- Map Style -->
 
-          <h4>Map Style</h4>
-          <div class="radio">
-            <label><input type="radio" name="mapStyleRadio" id="mapStyleSimpleRB" checked>Simple</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="mapStyleRadio" id="mapStyleSatelliteRB">Satellite</label>
-          </div>
-          <hr>
 
-          <!-- Road representation -->
-          
-          <h4>Road Class</h4>
-          <div class="checkbox">
-            <label><input type="checkbox" id="highwayCB" checked/>H: Highways</label>
-          </div>
-          <div class="checkbox">
-            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="motorwayCB" checked/>H1: Expressway</label>
-          </div>
-          <div class="checkbox">
-            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="trunkCB" checked/>H2: Trunk highway</label>
-          </div>
+          <!-- EM -> DC -->
 
-          <div class="checkbox" style="margin-top: 5px">
-            <label><input type="checkbox" id="arterialRoadCB" checked/>A: Arterial Roads</label>
-          </div>
-          <div class="checkbox">
-            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="primaryCB" checked/>A1: Primary roads</label>
-          </div>
-          <div class="checkbox">
-            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="secondaryCB" checked/>A2: Secondary roads</label>
-          </div>
-          <div class="checkbox">
-            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="tertiaryCB" checked/>A3: Tertiary roads</label>
-          </div>
-
-          <div class="checkbox" style="margin-top: 10px">
-            <label><input type="checkbox" id="linkRoadCB" checked/>L: Links</label>
-          </div>
-          <div class="checkbox">
-            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="motorwayLinkCB" checked/>L: Expressway links</label>
-          </div>
-          <div class="checkbox">
-            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="trunkLinkCB" checked/>L2: Trunk link</label>
-          </div>
-          <div class="checkbox">
-            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="primaryLinkCB" checked/>L3: Primary links</label>
-          </div>
-          <div class="checkbox">
-            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="secondaryLinkCB" checked/>L4: Secondary links</label>
-          </div>
-          <div class="checkbox">
-            <label>&nbsp;&nbsp;&nbsp;<input type="checkbox" id="tertiaryLinkCB" checked/>L5: Tertiary links</label>
-          </div>
+          <h4>EM -> DC</h4>
+          <button type="button" class="btn btn-default btn-sm marginT" onclick="getTravelTime()">get Travel Time</button>
+          <br/>
+          <button type="button" class="btn btn-default btn-sm marginT" onclick="calWarping()">cal Warping</button>
+          <br/>
+          <button type="button" class="btn btn-default btn-sm marginT" onclick="calTPS()">cal TPS</button>
+          <br/>
+          <button type="button" class="btn btn-default btn-sm marginT" onclick="moveGrids()">Move Grids</button>
           <hr>
 
           <!-- Visual Elements representation -->
 
           <h4>Visual Elements</h4>
-          <div class="checkbox">
-            <label><input type="checkbox" id="dispOriginalRoadsCB"/>Display Original Roads</label>
-          </div>
-          <div class="checkbox">
-            <label><input type="checkbox" id="dispOriginalNodesCB"/>Display Original Nodes</label>
-          </div>
-
-          <div class="checkbox">
-            <label><input type="checkbox" id="dispSimplifiedRoadsCB" checked/>Display Simplified Roads</label>
-          </div>
-          <div class="checkbox">
-            <label><input type="checkbox" id="dispSimplifiedNodesCB"/>Display Simplified Nodes</label>
-          </div>
-          <div class="checkbox">
-            <label><input type="checkbox" id="dispOrdersCB" checked/>Display Orders</label>
-          </div>
-          <div class="checkbox">
-            <label><input type="checkbox" id="dispCenterPositionCB"/>Display Center Position</label>
-          </div>
+          <label class='marginR'><input type="checkbox" id="dispWaterCB" checked/><span class='marginL'>Water</span></label>
+          <label class='marginR'><input type="checkbox" id="dispRoadsCB" checked/><span class='marginL'>Roads</span></label>
+          <label class='marginR'><input type="checkbox" id="dispNodesCB"/><span class='marginL'>Nodes</span></label>
+          <label class='marginR'><input type="checkbox" id="dispCenterPositionCB"/><span class='marginL'>Center</span></label>
+          <label class='marginR'><input type="checkbox" id="dispControlPointsCB"/><span class='marginL'>Control Points</span></label>
+          <label class='marginR'><input type="checkbox" id="dispGridCB"/><span class='marginL'>Grid</span></label>
           <hr>
-
-          <!-- Network representation -->
-
-          <h4>Network</h4>
-          <div class="checkbox">
-            <label><input type="checkbox" id="edgesCB" checked/>Edges</label>
-          </div>
-          <div class="checkbox">
-            <label><input type="checkbox" id="nodesCB" checked/>Nodes</label>
-          </div>
-
-          <br>
-          <p>Network Level</p>
-          <div class="radio">
-            <label><input type="radio" name="levelradio" id="networkLevelNoRB">Do not display</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="levelradio" id="networkLevel0RB">Level 1 (H, A, L)</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="levelradio" id="networkLevel1RB">Level 2 (H, A1, A2)</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="levelradio" id="networkLevel2RB" checked>Level 3 (H)</label>
-          </div>
-    
-        </div>
-
-
-        <!-- Map -->
-
-        <div class="col-sm-8" style="width:570px">
-          <div id='displayTextLT1'></div>
-          <div id='displayTextLT2'></div>
-          <div id='displayTextLT3'></div>
-          <div id='displayTextLT4'></div>
-          <div id='displayTextLB1'></div>
-          <div id='displayTextLB2'></div>
-
-          <div id="ol_map" class="ol_map" style="width:540px; height:960px"></div>
-          <div class="container">
-            <div class="row">
-              <div class="col-sm-4">
-                <span id='mapTextDisplay'></span>
-              </div>
-              <div class="col-sm-6 input-group input-group-sm">
-                <input type="text" class="form-control" id="goLat" placeholder="lat" style="width:100px; height:30px">
-                <input type="text" class="form-control" id="goLng" placeholder="lng" style="width:100px; height:30px; margin-left:5px">
-                <button type="button" class="btn btn-default btn-sm" style="margin-left:5px" onclick="goLatLng()">Set</button>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-sm-4">
-                <span id='nodeTextDisplay'></span>
-              </div>
-              <div class="col-sm-6 input-group input-group-sm">
-                <input type="text" class="form-control" id="goNode" placeholder="node ID" style="width:100px; height:30px">
-                <button type="button" class="btn btn-default btn-sm" style="margin-left:5px" onclick="goCenterNode()">Set</button>
-              </div>
-            </div>
-       
-          </div>
-        </div>
-
-        <!-- Right Options Panel -->
-        <div class="col-sm-2" style="width:250px">
-
-          <h4>EM -> DC</h4>
-          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="getTravelTime()">get Travel Time</button>
-          <br/>
-          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="calWarping()">cal Warping</button>
-          <br/>
-          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="calTPS()">cal TPS</button>
-          <br/>
-          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="moveGrids()">Move Grids</button>
-          <hr>
-
-
 
           <!-- Locations -->
 
@@ -221,35 +94,12 @@
           <div class="radio">
             <label><input type="radio" name="locationRadio" id="location1RB">French</label>
           </div>
-          <!--<div class="radio">
-            <label><input type="radio" name="locationRadio" id="location0RB">Restaurants</label>
-          </div>
-          <div class="radio">
-            <label style="color:gray"><input type="radio" name="locationRadio" id="location1RB" disabled>Gardens and parks</label>
-          </div>
-          <div class="radio">
-            <label style="color:gray"><input type="radio" name="locationRadio" id="location2RB" disabled>Bars</label>
-          </div>
-          <div class="radio">
-            <label style="color:gray"><input type="radio" name="locationRadio" id="location3RB" disabled>Movie Theaters</label>
-          </div>
-          <div class="radio">
-            <label style="color:gray"><input type="radio" name="locationRadio" id="location4RB" disabled>Museums</label>
-          </div>
-          <div class="radio">
-            <label style="color:gray"><input type="radio" name="locationRadio" id="location5RB" disabled>Coffee &amp; desserts</label>
-          </div>
-          <div class="radio">
-            <label style="color:gray"><input type="radio" name="locationRadio" id="location6RB" disabled>Groceries</label>
-          </div>
-          <div class="radio">
-            <label style="color:gray"><input type="radio" name="locationRadio" id="location7RB" disabled>Sports activities</label>
-          </div>-->
+
           <hr>
 
           <!-- Control Points -->
 
-          <h4>Control Points</h4>
+          <!--<h4>Control Points</h4>
 
           <div class="radio">
             <label><input type="radio" name="controlPointRadio" id="cpLocationRB">Location</label>
@@ -260,52 +110,13 @@
           <div class="radio">
             <label><input type="radio" name="controlPointRadio" id="cpNodesRB">Nodes</label>
           </div>
-
-          <br/>
-          <div class="checkbox">
-            <label><input type="checkbox" id="dispControlPointsCB"/>Display Control Points</label>
-          </div>
-          <div class="checkbox">
-            <label><input type="checkbox" id="dispGridCB"/>Display Grid</label>
-          </div>
-          <label style="margin-right:0px">Randomness</label>
+          <br/>-->
+ 
+          <!--<label style="margin-right:0px">Randomness</label>
             <input id="randomSlider" data-slider-id='randomSlider' type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="0"/>
-          <br/>
+          <br/>-->
           
 
-
-         
-
-        
-
-
-          <!-- Simplification-->
-
-          <h4>Simplification</h4>
-          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="simpSeperate()">I. Separate Roads</button>
-          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="simpMerge()">II. Merge Roads</button>
-          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="simpStraightenLinks()">III. Straighten Links</button>
-
-
-          <input id="rdpSlider" data-slider-id='rdpSlider' type="text" data-slider-min="0" data-slider-max="20" data-slider-step="1" data-slider-value="1"/>
-          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="simpRDP()">IV. RDP Simplification</button>
-          <button type="button" class="btn btn-default btn-sm" style="margin-top:5px" onclick="save()">SAVE</button>
-
-          
-          <!-- Network selection algorithm -->
-
-          <!-- <h4>Network Selection Algorithm</h4>
-
-          <div class="radio">
-            <label><input type="radio" name="algorithmRadio" checked>A</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="algorithmRadio">B</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="algorithmRadio">C</label>
-          </div>
-          <hr> -->
           
         </div>
       </div>
@@ -329,7 +140,6 @@
 
     <script src="data/nr_seattle_cluster_22.js"></script> <!-- after step  -->
     <script src="data/default_tt_10am.js"></script>
-    <script src="data/restaurants.js"></script>
     <script src="data/uw_japanese.js"></script>
     <script src="data/uw_french.js"></script>
     

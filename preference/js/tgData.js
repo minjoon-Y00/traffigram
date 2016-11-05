@@ -1,32 +1,23 @@
 class TGData {
 
-	constructor(tg, graph, util, options) {
-		this.tg = tg;
-		this.graph = graph;
-		this.util = util;
-		this.opt = options;
+	constructor(tg) {
+		this.tg = tg
 
-		this.original = {};
-		this.level0 = {};
-		this.level1 = {};
-		this.level2 = {};
-		this.locations = {};
-		//this.locations.restaurants = restaurants.locations;
-		this.locations.japanese = uw_japanese;
-		this.locations.french = uw_french;
-	  //this.locationType = 'restaurants';
-	  this.locationType = 'japanese';
-	  this.randomness = 0;
-	  this.simpDistanceRDP = 1;
-	  this.centerPosition = {};
+		this.nodes = []
+		this.roads = []
+		this.localNodes = []
+		this.localRoads = []
+	  this.centerPosition = {}
+	  this.controlPoints = []
+	  this.grids = []
 
-	  this.tt = new TravelTime();
-	  this.noi = [];
-	  this.grids = [];
-	  this.controlPointType = 'grid'; //'location', 'grid', node'
-	  this.controlPoints = [];
+		this.locations = {}
+		this.locations.japanese = uw_japanese
+		this.locations.french = uw_french
+	  this.locationType = '' //'japanese', 'french'
+	  this.localLocations = []
 
-	  this.simple = {};
+	  this.tt = new TravelTime()
 
 	  // [TYPE]
 	  // motorway(1), trunk(2), primary(11), secondary(12), tertiary(13)
@@ -36,93 +27,86 @@ class TGData {
 	}
 
 	//
+	// Calculate local (displayed) nodes and roads
 	//
-	//
-	calNOI() {
-		var nodes = this.locations[this.locationType];
-		var len = nodes.length;
-		var lng, lat;
-		this.noi = [];
-
-		for(var i = 0; i < len; i++) {
-			lat = Number(nodes[i].loc_y);
-			lng = Number(nodes[i].loc_x);
-
-			if ((lat < this.opt.box.top) && (lat > this.opt.box.bottom) 
-				&& (lng < this.opt.box.right)	&& (lng > this.opt.box.left)) {
-				this.noi.push(new Node(lat, lng));
-			}
-		}
-
-		//console.log(this.noi.length);
+	calLocalNodesRoads() {
+		this.localRoads = this.calLocalRoads(this.nodes, this.roads)
+		this.localNodes = this.calLocalNodes(this.nodes, this.localRoads)
 	}
 
-	//
-	// Calculate displayed roads
-	//
-	calDispRoads() {
-		this.original.dispRoads = this.calDispRoadsByKind(this.original.nodes, this.original.roads);
-		this.simple.dispRoads = this.calDispRoadsByKind(this.simple.nodes, this.simple.roads);
-
-	}
-
-	calDispRoadsByKind(nodes, roads) {
-		var len = roads.length;
-		var lat, lng;
-		var dispRoads = [];
+	calLocalRoads(nodes, roads) {
+		var len = roads.length
+		var lat, lng
+		var localRoads = []
 
 		for(var i = 0; i < len; i++) {
-
 			// put all motorway and trunks.
-			if ((roads[i].type == 1)||(roads[i].type == 2)) {
-				dispRoads.push(roads[i]);
-				continue;
-			}
+			/*if ((roads[i].type == 1)||(roads[i].type == 2)) {
+				localRoads.push(roads[i])
+				continue
+			}*/
 
 			// If the start node of a road is in the screen, add the road.
-			lat = nodes[roads[i].nodes[0]].lat;
-			lng = nodes[roads[i].nodes[0]].lng;
+			lat = nodes[roads[i].nodes[0]].lat
+			lng = nodes[roads[i].nodes[0]].lng
 
-			if ((lat < this.opt.box.top) && (lat > this.opt.box.bottom) 
-				&& (lng < this.opt.box.right)	&& (lng > this.opt.box.left)) {
-				dispRoads.push(roads[i]);
-				continue;
+			if ((lat < this.tg.opt.box.top) && (lat > this.tg.opt.box.bottom) 
+				&& (lng < this.tg.opt.box.right)	&& (lng > this.tg.opt.box.left)) {
+				localRoads.push(roads[i])
+				continue
 			}
 
 			// If the last node of a road is in the screen, add the road.
-			lat = nodes[roads[i].nodes[roads[i].nodes.length - 1]].lat;
-			lng = nodes[roads[i].nodes[roads[i].nodes.length - 1]].lng;
+			lat = nodes[roads[i].nodes[roads[i].nodes.length - 1]].lat
+			lng = nodes[roads[i].nodes[roads[i].nodes.length - 1]].lng
 
-			if ((lat < this.opt.box.top) && (lat > this.opt.box.bottom) 
-				&& (lng < this.opt.box.right)	&& (lng > this.opt.box.left)) {
-				dispRoads.push(roads[i]);
+			if ((lat < this.tg.opt.box.top) && (lat > this.tg.opt.box.bottom) 
+				&& (lng < this.tg.opt.box.right)	&& (lng > this.tg.opt.box.left)) {
+				localRoads.push(roads[i])
 			}
 		}
-		return dispRoads;
+		return localRoads
 	}
 
-	//
-	// Calculate the number of unique nodes in roads
-	//
-	calUniqueNodesLength(nodes, roads) {
-		var len = roads.length;
-		var unqNodes = [];
+	calLocalNodes(nodes, localRoads) {
+		var len = localRoads.length
+		var localNodes = []
 
 		for(var i = 0; i < len; i++) {
-			for(var j = 0; j < roads[i].nodes.length; j++) {
-				if (unqNodes.indexOf(roads[i].nodes[j]) === -1) {
-					unqNodes.push(roads[i].nodes[j]);
-				}
+			for(var j = 0; j < localRoads[i].nodes.length; j++) {
+				localNodes.push(new Node(nodes[localRoads[i].nodes[j]].lat, nodes[localRoads[i].nodes[j]].lng))
+				localRoads[i].nodes[j] = localNodes.length - 1
 			}
 		}
-		return unqNodes.length;
+		return localNodes
 	}
 
 	//
 	//
 	//
+	calLocalLocations() {
+		this.localLocations = []
+		
+		if (this.locationType == '') return
 
+		var locs = this.locations[this.locationType]
+		var len = locs.length
+		var lng, lat
+		
+		for(var i = 0; i < len; i++) {
+			lat = Number(locs[i].loc_y);
+			lng = Number(locs[i].loc_x);
 
+			if ((lat < this.tg.opt.box.top) && (lat > this.tg.opt.box.bottom) 
+				&& (lng < this.tg.opt.box.right)	&& (lng > this.tg.opt.box.left)) {
+				this.localLocations.push(new Node(lat, lng));
+			}
+		}
+	}
+
+	//
+	//
+	//
 	calControlPoints() {
 		this.controlPoints = []
 
@@ -148,16 +132,16 @@ class TGData {
 
 	calGrids() {
 		this.grids = []
-		var dLat = (this.opt.box.top - this.opt.box.bottom) / (this.opt.resolution.gridLat - 1)
-		var dLng = (this.opt.box.right - this.opt.box.left) / (this.opt.resolution.gridLng - 1)
+		var dLat = (this.tg.opt.box.top - this.tg.opt.box.bottom) / (this.tg.opt.resolution.gridLat - 1)
+		var dLng = (this.tg.opt.box.right - this.tg.opt.box.left) / (this.tg.opt.resolution.gridLng - 1)
 		var latL, lngB
 		
-		for(var i = 0; i < this.opt.resolution.gridLat; i++) {
+		for(var i = 0; i < this.tg.opt.resolution.gridLat; i++) {
 			var obj = {level:0, pts:[]}
 
-			for(var j = 0; j < this.opt.resolution.gridLng; j++) {
-				latL = this.opt.box.bottom + dLat * i
-				lngB = this.opt.box.left + dLng * j
+			for(var j = 0; j < this.tg.opt.resolution.gridLng; j++) {
+				latL = this.tg.opt.box.bottom + dLat * i
+				lngB = this.tg.opt.box.left + dLng * j
 				obj.pts.push(new Node(latL, lngB))
 			}
 			this.grids.push(obj)
@@ -171,19 +155,19 @@ class TGData {
 
 		/*
 		var candidates = this.locations[this.locationType];
-		var dLat = (this.opt.box.top - this.opt.box.bottom) / (this.opt.resolution.gridLng - 1);
-		var dLng = (this.opt.box.right - this.opt.box.left) / (this.opt.resolution.gridLat - 1);
+		var dLat = (this.tg.opt.box.top - this.tg.opt.box.bottom) / (this.tg.opt.resolution.gridLng - 1);
+		var dLng = (this.tg.opt.box.right - this.tg.opt.box.left) / (this.tg.opt.resolution.gridLat - 1);
 		var latB, latT, lngL, lngR, lat, lng;
 
 		this.grids = [];
 
-		for(var i = 0; i < this.opt.resolution.gridLng - 1; i++) {
-			for(var j = 0; j < this.opt.resolution.gridLat - 1; j++) {
+		for(var i = 0; i < this.tg.opt.resolution.gridLng - 1; i++) {
+			for(var j = 0; j < this.tg.opt.resolution.gridLat - 1; j++) {
 
-				lngL = this.opt.box.left + dLng * i;
-				lngR = this.opt.box.left + dLng * (i + 1);
-				latB = this.opt.box.bottom + dLat * j;
-				latT = this.opt.box.bottom + dLat * (j + 1);
+				lngL = this.tg.opt.box.left + dLng * i;
+				lngR = this.tg.opt.box.left + dLng * (i + 1);
+				latB = this.tg.opt.box.bottom + dLat * j;
+				latT = this.tg.opt.box.bottom + dLat * (j + 1);
 
 				this.grids.push({
 					latT:latT,
@@ -203,8 +187,8 @@ class TGData {
 			lat = Number(candidates[i].loc_y);
 			lng = Number(candidates[i].loc_x);
 
-			if ((lat >= this.opt.box.bottom) && (lat < this.opt.box.top)
-			  && (lng >= this.opt.box.left) && (lng < this.opt.box.right)) {
+			if ((lat >= this.tg.opt.box.bottom) && (lat < this.tg.opt.box.top)
+			  && (lng >= this.tg.opt.box.left) && (lng < this.tg.opt.box.right)) {
 
 				for(var j = 0; j < this.grids.length; j++) {
 					if ((lat >= this.grids[j].latB) && (lat < this.grids[j].latT)
@@ -229,19 +213,19 @@ class TGData {
 				latBTM = (latB + latT) / 2;
 				lngLRM = (lngL + lngR) / 2;
 				grid = {latT:latT, latB:latBTM, lngL:lngL, lngR:lngLRM, locs:[]};
-				pushLocsInGrid(grid, this.grids[i].locs, this.util.clone);
+				pushLocsInGrid(grid, this.grids[i].locs, this.tg.util.clone);
 				this.grids.push(grid);
 
 				grid = {latT:latT, latB:latBTM, lngL:lngLRM, lngR:lngR, locs:[]};
-				pushLocsInGrid(grid, this.grids[i].locs, this.util.clone);
+				pushLocsInGrid(grid, this.grids[i].locs, this.tg.util.clone);
 				this.grids.push(grid);
 
 				grid = {latT:latBTM, latB:latB, lngL:lngL, lngR:lngLRM, locs:[]};
-				pushLocsInGrid(grid, this.grids[i].locs, this.util.clone);
+				pushLocsInGrid(grid, this.grids[i].locs, this.tg.util.clone);
 				this.grids.push(grid);
 
 				grid = {latT:latBTM, latB:latB, lngL:lngLRM, lngR:lngR, locs:[]};
-				pushLocsInGrid(grid, this.grids[i].locs, this.util.clone);
+				pushLocsInGrid(grid, this.grids[i].locs, this.tg.util.clone);
 				this.grids.push(grid);
 
 				removedGrids.push(i);
@@ -263,7 +247,7 @@ class TGData {
 				if (this.grids[i].locs.length > 0) {
 					cLng = (this.grids[i].lngL + this.grids[i].lngR) / 2;
 					cLat = (this.grids[i].latB + this.grids[i].latT) / 2;
-					r = findNearestCenterLatLng(this.grids[i].locs, cLng, cLat, this.util.D2);
+					r = findNearestCenterLatLng(this.grids[i].locs, cLng, cLat, this.tg.util.D2);
 					this.controlPoints.push(new Node(r.lat, r.lng));
 				}
 			}
@@ -356,7 +340,7 @@ class TGData {
 			}
 		}
 
-		var util = this.util
+		var util = this.tg.util
 		var start = (new Date()).getTime()
 		this.tt.getTravelTime(func.bind(this))
 
@@ -388,7 +372,7 @@ class TGData {
 
 		for(var i = 0; i < this.grids.length; i++) {
 			for(var j = 0; j < this.grids[i].pts.length - 1; j++) {
-				pos = this.graph.transform(this.grids[i].pts[j].original.lat, this.grids[i].pts[j].original.lng)
+				pos = this.tg.graph.transform(this.grids[i].pts[j].original.lat, this.grids[i].pts[j].original.lng)
 				this.grids[i].pts[j].target.lat = pos.lat
 				this.grids[i].pts[j].target.lng = pos.lng
 			}
@@ -397,7 +381,7 @@ class TGData {
 
 
 		/*for(var i = 0; i < this.controlPoints.length; i++) {
-			pos = this.graph.transform(this.controlPoints[i].original.lat, this.controlPoints[i].original.lng)
+			pos = this.tg.graph.transform(this.controlPoints[i].original.lat, this.controlPoints[i].original.lng)
 			this.controlPoints[i].target.lat = pos.lat
 			this.controlPoints[i].target.lng = pos.lng
 			
@@ -407,11 +391,11 @@ class TGData {
 	
 
 	calTPS() {
-		this.graph.TPSSolve(this.controlPoints);
+		this.tg.graph.TPSSolve(this.controlPoints);
 	}
 
 	testTPS() {
-		return this.graph.TPSTest(this.centerPosition.lat, this.centerPosition.lng);
+		return this.tg.graph.TPSTest(this.centerPosition.lat, this.centerPosition.lng);
 	}
 
 
@@ -419,22 +403,22 @@ class TGData {
 	moveLocations() {
 		var pos;
 		for(var i = 0; i < this.noi.length; i++) {
-			pos = this.graph.transform(this.noi[i].original.lat, this.noi[i].original.lng);
+			pos = this.tg.graph.transform(this.noi[i].original.lat, this.noi[i].original.lng);
 			this.noi[i].target.lat = pos.lat;
 			this.noi[i].target.lng = pos.lng;
 		}
 
 		for(var i = 0; i < this.grids.length; i++) {
-			pos = this.graph.transform(this.grids[i].TL.lat, this.grids[i].TL.lng);
+			pos = this.tg.graph.transform(this.grids[i].TL.lat, this.grids[i].TL.lng);
 			this.grids[i].TL.lat = pos.lat;
 			this.grids[i].TL.lng = pos.lng;
-			pos = this.graph.transform(this.grids[i].TR.lat, this.grids[i].TR.lng);
+			pos = this.tg.graph.transform(this.grids[i].TR.lat, this.grids[i].TR.lng);
 			this.grids[i].TR.lat = pos.lat;
 			this.grids[i].TR.lng = pos.lng;
-			pos = this.graph.transform(this.grids[i].BR.lat, this.grids[i].BR.lng);
+			pos = this.tg.graph.transform(this.grids[i].BR.lat, this.grids[i].BR.lng);
 			this.grids[i].BR.lat = pos.lat;
 			this.grids[i].BR.lng = pos.lng;
-			pos = this.graph.transform(this.grids[i].BL.lat, this.grids[i].BL.lng);
+			pos = this.tg.graph.transform(this.grids[i].BL.lat, this.grids[i].BL.lng);
 			this.grids[i].BL.lat = pos.lat;
 			this.grids[i].BL.lng = pos.lng;
 		}
