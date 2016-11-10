@@ -50,6 +50,10 @@ function getTravelTime() {
 	tg.data.getTravelTime()
 }
 
+function splitGrid() {
+	tg.data.splitGrid()
+}
+
 function calWarping() {
 	tg.graph.calWarping()
 	tg.map.updateLayers()

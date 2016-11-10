@@ -96,6 +96,7 @@ const options = {
 	constant: {
 		randomness: 0.01,
 		clickSensibility: 0.01,
+		splitThreshold: 200,
 	},
 
 }

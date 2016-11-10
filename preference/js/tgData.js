@@ -10,6 +10,8 @@ class TGData {
 	  this.centerPosition = {}
 	  this.controlPoints = []
 	  this.grids = []
+	  this.gridLinesX = []
+	  this.gridLinesY = []
 
 		this.locations = {}
 		this.locations.japanese = uw_japanese
@@ -18,6 +20,8 @@ class TGData {
 	  this.localLocations = []
 
 	  this.tt = new TravelTime()
+	  this.travelTime
+
 
 	  // [TYPE]
 	  // motorway(1), trunk(2), primary(11), secondary(12), tertiary(13)
@@ -107,35 +111,14 @@ class TGData {
 	//
 	//
 	//
-	calControlPoints() {
-		this.controlPoints = []
-
-		for(var i = 0; i < this.grids.length; i++) {
-			for(var j = 0; j < this.grids[i].pts.length; j++) {
-				this.controlPoints.push(
-					new Node(this.grids[i].pts[j].original.lat, this.grids[i].pts[j].original.lng))
-			}
-		}
-
-		//console.log(default_tt)
-
-		for(var i = 0; i < this.controlPoints.length; i++) {
-			this.controlPoints[i].travelTime = default_tt.one_to_many[0][i + 1].time
-		}
-
-		var centerIdx = parseInt(this.controlPoints.length / 2)
-		this.controlPoints[centerIdx].travelTime = 0;
-
-
-		
-	}
-
-	calGrids() {
+	initGrids() {
 		this.grids = []
 		var dLat = (this.tg.opt.box.top - this.tg.opt.box.bottom) / (this.tg.opt.resolution.gridLat - 1)
 		var dLng = (this.tg.opt.box.right - this.tg.opt.box.left) / (this.tg.opt.resolution.gridLng - 1)
 		var latL, lngB
 		
+		// make a grid structure
+
 		for(var i = 0; i < this.tg.opt.resolution.gridLat; i++) {
 			var obj = {level:0, pts:[]}
 
@@ -147,188 +130,173 @@ class TGData {
 			this.grids.push(obj)
 		}
 
+		// make a object for grid lines 
+
+		for(var i = 0; i < this.grids.length; i++) {
+			for(var j = 0; j < this.grids[i].pts.length - 1; j++) {
+				this.gridLinesX.push({
+					from:this.grids[i].pts[j], 
+					to:this.grids[i].pts[j + 1]})
+			}
+		}
+		for(var i = 0; i < this.grids[0].pts.length; i++) {
+			for(var j = 0; j < this.grids.length - 1; j++) {
+				this.gridLinesY.push({
+					from:this.grids[j].pts[i], 
+					to:this.grids[j + 1].pts[i]})
+			}
+		}
+
+		
 		console.log(this.grids)
-
-
-
-
-
-		/*
-		var candidates = this.locations[this.locationType];
-		var dLat = (this.tg.opt.box.top - this.tg.opt.box.bottom) / (this.tg.opt.resolution.gridLng - 1);
-		var dLng = (this.tg.opt.box.right - this.tg.opt.box.left) / (this.tg.opt.resolution.gridLat - 1);
-		var latB, latT, lngL, lngR, lat, lng;
-
-		this.grids = [];
-
-		for(var i = 0; i < this.tg.opt.resolution.gridLng - 1; i++) {
-			for(var j = 0; j < this.tg.opt.resolution.gridLat - 1; j++) {
-
-				lngL = this.tg.opt.box.left + dLng * i;
-				lngR = this.tg.opt.box.left + dLng * (i + 1);
-				latB = this.tg.opt.box.bottom + dLat * j;
-				latT = this.tg.opt.box.bottom + dLat * (j + 1);
-
-				this.grids.push({
-					latT:latT,
-					latB:latB,
-					lngL:lngL,
-					lngR:lngR,
-					TL: {lat:latT, lng:lngL},
-					TR: {lat:latT, lng:lngR},
-					BR: {lat:latB, lng:lngR},
-					BL: {lat:latB, lng:lngL},
-					locs:[]
-				});
-			}
-		}
-
-		for(var i = 0; i < candidates.length; i++) {
-			lat = Number(candidates[i].loc_y);
-			lng = Number(candidates[i].loc_x);
-
-			if ((lat >= this.tg.opt.box.bottom) && (lat < this.tg.opt.box.top)
-			  && (lng >= this.tg.opt.box.left) && (lng < this.tg.opt.box.right)) {
-
-				for(var j = 0; j < this.grids.length; j++) {
-					if ((lat >= this.grids[j].latB) && (lat < this.grids[j].latT)
-						&& (lng >= this.grids[j].lngL) && (lng < this.grids[j].lngR)) {
-						this.grids[j].locs.push({i:i, lat:lat, lng:lng});
-						break;
-					}
-				}
-			}
-		}
-
-		// To Do: seperation and adaptive grids
-		
-		var removedGrids = [];
-		var latBTM, lngLRM, grid;
-		for(var i = 0; i < this.grids.length; i++) {
-			if (this.grids[i].locs.length >= 10) {
-				latT = this.grids[i].latT;
-				latB = this.grids[i].latB;
-				lngL = this.grids[i].lngL;
-				lngR = this.grids[i].lngR;
-				latBTM = (latB + latT) / 2;
-				lngLRM = (lngL + lngR) / 2;
-				grid = {latT:latT, latB:latBTM, lngL:lngL, lngR:lngLRM, locs:[]};
-				pushLocsInGrid(grid, this.grids[i].locs, this.tg.util.clone);
-				this.grids.push(grid);
-
-				grid = {latT:latT, latB:latBTM, lngL:lngLRM, lngR:lngR, locs:[]};
-				pushLocsInGrid(grid, this.grids[i].locs, this.tg.util.clone);
-				this.grids.push(grid);
-
-				grid = {latT:latBTM, latB:latB, lngL:lngL, lngR:lngLRM, locs:[]};
-				pushLocsInGrid(grid, this.grids[i].locs, this.tg.util.clone);
-				this.grids.push(grid);
-
-				grid = {latT:latBTM, latB:latB, lngL:lngLRM, lngR:lngR, locs:[]};
-				pushLocsInGrid(grid, this.grids[i].locs, this.tg.util.clone);
-				this.grids.push(grid);
-
-				removedGrids.push(i);
-			}
-		}
-
-		for(var i = removedGrids.length - 1; i >= 0; i--) {
-			this.grids.splice(removedGrids[i], 1);
-		}
-		
-
-
-		this.controlPoints = [];	
-		var cLng, cLat, r;
-
-		for(var i = 0; i < this.grids.length; i++) {
-
-			if (this.controlPointType == 'location') {
-				if (this.grids[i].locs.length > 0) {
-					cLng = (this.grids[i].lngL + this.grids[i].lngR) / 2;
-					cLat = (this.grids[i].latB + this.grids[i].latT) / 2;
-					r = findNearestCenterLatLng(this.grids[i].locs, cLng, cLat, this.tg.util.D2);
-					this.controlPoints.push(new Node(r.lat, r.lng));
-				}
-			}
-			else if (this.controlPointType == 'grid') {
-
-				//if (i > 13) continue;
-
-				cLng = this.grids[i].lngL;
-				cLat = this.grids[i].latT;
-				this.controlPoints.push(new Node(cLat, cLng));
-
-				if (i % 9 == 0) { 
-					cLng = this.grids[i].lngL;
-					cLat = this.grids[i].latB;
-					this.controlPoints.push(new Node(cLat, cLng));
-					//console.log('%9');
-				}
-
-				if (parseInt(i / 9) == 8) {  // 72-80
-					cLng = this.grids[i].lngR;
-					cLat = this.grids[i].latT;
-					this.controlPoints.push(new Node(cLat, cLng));
-				}
-
-				if (i == 80) {
-					cLng = this.grids[i].lngR;
-					cLat = this.grids[i].latB;
-					this.controlPoints.push(new Node(cLat, cLng));
-				}
-
-				//this.controlPoints.push(new Node(cLat, cLng));
-			}
-			else if (this.controlPointType == 'node') {
-				// TO DO: implementation
-			}
-
-			
-		}	
-		*/
-
-		//console.log(this.grids);
-		//console.log(this.controlPoints);
-
-
-		function pushLocsInGrid(grid, locs, clone) {
-			for(var j = 0; j < locs.length; j++) {
-				if ((locs[j].lat >= grid.latB) && (locs[j].lat < grid.latT)
-					&& (locs[j].lng >= grid.lngL) && (locs[j].lng < grid.lngR)) {
-					grid.locs.push(clone(locs[j]));
-				}
-			}
-		}
-
-
-		function findNearestCenterLatLng(arr, cLng, cLat, D2) {
-			var len = arr.length;
-			var min = 1000;
-			var min_i = -1;
-			var dist;
-			
-			for(var i = 0; i < len; i++) {
-				dist = D2(arr[i].lat, arr[i].lng, cLat, cLng);
-				if (dist < min) {
-					min = dist;
-					min_i = i;
-				}
-			}
-			return {lat: arr[min_i].lat, lng: arr[min_i].lng};
-		}
-
-		function avgLatLng(arr) {
-			var len = arr.length;
-			var sumLat = 0, sumLng = 0;
-			for(var i = 0; i < len; i++) {
-				sumLat += arr[i].lat;
-				sumLng += arr[i].lng;
-			}
-			return {lat: sumLat / len, lng: sumLng / len};
-		}
 	}
 
+	//
+	//
+	//
+	getControlPointsFromGrid() {
+		var controlPoints = []
+
+		for(var i = 0; i < this.grids.length; i++) {
+			for(var j = 0; j < this.grids[i].pts.length; j++) {
+				var n = new Node(this.grids[i].pts[j].original.lat, this.grids[i].pts[j].original.lng)
+				n.travelTime = this.grids[i].pts[j].travelTime
+				controlPoints.push(n)
+			}
+		}
+		return controlPoints
+	}
+
+	//
+	//
+	//
+	splitGrid() {
+		var t1, t2, dif, curLng
+		var splitGridIndexes = []
+
+		// split according Lat
+
+		for(var i = 0; i < this.grids.length; i++) {
+			for(var j = 0; j < this.grids[i].pts.length - 1; j++) {
+				t1 = this.grids[i].pts[j].travelTime
+				t2 = this.grids[i].pts[j + 1].travelTime
+				if ((t1 == null)||(t2 == null)) continue
+				dif = Math.abs(t1 - t2)
+
+				if (dif >= this.tg.opt.constant.splitThreshold) {
+					splitGridIndexes.push({i:i, j:j})
+					//console.log(i + ' [' + j + ',' + (j + 1) + '] ' + dif)
+				}
+
+			}
+		}
+		for(var i = 0; i < splitGridIndexes.length; i++) {
+			this.splitGridLineHorizontal(splitGridIndexes[i].i, splitGridIndexes[i].j)
+		}
+
+		// split according Lng
+
+		/*
+		splitGridIndexes = []
+		for(var i = 0; i < this.grids.length - 1; i++) {
+			for(var j = 0; j < this.grids[i].pts.length; j++) {
+				curLng = this.grids[i].pts[j].original.lng
+
+				for(var k = 0; k < this.grids[i + 1].pts.length; k++) {
+					//console.log(curLng + ', ' + grids[i + 1].pts[k].original.lng)
+					if (this.grids[i + 1].pts[k].original.lng == curLng) {
+
+						t1 = this.grids[i].pts[j].travelTime
+						t2 = this.grids[i + 1].pts[k].travelTime
+						if ((t1 == null)||(t2 == null)) continue
+						dif = Math.abs(t1 - t2)
+
+						if (dif >= this.tg.opt.constant.splitThreshold) {
+							//splitGridIndexes.push({i:i, j:j})
+							console.log(i + ' [' + j + ',' + (j + 1) + '] ' + dif)
+						}
+						
+
+						break
+					}
+
+				}
+			}
+		}
+		*/
+
+
+		
+		this.tg.map.updateLayers()
+	}
+
+	splitGridLineHorizontal(i, j) {
+		var lat = this.grids[i].pts[j].original.lat
+		var lng1 = this.grids[i].pts[j].original.lng
+		var lng2 = this.grids[i].pts[j + 1].original.lng
+		var lng = (lng1 + lng2) / 2
+		var newNode = new Node(lat, lng)
+
+		// delete original line
+		var deletedK
+		for(var k = 0; k < this.gridLinesX.length; k++) {
+			if ((this.gridLinesX[k].from.original.lat == lat)
+				&& (this.gridLinesX[k].from.original.lng == lng1)
+				&& (this.gridLinesX[k].to.original.lat == lat)
+				&& (this.gridLinesX[k].to.original.lng == lng2)) {
+			deletedK = k
+			break
+			}
+		}
+		this.gridLinesX.splice(deletedK, 1)
+
+		// insert two new lines
+		this.gridLinesX.push({from:this.grids[i].pts[j], to:newNode})
+		this.gridLinesX.push({from:newNode, to:this.grids[i].pts[j + 1]})
+
+		// insert a new node in the grid structure
+		this.grids[i].pts.splice(j + 1, 0, newNode)
+
+		console.log(i + ',' + j)
+	}
+
+	splitGridLineVertical(i, j) {
+
+
+		console.log(i + ',' + j)
+		console.log(this.grids[i].pts[j])
+		console.log(this.grids[i].pts[j + 1])
+
+		var lat = this.grids[i].pts[j].original.lat
+		var lng = (this.grids[i].pts[j].original.lng + this.grids[i].pts[j + 1].original.lng)/2
+		var newNode = new Node(lat, lng)
+		this.grids[i].pts.splice(j + 1, 0, newNode)
+
+		console.log(newNode)
+	}
+
+
+	//
+	//
+	//
+	setTravelTime() {
+		var idx = 1
+		for(var i = 0; i < this.grids.length; i++) {
+			for(var j = 0; j < this.grids[i].pts.length; j++) {
+				this.grids[i].pts[j].travelTime = this.travelTime.one_to_many[0][idx].time
+				idx++
+			}
+		}
+
+		// make travel time for center position = 0 
+		var centerCol = parseInt(this.tg.opt.resolution.gridLat / 2)
+		var centerRow = parseInt(this.tg.opt.resolution.gridLng / 2)
+		this.grids[centerCol].pts[centerRow].travelTime = 0
+	}
+
+	//
+	//
+	//
 	getTravelTime() {
 		this.tt.setStartLocation(this.centerPosition.lat, this.centerPosition.lng)
 
@@ -348,18 +316,12 @@ class TGData {
 			var end = (new Date()).getTime()
 			console.log('elapsed: ' + (end - start)/1000 + ' sec.')
 
-			console.log(data)
-
+			//console.log(data)
 			//util.saveTextAsFile(data, 'data_tt.js')
 
-			for(var i = 0; i < this.controlPoints.length; i++) {
-				this.controlPoints[i].travelTime = data.one_to_many[0][i + 1].time
-			}
-
-			var centerIdx = parseInt(this.controlPoints.length / 2)
-			this.controlPoints[centerIdx].travelTime = 0
+			this.travelTime = data
+			this.setTravelTime()
 			this.tg.map.updateLayers()
-
 		}
 	}
 

@@ -9,6 +9,16 @@ class Node {
 	}
 }
 
+class Grid {
+	constructor(LB, RB, RT, LT) {
+		this.LB = LB
+		this.RB = RB
+		this.RT = RT
+		this.LT = LT
+		this.level = 0
+	}
+}
+
 class TravelTime {
 	constructor() {
 		this.locations = new Array(1);

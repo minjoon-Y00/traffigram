@@ -50,7 +50,7 @@ class TGGraph {
 		var min_factor = 0;
 		var min_dif = Number.MAX_VALUE;
 
-		for(var f = 15000; f < 23000; f += 100) {
+		for(var f = 13000; f < 23000; f += 100) {
 			var dif = this.calDifference(f, nodes, cLat, cLng);
 
 			console.log('[' + f + '] dif = ' + dif);

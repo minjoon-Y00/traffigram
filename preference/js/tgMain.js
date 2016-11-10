@@ -22,7 +22,8 @@ class TGPreference {
 	//
 	start() {
 	  this.data.nodes = nr.nodes
-	  this.data.roads = nr.roads	  
+	  this.data.roads = nr.roads	
+	  this.data.travelTime = default_tt  
 	}
 
 	

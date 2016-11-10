@@ -36,14 +36,6 @@ class TGMap {
 		this.map.getView().on('propertychange', this.propertyChange.bind(this));
 		this.map.on('moveend', this.onMoveEnd.bind(this));
 		this.map.on('click', this.onClicked.bind(this));
-
-		// For displaying texts in the map
-	  $('#displayTextLT1').appendTo($('.ol-overlaycontainer'));
-	  $('#displayTextLT2').appendTo($('.ol-overlaycontainer'));
-	  $('#displayTextLT3').appendTo($('.ol-overlaycontainer'));
-	  $('#displayTextLT4').appendTo($('.ol-overlaycontainer'));
-	  $('#displayTextLB1').appendTo($('.ol-overlaycontainer'));
-	  $('#displayTextLB2').appendTo($('.ol-overlaycontainer'));
 	}
 
 	//
@@ -70,8 +62,8 @@ class TGMap {
 	//
 	recalculateAndDraw() {
 		this.calBoundaryBox()
-	  this.tg.data.calGrids()
-	  this.tg.data.calControlPoints()
+	  this.tg.data.initGrids()
+	  this.tg.data.setTravelTime()
 	  this.tg.data.calLocalNodesRoads()
 	  this.tg.data.calLocalLocations()
 	  this.updateLayers()
@@ -417,7 +409,7 @@ class TGMap {
 	}
 
 	createControlPointLayer() {
-		var nodes = this.tg.data.controlPoints
+		var nodes = this.tg.data.getControlPointsFromGrid()
 		var arr = []
 		var str = ''
 
@@ -439,9 +431,27 @@ class TGMap {
 		return this.olVectorFromFeatures(arr);
 	}
 
+	drawGridLines(arr, lines) {
+		for(var i = 0; i < lines.length; i++) {
+			this.olFeaturesFromLineStrings(arr, 
+				lines[i].from.target.lng, 
+				lines[i].from.target.lat, 
+				lines[i].to.target.lng, 
+				lines[i].to.target.lat, 
+				this.lineStyleFunc(this.tg.opt.color.grid, this.tg.opt.width.grid))
+		}
+	}
+
 	createGridLayer() {
 		var arr = []
-		var grids = this.tg.data.grids
+		this.drawGridLines(arr, this.tg.data.gridLinesX)
+		this.drawGridLines(arr, this.tg.data.gridLinesY)
+
+
+
+
+		/*
+		console.log(grids)
 
 		for(var i = 0; i < grids.length; i++) {
 			for(var j = 0; j < grids[i].pts.length - 1; j++) {
@@ -454,16 +464,27 @@ class TGMap {
 			}
 		}
 
-		for(var i = 0; i < grids[0].pts.length; i++) {
-			for(var j = 0; j < grids.length - 1; j++) {
-				this.olFeaturesFromLineStrings(arr, 
-					grids[j].pts[i].target.lng, 
-					grids[j].pts[i].target.lat, 
-					grids[j + 1].pts[i].target.lng, 
-					grids[j + 1].pts[i].target.lat, 
-					this.lineStyleFunc(this.tg.opt.color.grid, this.tg.opt.width.grid))
+		for(var i = 0; i < grids.length - 1; i++) {
+			for(var j = 0; j < grids[i].pts.length; j++) {
+				curLng = grids[i].pts[j].original.lng
+
+				for(var k = 0; k < grids[i + 1].pts.length; k++) {
+					//console.log(curLng + ', ' + grids[i + 1].pts[k].original.lng)
+					if (grids[i + 1].pts[k].original.lng == curLng) {
+						//console.log('ok!')
+						this.olFeaturesFromLineStrings(arr, 
+							grids[i].pts[j].target.lng, 
+							grids[i].pts[j].target.lat, 
+							grids[i + 1].pts[k].target.lng, 
+							grids[i + 1].pts[k].target.lat, 
+							this.lineStyleFunc(this.tg.opt.color.grid, this.tg.opt.width.grid))
+						break
+					}
+
+				}
 			}
 		}
+		*/
 		return this.olVectorFromFeatures(arr)
 	}
 
