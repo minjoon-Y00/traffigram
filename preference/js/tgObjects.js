@@ -1,20 +1,20 @@
 class Node {
 	constructor(orgLat, orgLng) {
-		this.original = {lat: orgLat, lng:orgLng, len:0};
-		this.target = {lat: orgLat, lng:orgLng};
-		this.real = {lat: orgLat, lng:orgLng};
-		this.disp = {lat: orgLat, lng:orgLng};
-		this.degree = 0;
-		this.travelTime = 0;
+		this.original = {lat: orgLat, lng:orgLng}
+		this.target = {lat: orgLat, lng:orgLng}
+		this.real = {lat: orgLat, lng:orgLng}
+		this.disp = {lat: orgLat, lng:orgLng}
+		// [optional] this.degree = 0
+		// [optional] this.travelTime = 0
 	}
 }
 
 class Grid {
-	constructor(LB, RB, RT, LT) {
-		this.LB = LB
-		this.RB = RB
-		this.RT = RT
-		this.LT = LT
+	constructor(BL, BR, TR, TL) {
+		this.BL = BL
+		this.BR = BR
+		this.TR = TR
+		this.TL = TL
 		this.level = 0
 	}
 }

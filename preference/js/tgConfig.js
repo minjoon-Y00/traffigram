@@ -89,14 +89,15 @@ const options = {
 	},
 
 	resolution: {
-		gridLng: 5,
-		gridLat: 9,
+		gridLng: 4, // horiozontal resolution. even number is recommended
+		gridLat: 8, // vertical resolution. even number is recommended
 	},
 
 	constant: {
 		randomness: 0.01,
 		clickSensibility: 0.01,
 		splitThreshold: 200,
+		timeWaitForGettingWaterData: 1000 // ms
 	},
 
 }

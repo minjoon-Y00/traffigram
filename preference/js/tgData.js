@@ -7,6 +7,7 @@ class TGData {
 		this.roads = []
 		this.localNodes = []
 		this.localRoads = []
+		this.localWater = []
 	  this.centerPosition = {}
 	  this.controlPoints = []
 	  this.grids = []
@@ -21,6 +22,7 @@ class TGData {
 
 	  this.tt = new TravelTime()
 	  this.travelTime
+	  this.splitLevel = 0
 
 
 	  // [TYPE]
@@ -113,185 +115,173 @@ class TGData {
 	//
 	initGrids() {
 		this.grids = []
-		var dLat = (this.tg.opt.box.top - this.tg.opt.box.bottom) / (this.tg.opt.resolution.gridLat - 1)
-		var dLng = (this.tg.opt.box.right - this.tg.opt.box.left) / (this.tg.opt.resolution.gridLng - 1)
-		var latL, lngB
-		
+		var dLat = (this.tg.opt.box.top - this.tg.opt.box.bottom) / this.tg.opt.resolution.gridLat // 8
+		var dLng = (this.tg.opt.box.right - this.tg.opt.box.left) / this.tg.opt.resolution.gridLng // 4
+		var latB, lngL, n
+		var BL, BR, TR, TL
+
+		// make a control point array
+		for(var i = 0; i <= this.tg.opt.resolution.gridLat; i++) {
+			for(var j = 0; j <= this.tg.opt.resolution.gridLng; j++) {
+				latB = this.tg.opt.box.bottom + dLat * i
+				lngL = this.tg.opt.box.left + dLng * j
+				n = new Node(latB, lngL)
+				n.level = this.splitLevel
+				this.controlPoints.push(n)
+			}
+		}
+
 		// make a grid structure
+		var offset = this.tg.opt.resolution.gridLng + 1
 
 		for(var i = 0; i < this.tg.opt.resolution.gridLat; i++) {
-			var obj = {level:0, pts:[]}
-
 			for(var j = 0; j < this.tg.opt.resolution.gridLng; j++) {
-				latL = this.tg.opt.box.bottom + dLat * i
-				lngB = this.tg.opt.box.left + dLng * j
-				obj.pts.push(new Node(latL, lngB))
-			}
-			this.grids.push(obj)
-		}
-
-		// make a object for grid lines 
-
-		for(var i = 0; i < this.grids.length; i++) {
-			for(var j = 0; j < this.grids[i].pts.length - 1; j++) {
-				this.gridLinesX.push({
-					from:this.grids[i].pts[j], 
-					to:this.grids[i].pts[j + 1]})
+				BL = this.controlPoints[offset * i + j]
+				BR = this.controlPoints[offset * i + (j + 1)]
+				TR = this.controlPoints[offset * (i + 1) + (j + 1)]
+				TL = this.controlPoints[offset * (i + 1) + j]
+				this.grids.push(new Grid(BL, BR, TR, TL))
 			}
 		}
-		for(var i = 0; i < this.grids[0].pts.length; i++) {
-			for(var j = 0; j < this.grids.length - 1; j++) {
-				this.gridLinesY.push({
-					from:this.grids[j].pts[i], 
-					to:this.grids[j + 1].pts[i]})
-			}
-		}
-
-		
+	
 		console.log(this.grids)
 	}
 
 	//
 	//
 	//
-	getControlPointsFromGrid() {
-		var controlPoints = []
-
-		for(var i = 0; i < this.grids.length; i++) {
-			for(var j = 0; j < this.grids[i].pts.length; j++) {
-				var n = new Node(this.grids[i].pts[j].original.lat, this.grids[i].pts[j].original.lng)
-				n.travelTime = this.grids[i].pts[j].travelTime
-				controlPoints.push(n)
-			}
-		}
-		return controlPoints
-	}
-
-	//
-	//
-	//
 	splitGrid() {
-		var t1, t2, dif, curLng
-		var splitGridIndexes = []
+		var threshold = this.tg.opt.constant.splitThreshold
+		var latM, lngM, idx
+		var idxBM, idxRM, idxTM, idxLM, idxMM
+		var newGrids = []
 
-		// split according Lat
+		this.splitLevel++
 
 		for(var i = 0; i < this.grids.length; i++) {
-			for(var j = 0; j < this.grids[i].pts.length - 1; j++) {
-				t1 = this.grids[i].pts[j].travelTime
-				t2 = this.grids[i].pts[j + 1].travelTime
-				if ((t1 == null)||(t2 == null)) continue
-				dif = Math.abs(t1 - t2)
+			if (isOverThreshold(this.grids[i].BL, this.grids[i].BR, threshold)
+				||isOverThreshold(this.grids[i].BR, this.grids[i].TR, threshold)
+				||isOverThreshold(this.grids[i].TR, this.grids[i].TL, threshold)
+				||isOverThreshold(this.grids[i].TL, this.grids[i].BL, threshold)) {
 
-				if (dif >= this.tg.opt.constant.splitThreshold) {
-					splitGridIndexes.push({i:i, j:j})
-					//console.log(i + ' [' + j + ',' + (j + 1) + '] ' + dif)
-				}
+				// add control points or get the indexes of existed points
+				latM = (this.grids[i].BL.original.lat + this.grids[i].TL.original.lat) / 2
+				lngM = (this.grids[i].BL.original.lng + this.grids[i].BR.original.lng) / 2
 
+				idxBM = getIndexOfControlPoint(this.controlPoints, this.splitLevel, this.grids[i].BL.original.lat, lngM) // BM
+				idxRM = getIndexOfControlPoint(this.controlPoints, this.splitLevel, latM, this.grids[i].BR.original.lng) // RM
+				idxTM = getIndexOfControlPoint(this.controlPoints, this.splitLevel, this.grids[i].TL.original.lat, lngM) // TM
+				idxLM = getIndexOfControlPoint(this.controlPoints, this.splitLevel, latM, this.grids[i].BL.original.lng) // LM
+				idxMM = getIndexOfControlPoint(this.controlPoints, this.splitLevel, latM, lngM) // MM
+
+				// assign travel time (temp)
+				//this.controlPoints[idxBM].travelTime = (this.grids[i].BL.travelTime + this.grids[i].BR.travelTime) / 2
+				//this.controlPoints[idxRM].travelTime = (this.grids[i].BR.travelTime + this.grids[i].TR.travelTime) / 2
+				//this.controlPoints[idxTM].travelTime = (this.grids[i].TL.travelTime + this.grids[i].TR.travelTime) / 2
+				//this.controlPoints[idxLM].travelTime = (this.grids[i].TL.travelTime + this.grids[i].BL.travelTime) / 2
+				//this.controlPoints[idxMM].travelTime = (this.controlPoints[idxBM].travelTime + this.controlPoints[idxTM].travelTime) / 2
+
+
+				// split the grid
+
+				/*console.log('idxBM : ' + idxBM)
+				console.log('idxRM : ' + idxRM)
+				console.log('idxTM : ' + idxTM)
+				console.log('idxLM : ' + idxLM)
+				console.log('idxLM : ' + idxMM)*/
+
+				this.grids[i].splitted = true
+
+				newGrids.push({BL:this.grids[i].BL, BR:this.controlPoints[idxBM], 
+					TR:this.controlPoints[idxMM], TL:this.controlPoints[idxLM]})
+				newGrids.push({BL:this.controlPoints[idxBM], BR:this.grids[i].BR, 
+					TR:this.controlPoints[idxRM], TL:this.controlPoints[idxMM]})
+				newGrids.push({BL:this.controlPoints[idxMM], BR:this.controlPoints[idxRM], 
+					TR:this.grids[i].TR, TL:this.controlPoints[idxTM]})
+				newGrids.push({BL:this.controlPoints[idxLM], BR:this.controlPoints[idxMM], 
+					TR:this.controlPoints[idxTM], TL:this.grids[i].TL})	
 			}
 		}
-		for(var i = 0; i < splitGridIndexes.length; i++) {
-			this.splitGridLineHorizontal(splitGridIndexes[i].i, splitGridIndexes[i].j)
+
+		// add new grids
+		for(var i = 0; i < newGrids.length; i++) {
+			this.grids.push(new Grid(newGrids[i].BL, newGrids[i].BR, newGrids[i].TR, newGrids[i].TL))
 		}
 
-		// split according Lng
-
-		/*
-		splitGridIndexes = []
-		for(var i = 0; i < this.grids.length - 1; i++) {
-			for(var j = 0; j < this.grids[i].pts.length; j++) {
-				curLng = this.grids[i].pts[j].original.lng
-
-				for(var k = 0; k < this.grids[i + 1].pts.length; k++) {
-					//console.log(curLng + ', ' + grids[i + 1].pts[k].original.lng)
-					if (this.grids[i + 1].pts[k].original.lng == curLng) {
-
-						t1 = this.grids[i].pts[j].travelTime
-						t2 = this.grids[i + 1].pts[k].travelTime
-						if ((t1 == null)||(t2 == null)) continue
-						dif = Math.abs(t1 - t2)
-
-						if (dif >= this.tg.opt.constant.splitThreshold) {
-							//splitGridIndexes.push({i:i, j:j})
-							console.log(i + ' [' + j + ',' + (j + 1) + '] ' + dif)
-						}
-						
-
-						break
-					}
-
-				}
+		// delete original grids
+		this._grids = []
+		for(var i = 0; i < this.grids.length; i++) {
+			if (!this.grids[i].splitted) {
+				this._grids.push(this.grids[i])
 			}
 		}
-		*/
+		this.grids = this._grids
 
-
-		
+		// re-rendering the map
 		this.tg.map.updateLayers()
-	}
 
-	splitGridLineHorizontal(i, j) {
-		var lat = this.grids[i].pts[j].original.lat
-		var lng1 = this.grids[i].pts[j].original.lng
-		var lng2 = this.grids[i].pts[j + 1].original.lng
-		var lng = (lng1 + lng2) / 2
-		var newNode = new Node(lat, lng)
+		console.log(this.controlPoints)
 
-		// delete original line
-		var deletedK
-		for(var k = 0; k < this.gridLinesX.length; k++) {
-			if ((this.gridLinesX[k].from.original.lat == lat)
-				&& (this.gridLinesX[k].from.original.lng == lng1)
-				&& (this.gridLinesX[k].to.original.lat == lat)
-				&& (this.gridLinesX[k].to.original.lng == lng2)) {
-			deletedK = k
-			break
-			}
+
+		// sub funcitons
+
+		function isOverThreshold(pt1, pt2, threshold) {
+			var t1 = pt1.travelTime
+			var t2 = pt2.travelTime
+			if ((t1 == null)||(t2 == null)) return false
+			return Math.abs(t1 - t2) >= threshold
 		}
-		this.gridLinesX.splice(deletedK, 1)
 
-		// insert two new lines
-		this.gridLinesX.push({from:this.grids[i].pts[j], to:newNode})
-		this.gridLinesX.push({from:newNode, to:this.grids[i].pts[j + 1]})
+		function findControlPointByLatLng(ctlPts, lat, lng) {
+			for(var i = 0; i < ctlPts.length; i++) {
+				if ((ctlPts[i].original.lat == lat)&&(ctlPts[i].original.lng == lng)) {
+					return i
+				}
+			}
+			return -1
+		}	
 
-		// insert a new node in the grid structure
-		this.grids[i].pts.splice(j + 1, 0, newNode)
+		function getIndexOfControlPoint(ctlPts, level, lat, lng) {
+			var idx = findControlPointByLatLng(ctlPts, lat, lng) 
 
-		console.log(i + ',' + j)
+			if (idx < 0) {
+				// insert a new control point
+				var n = new Node(lat, lng)
+				n.level = level
+				ctlPts.push(n)
+				return ctlPts.length - 1
+			}
+			else {
+				// already existed control point
+				//console.log('existed')
+				return idx
+			}
+		}	
+
 	}
-
-	splitGridLineVertical(i, j) {
-
-
-		console.log(i + ',' + j)
-		console.log(this.grids[i].pts[j])
-		console.log(this.grids[i].pts[j + 1])
-
-		var lat = this.grids[i].pts[j].original.lat
-		var lng = (this.grids[i].pts[j].original.lng + this.grids[i].pts[j + 1].original.lng)/2
-		var newNode = new Node(lat, lng)
-		this.grids[i].pts.splice(j + 1, 0, newNode)
-
-		console.log(newNode)
-	}
-
 
 	//
 	//
 	//
 	setTravelTime() {
+		var startIdx = this.getStartIndexBySplitLevel(this.splitLevel)
+
 		var idx = 1
-		for(var i = 0; i < this.grids.length; i++) {
-			for(var j = 0; j < this.grids[i].pts.length; j++) {
-				this.grids[i].pts[j].travelTime = this.travelTime.one_to_many[0][idx].time
-				idx++
-			}
+		for(var i = startIdx; i < this.controlPoints.length; i++) {
+			this.controlPoints[i].travelTime = this.travelTime.one_to_many[0][idx].time
+			//this.controlPoints[i].travelLat = this.travelTime.locations[0][idx].lat
+			//this.controlPoints[i].travelLng = this.travelTime.locations[0][idx].lon
+
+			idx++
 		}
 
+
+
 		// make travel time for center position = 0 
-		var centerCol = parseInt(this.tg.opt.resolution.gridLat / 2)
-		var centerRow = parseInt(this.tg.opt.resolution.gridLng / 2)
-		this.grids[centerCol].pts[centerRow].travelTime = 0
+		var centerIdx = this.getCenterControlPoint()
+		if (centerIdx >= 0) {
+			this.controlPoints[centerIdx].travelTime = 0
+		}
 	}
 
 	//
@@ -300,15 +290,16 @@ class TGData {
 	getTravelTime() {
 		this.tt.setStartLocation(this.centerPosition.lat, this.centerPosition.lng)
 
-		for(var i = 0; i < this.grids.length; i++) {
-			for(var j = 0; j < this.grids[i].pts.length; j++) {
-				this.tt.addDestLocation(
-					this.grids[i].pts[j].original.lng, 
-					this.grids[i].pts[j].original.lat)
-			}
+		var startIdx = this.getStartIndexBySplitLevel(this.splitLevel)
+		for(var i = startIdx; i < this.controlPoints.length; i++) {
+			this.tt.addDestLocation(
+				this.controlPoints[i].original.lng, 
+				this.controlPoints[i].original.lat)
 		}
 
-		var util = this.tg.util
+		console.log('startIdx = ' + startIdx)
+		console.log('num = ' + (this.controlPoints.length - startIdx))
+
 		var start = (new Date()).getTime()
 		this.tt.getTravelTime(func.bind(this))
 
@@ -317,11 +308,44 @@ class TGData {
 			console.log('elapsed: ' + (end - start)/1000 + ' sec.')
 
 			//console.log(data)
-			//util.saveTextAsFile(data, 'data_tt.js')
+			//this.tg.util.saveTextAsFile(data, 'data_tt.js')
 
 			this.travelTime = data
 			this.setTravelTime()
 			this.tg.map.updateLayers()
+		}
+	}
+
+	//
+	//
+	//
+	getStartIndexBySplitLevel(level) {
+		for(var i = 0; i < this.controlPoints.length; i++) {
+			if (this.controlPoints[i].level == level) {
+				return i
+			}
+		}
+	}
+
+	//
+	//
+	//
+	getCenterControlPoint() {
+		var threshold = 0.00001
+		var dist
+
+		for(var i = 0; i < this.controlPoints.length; i++) {
+			dist = this.tg.util.D2(this.controlPoints[i].original.lat, this.controlPoints[i].original.lng,
+				this.centerPosition.lat, this.centerPosition.lng)
+
+			if (dist < threshold) {
+				return i
+			}
+		}
+
+		if (i == this.controlPoints.length) {
+			console.log('could not find center control point');
+			return -1
 		}
 	}
 

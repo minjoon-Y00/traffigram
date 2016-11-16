@@ -4,63 +4,77 @@ class TGUtil {
 	//
 	//
 	saveTextAsFile(textToWrite, fileNameToSaveAs) {
-	  textToWrite = JSON.stringify(textToWrite);
-	  var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
-	  var downloadLink = document.createElement("a");
-	  downloadLink.download = fileNameToSaveAs;
-	  downloadLink.innerHTML = "Download File";
-	  downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+	  textToWrite = JSON.stringify(textToWrite)
+	  var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'})
+	  var downloadLink = document.createElement("a")
+	  downloadLink.download = fileNameToSaveAs
+	  downloadLink.innerHTML = "Download File"
+	  downloadLink.href = window.URL.createObjectURL(textFileAsBlob)
 
 	  /*
 	  if (window.webkitURL != null) {
 	    // Chrome allows the link to be clicked
 	    // without actually adding it to the DOM.
-	    downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+	    downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob)
 	  }
 	  else {
 	    // Firefox requires the link to be added to the DOM
 	    // before it can be clicked.
-	    downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
-	    downloadLink.onclick = destroyClickedElement;
-	    downloadLink.style.display = "none";
-	    document.body.appendChild(downloadLink);
+	    downloadLink.href = window.URL.createObjectURL(textFileAsBlob)
+	    downloadLink.onclick = destroyClickedElement
+	    downloadLink.style.display = "none"
+	    document.body.appendChild(downloadLink)
 	  }
 	  */
-	  downloadLink.click();
+	  downloadLink.click()
 	}
 
 	distance(lat1, lng1, lat2, lng2) {
-	  var R = 6371; // km
-	  //var R = 3959; // 6371*0.621371; // miles
-	  var dLat = (lat2 - lat1) * Math.PI / 180;
-	  var dLng = (lng2 - lng1) * Math.PI / 180; 
+	  var R = 6371 // km
+	  //var R = 3959 // 6371*0.621371 // miles
+	  var dLat = (lat2 - lat1) * Math.PI / 180
+	  var dLng = (lng2 - lng1) * Math.PI / 180
 	  var a = Math.sin(dLat / 2) * 
 	          Math.sin(dLat / 2) +
 	          Math.cos(lat1 * Math.PI / 180 ) * 
 	          Math.cos(lat2 * Math.PI / 180 ) * 
 	          Math.sin(dLng / 2) * 
-	          Math.sin(dLng / 2);
-	  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
-	  var d = R * c;
-	  return d;
+	          Math.sin(dLng / 2)
+	  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+	  var d = R * c
+	  return d
 	}
 
 	D2(lat1, lng1, lat2, lng2) {
-	  return Math.sqrt((lat1 - lat2)*(lat1 - lat2) + (lng1 - lng2)*(lng1 - lng2));
+	  return Math.sqrt((lat1 - lat2)*(lat1 - lat2) + (lng1 - lng2)*(lng1 - lng2))
 	}
 
 	getRandomInt(min, max) {
-	  return Math.floor(Math.random() * (max - min)) + min;
+	  return Math.floor(Math.random() * (max - min)) + min
 	}
 
 	// clone object
 	clone(obj) {
-  	return JSON.parse(JSON.stringify(obj));
+  	return JSON.parse(JSON.stringify(obj))
 	}
 
 	degrees(radians) {
-	  return radians * 180 / Math.PI;
+	  return radians * 180 / Math.PI
 	};
+
+	// i_sLat, i_sLng, i_eLat, i_eLng, j_sLat, j_sLng, j_eLat, j_eLng
+	intersects(a, b, c, d, p, q, r, s) {
+	  var det, gamma, lambda
+	  det = (c - a) * (s - q) - (r - p) * (d - b)
+	  if (det === 0) {
+	    return false
+	  } else {
+	    lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det
+	    gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det
+	    return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1)
+	  }
+	}
+
 }
 
 Math.randomGaussian = function(mean, standardDeviation) {
