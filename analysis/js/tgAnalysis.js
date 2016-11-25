@@ -17,24 +17,19 @@ class TGAnalysis {
 		//this.readFilesAndStart();
 		this.start();
 	}
-
-
-		// make control point
-		// assign default travel time
-		// display travel time
-		// time -> travelTime
 		
 	//
 	//
 	//
 	start() {
+		var nr
 
-		
+
+	  nr = this.net.parseRawData(rawData); // parse raw data
+	  console.log(nr);
+		this.util.saveTextAsFile(nr, 'esattle_raw.js');
 
 
-		//getTravelTime();
-
-	  //this.net.parseRawData(rawData); // step 1
 	  //var nr = this.net.separateRoads(rawData.nodes, rawData.edges); // step 2
 	 	//nr = this.net.mergeRoads(nr.nodes, nr.roads); // step 3
 	  //nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.00005); // step 4
@@ -79,7 +74,6 @@ class TGAnalysis {
 
 
 
-	  //return;
 
 
 

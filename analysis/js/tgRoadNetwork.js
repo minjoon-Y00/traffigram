@@ -17,8 +17,6 @@ class TGRoadNetwork {
 		var lenNodes = raw.nodes.length;
 		var lenEdges = raw.edges.length;
 
-		console.log(raw);
-
 		for(var i = 0; i < lenNodes; i++) {
 			raw.nodes[i].id = parseInt(raw.nodes[i].id);
 			raw.nodes[i].lat = Number(raw.nodes[i].lat);
@@ -30,9 +28,9 @@ class TGRoadNetwork {
 		}
 
 		for(var i = 0; i < lenEdges; i++) {
-			raw.edges[i].nodes = this.convNodes(raw.edges[i].nodes, raw.nodes);
-			if (this.isOneway(raw.edges[i].tag)) raw.edges[i].oneway = true;
-			raw.edges[i].type = this.getTypeByTag(raw.edges[i].tag[0]);
+			raw.edges[i].nodes = convNodes(raw.edges[i].nodes, raw.nodes);
+			if (isOneway(raw.edges[i].tag)) raw.edges[i].oneway = true;
+			raw.edges[i].type = getTypeByTag(raw.edges[i].tag[0], this.opt);
 			raw.nodes[raw.edges[i].nodes[0]].roads.push(i);
 	  	raw.nodes[raw.edges[i].nodes[raw.edges[i].nodes.length - 1]].roads.push(i);
 
@@ -44,54 +42,64 @@ class TGRoadNetwork {
 			delete raw.nodes[i].id;
 		}
 
-		console.log(raw);
-		this.util.saveTextAsFile(raw, 'rawData.js');
-	}
+		return {nodes:raw.nodes, roads:raw.edges}
 
-	convNodes(nodes, rawNodes) {
-		var lenNodes = nodes.length;
 
-		for(var i = 0; i < lenNodes; i++) {
-			nodes[i] = this.findIndexById(Number(nodes[i]), rawNodes);
+		// sub functions
+
+		function convNodes(nodes, rawNodes) {
+			var lenNodes = nodes.length;
+
+			for(var i = 0; i < lenNodes; i++) {
+				nodes[i] = findIndexById(Number(nodes[i]), rawNodes);
+			}
+			return nodes;
 		}
-		return nodes;
-	}
 
-	findIndexById(node, rawNodes) {
-		var lenNodes = rawNodes.length;
+		function findIndexById(node, rawNodes) {
+			var lenNodes = rawNodes.length;
 
-		for(var i = 0; i < lenNodes; i++) {
-			if (node == rawNodes[i].id) {
-				return i;
+			for(var i = 0; i < lenNodes; i++) {
+				if (node == rawNodes[i].id) {
+					return i;
+				}
 			}
 		}
-	}
 
-	getTypeByTag(tag) {
-		// motorway(1), trunk(2), primary(11), secondary(12), tertiary(13)
-		// motorway_link(21), trunk_link(22), primary_link(23), secondary_link(24)
-		// tertiary_link(25)
-		var type = -1;
+		function getTypeByTag(tag, opt) {
+			// motorway(1), trunk(2), primary(11), secondary(12), tertiary(13)
+			// motorway_link(21), trunk_link(22), primary_link(23), secondary_link(24)
+			// tertiary_link(25)
+			var type = -1;
 
-		switch(tag) {
-			case 'highway_IS_motorway': type = this.opt.type.motorway; break;
-			case 'highway_IS_trunk': type = this.opt.type.trunk; break;
-			case 'highway_IS_primary': type = this.opt.type.primary; break;
-			case 'highway_IS_secondary': type = this.opt.type.secondary; break;
-			case 'highway_IS_tertiary': type = this.opt.type.tertiary; break;
-			case 'highway_IS_motorway_link': type = this.opt.type.motorway_link; break;
-			case 'highway_IS_trunk_link': type = this.opt.type.trunk_link; break;
-			case 'highway_IS_primary_link': type = this.opt.type.primary_link; break;
-			case 'highway_IS_secondary_link': type = this.opt.type.secondary_link; break;
-			case 'highway_IS_tertiary_link': type = this.opt.type.tertiary_link; break;
-			default: console.log('unknown tag : ' + tag);
+			switch(tag) {
+				case 'highway_IS_motorway': type = opt.type.motorway; break;
+				case 'highway_IS_trunk': type = opt.type.trunk; break;
+				case 'highway_IS_primary': type = opt.type.primary; break;
+				case 'highway_IS_secondary': type = opt.type.secondary; break;
+				case 'highway_IS_tertiary': type = opt.type.tertiary; break;
+				case 'highway_IS_motorway_link': type = opt.type.motorway_link; break;
+				case 'highway_IS_trunk_link': type = opt.type.trunk_link; break;
+				case 'highway_IS_primary_link': type = opt.type.primary_link; break;
+				case 'highway_IS_secondary_link': type = opt.type.secondary_link; break;
+				case 'highway_IS_tertiary_link': type = opt.type.tertiary_link; break;
+				default: console.log('unknown tag : ' + tag);
+			}
+			return type;
 		}
-		return type;
+
+		function isOneway(tags) {
+			return (tags.indexOf('oneway_IS_yes') != -1)
+		}
 	}
 
-	isOneway(tags) {
-		return (tags.indexOf('oneway_IS_yes') != -1)
-	}
+
+
+
+
+
+
+
 
 	//
 	// 2. Seperate roads which have intersections.

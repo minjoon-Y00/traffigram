@@ -31,6 +31,7 @@ tg.map.updateLayers();
 // City Options
 //
 //
+/*
 $("#citySeattleRB").change(function(ev){
 	if (ev.target.checked) tg.setArea('Seattle'); 
 });
@@ -60,7 +61,7 @@ $("#centerSeattleUnivRB").change(function(ev){
 $("#centerBellevueRB").change(function(ev){
   if (ev.target.checked) tg.map.setCenter(47.620179, -122.185630);
 });
-
+*/
 
 
 //
