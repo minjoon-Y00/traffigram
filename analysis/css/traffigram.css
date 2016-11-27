@@ -4,10 +4,12 @@
 }
 
 .ol_map {
-	height: 800px;
+	width: 540px;
+	height:960px;
+	border-style: inset;
 	width: 100%;
 	background-color: rgba(255,255,255,1);
-	margin: 10px; 
+	margin: 10px;
 }
 
 .ol-control.ol-zoom {
@@ -15,37 +17,21 @@
 }
 
 .disabledText {
-	//color: '#222';
-	color: 'red';
+	color: #999;
 }
 
-#displayTextLT1, #displayTextLT2, #displayTextLT3, #displayTextLT4,
-#displayTextLB1, #displayTextLB2 {
-	position: absolute;
-  color: #222;
-	left: .5em;
+.marginL {
+	margin-left: 5px;
 }
 
-#displayTextLT1 {
-  top: 10px;
+.marginR {
+	margin-right: 5px;
 }
 
-#displayTextLT2 {
-  top: 30px;
+.marginT {
+	margin-top: 5px;
 }
 
-#displayTextLT3 {
-  top: 50px;
-}
-
-#displayTextLT4 {
-  top: 70px;
-}
-
-#displayTextLB1 {
-  bottom: 10px;
-}
-
-#displayTextLB2 {
-  bottom: 30px;
+.marginB {
+	margin-bottom: 5px;
 }

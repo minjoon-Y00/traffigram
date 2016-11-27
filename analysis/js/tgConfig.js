@@ -20,13 +20,17 @@ const options = {
 		water: 'rgba(146, 219, 238, 1)',
 		edge: '#F90047',
 		node: '#000',
-		selectedNode: '#A00',
-		location: '#33cc33',
-		locationLine: '#33cc33',
-		controlPoint: '#FFD700',
-		controlPointLine: '#FFD700',
-		gridPoint: '#FFA07A',
-		gridLine: '#FFA07A',
+		nodeOrder: [
+			'#CCC', '#000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF'],
+			// grey, black, red, green, blue, yellow, cyan, magenta
+
+		//selectedNode: '#A00',
+		//location: '#33cc33',
+		//locationLine: '#33cc33',
+		//controlPoint: '#FFD700',
+		//controlPointLine: '#FFD700',
+		//gridPoint: '#FFA07A',
+		//gridLine: '#FFA07A',
 
 		motorway: '#969696',
 		trunk: '#969696',
@@ -43,13 +47,12 @@ const options = {
 		primary_link: '#00ADEE',
 		secondary_link: '#00ADEE',
 		tertiary_link: '#00ADEE',
+		
 		originalNode: '#FFA500',
 		originalRoad: '#FF69B4',
 		simplifiedNode: '#A52A2A',
 		simplifiedRoad: '#8A2BE2',
-		nodeOrder: [
-			'#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF'],
-			// black, red, green, blue, yellow, cyan, magenta
+		
 	},
 
 	width: {
@@ -77,10 +80,12 @@ const options = {
 	},
 
 	radius: {
-		node: 4,
-		location: 5,
-		controlPoint: 6,
-		gridPoint: 2,
+		intermediateNode: 2,
+		terminalNode: 2,
+		//node: 4,
+		//location: 5,
+		//controlPoint: 6,
+		//gridPoint: 2,
 		originalNode: 2,
 		simplifiedNode: 2,
 	},

@@ -29,16 +29,10 @@ class TGMap {
 	  this.dispSimplifiedRoadLayer = true;
 	  this.dispSimplifiedNodeLayer = true;
 	  this.dispOrders = true;
-	  this.dispCenterPositionLayer = false;
 
-	  this.dispRoadLayer = false;
-	  this.dispNodeLayer = false;
 	  this.dispNetworkLayer = false;
 	  this.NetworkLevel = 2;
 
-	  this.dispLocationLayer = false;
-	  this.dispControlPointLayer = false;
-	  this.dispGridLayer = false;
 
 	  this.viewCenterPos = {lat:0, lng:0};
 	  this.clickRange = {lat:0, lng:0};
@@ -67,9 +61,6 @@ class TGMap {
 	    case 'resolution':
 	      this.currentZoom = this.map.getView().getZoom();
 	      this.calBoundaryBox();
-	      this.data.calNOI();
-	      this.data.calGrids()
-	      this.data.calControlPoints()
 	      this.data.calDispRoads();
 	      this.updateLayers();
 		 		this.displayTexts();
@@ -83,9 +74,6 @@ class TGMap {
 	//
 	onMoveEnd(e) {
 		this.calBoundaryBox();
-		this.data.calNOI();
-		this.data.calGrids()
-		this.data.calControlPoints()
 		this.data.calDispRoads();
     this.updateLayers();
 	 	this.displayTexts();
@@ -192,25 +180,6 @@ class TGMap {
 
 	setCenter(lat, lng) {
 		this.map.getView().setCenter(ol.proj.fromLonLat([lng, lat]));
-		this.data.centerPosition.lng = lng;
-		this.data.centerPosition.lat = lat;
-	}
-
-	setCenterByNodeID(id) {
-		/*
-		var edges = this.data['level' + this.NetworkLevel].edges;
-		var nodes = this.net.calNodes(edges);
-
-		if (id < nodes.length) {
-			this.setCenter(nodes[id].lat, nodes[id].lng);*/
-
-			/*var lat = nodes[id].lat;
-			var lng = nodes[id].lng;
-			this.map.getView().setCenter(ol.proj.fromLonLat([lng, lat]));
-			this.data.centerPosition.lng = lng;
-			this.data.centerPosition.lat = lat;*/
-			//this.updateLayers();
-		//}
 	}
 
 	setZoom(zoom) {
@@ -249,10 +218,6 @@ class TGMap {
 		var start = (new Date()).getTime();
 		if (!this.readAllObjects) return;
 
-		// Tile
-
-		if (this.dispTileLayer) this.drawTileLayer();
-		else this.removeLayer(this.map.tileLayer);
 
 		// Water
 
@@ -274,53 +239,13 @@ class TGMap {
 		else this.removeLayer(this.map.simplifiedNodeLayer);
 
 
-		// Network
-
-		/*
-		if (this.dispNetworkLayer) {
-			var edges = this.data['level' + this.NetworkLevel].edges;
-
-			if (this.dispEdgeLayer) this.drawEdgeLayer(edges);
-			else this.removeLayer(this.map.edgeLayer);
-
-			if (this.dispNodeLayer) this.drawNodeLayer(this.net.calNodes(edges));
-			else this.removeLayer(this.map.nodeLayer);
-		}
-		else {
-			this.removeLayer(this.map.edgeLayer);
-			this.removeLayer(this.map.nodeLayer);
-		}*/
-
-		// Locations
-
-		//if (this.dispLocationLayer) this.drawLocationLayer(this.data.locations[this.data.locationType]);
-		if (this.dispLocationLayer) this.drawLocationLayer(this.data.noi);
-		else this.removeLayer(this.map.locationLayer);
-
-		// Control Points
-
-		if (this.dispControlPointLayer) this.drawControlPointLayer();
-		else this.removeLayer(this.map.controlPointLayer);
-
-		if (this.dispGridLayer) this.drawGridLayer();
-		else this.removeLayer(this.map.gridLayer);
-
-
-		// Center Position
-		if (this.dispCenterPositionLayer) this.drawCenterPositionLayer();
-		else this.removeLayer(this.map.centerPositionLayer);
 
 		console.log('updateLayers : ' + ((new Date()).getTime() - start) + 'ms');
 	}
 
 	//
+	// draw*Layers()
 	//
-	//
-	drawTileLayer() {
-		this.removeLayer(this.map.tileLayer);
-		this.map.tileLayer = this.createTileLayer();
-	  this.map.addLayer(this.map.tileLayer);
-	}
 
 	drawWaterLayer() {
 		this.removeLayer(this.map.waterLayer);
@@ -337,11 +262,10 @@ class TGMap {
 	}
 
 	drawOriginalNodeLayer() {
-		this.removeLayer(this.map.originalNodeLayer);
+		this.removeLayer(this.map.originalNodeLayer)
 		this.map.originalNodeLayer = this.createNodeLayer(
-			this.data.original.nodes, this.data.original.dispRoads, 
-			this.opt.color.originalNode, this.opt.radius.originalNode);
-	  this.map.addLayer(this.map.originalNodeLayer);
+			this.data.original.nodes, this.data.original.dispRoads)
+	  this.map.addLayer(this.map.originalNodeLayer)
 	}
 
 	drawSimplifiedRoadLayer() {
@@ -355,48 +279,13 @@ class TGMap {
 	drawSimplifiedNodeLayer() {
 		this.removeLayer(this.map.simplifiedNodeLayer);
 		this.map.simplifiedNodeLayer = this.createNodeLayer(
-			this.data.simple.nodes, this.data.simple.dispRoads, 
-			this.opt.color.simplifiedNode, this.opt.radius.simplifiedNode);
+			this.data.simple.nodes, this.data.simple.dispRoads)
 	  this.map.addLayer(this.map.simplifiedNodeLayer);
 	}
 
-	drawCenterPositionLayer() {
-		this.removeLayer(this.map.centerPositionLayer);
-		this.map.centerPositionLayer = this.createCenterPositionLayer();
-	  this.map.addLayer(this.map.centerPositionLayer);		
-	}
 
-	/*
-	drawEdgeLayer(edges) {
-		this.removeLayer(this.map.edgeLayer);
-		this.map.edgeLayer = this.createEdgeLayer(edges);
-	  this.map.addLayer(this.map.edgeLayer);
-	}
 
-	drawNodeLayer(edges) {
-		this.removeLayer(this.map.nodeLayer);
-		this.map.nodeLayer = this.createNodeLayer(edges);
-	  this.map.addLayer(this.map.nodeLayer);
-	}
-	*/
-
-	drawLocationLayer(locations) {
-		this.removeLayer(this.map.locationLayer);
-		this.map.locationLayer = this.createLocationLayer(locations);
-	  this.map.addLayer(this.map.locationLayer);
-	}
-
-	drawControlPointLayer() {
-		this.removeLayer(this.map.controlPointLayer);
-		this.map.controlPointLayer = this.createControlPointLayer(this.data.controlPoints);
-	  this.map.addLayer(this.map.controlPointLayer);
-	}
-
-	drawGridLayer() {
-		this.removeLayer(this.map.gridLayer);
-		this.map.gridLayer = this.createGridLayer();
-	  this.map.addLayer(this.map.gridLayer);
-	}
+	
 
 	//
 	//
@@ -496,12 +385,6 @@ class TGMap {
 	//
 	//
 	//
-	createTileLayer() {
-		return new ol.layer.Tile({
-	    source: new ol.source.MapQuest({layer: 'sat'})
-	  });
-	}
-
 	createWaterLayer() {
 		return new ol.layer.Vector({
 		  source: new ol.source.TileVector({
@@ -615,58 +498,40 @@ class TGMap {
 		}
 	}
 
-	createNodeLayer(nodes, roads, clr, radius) {
-		var arr = [];
-		var lenRoads = roads.length;
-		var new_clr;
+	//
+	// createNodeLayer()
+	//
+	createNodeLayer(nodes, roads) {
+		var arr = []
+		var lenRoads = roads.length
+		var clr, radius, order
 
 		for(var i = 0; i < lenRoads; i++) {
-
 			if (this.displayedRoads.indexOf(roads[i].type) === -1) continue;
 
 			for(var j = 0; j < roads[i].nodes.length; j++) {
-
-				if (nodes[roads[i].nodes[j]].deleted) continue;
-
 				if (this.dispOrders) {
-					var order = nodes[roads[i].nodes[j]].roads.length;
-
-					if (order == 0) continue;
-
-
-					if (order > 7) order = 7;
-					if (order == 0) clr = '#CCC';
-					else clr = this.opt.color.nodeOrder[order - 1];
+					order = nodes[roads[i].nodes[j]].roads.length
+					order = order > 7 ? 7 : order
+					clr = this.opt.color.nodeOrder[order]	
+				}
+				else {
+					clr = this.opt.color.node
 				}
 
-
-				if (order == 0) {
-					// intermediate nodes
-					clr = '#000';
-					radius = 2;
-				}
-				else { 
-					// terminal nodes
-					clr = '#000';
-					radius = 2;
-				}
-
-				if (nodes[roads[i].nodes[j]].deleted) new_clr = '#000';
-				else new_clr = clr;
-
-	
-
-
-				
+				radius = order == 0 ? this.opt.radius.intermediateNode : this.opt.radius.terminalNode
 
 				this.olFeaturesFromPoints(arr, 
 					nodes[roads[i].nodes[j]].lng, nodes[roads[i].nodes[j]].lat, 
-					this.nodeStyleFunc(new_clr, radius));
+					this.nodeStyleFunc(clr, radius))
 			}
 		}
-		return this.olVectorFromFeatures(arr);
+		return this.olVectorFromFeatures(arr)
 	}
 
+	//
+	//
+	//
 	createEdgeLayer(edges) {
 		var arr = [];
 		for(var i = 0; i < edges.length; i++) {
@@ -676,136 +541,6 @@ class TGMap {
 		}
 		return this.olVectorFromFeatures(arr);
 	}
-
-	/*
-	createNodeLayer(nodes) {
-		var arr = [];
-		for(var i = 0; i < nodes.length; i++) {
-
-			var clr = this.opt.color.node;
-
-			if (i === this.selectedNodeID) clr = this.opt.color.selectedNode;
-			
-			this.olFeaturesFromPoints(arr, 
-				nodes[i].lng, nodes[i].lat, 
-				this.nodeStyleFunc(clr, this.opt.radius.node));
-		}
-		return this.olVectorFromFeatures(arr);
-	}
-	*/
-
-	createLocationLayer(nodes) {
-		var arr = [];
-		for(var i = 0; i < nodes.length; i++) {
-			this.olFeaturesFromPoints(arr, 
-				nodes[i].target.lng, nodes[i].target.lat, 
-				this.nodeStyleFunc(this.opt.color.location, this.opt.radius.location));
-				//this.imageStyleFunc(this.opt.image.location));
-
-			if ((nodes[i].target.lng != nodes[i].original.lng) 
-				|| (nodes[i].target.lat != nodes[i].original.lat)) {
-				this.olFeaturesFromLineStrings(arr, 
-					nodes[i].original.lng, nodes[i].original.lat,
-					nodes[i].target.lng, nodes[i].target.lat,
-					this.lineStyleFunc(this.opt.color.locationLine, this.opt.width.locationLine));
-			}
-		}
-		return this.olVectorFromFeatures(arr);
-	}
-
-	createCenterPositionLayer() {
-		var arr = [];
-		this.olFeaturesFromPoints(arr, 
-			this.data.centerPosition.lng, this.data.centerPosition.lat, 
-			this.imageStyleFunc(this.opt.image.center));
-		return this.olVectorFromFeatures(arr);
-	}
-
-	createControlPointLayer(nodes) {
-		var arr = [];
-		for(var i = 0; i < nodes.length; i++) {
-			this.olFeaturesFromPoints(arr, nodes[i].target.lng, nodes[i].target.lat, 
-				this.nodeStyleFunc(this.opt.color.controlPoint, this.opt.radius.controlPoint));
-
-			if ((nodes[i].target.lng != nodes[i].original.lng) || (nodes[i].target.lat != nodes[i].original.lat)) {
-				this.olFeaturesFromLineStrings(arr, 
-					nodes[i].original.lng, nodes[i].original.lat, nodes[i].target.lng, nodes[i].target.lat,
-					this.lineStyleFunc(this.opt.color.controlPointLine, this.opt.width.controlPointLine));
-			}
-
-			//var str = nodes[i].time + '(' + nodes[i].distance + ')';
-			var str = nodes[i].travelTime
-			//var str = i
-
-			this.olFeaturesFromPoints(arr, nodes[i].target.lng, nodes[i].target.lat, 
-				this.textStyleFunc(str, '#000', '14px Source Sans Pro'));
-
-			
-		}
-		return this.olVectorFromFeatures(arr);
-	}
-
-	createGridLayer() {
-		var arr = []
-		var grids = this.data.grids
-
-		for(var i = 0; i < grids.length; i++) {
-			for(var j = 0; j < grids[i].pts.length - 1; j++) {
-				this.olFeaturesFromLineStrings(arr, 
-					grids[i].pts[j].target.lng, 
-					grids[i].pts[j].target.lat, 
-					grids[i].pts[j + 1].target.lng, 
-					grids[i].pts[j + 1].target.lat, 
-					this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
-			}
-		}
-
-		for(var i = 0; i < grids[0].pts.length; i++) {
-			for(var j = 0; j < grids.length - 1; j++) {
-				this.olFeaturesFromLineStrings(arr, 
-					grids[j].pts[i].target.lng, 
-					grids[j].pts[i].target.lat, 
-					grids[j + 1].pts[i].target.lng, 
-					grids[j + 1].pts[i].target.lat, 
-					this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
-			}
-		}
-
-
-
-		/*for(var i = 0; i < grids.length; i++) {
-			for(var j = 0; j < grids[i].pts.length; j++) {
-				this.olFeaturesFromPoints(arr, grids[i].pts[j].original.lng, grids[i].pts[j].original.lat, 
-				//this.olFeaturesFromPoints(arr, -122.312035, 47.658311, 
-					this.nodeStyleFunc(this.opt.color.controlPoint, this.opt.radius.controlPoint));
-
-			console.log(grids[i].pts[j].original.lng)
-			console.log(grids[i].pts[j].original.lat)
-			}
-		}*/
-
-		/*
-		for(var i = 0; i < grids.length; i++) {
-			this.olFeaturesFromLineStrings(arr, 
-				grids[i].TL.lng, grids[i].TL.lat, grids[i].TR.lng, grids[i].TR.lat,
-				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
-
-			this.olFeaturesFromLineStrings(arr, 
-				grids[i].TR.lng, grids[i].TR.lat, grids[i].BR.lng, grids[i].BR.lat,
-				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
-
-			this.olFeaturesFromLineStrings(arr, 
-				grids[i].BR.lng, grids[i].BR.lat, grids[i].BL.lng, grids[i].BL.lat,
-				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
-
-			this.olFeaturesFromLineStrings(arr, 
-				grids[i].BL.lng, grids[i].BL.lat, grids[i].TL.lng, grids[i].TL.lat,
-				this.lineStyleFunc(this.opt.color.gridLine, this.opt.width.gridLine));
-		}
-		*/
-		return this.olVectorFromFeatures(arr);
-	}
-
 
 
 }

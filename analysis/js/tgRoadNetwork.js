@@ -8,9 +8,10 @@ class TGRoadNetwork {
 	}
 
 	//
-	// 1. parse rawData
-	// nodes = {lat, lng, roads} (# 67205)
-	// roads = {nodes, type, [oneway]} (# 8530)
+	// parseRawData() : parse rawData
+	// in raw = [{nodes, edges}, ...]
+	// out nodes = [{lat, lng, roads}, ...]
+	// out roads = [{nodes, type, [oneway]}, ...]
 	//
 	parseRawData(raw) {
 		var fin = false;
@@ -68,8 +69,7 @@ class TGRoadNetwork {
 
 		function getTypeByTag(tag, opt) {
 			// motorway(1), trunk(2), primary(11), secondary(12), tertiary(13)
-			// motorway_link(21), trunk_link(22), primary_link(23), secondary_link(24)
-			// tertiary_link(25)
+			// motorway_link(21), trunk_link(22), primary_link(23), secondary_link(24), tertiary_link(25)
 			var type = -1;
 
 			switch(tag) {
@@ -93,18 +93,99 @@ class TGRoadNetwork {
 		}
 	}
 
+	//
+	// filterRoads() : filter roads by types
+	// in nodes, edges, arr = [1, 2, 21, 22, ...]
+	// out nr = {nodes, roads}
+	//
+	filterRoads(nodes, roads, typeArr) {
+		var lenRoads = roads.length
+		var outRoads = []
 
+		for(var i = 0; i < lenRoads; i++) {
+			if (typeArr.indexOf(roads[i].type) === -1) continue
+			outRoads.push(roads[i])
+		}
 
-
-
-
-
-
+		//nr = {nodes:nodes, roads:outRoads}
+		nodes = this.calRoadsOfNodes(nodes, outRoads)
+		var nr = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, outRoads)
+		return nr
+	}
 
 	//
-	// 2. Seperate roads which have intersections.
-	// nodes (# = 67205)
-	// roads (# = 8530 -> 10816)
+	// calRoadsOfNodes() : recalculate nodes.roads 
+	// in nodes, edges
+	// out nodes
+	//
+	calRoadsOfNodes(nodes, roads) {
+		//var outNodes = this.util.clone(nodes)
+		var outNodes = nodes
+		var lenNodes = outNodes.length
+		var lenRoads = roads.length
+
+		for(var i = 0; i < lenNodes; i++) {
+			outNodes[i].roads = []
+		}
+
+		for(var i = 0; i < lenRoads; i++) {
+			outNodes[roads[i].nodes[0]].roads.push(i)
+			outNodes[roads[i].nodes[roads[i].nodes.length - 1]].roads.push(i)
+		}
+		return outNodes
+	}
+
+	//
+	// cleanEmptyNodesAndCalNodesOfRoads() : clean unneccesary nodes and recalculate node indexes of roads 
+	// in nodes, edges
+	// out nr = {nodes, roads}
+	//
+	cleanEmptyNodesAndCalNodesOfRoads(nodes, roads) {
+		//var outNodes = this.util.clone(nodes)
+		var outNodes = nodes
+		//var outRoads = this.util.clone(roads)
+		var outRoads = roads
+		var lenNodes = outNodes.length
+		var lenRoads = outRoads.length
+		
+		for(var i = 0; i < lenRoads; i++) {
+			for(var j = 0; j < outRoads[i].nodes.length; j++) {
+				outNodes[outRoads[i].nodes[j]].alive = true
+			}
+		}
+
+		var tempNodes = []
+		for(var i = 0; i < lenNodes; i++) {
+			if (outNodes[i].alive) {
+				delete outNodes[i].alive;
+				outNodes[i].orgI = i;
+				tempNodes.push(outNodes[i]);
+			}
+		}
+		outNodes = tempNodes
+
+		var lenOutNodes = outNodes.length
+		for(var i = 0; i < lenRoads; i++) {
+			for(var j = 0; j < outRoads[i].nodes.length; j++) {
+				for(var k = 0; k < lenOutNodes; k++) {
+					if (outNodes[k].orgI == outRoads[i].nodes[j]) {
+						outRoads[i].nodes[j] = k
+						break
+					}
+				}
+			}
+		}
+
+		for(var i = 0; i < lenOutNodes; i++) {
+			delete outNodes[i].orgI
+		}
+		return {nodes:outNodes, roads:outRoads}
+	}
+
+	//
+	// Seperate roads which have intersections.
+	// in nodes, edges
+	// out nr = {nodes, roads}
 	//
 	separateRoads(nodes, roads) {
 		var lenNodes = nodes.length;
@@ -140,27 +221,188 @@ class TGRoadNetwork {
 		nodes = this.calRoadsOfNodes(nodes, outRoads);
 
 		console.log('separateRoads R(' + roads.length + ') => (' + outRoads.length + ')');
-		//console.log(outRoads);
 
-		var raw = {nodes:nodes, roads:outRoads};
-		//this.util.saveTextAsFile(raw, 'rawData_separate.js');
-		return raw;
+		return {nodes:nodes, roads:outRoads}
 	}
 
-	calRoadsOfNodes(nodes, roads) {
+	//
+	// Merge 2-order nodes.
+	// in nodes, edges
+	// out nr = {nodes, roads}
+	//
+	mergeRoads(nodes, roads) {
+		var outRoads = [];
 		var lenNodes = nodes.length;
 		var lenRoads = roads.length;
+		var startNodeIdx0, endNodeIdx0;
+		var startNodeIdx1, endNodeIdx1;
+		var cnt0 = 0, cnt1 = 0, cnt2 = 0, cnt3 = 0;
+		var road0, road1;
+		var modified = true;
 
-		for(var i = 0; i < lenNodes; i++) {
-			nodes[i].roads = [];
+		while(modified) {
+
+			modified = false;
+			// check if the node has 2 roads
+			for(var i = 0; i < lenNodes; i++) {
+
+				// if the node has 2 roads
+				if (nodes[i].roads.length == 2) {
+
+					startNodeIdx0 = roads[nodes[i].roads[0]].nodes[0];
+					endNodeIdx0 = roads[nodes[i].roads[0]].nodes[roads[nodes[i].roads[0]].nodes.length - 1];
+					startNodeIdx1 = roads[nodes[i].roads[1]].nodes[0];
+					endNodeIdx1 = roads[nodes[i].roads[1]].nodes[roads[nodes[i].roads[1]].nodes.length - 1];
+					road0 = roads[nodes[i].roads[0]];
+					road1 = roads[nodes[i].roads[1]];
+					
+					// I. 0---> <---1 [3 4 5] [3 2 1]
+					if (startNodeIdx0 == startNodeIdx1) {
+
+						if (road0.type > road1.type) road0.type = road1.type;
+						road1.nodes.reverse();
+						road0.nodes = road1.nodes.concat(road0.nodes.slice(1));
+						road1.deleted = true;
+
+						var found = false;
+						for(var j = 0; j < nodes[endNodeIdx1].roads.length; j++) {
+							if (nodes[endNodeIdx1].roads[j] == nodes[i].roads[1]) {
+								nodes[endNodeIdx1].roads[j] = nodes[i].roads[0];
+								found = true;
+								break;
+							}
+						}
+						if (!found) console.log('not found!');
+						
+						nodes[i].roads = [];
+						modified = true;
+						cnt0++;
+						break;
+					}
+					// II. 0---> --->1 [3 4 5] [1 2 3]
+					else if (startNodeIdx0 == endNodeIdx1) {
+
+						if (road0.type > road1.type) road0.type = road1.type;
+						road0.nodes = road1.nodes.concat(road0.nodes.slice(1));
+						road1.deleted = true;
+
+						var found = false;
+						for(var j = 0; j < nodes[startNodeIdx1].roads.length; j++) {
+							if (nodes[startNodeIdx1].roads[j] == nodes[i].roads[1]) {
+								nodes[startNodeIdx1].roads[j] = nodes[i].roads[0];
+								found = true;
+								break;
+							}
+						}
+						if (!found) console.log('not found!');
+						
+						nodes[i].roads = [];										
+						modified = true;
+						cnt1++;
+						break;
+					}
+					// III. 0<--- <---1 [1 2 3] [3 4 5]
+					else if (endNodeIdx0 == startNodeIdx1) {
+
+						if (road0.type > road1.type) road0.type = road1.type;
+						road0.nodes = road0.nodes.concat(road1.nodes.slice(1));
+						road1.deleted = true;
+						
+						var found = false;
+						for(var j = 0; j < nodes[endNodeIdx1].roads.length; j++) {
+							if (nodes[endNodeIdx1].roads[j] == nodes[i].roads[1]) {
+								nodes[endNodeIdx1].roads[j] = nodes[i].roads[0];
+								found = true;
+								break;
+							}
+						}
+						if (!found) console.log('not found!');		
+
+						nodes[i].roads = [];						
+						cnt2++;
+						modified = true;
+						break;
+					}
+					// IV. 0<--- --->1 [1 2 3] [5 4 3]
+					else if (endNodeIdx0 == endNodeIdx1) {
+
+						if (road0.type > road1.type) road0.type = road1.type;
+						road1.nodes.reverse();
+						road0.nodes = road0.nodes.concat(road1.nodes.slice(1));
+						road1.deleted = true;
+
+						var found = false;
+						for(var j = 0; j < nodes[startNodeIdx1].roads.length; j++) {
+							if (nodes[startNodeIdx1].roads[j] == nodes[i].roads[1]) {
+								nodes[startNodeIdx1].roads[j] = nodes[i].roads[0];
+								found = true;
+								break;
+							}
+						}
+						if (!found) console.log('not found!');
+						
+						nodes[i].roads = [];											
+						modified = true;
+						cnt3++;
+						break;
+					}
+					else {
+						console.log('?!?');
+					}
+				}
+			}
 		}
+
+		console.log('0---> <---1 : ' + cnt0);
+		console.log('0---> --->1 : ' + cnt1);
+		console.log('0<--- <---1 : ' + cnt2);
+		console.log('0<--- --->1 : ' + cnt3);
 
 		for(var i = 0; i < lenRoads; i++) {
-			//console.log(roads[i].nodes[0] + ' , ' + roads[i].nodes[roads[i].nodes.length - 1]);
-			nodes[roads[i].nodes[0]].roads.push(i);
-			nodes[roads[i].nodes[roads[i].nodes.length - 1]].roads.push(i);
+			if (!roads[i].deleted) {
+				outRoads.push(roads[i]);
+			}
 		}
-		return nodes;
+		
+		nodes = this.calRoadsOfNodes(nodes, outRoads);
+
+		console.log('mergeRoads R(' + roads.length + ') => (' + outRoads.length + ')');
+
+		return {nodes:nodes, roads:outRoads}
+	}
+
+
+	//
+	// remove dead links
+	// in nodes, edges
+	// out nr = {nodes, roads}
+	//
+	removeDeadLinks(nodes, roads) {
+		var lenRoads = roads.length
+	  var outNodes, nIdx1, nIdx2
+	  var outRoads = []
+	  var isDeadLink = false
+
+	  for(var i = 0; i < lenRoads; i++) {
+	  	if (roads[i].type > 20) { // links
+	  		nIdx1 = roads[i].nodes[0]
+	  		nIdx2 = roads[i].nodes[roads[i].nodes.length - 1]
+
+	  		if ((nodes[nIdx1].roads.length != 1)&&(nodes[nIdx2].roads.length != 1)) {
+	  			outRoads.push(roads[i])
+	  		}
+	  	}
+	  	else {
+	  		outRoads.push(roads[i])
+	  	}
+	  }
+
+	  var nr = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, outRoads);
+
+	  console.log('eliminateLinks N(' + nodes.length + ') => (' + nr.nodes.length + ')');
+	  console.log('eliminateLinks R(' + roads.length + ') => (' + nr.roads.length + ')');
+
+		return nr
 	}
 
 
@@ -207,7 +449,7 @@ class TGRoadNetwork {
 	  	}
 	  }
 
-	  outNodes = this.eliminateEmptyNodes(nodes, outRoads);
+	  outNodes = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, outRoads);
 
 	  console.log('eliminateLinks N(' + nodes.length + ') => (' + outNodes.length + ')');
 	  console.log('eliminateLinks R(' + roads.length + ') => (' + outRoads.length + ')');
@@ -217,42 +459,7 @@ class TGRoadNetwork {
 		return raw;
 	}
 
-	eliminateEmptyNodes(nodes, roads) {
-		var lenNodes = nodes.length;
-		var lenRoads = roads.length;
-		var outNodes = [];
 
-		for(var i = 0; i < lenRoads; i++) {
-			for(var j = 0; j < roads[i].nodes.length; j++) {
-				nodes[roads[i].nodes[j]].alive = true;
-			}
-		}
-
-		for(var i = 0; i < lenNodes; i++) {
-			if (nodes[i].alive) {
-				delete nodes[i].alive;
-				nodes[i].orgI = i;
-				outNodes.push(nodes[i]);
-			}
-		}
-
-		var lenOutNodes = outNodes.length;
-		for(var i = 0; i < lenRoads; i++) {
-			for(var j = 0; j < roads[i].nodes.length; j++) {
-				for(var k = 0; k < lenOutNodes; k++) {
-					if (outNodes[k].orgI == roads[i].nodes[j]) {
-						roads[i].nodes[j] = k;
-						break;
-					}
-				}
-			}
-		}
-
-		for(var i = 0; i < lenOutNodes; i++) {
-			delete outNodes[i].orgI;
-		}
-		return outNodes;
-	}
 
 	//
 	//
@@ -492,155 +699,7 @@ class TGRoadNetwork {
 
 
 
-	//
-	// 4. Merge 2-order nodes.
-	// nodes (# = 55332 -> 55332)
-	// roads (# = 8758 -> 4426)
-	//
-	mergeRoads(nodes, roads) {
-		var outRoads = [];
-		var lenNodes = nodes.length;
-		var lenRoads = roads.length;
-		var startNodeIdx0, endNodeIdx0;
-		var startNodeIdx1, endNodeIdx1;
-		var cnt0 = 0, cnt1 = 0, cnt2 = 0, cnt3 = 0;
-		var road0, road1;
-		var modified = true;
 
-		nodes = this.calRoadsOfNodes(nodes, roads);
-
-		while(modified) {
-
-			modified = false;
-			// check if the node has 2 roads
-			for(var i = 0; i < lenNodes; i++) {
-
-				// if the node has 2 roads
-				if (nodes[i].roads.length == 2) {
-
-					startNodeIdx0 = roads[nodes[i].roads[0]].nodes[0];
-					endNodeIdx0 = roads[nodes[i].roads[0]].nodes[roads[nodes[i].roads[0]].nodes.length - 1];
-					startNodeIdx1 = roads[nodes[i].roads[1]].nodes[0];
-					endNodeIdx1 = roads[nodes[i].roads[1]].nodes[roads[nodes[i].roads[1]].nodes.length - 1];
-					road0 = roads[nodes[i].roads[0]];
-					road1 = roads[nodes[i].roads[1]];
-					
-					// I. 0---> <---1 [3 4 5] [3 2 1]
-					if (startNodeIdx0 == startNodeIdx1) {
-
-						if (road0.type > road1.type) road0.type = road1.type;
-						road1.nodes.reverse();
-						road0.nodes = road1.nodes.concat(road0.nodes.slice(1));
-						road1.deleted = true;
-
-						var found = false;
-						for(var j = 0; j < nodes[endNodeIdx1].roads.length; j++) {
-							if (nodes[endNodeIdx1].roads[j] == nodes[i].roads[1]) {
-								nodes[endNodeIdx1].roads[j] = nodes[i].roads[0];
-								found = true;
-								break;
-							}
-						}
-						if (!found) console.log('not found!');
-						
-						nodes[i].roads = [];
-						modified = true;
-						cnt0++;
-						break;
-					}
-					// II. 0---> --->1 [3 4 5] [1 2 3]
-					else if (startNodeIdx0 == endNodeIdx1) {
-
-						if (road0.type > road1.type) road0.type = road1.type;
-						road0.nodes = road1.nodes.concat(road0.nodes.slice(1));
-						road1.deleted = true;
-
-						var found = false;
-						for(var j = 0; j < nodes[startNodeIdx1].roads.length; j++) {
-							if (nodes[startNodeIdx1].roads[j] == nodes[i].roads[1]) {
-								nodes[startNodeIdx1].roads[j] = nodes[i].roads[0];
-								found = true;
-								break;
-							}
-						}
-						if (!found) console.log('not found!');
-						
-						nodes[i].roads = [];										
-						modified = true;
-						cnt1++;
-						break;
-					}
-					// III. 0<--- <---1 [1 2 3] [3 4 5]
-					else if (endNodeIdx0 == startNodeIdx1) {
-
-						if (road0.type > road1.type) road0.type = road1.type;
-						road0.nodes = road0.nodes.concat(road1.nodes.slice(1));
-						road1.deleted = true;
-						
-						var found = false;
-						for(var j = 0; j < nodes[endNodeIdx1].roads.length; j++) {
-							if (nodes[endNodeIdx1].roads[j] == nodes[i].roads[1]) {
-								nodes[endNodeIdx1].roads[j] = nodes[i].roads[0];
-								found = true;
-								break;
-							}
-						}
-						if (!found) console.log('not found!');		
-
-						nodes[i].roads = [];						
-						cnt2++;
-						modified = true;
-						break;
-					}
-					// IV. 0<--- --->1 [1 2 3] [5 4 3]
-					else if (endNodeIdx0 == endNodeIdx1) {
-
-						if (road0.type > road1.type) road0.type = road1.type;
-						road1.nodes.reverse();
-						road0.nodes = road0.nodes.concat(road1.nodes.slice(1));
-						road1.deleted = true;
-
-						var found = false;
-						for(var j = 0; j < nodes[startNodeIdx1].roads.length; j++) {
-							if (nodes[startNodeIdx1].roads[j] == nodes[i].roads[1]) {
-								nodes[startNodeIdx1].roads[j] = nodes[i].roads[0];
-								found = true;
-								break;
-							}
-						}
-						if (!found) console.log('not found!');
-						
-						nodes[i].roads = [];											
-						modified = true;
-						cnt3++;
-						break;
-					}
-					else {
-						console.log('?!?');
-					}
-				}
-			}
-		}
-
-		console.log('0---> <---1 : ' + cnt0);
-		console.log('0---> --->1 : ' + cnt1);
-		console.log('0<--- <---1 : ' + cnt2);
-		console.log('0<--- --->1 : ' + cnt3);
-
-		for(var i = 0; i < lenRoads; i++) {
-			if (!roads[i].deleted) {
-				outRoads.push(roads[i]);
-			}
-		}
-		
-		nodes = this.calRoadsOfNodes(nodes, outRoads);
-
-		console.log('mergeRoads R(' + roads.length + ') => (' + outRoads.length + ')');
-
-		var raw = {nodes:nodes, roads:outRoads};
-		this.util.saveTextAsFile(raw, 'nr_seattle_merge.js');
-		return raw;
-	}
 
 
 	//
@@ -662,7 +721,7 @@ class TGRoadNetwork {
 			//console.log(roads[i].nodes);
 		}
 
-		var outNodes = this.eliminateEmptyNodes(nodes, roads);
+		var outNodes = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, roads);
 		outNodes = this.calRoadsOfNodes(outNodes, roads);
 
 	  console.log('eliminateLinks N(' + nodes.length + ') => (' + outNodes.length + ')');
@@ -964,56 +1023,6 @@ class TGRoadNetwork {
 
 
 
-
-
-	//
-	//
-	//
-	filterRect(orgData, east, west, south, north) {
-		var new_features = [];
-
-		for(var i in orgData.features) {
-	    if (((orgData.features[i].geometry.coordinates[0][0] > west)
-	    		&&(orgData.features[i].geometry.coordinates[0][0] < east)
-	    		&&(orgData.features[i].geometry.coordinates[0][1] > south)
-	    		&&(orgData.features[i].geometry.coordinates[0][1] < north))&&
-	      ((orgData.features[i].geometry.coordinates[1][0] > west)
-	      	&&(orgData.features[i].geometry.coordinates[1][0] < east)
-	      	&&(orgData.features[i].geometry.coordinates[1][1] > south)
-	      	&&(orgData.features[i].geometry.coordinates[1][1] < north))) {
-
-	      new_features.push(orgData.features[i]);
-	    }
-		}
-		return new_features;
-	}
-
-	//
-	//
-	//
-	convFeaturesToEdges(features) {
-		var edges = []; 
-  
-	  // put nodes and edges of orgData into the edge structure.
-	  for(var i in features) {
-	    var o = {}, p = {};
-	    o.lng = parseFloat(features[i].geometry.coordinates[0][0]);
-	    o.lat = parseFloat(features[i].geometry.coordinates[0][1]);
-	    p.lng = parseFloat(features[i].geometry.coordinates[1][0]);
-	    p.lat = parseFloat(features[i].geometry.coordinates[1][1]);
-
-	    var e = {};
-	    e.startNode = o;
-	    e.endNode = p;
-	    e.type = features[i].properties.type;
-	    e.name = features[i].properties.name;
-	    e.z_order = features[i].properties.z_order;
-	    e.oneway = features[i].properties.oneway;
-	    edges.push(e);
-	  }
-	  return edges;
-	}
-
 	//
 	//
 	//
@@ -1137,7 +1146,76 @@ class TGRoadNetwork {
 	}
 
 
+	//
+	// gen0 version - parsing old data
+	//
+	makeFilteredNodesEdgesFromGen0() {
+		// require: <script src="data/seattle_washington_roads_gen0.js"></script>
+		var east = this.opt.boundary.seattle.east;
+		var west = this.opt.boundary.seattle.west;
+		var south = this.opt.boundary.seattle.south;
+		var north = this.opt.boundary.seattle.north;
+		console.log('[filterRect] Original features # : ' + gen0.features.length); // 28559
+		var filtered_features = filterRect(gen0, east, west, south, north);
+		console.log('[filterRect] Filtered features # : ' + filtered_features.length); // 10074
 
+		var edges = convFeaturesToEdges(filtered_features);
+		console.log('[convFeaturesToEdges] Edges # : ' + edges.length); // 10074
+
+		this.util.saveTextAsFile(edges, 'roads_gen_filtered.js');
+
+		var ne = this.net.makeNEobjects(edges);
+		console.log('[makeNEobjects] Nodes # = ' + ne.nodes.length); // 10781
+		console.log('[makeNEobjects] Edges # = ' + ne.edges.length); // 10074
+
+		this.util.saveTextAsFile(ne.nodes, 'nodes_filtered.js');
+		this.util.saveTextAsFile(ne.edges, 'edges_filtered.js');
+
+
+		// sub functions
+
+		function filterRect(orgData, east, west, south, north) {
+			var new_features = [];
+
+			for(var i in orgData.features) {
+		    if (((orgData.features[i].geometry.coordinates[0][0] > west)
+		    		&&(orgData.features[i].geometry.coordinates[0][0] < east)
+		    		&&(orgData.features[i].geometry.coordinates[0][1] > south)
+		    		&&(orgData.features[i].geometry.coordinates[0][1] < north))&&
+		      ((orgData.features[i].geometry.coordinates[1][0] > west)
+		      	&&(orgData.features[i].geometry.coordinates[1][0] < east)
+		      	&&(orgData.features[i].geometry.coordinates[1][1] > south)
+		      	&&(orgData.features[i].geometry.coordinates[1][1] < north))) {
+
+		      new_features.push(orgData.features[i]);
+		    }
+			}
+			return new_features;
+		}
+
+		function convFeaturesToEdges(features) {
+			var edges = []; 
+	  
+		  // put nodes and edges of orgData into the edge structure.
+		  for(var i in features) {
+		    var o = {}, p = {};
+		    o.lng = parseFloat(features[i].geometry.coordinates[0][0]);
+		    o.lat = parseFloat(features[i].geometry.coordinates[0][1]);
+		    p.lng = parseFloat(features[i].geometry.coordinates[1][0]);
+		    p.lat = parseFloat(features[i].geometry.coordinates[1][1]);
+
+		    var e = {};
+		    e.startNode = o;
+		    e.endNode = p;
+		    e.type = features[i].properties.type;
+		    e.name = features[i].properties.name;
+		    e.z_order = features[i].properties.z_order;
+		    e.oneway = features[i].properties.oneway;
+		    edges.push(e);
+		  }
+		  return edges;
+		}
+	}
 
 
 	

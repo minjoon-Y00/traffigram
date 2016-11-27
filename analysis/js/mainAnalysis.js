@@ -22,66 +22,22 @@ if ($("#primaryLinkCB").is(':checked')) { tg.map.addToDisplayedRoads('primary_li
 if ($("#secondaryLinkCB").is(':checked')) { tg.map.addToDisplayedRoads('secondary_link') }
 if ($("#tertiaryLinkCB").is(':checked')) { tg.map.addToDisplayedRoads('tertiary_link') }
 
-tg.map.updateLayers();
-
 //if ($("#waterCB").is(':checked')) tg.map.dispWaterLayer = true;
 
-//
-//
-// City Options
-//
-//
-/*
-$("#citySeattleRB").change(function(ev){
-	if (ev.target.checked) tg.setArea('Seattle'); 
-});
-
-$("#cityNYRB").change(function(ev){
-  if (ev.target.checked) tg.setArea('NY'); 
-});
-
-$("#citySFRB").change(function(ev){
-  if (ev.target.checked) tg.setArea('SF');
-});
-
-//
-
-$("#centerUWRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(47.658316, -122.312035);
-});
-
-$("#centerGasworksRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(47.648172, -122.336375);
-});
-
-$("#centerSeattleUnivRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(47.610409, -122.316805);
-});
-
-$("#centerBellevueRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(47.620179, -122.185630);
-});
-*/
 
 
 //
 //
-// Map Style Options
+// Data
 //
 //
-$("#mapStyleSimpleRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.dispTileLayer = false;
-		tg.map.updateLayers();		
-	} 
-});
+function printSimpleNR() {
+	tg.data.printSimpleNR()
+}
 
-$("#mapStyleSatelliteRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.dispTileLayer = true;
-		tg.map.updateLayers();
-	}
-});
+function saveSimpleNR() {
+	tg.data.saveSimpleNR()
+}
 
 //
 //
@@ -235,25 +191,12 @@ $("#dispOrdersCB").change(function(ev){
 	tg.map.updateLayers();
 });
 
-$("#dispCenterPositionCB").change(function(ev){ 
-	tg.map.dispCenterPositionLayer = ev.target.checked;
-	tg.map.updateLayers();
-});
 
 //
 //
 // Network Representation Options
 //
 //
-$("#edgesCB").change(function(ev){
-	tg.map.dispEdgeLayer = ev.target.checked;
-	tg.map.updateLayers();
-});
-
-$("#nodesCB").change(function(ev){
-	tg.map.dispNodeLayer = ev.target.checked;
-	tg.map.updateLayers();
-});
 
 $("#networkLevelNoRB").change(function(ev){
 	tg.map.dispNetworkLayer = !ev.target.checked;
@@ -284,112 +227,6 @@ $("#networkLevel2RB").change(function(ev){
   }
 });
 
-//
-//
-// Locations Options
-//
-//
-$("#locationNoRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.dispLocationLayer = false;
-		tg.map.updateLayers();
-	} 
-});
-
-$("#location0RB").change(function(ev){
-	if (ev.target.checked) {
-		//tg.data.locationType = 'restaurants';
-		tg.data.locationType = 'japanese';
-		tg.map.dispLocationLayer = true;
-		tg.data.calNOI();
-		tg.map.updateLayers();
-	} 
-});
-
-$("#location1RB").change(function(ev){
-	if (ev.target.checked) {
-		//tg.data.locationType = 'restaurants';
-		tg.data.locationType = 'french';
-		tg.map.dispLocationLayer = true;
-		tg.data.calNOI();
-		tg.map.updateLayers();
-	} 
-});
-
-
-//
-//
-// Control Points
-//
-//
-$("#dispControlPointsCB").change(function(ev){
-	tg.map.dispControlPointLayer = ev.target.checked;
-	tg.map.updateLayers();
-});
-
-$("#dispGridCB").change(function(ev){
-	tg.map.dispGridLayer = ev.target.checked;
-	tg.map.updateLayers();
-});
-
-var randomSlider = new Slider("#randomSlider");
-//$("#randomSlider").on("change", function(evt) {
-$("#randomSlider").on("slideStop", function(evt) {
-  tg.data.randomness = evt.value / 100;
-  tg.data.moveControlPoints();
-  tg.map.updateLayers();
-});
-
-function getTravelTime() {
-	tg.data.getTravelTime()
-}
-
-function calWarping() {
-	tg.graph.calWarping()
-	tg.map.updateLayers()
-}
-
-function calTPS() {
-	tg.data.calTPS()
-
-	if (tg.data.testTPS()) console.log('TPS complete.')
-	else console.log('TPS failed...')
-}
-
-function moveGrids() {
-	tg.data.moveGrids()
-	tg.map.updateLayers()
-}
-
-function moveLocations() {
-	tg.data.moveLocations();
-	tg.map.updateLayers();
-}
-
-
-
-//
-//
-// Go Directly
-//
-//
-function goLatLng() {
-	var lat = Number($("#goLat").val());
-	var lng = Number($("#goLng").val());
-
-	if ((lat >= tg.opt.boundary.seattle.south) && (lat <= tg.opt.boundary.seattle.north) 
-		&& (lng >= tg.opt.boundary.seattle.west) && (lng <= tg.opt.boundary.seattle.east)) {
-		tg.map.setCenter(lat, lng);
-	}
-	else {
-		console.log('out of boundary...');
-	}
-}
-
-function goCenterNode() {
-	var id = Number($("#goNode").val());
-	tg.map.setCenterByNodeID(id);
-}
 
 //
 //
@@ -397,31 +234,35 @@ function goCenterNode() {
 //
 //
 function simpSeperate() {
-
-	tg.data.simple.nodes = tg.util.clone(tg.data.original.nodes);
-	tg.data.simple.roads = tg.util.clone(tg.data.original.roads);
-	tg.net.calOrderOfNodes(tg.data.simple.nodes, tg.data.simple.roads);
-
-	tg.data.simple.roads = tg.net.alg.separateRoads(tg.data.simple.nodes, tg.data.simple.roads);
-	tg.net.calOrderOfNodes(tg.data.simple.nodes, tg.data.simple.roads);
-
-	tg.map.updateLayers();
-	tg.map.displayTexts();
+	var nr = tg.net.separateRoads(tg.data.simple.nodes, tg.data.simple.roads)
+	tg.data.simple.nodes = nr.nodes
+	tg.data.simple.roads = nr.roads
+	tg.map.updateLayers()
+	//tg.map.displayTexts()
 }
 
 function simpMerge() {
-	tg.data.simple.roads = tg.net.alg.mergeRoads(tg.data.simple.nodes, tg.data.simple.roads);
-	tg.net.calOrderOfNodes(tg.data.simple.nodes, tg.data.simple.roads);
+	var nr = tg.net.mergeRoads(tg.data.simple.nodes, tg.data.simple.roads)
+	tg.data.simple.nodes = nr.nodes
+	tg.data.simple.roads = nr.roads
+	tg.map.updateLayers()
+	//tg.map.displayTexts()
+}
 
-	tg.map.updateLayers();
-	tg.map.displayTexts();
+function simpRemoveDeadLinks() {
+	var nr = tg.net.removeDeadLinks(tg.data.simple.nodes, tg.data.simple.roads)
+	tg.data.simple.nodes = nr.nodes
+	tg.data.simple.roads = nr.roads
+	tg.map.updateLayers()
+	//tg.map.displayTexts()	
 }
 
 function simpStraightenLinks() {
-	tg.data.simple.roads = tg.net.alg.straightenLink(tg.data.simple.roads);
-	console.log(tg.data.simple.roads);
-	tg.map.updateLayers();
-	tg.map.displayTexts();
+	var nr = tg.net.straightenLink(tg.data.simple.nodes, tg.data.simple.roads)
+	tg.data.simple.nodes = nr.nodes
+	tg.data.simple.roads = nr.roads
+	tg.map.updateLayers()
+	//tg.map.displayTexts()	
 }
 
 var rdpSlider = new Slider("#rdpSlider");
@@ -436,86 +277,48 @@ function simpRDP() {
 	tg.map.displayTexts();
 }
 
-function simpMergeRoads() {
-	tg.data.copySimpRoads();
-	tg.net.alg.simpMergeRoads();
-	tg.map.updateLayers();
-	tg.map.displayTexts();
+function simpRecover() {
+	tg.data.simple.nodes = tg.data.original.nodes
+	tg.data.simple.roads = tg.data.original.roads
+	tg.map.updateLayers()
+	//tg.map.displayTexts()
 }
 
-function save() {
-	//tg.net.saveFileOfSaperateRoads();
-	//tg.net.changeFormat();
-	tg.saveTravelTime();
-}
 
+
+//
+//
+// City Options
+//
+//
 /*
-$("#waterCB").change(function(ev){ 
-	tg.map.dispWaterLayer = ev.target.checked;
-	tg.map.updateLayers();
-});
-*/
-
-/*
-$("#etcRoadCB").change(function(ev){ 
-	$("#railCB").prop('checked', ev.target.checked);
-	$("#monorailCB").prop('checked', ev.target.checked);
-	$("#lightrailCB").prop('checked', ev.target.checked);
-	$("#tramCB").prop('checked', ev.target.checked);
-	$("#disusedCB").prop('checked', ev.target.checked);
-
-	if (ev.target.checked) {
-		tg.map.addToDisplayedRoads('rail');
-		tg.map.addToDisplayedRoads('monorail');
-		tg.map.addToDisplayedRoads('light_rail');
-		tg.map.addToDisplayedRoads('tram');
-		tg.map.addToDisplayedRoads('disused');
-	}
-	else {
-		tg.map.removeToDisplayedRoads('rail');
-		tg.map.removeToDisplayedRoads('monorail');
-		tg.map.removeToDisplayedRoads('light_rail');
-		tg.map.removeToDisplayedRoads('tram');
-		tg.map.removeToDisplayedRoads('disused');
-	}
-	tg.map.updateLayers();
+$("#citySeattleRB").change(function(ev){
+	if (ev.target.checked) tg.setArea('Seattle'); 
 });
 
-$("#railCB").change(function(ev){ 
-	if (ev.target.checked) tg.map.addToDisplayedRoads('rail');
-	else tg.map.removeToDisplayedRoads('rail');
-	tg.map.updateLayers();
+$("#cityNYRB").change(function(ev){
+  if (ev.target.checked) tg.setArea('NY'); 
 });
 
-$("#monorailCB").change(function(ev){ 
-	if (ev.target.checked) tg.map.addToDisplayedRoads('monorail');
-	else tg.map.removeToDisplayedRoads('monorail');
-	tg.map.updateLayers();
+$("#citySFRB").change(function(ev){
+  if (ev.target.checked) tg.setArea('SF');
 });
 
-$("#lightrailCB").change(function(ev){ 
-	if (ev.target.checked) tg.map.addToDisplayedRoads('light_rail');
-	else tg.map.removeToDisplayedRoads('light_rail');
-	tg.map.updateLayers();
+//
+
+$("#centerUWRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(47.658316, -122.312035);
 });
 
-$("#tramCB").change(function(ev){ 
-	if (ev.target.checked) tg.map.addToDisplayedRoads('tram');
-	else tg.map.removeToDisplayedRoads('tram');
-	tg.map.updateLayers();
+$("#centerGasworksRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(47.648172, -122.336375);
 });
 
-$("#disusedCB").change(function(ev){ 
-	if (ev.target.checked) tg.map.addToDisplayedRoads('disused');
-	else tg.map.removeToDisplayedRoads('disused');
-	tg.map.updateLayers();
+$("#centerSeattleUnivRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(47.610409, -122.316805);
 });
-*/
 
-/*
-$("#dispOrgRoadSlider").slider();
-$("#dispOrgRoadSlider").on("change", function(slideEvt) {
-	tg.map.transparencyOriginalRoads = slideEvt.value.newValue / 100;
-  tg.map.updateLayers();
+$("#centerBellevueRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(47.620179, -122.185630);
 });
 */
