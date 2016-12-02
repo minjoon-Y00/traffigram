@@ -107,7 +107,6 @@ class TGRoadNetwork {
 			outRoads.push(roads[i])
 		}
 
-		//nr = {nodes:nodes, roads:outRoads}
 		nodes = this.calRoadsOfNodes(nodes, outRoads)
 		var nr = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, outRoads)
 		return nr
@@ -409,6 +408,9 @@ class TGRoadNetwork {
 		}
 	}
 
+	//
+	// subfunction of removeDeadLinks()
+	//
 	stepRemoveDeadLinks(nodes, roads) {
 		var lenRoads = roads.length
 	  var nIdx1, nIdx2
@@ -436,326 +438,75 @@ class TGRoadNetwork {
 	}
 
 
-
-
-
-
 	//
-	//
-	//
-	eliminate2Orders(nodes, roads) {
-		var outRoads = [];
-		var lenRoads = roads.length;
-		var startNodeIdx, endNodeIdx;
-		var startNodeRoads, endNodeRoads;
-
-		nodes = this.calRoadsOfNodes(nodes, roads);
-
-		var cnt = 0;
-		var cnt2 = 0;
-
-		// Check if each end node has 2 order
-		for(var i = 0; i < lenRoads; i++) {
-			startNodeIdx = roads[i].nodes[0]; 
-			startNodeRoads = nodes[startNodeIdx].roads;
-			endNodeIdx = roads[i].nodes[roads[i].nodes.length - 1];
-			endNodeRoads = nodes[endNodeIdx].roads;
-
-			if (startNodeRoads.length == 2) {
-				roads[i].startNodeOrder2 = true;
-				cnt++;
-				if (startNodeRoads[0] == i) {
-					roads[i].connectedRoad = startNodeRoads[1];
-				}
-				else if (startNodeRoads[1] == i) {
-					roads[i].connectedRoad = startNodeRoads[0];
-				}
-				else {
-					console.log('weird...');
-				}
-			}
-
-			if (endNodeRoads.length == 2) {
-				roads[i].endNodeOrder2 = true;
-				cnt2++;
-				if (endNodeRoads[0] == i) {
-					roads[i].connectedRoad = endNodeRoads[1];
-				}
-				else if (endNodeRoads[1] == i) {
-					roads[i].connectedRoad = endNodeRoads[0];
-				}
-				else {
-					console.log('weird...');
-				}
-			}
-			roads[i].deleted = false;
-		}
-
-		//console.log(cnt);
-		//console.log(cnt2);
-
-		//return;
-
-		var startNodeIdxI, startNodeIdxJ;
-		var endNodeIdxI, endNodeIdxJ;
-
-		//while(true) {
-
-			for(var i = 0; i < lenRoads; i++) {
-				if (roads[i].deleted) continue;
-
-				if (roads[i].startNodeOrder2) {
-
-					startNodeIdxI = roads[i].nodes[0];
-					var found = false;
-
-					for(var j = 0; j < lenRoads; j++) {
-						if (roads[j].deleted) continue;
-						if (i == j) continue;
-
-						startNodeIdxJ = roads[j].nodes[0];
-						endNodeIdxJ = roads[j].nodes[roads[j].nodes.length - 1];
-
-						if (startNodeIdxI == startNodeIdxJ) {
-							console.log('s - s');
-							found = true;
-							break;
-						}
-						else if (startNodeIdxI == endNodeIdxJ) {
-							console.log('s - e');
-							found = true;
-							break;
-						}
-						else {
-							//console.log('weird2...');
-						}
-
-					}
-
-					if (!found) {
-						console.log('not found');
-					}
-
-
-
-					
-					//startNodeIdxJ = roads[roads[i].connectedRoad].nodes[0];
-					//endNodeIdxJ = roads[roads[i].connectedRoad].nodes[roads[roads[i].connectedRoad].nodes.length - 1];
-
-					//var startNodeRoadsI = nodes[startNodeIdxI].roads;
-
-					/*console.log('i = ' + i);
-					console.log('startNodeIdxI = ' + startNodeIdxI);
-					console.log('startNodeRoadsI = ' + startNodeRoadsI);
-					console.log('roads[i].connectedRoad = ' + roads[i].connectedRoad);
-					console.log(roads[roads[i].connectedRoad]);*/
-
-					
-
-
-					//break;
-				}
-			}
-
-		//}
-
-		return;
-
-		var modified = true;
-		var startNodeIdxI, startNodeIdxJ;
-		var endNodeIdxI, endNodeIdxJ;
-
-		//while(modified) {
-		while(true) {
-
-			var finish = true;
-			for(var i = 0; i < lenRoads; i++) {
-				if (roads[i].deleted) continue;
-				if ((roads[i].startNodeOrder2)||(roads[i].endNodeOrder2)) {
-					finish = false;
-					break;
-				}
-			}
-			if (finish) break;
-
-
-			modified = false;
-			
-			for(var i = 0; i < lenRoads; i++) {
-				if (roads[i].deleted) continue;
-				//if ((!roads[i].startNodeOrder2)&&(!roads[i].endNodeOrder2)) continue;
-
-				// If the start node needs to be checked
-				if (roads[i].startNodeOrder2) {
-
-					startNodeIdxI = roads[i].nodes[0]; 
-
-					for(var j = 0; j < lenRoads; j++) {
-						if (roads[j].deleted) continue;
-						if (i == j) continue;
-
-						startNodeIdxJ = roads[j].nodes[0];
-						endNodeIdxJ = roads[j].nodes[roads[j].nodes.length - 1];
-
-						if (startNodeIdxI == endNodeIdxJ) { 
-							// j----> i---->
-							if (roads[i].type > roads[j].type) roads[i].type = roads[j].type;
-							roads[i].nodes = roads[j].nodes.concat(roads[i].nodes);
-							roads[i].startNodeOrder2 = roads[j].startNodeOrder2;
-							roads[j].deleted = true;
-							modified = true;
-							break;
-						}
-						else if (startNodeIdxI == startNodeIdxJ) {
-							// <----j i---->
-							if (roads[i].type > roads[j].type) roads[i].type = roads[j].type;
-							roads[j].nodes.reverse();
-							roads[i].nodes = roads[j].nodes.concat(roads[i].nodes);
-							roads[i].startNodeOrder2 = roads[j].endNodeOrder2;
-							roads[j].deleted = true;
-							modified = true;
-							break;
-						}
-					}
-				}
-
-				// If the end node needs to be checked
-				if (roads[i].endNodeOrder2) {
-
-					endNodeIdxI = roads[i].nodes[roads[i].nodes.length - 1]; 
-
-					for(var j = 0; j < lenRoads; j++) {
-						if (roads[j].deleted) continue;
-						if (i == j) continue;
-
-						startNodeIdxJ = roads[j].nodes[0];
-						endNodeIdxJ = roads[j].nodes[roads[j].nodes.length - 1];
-
-						if (endNodeIdxI == startNodeIdxJ) {
-							// i----> j----> 
-							if (roads[i].type > roads[j].type) roads[i].type = roads[j].type;
-							roads[i].nodes = roads[i].nodes.concat(roads[j].nodes);
-							roads[i].endNodeOrder2 = roads[j].endNodeOrder2;
-							roads[j].deleted = true;
-							modified = true;
-							break;
-						}
-						else if (endNodeIdxI == endNodeIdxJ) {
-							// i----> <----J 
-							if (roads[i].type > roads[j].type) roads[i].type = roads[j].type;
-							roads[j].nodes.reverse();
-							roads[i].nodes = roads[i].nodes.concat(roads[j].nodes);
-							roads[i].endNodeOrder2 = roads[j].startNodeOrder2;
-							roads[j].deleted = true;
-							modified = true;
-							break;
-						}
-					}
-
-				}
-
-			}
-		}
-
-		var lenRoads = roads.length;
-		for(var i = 0; i < lenRoads; i++) {
-			if (!roads[i].deleted) {
-				delete roads[i].deleted;
-				delete roads[i].startNodeOrder2;
-				delete roads[i].endNodeOrder2;
-				outRoads.push(roads[i]);
-			}
-		}
-		
-		nodes = this.calRoadsOfNodes(nodes, outRoads);
-
-		console.log('mergeRoads R(' + roads.length + ') => (' + outRoads.length + ')');
-
-		var raw = {nodes:nodes, roads:outRoads};
-		this.util.saveTextAsFile(raw, 'nr_seattle_merge.js');
-		return raw;
-	}
-
-
-
-
-
-
-	//
-	// 5. RDP Simplification.
-	// nodes (# = 55332 -> 5037)
-	// roads (# = 4426 -> 4426)
+	// RDP Simplification
+	// in nodes, edges, eps (= 0.0001)
+	// out nr = {nodes, roads}
 	//
 	simplifyRDP(nodes, roads, eps) {
-		var lenNodes = nodes.length;
-		var lenRoads = roads.length;
+		var lenNodes = nodes.length
+		var lenRoads = roads.length
+		var eps = eps || 0.0001 // about 10 meter
 		//var eps = this.data.simpDistanceRDP * 0.0001; // 0-20 --> 0.0000-0.0020
-		//var eps = 0.0005; // about 50 meter
-		//var eps = 0.0001; 
-		//var eps = 0.00005; 
-
 
 		for(var i = 0; i < lenRoads; i++) {
-			roads[i].nodes = RDPSimp(roads[i].nodes, eps);
-			//console.log(roads[i].nodes);
+			roads[i].nodes = RDPSimp(roads[i].nodes, eps)
 		}
 
-		var outNodes = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, roads);
-		outNodes = this.calRoadsOfNodes(outNodes, roads);
+		var nr = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, roads)
+		var outNodes = this.calRoadsOfNodes(nr.nodes, nr.roads)
 
-	  console.log('eliminateLinks N(' + nodes.length + ') => (' + outNodes.length + ')');
+	  console.log('eliminateLinks N(' + nodes.length + ') => (' + outNodes.length + ')')
 
-		var raw = {nodes:outNodes, roads:roads};
-		this.util.saveTextAsFile(raw, 'nr_seattle_rdp.js');
-		return raw;
-
+		return {nodes:outNodes, roads:roads}
 
 
 		function RDPSimp(nodeArr, eps) {
 			// Find the point with the maximum distance
-			var dmax = 0;
-			var index = 0;
-			var startNode = nodes[nodeArr[0]];
-			var endNode = nodes[nodeArr[nodeArr.length - 1]];
+			var dmax = 0
+			var index = 0
+			var startNode = nodes[nodeArr[0]]
+			var endNode = nodes[nodeArr[nodeArr.length - 1]]
 
 			for(var i = 1; i < nodeArr.length - 1; i++) {
-				var testNode = nodes[nodeArr[i]];
+				var testNode = nodes[nodeArr[i]]
 				var d = distanceBetweenLineAndPoint(
-					startNode.lat, startNode.lng, endNode.lat, endNode.lng, testNode.lat, testNode.lng);
+					startNode.lat, startNode.lng, endNode.lat, endNode.lng, testNode.lat, testNode.lng)
 				if (d > dmax) {
-					index = i;
-					dmax = d;
+					index = i
+					dmax = d
 				}
 			}
 
 			// If max distance is greater than eps, recursively simplify
 			if (dmax > eps) {
 				// Recursive call
-				var result1 = RDPSimp(nodeArr.slice(0, index + 1), eps);
-				var result2 = RDPSimp(nodeArr.slice(index, nodeArr.length), eps);
+				var result1 = RDPSimp(nodeArr.slice(0, index + 1), eps)
+				var result2 = RDPSimp(nodeArr.slice(index, nodeArr.length), eps)
 
 				// Build the result list
-				var results = result1.concat(result2.slice(1));
+				var results = result1.concat(result2.slice(1))
 			}
 			else {
-				results = [nodeArr[0], nodeArr[nodeArr.length - 1]];
+				results = [nodeArr[0], nodeArr[nodeArr.length - 1]]
 			}
-			return results;
+			return results
 		}
 
 		function distanceBetweenLineAndPoint(L1x, L1y, L2x, L2y, Px, Py) {
-			var t = Math.abs((L2y - L1y) * Px - (L2x - L1x) * Py + L2x * L1y - L2y * L1x);
-			var b = Math.sqrt((L2y - L1y) * (L2y - L1y) + (L2x - L1x) * (L2x - L1x));
-			return t / b;
+			var t = Math.abs((L2y - L1y) * Px - (L2x - L1x) * Py + L2x * L1y - L2y * L1x)
+			var b = Math.sqrt((L2y - L1y) * (L2y - L1y) + (L2x - L1x) * (L2x - L1x))
+			return t / b
 		}
 	}
 
+
 	//
-	// 6. mergeNodes
-	// nodes (# = 5037 -> )
-	// roads (# = 4426 -> )
+	// clusterNodes
+	// in nodes, edges, types (e.g. [1,2]), threshold (= )
+	// out nr = {nodes, roads}
 	//
-	mergeNodes(nodes, roads, types, threshold) {
+	clusterNodes(nodes, roads, types, threshold) {
 		var selNodes = [];
 	  var lenRoads = roads.length;
 

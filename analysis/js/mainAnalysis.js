@@ -258,21 +258,18 @@ function simpRemoveDeadLinks() {
 	//tg.map.displayTexts()	
 }
 
-var rdpSlider = new Slider("#rdpSlider");
+/*var rdpSlider = new Slider("#rdpSlider")
 $("#rdpSlider").on("slideStop", function(evt) {
-  tg.data.simpDistanceRDP = evt.value;
-});
+  tg.data.simpDistanceRDP = evt.value
+})*/
 
 function simpRDP() {
-	var nr = tg.net.simplifyRDP(tg.data.simple.nodes, tg.data.simple.roads)
+	var nr = tg.net.simplifyRDP(tg.data.simple.nodes, tg.data.simple.roads, 0.0001)
 	tg.data.simple.nodes = nr.nodes
 	tg.data.simple.roads = nr.roads
+	tg.data.calDispRoads()
 	tg.map.updateLayers()
-
-	tg.data.simple.roads = tg.net.alg.simplifyRDP(tg.data.simple.nodes, tg.data.simple.roads);
-	tg.net.calOrderOfNodes(tg.data.simple.nodes, tg.data.simple.roads);
-	tg.map.updateLayers();
-	tg.map.displayTexts();
+	//tg.map.displayTexts()
 }
 
 function simpRecover() {
