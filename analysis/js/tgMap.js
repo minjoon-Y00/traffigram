@@ -393,8 +393,10 @@ class TGMap {
 		    tileGrid: new ol.tilegrid.XYZ({
 		      maxZoom: this.opt.maxZoom
 		    }),
-		    url: 'http://{a-c}.tile.openstreetmap.us/' +
-		        'vectiles-water-areas/{z}/{x}/{y}.topojson'
+		    //url: 'http://{a-c}.tile.openstreetmap.us/' +
+		    //    'vectiles-water-areas/{z}/{x}/{y}.topojson'
+		    url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
+		    	+ 'api_key=vector-tiles-c1X4vZE'
 		  }),
 		  style: function(feature, resolution) {
 		  	return [new ol.style.Style({
@@ -451,6 +453,9 @@ class TGMap {
 	createRoadLayerByType(nodes, roads, clr, width, arr, typeArr) {
 		var lenRoads = roads.length;
 
+		//console.log('createRoadLayerByType = ')
+		//console.log(roads)
+
 
 
 		//console.log(clr);
@@ -484,6 +489,14 @@ class TGMap {
 			if (this.displayedRoads.indexOf(roads[i].type) === -1) continue;
 
 			for(var j = 0; j < roads[i].nodes.length - 1; j++) {
+
+				if ((i == 14)&&(j == 6)) {
+					//console.log('i = ' + i + ', j = ' + j)
+					//console.log(roads[i].nodes[j + 1])
+					//console.log(nodes[roads[i].nodes[j + 1]])
+				}
+
+				
 
 				//var new_width = (roads[i].oneway) ? width : width + 1;
 				

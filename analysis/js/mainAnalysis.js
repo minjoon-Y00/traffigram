@@ -253,14 +253,7 @@ function simpRemoveDeadLinks() {
 	var nr = tg.net.removeDeadLinks(tg.data.simple.nodes, tg.data.simple.roads)
 	tg.data.simple.nodes = nr.nodes
 	tg.data.simple.roads = nr.roads
-	tg.map.updateLayers()
-	//tg.map.displayTexts()	
-}
-
-function simpStraightenLinks() {
-	var nr = tg.net.straightenLink(tg.data.simple.nodes, tg.data.simple.roads)
-	tg.data.simple.nodes = nr.nodes
-	tg.data.simple.roads = nr.roads
+	tg.data.calDispRoads()
 	tg.map.updateLayers()
 	//tg.map.displayTexts()	
 }
@@ -271,6 +264,11 @@ $("#rdpSlider").on("slideStop", function(evt) {
 });
 
 function simpRDP() {
+	var nr = tg.net.simplifyRDP(tg.data.simple.nodes, tg.data.simple.roads)
+	tg.data.simple.nodes = nr.nodes
+	tg.data.simple.roads = nr.roads
+	tg.map.updateLayers()
+
 	tg.data.simple.roads = tg.net.alg.simplifyRDP(tg.data.simple.nodes, tg.data.simple.roads);
 	tg.net.calOrderOfNodes(tg.data.simple.nodes, tg.data.simple.roads);
 	tg.map.updateLayers();

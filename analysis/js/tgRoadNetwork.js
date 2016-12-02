@@ -165,13 +165,19 @@ class TGRoadNetwork {
 		outNodes = tempNodes
 
 		var lenOutNodes = outNodes.length
+		var found
 		for(var i = 0; i < lenRoads; i++) {
 			for(var j = 0; j < outRoads[i].nodes.length; j++) {
+				found = false
 				for(var k = 0; k < lenOutNodes; k++) {
 					if (outNodes[k].orgI == outRoads[i].nodes[j]) {
 						outRoads[i].nodes[j] = k
+						found = true
 						break
 					}
+				}
+				if (!found) {
+					console.log('# not found ')
 				}
 			}
 		}
@@ -373,13 +379,39 @@ class TGRoadNetwork {
 
 
 	//
-	// remove dead links
+	// remove dead links (that has order-1 nodes)
 	// in nodes, edges
 	// out nr = {nodes, roads}
 	//
 	removeDeadLinks(nodes, roads) {
+		var maxIter = 100
+		var n = nodes
+		var r = roads
+		var out, difNodeNum, difRoadNum
+
+		for(var i = 0; i < maxIter; i++) {
+			out = this.stepRemoveDeadLinks(n, r)
+
+			difNodeNum = out.new.nodes.length - out.old.nodes.length
+			difRoadNum = out.new.roads.length - out.old.roads.length
+
+			if ((difNodeNum == 0)&&(difRoadNum == 0)) {
+				return out.new
+			}
+			else {
+				console.log('step ' + i)
+				console.log('removeDeadLinks N(' + out.old.nodes.length + ') => (' + out.new.nodes.length + ') R(' 
+					+ out.old.roads.length + ') => (' + out.new.roads.length + ')')
+
+				n = out.new.nodes
+				r = out.new.roads
+			}
+		}
+	}
+
+	stepRemoveDeadLinks(nodes, roads) {
 		var lenRoads = roads.length
-	  var outNodes, nIdx1, nIdx2
+	  var nIdx1, nIdx2
 	  var outRoads = []
 	  var isDeadLink = false
 
@@ -397,67 +429,14 @@ class TGRoadNetwork {
 	  	}
 	  }
 
-	  var nr = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, outRoads);
+	  nodes = this.calRoadsOfNodes(nodes, outRoads)
+	  var nr = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, outRoads)
 
-	  console.log('eliminateLinks N(' + nodes.length + ') => (' + nr.nodes.length + ')');
-	  console.log('eliminateLinks R(' + roads.length + ') => (' + nr.roads.length + ')');
-
-		return nr
+		return {old:{nodes:nodes, roads:roads}, new:nr}
 	}
 
 
 
-
-	//
-	// 3. Eliminate Links.
-	// nodes (# = 67205 -> 55332)
-	// roads (# = 10816 -> 8758)
-	// 
-	eliminateLinks(nodes, roads) {
-	  var lenRoads = roads.length;
-	  var outNodes = [];
-	  var outRoads = [];
-
-	  var isStartNodeMotorwayOrTrunk = false;
-	  var isEndNodeMotorwayOrTrunk = false;
-
-	  for(var i = 0; i < lenRoads; i++) {
-	  	if (roads[i].type > 20) { // links
-
-	  		isStartNodeMotorwayOrTrunk = false;
-	  		for(var j = 0; j < nodes[roads[i].nodes[0]].roads.length; j++) {
-	  			if ((roads[nodes[roads[i].nodes[0]].roads[j]].type == 1)
-	  				||(roads[nodes[roads[i].nodes[0]].roads[j]].type == 2)) {
-	  				isStartNodeMotorwayOrTrunk = true;
-	  			}
-	  		}
-
-	  		isEndNodeMotorwayOrTrunk = false;
-	  		for(var j = 0; j < nodes[roads[i].nodes[roads[i].nodes.length - 1]].roads.length; j++) {
-	  			if ((roads[nodes[roads[i].nodes[roads[i].nodes.length - 1]].roads[j]].type == 1)
-	  				||(roads[nodes[roads[i].nodes[roads[i].nodes.length - 1]].roads[j]].type == 2)) {
-	  				isEndNodeMotorwayOrTrunk = true;
-	  			}
-	  		}
-
-	  		if (isStartNodeMotorwayOrTrunk && isEndNodeMotorwayOrTrunk) {
-	  			outRoads.push(roads[i]);
-	  		}
-	  	}
-	  	else {
-	  		outRoads.push(roads[i]);
-	  	}
-	  }
-
-	  outNodes = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, outRoads);
-
-	  console.log('eliminateLinks N(' + nodes.length + ') => (' + outNodes.length + ')');
-	  console.log('eliminateLinks R(' + roads.length + ') => (' + outRoads.length + ')');
-
-		var raw = {nodes:outNodes, roads:outRoads};
-		this.util.saveTextAsFile(raw, 'nr_seattle_el.js');
-		return raw;
-	}
 
 
 

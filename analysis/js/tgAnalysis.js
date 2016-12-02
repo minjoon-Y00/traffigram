@@ -40,10 +40,13 @@ class TGAnalysis {
 		//nr = this.net.filterRoads(nr.nodes, nr.roads, [1, 2, 21, 22]) // (n 15986, r 2165)
 		//nr = this.net.separateRoads(nr.nodes, nr.roads) // (n 15986, r 2709)
 		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 15986, r 1520)
-		nr = this.net.removeDeadLinks(nr.nodes, nr.roads) // (n 11956, r 1126)
-		nr = this.net.straightenLink(nr.nodes, nr.roads)
+		//nr = this.net.removeDeadLinks(nr.nodes, nr.roads) // (n 11956, r 1126)
+		//nr = this.net.straightenLinks(nr.nodes, nr.roads)
 
 		console.log(nr)
+
+		// 115 116 117 118 119 120 121 133387 15504 15505 232
+		// 130 137 138 139 140 141 131 132 133 134 135 136
 
 
 
@@ -99,10 +102,10 @@ class TGAnalysis {
 
 
 	  // For other steps
-	  this.data.original.nodes = nr.nodes;
-	  this.data.original.roads = nr.roads;
-	  this.data.simple.nodes = nr.nodes;
-	  this.data.simple.roads = nr.roads;
+	  this.data.original.nodes = nr.nodes
+	  this.data.original.roads = nr.roads
+	  this.data.simple.nodes = this.util.clone(nr.nodes)
+	  this.data.simple.roads = this.util.clone(nr.roads)
 
 
 
