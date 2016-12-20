@@ -39,6 +39,9 @@ class TGMap {
 	  this.readAllObjects = false;
 	  this.selectedNodeID = -1;
 
+	  this.roadObj = []
+	  this.dispVecRoadLayer = true
+
 	  // Event Handlers
 		this.map.getView().on('propertychange', this.propertyChange.bind(this));
 		this.map.on('moveend', this.onMoveEnd.bind(this));
@@ -270,17 +273,27 @@ class TGMap {
 
 	drawSimplifiedRoadLayer() {
 		this.removeLayer(this.map.simplifiedRoadLayer);
-		this.map.simplifiedRoadLayer = this.createRoadLayer(
+		this.map.simplifiedRoadLayer = this.createRoadLayerVec(
 			this.data.simple.nodes, this.data.simple.dispRoads, 
 			this.opt.color.simplifiedRoad, this.opt.width.simplifiedRoad);
 	  this.map.addLayer(this.map.simplifiedRoadLayer);
 	}
 
 	drawSimplifiedNodeLayer() {
+		/*
 		this.removeLayer(this.map.simplifiedNodeLayer);
 		this.map.simplifiedNodeLayer = this.createNodeLayer(
 			this.data.simple.nodes, this.data.simple.dispRoads)
 	  this.map.addLayer(this.map.simplifiedNodeLayer);
+	  */
+	}
+
+	drawRoadVec() {
+		this.removeLayer(this.map.vecRoadLayer);
+		this.map.vecRoadLayer = this.createvecRoadLayer();
+	  this.map.addLayer(this.map.vecRoadLayer);
+
+		console.log(this.roadObj)
 	}
 
 
@@ -540,6 +553,50 @@ class TGMap {
 			}
 		}
 		return this.olVectorFromFeatures(arr)
+	}
+
+	createRoadLayerVec(nodes, edges, clr, width) {
+		return new ol.layer.Vector({
+		  source: new ol.source.TileVector({
+		    format: new ol.format.TopoJSON(),
+		    projection: 'EPSG:3857',
+		    tileGrid: new ol.tilegrid.XYZ({
+		      maxZoom: this.opt.maxZoom
+		    }),
+		    //url: 'http://{a-c}.tile.openstreetmap.us/' +
+		    //    'vectiles-water-areas/{z}/{x}/{y}.topojson'
+		    url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' 
+		    	+ 'api_key=vector-tiles-c1X4vZE'
+		  })
+		  
+		  ,style: function(feature, resolution) {
+
+		  	var kind = feature.get('kind')
+		  	
+
+		  	if (kind == 'major_road') return null
+		  	if (kind == 'minor_road') return null
+		  	if (kind == 'path') return null
+		  	if (kind == 'rail') return null
+
+		  	feature.getGeometry().transform('EPSG:3857', 'EPSG:4326')
+				var coords = feature.getGeometry().getCoordinates()
+				var lenCoords = coords.length
+					
+				var obj = {'geotype':feature.getGeometry().getType(), 'kind':kind, 
+					'coordinates':coords}
+
+				this.roadObj.push(obj)
+
+			
+
+		  	//console.log(feature.getGeometry().getType())
+		  	//console.log(feature.getGeometry().getCoordinates())
+
+		  	return null
+
+		  }.bind(this)
+		});
 	}
 
 	//

@@ -503,44 +503,40 @@ class TGRoadNetwork {
 
 	//
 	// clusterNodes
-	// in nodes, edges, types (e.g. [1,2]), threshold (= )
+	// in nodes, edges, types (e.g. [1,2]), threshold (= 0.005)
 	// out nr = {nodes, roads}
 	//
 	clusterNodes(nodes, roads, types, threshold) {
-		var selNodes = [];
-	  var lenRoads = roads.length;
-
-	  var orgLenRoads = roads.length;
-	  var orgLenNodes = nodes.length;
+		var threshold = threshold || 0.005 // about 50 meter
+		var selNodes = []
+	  var lenRoads = roads.length
+	  var orgLenRoads = roads.length
+	  var orgLenNodes = nodes.length
 
 	  for(var i = 0; i < lenRoads; i++) {
 	  	if (types.indexOf(roads[i].type) >= 0) {
-	  		roads[i].deleted = true;
+	  		roads[i].deleted = true
 	
 	  		for(var j = 0; j < roads[i].nodes.length - 1; j++) {
 	  			roads.push({
 	  				nodes:[roads[i].nodes[j], roads[i].nodes[j + 1]],
 	  				oneway: roads[i].oneway,
 	  				type: roads[i].type
-	  			});
+	  			})
 	  		}
 	  	}
 	  }
 
-	  var outRoads = [];
+	  var outRoads = []
 	  for(var i = 0; i < roads.length; i++) {
 			if (!roads[i].deleted) {
-				outRoads.push(roads[i]);
+				outRoads.push(roads[i])
 			}
 		}
-		roads = outRoads; 
-	  nodes = this.calRoadsOfNodes(nodes, roads);
+		roads = outRoads
+	  nodes = this.calRoadsOfNodes(nodes, roads)
 
-	  //console.log('# nodes = ' + nodes.length); // 13843
-	  //console.log('# roads = ' + roads.length); // 4485 -> 6271
-
-
-		var lenRoads = roads.length;
+		lenRoads = roads.length;
 
 		for(var i = 0; i < lenRoads; i++) {
 	  	if (types.indexOf(roads[i].type) >= 0) {
@@ -548,80 +544,74 @@ class TGRoadNetwork {
 	  		var found = false;
 	  		for(var j = 0; j < selNodes.length; j++) {
 	  			if (selNodes[j] == roads[i].nodes[0]) {
-	  				found = true;
-	  				break;
+	  				found = true
+	  				break
 	  			}
 	  		}
 	  		if (!found) {
-	  			selNodes.push(roads[i].nodes[0]);
+	  			selNodes.push(roads[i].nodes[0])
 	  		}
 
 	  		found = false;
 	  		for(var j = 0; j < selNodes.length; j++) {
 	  			if (selNodes[j] == roads[i].nodes[1]) {
-	  				found = true;
-	  				break;
+	  				found = true
+	  				break
 	  			}
 	  		}
 	  		if (!found) {
-	  			selNodes.push(roads[i].nodes[1]);
+	  			selNodes.push(roads[i].nodes[1])
 	  		}
 
 	  	}
 	  }
 
-	  //console.log('selNodes.length = ' + selNodes.length);
-	  //console.log(selNodes);
-
-
 	  while(true) {
+		  var minD = 1000
+		  var dist
+		  var minNode1 = -1
+		  var minNode2 = -1
 
-		  var minD = 1000;
-		  var dist;
-		  var minNode1 = -1;
-		  var minNode2 = -1;
 		  for(var i = 0; i < selNodes.length; i++) {
 		  	for(var j = i + 1; j < selNodes.length; j++) {
 		  		dist = this.util.D2(
 		  			nodes[selNodes[i]].lat, nodes[selNodes[i]].lng, 
-		  			nodes[selNodes[j]].lat, nodes[selNodes[j]].lng);
+		  			nodes[selNodes[j]].lat, nodes[selNodes[j]].lng)
 		  		if (minD > dist) {
-		  			minD = dist;
-		  			minNode1 = selNodes[i];
-		  			minNode2 = selNodes[j];
+		  			minD = dist
+		  			minNode1 = selNodes[i]
+		  			minNode2 = selNodes[j]
 		  		}
 		  	}
 		  }
 
-		  //console.log('minD = ' + minD);
-
-		  if (minD > threshold) break;
+		  if (minD > threshold) break
 
 		  // make new node
 		  nodes.push({
 		  	lat: (nodes[minNode1].lat + nodes[minNode2].lat)/2,
 		  	lng: (nodes[minNode1].lng + nodes[minNode2].lng)/2,
 		  	roads: []
-		  });
+		  })
 
-		  var lastIndex = nodes.length - 1;
+		  var lastIndex = nodes.length - 1
 
-		  //console.log('(' + minNode1 + ',' + minNode2 + ') => ' + lastIndex);
+		  //console.log('(' + minNode1 + ',' + minNode2 + ') => ' + lastIndex)
 
 		  for(var i = 0; i < nodes[minNode1].roads.length; i++) {
-		  	nodes[lastIndex].roads.push(nodes[minNode1].roads[i]);
+		  	nodes[lastIndex].roads.push(nodes[minNode1].roads[i])
 		  }
 
 		  for(var i = 0; i < nodes[minNode2].roads.length; i++) {
 		  	if (nodes[lastIndex].roads.indexOf(nodes[minNode2].roads[i]) < 0)
-		  		nodes[lastIndex].roads.push(nodes[minNode2].roads[i]);
+		  		nodes[lastIndex].roads.push(nodes[minNode2].roads[i])
 		  }
 		  
 		  for(var i = 0; i < nodes[minNode1].roads.length; i++) {
 		  	for(var j = 0; j < roads[nodes[minNode1].roads[i]].nodes.length; j++) {
 			  	if(roads[nodes[minNode1].roads[i]].nodes[j] == minNode1) {
-			  		roads[nodes[minNode1].roads[i]].nodes[j] = lastIndex;
-			  		break;
+			  		roads[nodes[minNode1].roads[i]].nodes[j] = lastIndex
+			  		break
 			  	}
 			  }
 		  }
@@ -629,190 +619,366 @@ class TGRoadNetwork {
 		  for(var i = 0; i < nodes[minNode2].roads.length; i++) {
 		  	for(var j = 0; j < roads[nodes[minNode2].roads[i]].nodes.length; j++) {
 			  	if(roads[nodes[minNode2].roads[i]].nodes[j] == minNode2) {
-			  		roads[nodes[minNode2].roads[i]].nodes[j] = lastIndex;
-			  		break;
+			  		roads[nodes[minNode2].roads[i]].nodes[j] = lastIndex
+			  		break
 			  	}
 			  }
 		  }
 
-		  nodes[minNode1].deleted = true;
-		  nodes[minNode2].deleted = true;
+		  nodes[minNode1].deleted = true
+		  nodes[minNode2].deleted = true
 
-		  var slicedIdx = selNodes.indexOf(minNode1);
-		  selNodes.splice(slicedIdx, 1);
-		  slicedIdx = selNodes.indexOf(minNode2);
-		  selNodes.splice(slicedIdx, 1);
-		  selNodes.push(lastIndex);
+		  var slicedIdx = selNodes.indexOf(minNode1)
+		  selNodes.splice(slicedIdx, 1)
+		  slicedIdx = selNodes.indexOf(minNode2)
+		  selNodes.splice(slicedIdx, 1)
+		  selNodes.push(lastIndex)
 		}
 
-		//console.log('# nodes = ' + nodes.length); // 13843 -> 15537
+		nr = this.removeDeletedNode(nodes, roads)
+		nodes = nr.nodes
+		roads = nr.roads
 
-		nr = this.removeDeletedNode(nodes, roads);
-		nodes = nr.nodes;
-		roads = nr.roads;
+	  roads = this.cleanupRoads(nodes, roads)
+	  nodes = this.calRoadsOfNodes(nodes, roads)
 
-		//console.log('# nodes = ' + nodes.length); // 15537 -> 12149
-	  
-	  roads = this.cleanupRoads(nodes, roads);
+	  console.log('eliminateLinks N(' + orgLenNodes + ') => (' + nodes.length + ')')
+	  console.log('eliminateLinks R(' + orgLenRoads + ') => (' + roads.length + ')')
 
-	  //console.log('# roads = ' + roads.length); // 6271 -> 4423
-
-	  nodes = this.calRoadsOfNodes(nodes, roads);
-
-	  console.log('eliminateLinks N(' + orgLenNodes + ') => (' + nodes.length + ')');
-	  console.log('eliminateLinks R(' + orgLenRoads + ') => (' + roads.length + ')');
-
-		var raw = {nodes:nodes, roads:roads};
-		//this.util.saveTextAsFile(raw, 'nr_seattle_cluster.js');
-		return raw;
-	}
-
-	cleanupRoads(nodes, roads) {
-		var outRoads = [];
-		var lenRoads = roads.length;
-
-		// removeEmptyRoads
-		var cnt = 0;
-		for(var i = 0; i < lenRoads; i++) {
-			if (roads[i].nodes[0] == roads[i].nodes[1]) {
-				roads[i].deleted = true;
-				cnt++;
-			}
-		}
-		console.log('cnt = ' + cnt);
-		cnt = 0;
-
-		// removeDuplicateRoads
-		for(var i = 0; i < lenRoads; i++) {
-			if (roads[i].deleted) continue;
-
-			for(var j = i + 1; j < lenRoads; j++) {
-				if ((roads[i].nodes[0] == roads[j].nodes[0])
-					&&(roads[i].nodes[roads[i].nodes.length - 1] == roads[j].nodes[roads[j].nodes.length - 1])) {
-					roads[j].deleted = true;
-					cnt++;
-				}
-				else if ((roads[i].nodes[0] == roads[j].nodes[roads[j].nodes.length - 1])
-					&&(roads[i].nodes[roads[i].nodes.length - 1] == roads[j].nodes[0])) {
-					roads[j].deleted = true;
-					cnt++;
-				}
-			}
-		}
-		console.log('cnt = ' + cnt);
-		cnt = 0;
-
-		
-		// removeDeletedRoads
-		for(var i = 0; i < lenRoads; i++) {
-			if ((roads[i].nodes[0] == -1)||(roads[i].nodes[roads[i].nodes.length - 1] == -1)) {
-				roads[i].deleted = true;
-				cnt++;
-			}
-		}
-		console.log('cnt = ' + cnt);
-
-		
-
-		// make new roads
-		for(var i = 0; i < lenRoads; i++) {
-			if (!roads[i].deleted) {
-				outRoads.push(roads[i]);
-			}
-		}
-
-		console.log('clean up : ' + lenRoads + ' -> ' + outRoads.length);
-		return outRoads;
+		return {nodes:nodes, roads:roads}
 	}
 
 	//
-	//
+	// sub functions of clusterNodes()
 	//
 	removeDeletedNode(nodes, roads) {
-		var outNodes = [];
-		var lenNodes = nodes.length;
-		var lenRoads = roads.length;
+		var outNodes = []
+		var lenNodes = nodes.length
+		var lenRoads = roads.length
 
 		for(var i = 0; i < lenNodes; i++) {
 			if (!nodes[i].deleted) {
-				outNodes.push({lat:nodes[i].lat, lng:nodes[i].lng, roads:[]});
-				nodes[i].newIndex = outNodes.length - 1;
+				outNodes.push({lat:nodes[i].lat, lng:nodes[i].lng, roads:[]})
+				nodes[i].newIndex = outNodes.length - 1
 			}
 			else {
-				nodes[i].newIndex = -1;
+				nodes[i].newIndex = -1
 			}
 		}
 
 		for(var i = 0; i < lenRoads; i++) {
 			for(var j = 0; j < roads[i].nodes.length; j++) {
-				roads[i].nodes[j] = nodes[roads[i].nodes[j]].newIndex;
+				roads[i].nodes[j] = nodes[roads[i].nodes[j]].newIndex
 			}
 		}
-		return {nodes:outNodes, roads:roads};
+		return {nodes:outNodes, roads:roads}
 	}
 
+	cleanupRoads(nodes, roads) {
+		var outRoads = []
+		var lenRoads = roads.length
+		var cnt = 0
 
-
-	//
-	//
-	//
-	calNodes(edges) {
-		var nodes = [];
-
-		for(var i = 0; i < edges.length; i++) {
-			nodes.push({
-				lng:edges[i].startNode.lng, 
-				lat:edges[i].startNode.lat
-			});
-
-			nodes.push({
-				lng:edges[i].endNode.lng, 
-				lat:edges[i].endNode.lat
-			});
+		// remove empty roads
+		
+		for(var i = 0; i < lenRoads; i++) {
+			if (roads[i].nodes[0] == roads[i].nodes[1]) {
+				roads[i].deleted = true
+				cnt++
+			}
 		}
-		return this.alg.reduceDuplicatedNodes(nodes);
-	}
+		//console.log('cnt = ' + cnt)
+		cnt = 0
 
+		// remove duplicate roads
 
-	//
-	//
-	//
-	makeNEobjects(edges) {
-		var nodes = this.calNodes(edges);
+		for(var i = 0; i < lenRoads; i++) {
+			if (roads[i].deleted) continue
 
-		for (var i = 0; i < edges.length; i++) {
-			for (var j = 0; j < nodes.length; j++) {
-				if ((edges[i].startNode.lat === nodes[j].lat)
-					&& (edges[i].startNode.lng === nodes[j].lng)) {
-				edges[i].startNode.index = j;
+			for(var j = i + 1; j < lenRoads; j++) {
+				if ((roads[i].nodes[0] == roads[j].nodes[0])
+					&&(roads[i].nodes[roads[i].nodes.length - 1] == roads[j].nodes[roads[j].nodes.length - 1])) {
+					roads[j].deleted = true
+					cnt++
 				}
-
-				if ((edges[i].endNode.lat === nodes[j].lat)
-					&& (edges[i].endNode.lng === nodes[j].lng)) {
-				edges[i].endNode.index = j;
+				else if ((roads[i].nodes[0] == roads[j].nodes[roads[j].nodes.length - 1])
+					&&(roads[i].nodes[roads[i].nodes.length - 1] == roads[j].nodes[0])) {
+					roads[j].deleted = true
+					cnt++
 				}
 			}
 		}
-		return {nodes: nodes, edges: edges};
+		//console.log('cnt = ' + cnt)
+		cnt = 0
+
+		// remove deleted roads
+
+		for(var i = 0; i < lenRoads; i++) {
+			if ((roads[i].nodes[0] == -1)||(roads[i].nodes[roads[i].nodes.length - 1] == -1)) {
+				roads[i].deleted = true
+				cnt++
+			}
+		}
+		//console.log('cnt = ' + cnt)
+
+		// make new roads
+
+		for(var i = 0; i < lenRoads; i++) {
+			if (!roads[i].deleted) outRoads.push(roads[i])
+		}
+
+		console.log('clean up : ' + lenRoads + ' -> ' + outRoads.length)
+		return outRoads
 	}
+
+
+	removeMultipleRoads(nodes, roads) {
+		var orgLenNodes = nodes.length
+		var orgLenRoads = roads.length
+		var lenNodes = nodes.length
+
+		// part I: [A - B(order = 2) - C, A - C] => [A - C]
+
+		var cnt = 0
+		var r1, r2, n1, n2, intersections
+		for(var i = 0; i < lenNodes; i++) {
+
+			if (nodes[i].roads.length == 2) {
+
+				r1 = roads[nodes[i].roads[0]]
+				r2 = roads[nodes[i].roads[1]]
+				n1 = (r1.nodes[0] == i) ? r1.nodes[1] : r1.nodes[0] 
+				n2 = (r2.nodes[0] == i) ? r2.nodes[1] : r2.nodes[0]
+
+				intersections = $.arrayIntersect(nodes[n1].roads, nodes[n2].roads)
+
+				if (intersections.length > 0) {
+					roads[nodes[i].roads[0]].deleted = true
+					roads[nodes[i].roads[1]].deleted = true
+					cnt++
+				}
+			}
+		}	
+
+		console.log('cnt I = ' + cnt)
+		
+		var outRoads = []
+		var lenRoads = roads.length
+
+		for(var i = 0; i < lenRoads; i++) {
+			if (!roads[i].deleted) outRoads.push(roads[i])
+		}
+
+		var nr = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, outRoads)
+		var outNodes = this.calRoadsOfNodes(nr.nodes, nr.roads)
+
+		nodes = outNodes
+		roads = outRoads
+
+
+		// part II: [A - B(order > 2) - C, A - C] => [A - B - C]
+
+		cnt = 0
+		lenNodes = nodes.length
+		var nArr, connectedRoad, r1, r2, r3
+		var len1, len2, len3
+
+		for(var i = 0; i < lenNodes; i++) {
+			if (nodes[i].roads.length > 2) {
+
+				nArr = []
+
+				for(var j = 0; j < nodes[i].roads.length; j++) {
+					if (roads[nodes[i].roads[j]].nodes[0] == i) {
+						nArr.push(roads[nodes[i].roads[j]].nodes[1])
+					}
+					else {
+						nArr.push(roads[nodes[i].roads[j]].nodes[0])
+					}
+				}
+
+				
+				for(var j = 0; j < nArr.length; j++) {
+					for(var k = j + 1; k < nArr.length; k++) {
+						connectedRoad = isDirectlyConnected(nArr[j], nArr[k], nodes, roads)
+						if (connectedRoad != null) {
+							r1 = connectedRoad
+
+							for(var l = 0; l < nodes[nArr[j]].roads.length; l++) {
+								if ((roads[nodes[nArr[j]].roads[l]].nodes[0] == i)
+									||(roads[nodes[nArr[j]].roads[l]].nodes[1] == i)) {
+									r2 = roads[nodes[nArr[j]].roads[l]]
+									break
+								}
+							}
+
+							for(var l = 0; l < nodes[nArr[k]].roads.length; l++) {
+								if ((roads[nodes[nArr[k]].roads[l]].nodes[0] == i)
+									||(roads[nodes[nArr[k]].roads[l]].nodes[1] == i)) {
+									r3 = roads[nodes[nArr[k]].roads[l]]
+									break
+								}
+							}
+
+							len1 = this.lengthOfRoad(r1, nodes)
+							len2 = this.lengthOfRoad(r2, nodes)
+							len3 = this.lengthOfRoad(r3, nodes)
+
+							if ((len1 > len2)&&(len1 > len3)) {
+								r1.deleted = true
+								r2.deleted = false
+								r3.deleted = false
+							}
+							else if ((len2 > len1)&&(len2 > len3)) {
+								r1.deleted = false
+								r2.deleted = true
+								r3.deleted = false
+							}
+							else if ((len3 > len1)&&(len3 > len2)) {
+								r1.deleted = false
+								r2.deleted = false
+								r3.deleted = true
+							}
+
+							cnt++
+						}
+					}
+				}
+			}			
+		}
+
+		console.log('cnt II = ' + cnt)
+		
+		var outRoads = []
+		var lenRoads = roads.length
+
+		for(var i = 0; i < lenRoads; i++) {
+			if (!roads[i].deleted) outRoads.push(roads[i])
+		}
+
+		var nr = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, outRoads)
+		var outNodes = this.calRoadsOfNodes(nr.nodes, nr.roads)
+
+		nodes = outNodes
+		roads = outRoads
+
+
+		// part III: [A - B - C, A - D - C] => [A - E(B + D / 2) - C]
+
+		cnt = 0
+		lenNodes = nodes.length
+		var n1, n2, m1, m2
+		var r1, r2, s1, s2
+		var lenR, lenS
+
+		for(var i = 0; i < lenNodes; i++) {
+			if (nodes[i].roads.length == 2) {
+
+				r1 = roads[nodes[i].roads[0]]
+				r2 = roads[nodes[i].roads[1]]
+				n1 = (r1.nodes[0] == i) ? r1.nodes[1] : r1.nodes[0] 
+				n2 = (r2.nodes[0] == i) ? r2.nodes[1] : r2.nodes[0]
+
+				for(var j = i + 1; j < lenNodes; j++) {
+					if (nodes[j].roads.length == 2) {
+
+						s1 = roads[nodes[j].roads[0]]
+						s2 = roads[nodes[j].roads[1]]
+						m1 = (s1.nodes[0] == j) ? s1.nodes[1] : s1.nodes[0] 
+						m2 = (s2.nodes[0] == j) ? s2.nodes[1] : s2.nodes[0]
+
+						if (((n1 == m1)&&(n2 == m2))||((n1 == m2)&&(n2 == m1))) {
+
+							lenR = this.lengthOfRoad(r1, nodes) + this.lengthOfRoad(r2, nodes)
+							lenS = this.lengthOfRoad(s1, nodes) + this.lengthOfRoad(s2, nodes)
+
+							if (lenR > lenS) {
+								r1.deleted = true
+								r2.deleted = true
+							}
+							else {
+								s1.deleted = true
+								s2.deleted = true
+							}
+							cnt++
+						}
+
+					}
+				}
+			}
+		}
+		console.log('cnt III = ' + cnt)
+
+		var outRoads = []
+		var lenRoads = roads.length
+
+		for(var i = 0; i < lenRoads; i++) {
+			if (!roads[i].deleted) outRoads.push(roads[i])
+		}
+
+		var nr = this.cleanEmptyNodesAndCalNodesOfRoads(nodes, outRoads)
+		var outNodes = this.calRoadsOfNodes(nr.nodes, nr.roads)
+
+		console.log('removeMultipleRoads N(' + orgLenNodes + ') => (' + outNodes.length + ')')
+	  console.log('removeMultipleRoads R(' + orgLenRoads + ') => (' + outRoads.length + ')')
+
+		return {nodes:outNodes, roads:outRoads}
+
+
+
+		function isDirectlyConnected(n1, n2, nodes, roads) {
+			for(var i = 0; i < nodes[n1].roads.length; i++) {
+				if (roads[nodes[n1].roads[i]].nodes[0] == n1) {
+					if (roads[nodes[n1].roads[i]].nodes[1] == n2) {
+						return roads[nodes[n1].roads[i]]
+					}
+				}
+				else {
+					if (roads[nodes[n1].roads[i]].nodes[0] == n2) {
+						return roads[nodes[n1].roads[i]]
+					}
+				}
+			}
+			return null
+		}
+	}
+
+	lengthOfRoad(road, nodes) {
+		return this.util.D2(nodes[road.nodes[0]].lat, nodes[road.nodes[0]].lng, 
+	  	nodes[road.nodes[1]].lat, nodes[road.nodes[1]].lng)
+	}
+
+
+
+	divideRoads(nodes, roads) {
+		var lenRoads = roads.length
+		var outRoads = []
+
+		for(var i = 0; i < lenRoads; i++) {
+			for(var j = 0; j < roads[i].nodes.length - 1; j++) {
+				var obj = {}
+				obj.nodes = [roads[i].nodes[j], roads[i].nodes[j + 1]]
+				obj.oneway = roads[i].oneway
+				obj.type = roads[i].type
+				outRoads.push(obj)
+			}
+		}
+
+		nodes = this.calRoadsOfNodes(nodes, outRoads)
+
+	  console.log('divideRoads R(' + roads.length + ') => (' + outRoads.length + ')')
+
+		return {nodes:nodes, roads:outRoads}
+	}
+
+
+
 
 	
 
 
 
-	calOrderOfNodes(nodes, roads) {
-		var lenNodes = nodes.length;
-		var lenRoads = roads.length;
 
-		for(var i = 0; i < lenNodes; i++) {
-			nodes[i].order = 0;
-		}
-
-		for(var i = 0; i < lenRoads; i++) {
-			nodes[roads[i].nodes[0]].order++;
-			nodes[roads[i].nodes[roads[i].nodes.length - 1]].order++;
-		}
-	}
 
 
 
@@ -822,17 +988,17 @@ class TGRoadNetwork {
 
 		this.data.simple.nodes = this.util.clone(this.data.original.nodes);
 		this.data.simple.roads = this.util.clone(this.data.original.roads);
-		this.calOrderOfNodes(this.data.simple.nodes, this.data.simple.roads);
+		calOrderOfNodes(this.data.simple.nodes, this.data.simple.roads);
 
 		console.log(':' + this.data.simple.roads.length);
 
 		this.data.simple.roads = this.alg.separateRoads(this.data.simple.nodes, this.data.simple.roads);
-		this.calOrderOfNodes(this.data.simple.nodes, this.data.simple.roads);
+		calOrderOfNodes(this.data.simple.nodes, this.data.simple.roads);
 
 		console.log('::' + this.data.simple.roads.length);
 
 		this.data.simple.roads = this.alg.mergeRoads(this.data.simple.nodes, this.data.simple.roads);
-		this.calOrderOfNodes(this.data.simple.nodes, this.data.simple.roads);
+		calOrderOfNodes(this.data.simple.nodes, this.data.simple.roads);
 
 		console.log(':::' + this.data.simple.roads.length);
 
@@ -871,13 +1037,27 @@ class TGRoadNetwork {
 
 		// separation & merge : N(67205) -> N(//), R(8530) -> R(7821) 
 
+		function 	calOrderOfNodes(nodes, roads) {
+			var lenNodes = nodes.length;
+			var lenRoads = roads.length;
+
+			for(var i = 0; i < lenNodes; i++) {
+				nodes[i].order = 0;
+			}
+
+			for(var i = 0; i < lenRoads; i++) {
+				nodes[roads[i].nodes[0]].order++;
+				nodes[roads[i].nodes[roads[i].nodes.length - 1]].order++;
+			}
+		}
+
 
 
 	}
 
 
 	//
-	// gen0 version - parsing old data
+	// gen0 version - parsing old data (need to be tested)
 	//
 	makeFilteredNodesEdgesFromGen0() {
 		// require: <script src="data/seattle_washington_roads_gen0.js"></script>
@@ -894,7 +1074,7 @@ class TGRoadNetwork {
 
 		this.util.saveTextAsFile(edges, 'roads_gen_filtered.js');
 
-		var ne = this.net.makeNEobjects(edges);
+		var ne = makeNEobjects(edges);
 		console.log('[makeNEobjects] Nodes # = ' + ne.nodes.length); // 10781
 		console.log('[makeNEobjects] Edges # = ' + ne.edges.length); // 10074
 
@@ -944,6 +1124,63 @@ class TGRoadNetwork {
 		    edges.push(e);
 		  }
 		  return edges;
+		}
+
+		function makeNEobjects(edges) {
+			var nodes = calNodes(edges)
+
+			for (var i = 0; i < edges.length; i++) {
+				for (var j = 0; j < nodes.length; j++) {
+					if ((edges[i].startNode.lat === nodes[j].lat)
+						&& (edges[i].startNode.lng === nodes[j].lng)) {
+					edges[i].startNode.index = j
+					}
+
+					if ((edges[i].endNode.lat === nodes[j].lat)
+						&& (edges[i].endNode.lng === nodes[j].lng)) {
+					edges[i].endNode.index = j
+					}
+				}
+			}
+			return {nodes: nodes, edges: edges}
+		}
+
+		function calNodes(edges) {
+			var nodes = []
+
+			for(var i = 0; i < edges.length; i++) {
+				nodes.push({
+					lng:edges[i].startNode.lng, 
+					lat:edges[i].startNode.lat
+				})
+
+				nodes.push({
+					lng:edges[i].endNode.lng, 
+					lat:edges[i].endNode.lat
+				})
+			}
+			return reduceDuplicatedNodes(nodes)
+		}
+
+		function 	reduceDuplicatedNodes(nodes) {
+			var unique = []
+
+			for(var i = 0; i < nodes.length; i++) {
+				var found = false
+				for(var j = 0; j < unique.length; j++) {
+					if ((unique[j].lat === nodes[i].lat)&&(unique[j].lng === nodes[i].lng)) {
+						found = true
+						break;
+					}
+				}
+				if (!found) {
+					unique.push({
+						lat: nodes[i].lat,
+						lng: nodes[i].lng
+					})
+				}
+			}
+			return unique
 		}
 	}
 

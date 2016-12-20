@@ -32,7 +32,9 @@ if ($("#tertiaryLinkCB").is(':checked')) { tg.map.addToDisplayedRoads('tertiary_
 //
 //
 function printSimpleNR() {
-	tg.data.printSimpleNR()
+	//tg.data.printSimpleNR()
+
+	tg.map.drawRoadVec()
 }
 
 function saveSimpleNR() {

@@ -1,6 +1,6 @@
 const options = {
 	maxZoom: 18,
-	minZoom: 10,
+	minZoom: 11,
 	zoom: 14, //13,
 
 	type: {
@@ -20,7 +20,7 @@ const options = {
 		water: 'rgba(146, 219, 238, 1)',
 		highway: '#969696',
 		arterial: '#969696',
-		link: '#00ADEE',
+		link: '#BBB', //'#00ADEE'
 		node: '#A52A2A',
 		text: '#000',
 		grid: '#FFA07A',
@@ -32,7 +32,7 @@ const options = {
 	},
 
 	width: {
-		highway: 5,
+		highway: 1,
 		arterial: 1,
 		link: 1,
 		grid: 2,
@@ -93,11 +93,18 @@ const options = {
 		gridLat: 8, // vertical resolution. even number is recommended
 	},
 
+	networkByZoom: {
+		'level1': [11],
+		'level2': [12],
+		'level3': [13, 14],
+		'level4': [15, 16, 17, 18]
+	},
+
 	constant: {
 		randomness: 0.01,
 		clickSensibility: 0.01,
 		splitThreshold: 200,
-		timeWaitForGettingWaterData: 1000 // ms
+		timeWaitForGettingWaterData: 2000 // ms
 	},
 
 }

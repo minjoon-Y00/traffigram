@@ -20,6 +20,10 @@ class TGData {
 	  this.locationType = '' //'japanese', 'french'
 	  this.localLocations = []
 
+	  this.presetRoads = {'raw':[], 'level1':[], 'level2':[], 'level3':[], 'level4':[]}
+	  this.autoSelectRoadLevel = true
+		this.roadLevel = 'raw'
+
 	  this.tt = new TravelTime()
 	  this.travelTime
 	  this.splitLevel = 0
@@ -36,6 +40,21 @@ class TGData {
 	// Calculate local (displayed) nodes and roads
 	//
 	calLocalNodesRoads() {
+		
+		if (this.autoSelectRoadLevel) {
+			for(var lv in this.tg.opt.networkByZoom) {
+				if (this.tg.opt.networkByZoom[lv].indexOf(this.tg.map.currentZoom) != -1) {
+					this.roadLevel = lv
+					break
+				}
+			}
+		}
+
+		console.log('lv = ' + this.roadLevel)
+
+		this.nodes = this.presetRoads[this.roadLevel].nodes
+	  this.roads = this.presetRoads[this.roadLevel].roads
+
 		this.localRoads = this.calLocalRoads(this.nodes, this.roads)
 		this.localNodes = this.calLocalNodes(this.nodes, this.localRoads)
 	}
@@ -58,17 +77,17 @@ class TGData {
 
 			if ((lat < this.tg.opt.box.top) && (lat > this.tg.opt.box.bottom) 
 				&& (lng < this.tg.opt.box.right)	&& (lng > this.tg.opt.box.left)) {
-				localRoads.push(roads[i])
+				localRoads.push(tg.util.clone(roads[i]))
 				continue
 			}
-
+			
 			// If the last node of a road is in the screen, add the road.
 			lat = nodes[roads[i].nodes[roads[i].nodes.length - 1]].lat
 			lng = nodes[roads[i].nodes[roads[i].nodes.length - 1]].lng
 
 			if ((lat < this.tg.opt.box.top) && (lat > this.tg.opt.box.bottom) 
 				&& (lng < this.tg.opt.box.right)	&& (lng > this.tg.opt.box.left)) {
-				localRoads.push(roads[i])
+				localRoads.push(tg.util.clone(roads[i]))
 			}
 		}
 		return localRoads

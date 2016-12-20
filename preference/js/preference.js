@@ -141,6 +141,63 @@ $("#location1RB").change(function(ev){
 	} 
 });
 
+//
+//
+// Roads Options
+//
+//
+$("#roadAutoRB").change(function(ev){
+	if (ev.target.checked) {
+		tg.data.autoSelectRoadLevel = true
+		tg.data.calLocalNodesRoads()
+		tg.map.updateLayers()
+	} 
+})
+
+$("#roadRawRB").change(function(ev){
+	if (ev.target.checked) {
+		tg.data.autoSelectRoadLevel = false
+		tg.data.roadLevel = 'raw'
+		tg.data.calLocalNodesRoads()
+		tg.map.updateLayers()
+	} 
+})
+
+$("#road1RB").change(function(ev){
+	if (ev.target.checked) {
+		tg.data.autoSelectRoadLevel = false
+		tg.data.roadLevel = 'level1'
+		tg.data.calLocalNodesRoads()
+		tg.map.updateLayers()
+	} 
+})
+
+$("#road2RB").change(function(ev){
+	if (ev.target.checked) {
+		tg.data.autoSelectRoadLevel = false
+		tg.data.roadLevel = 'level2'
+		tg.data.calLocalNodesRoads()
+		tg.map.updateLayers()
+	} 
+})
+
+$("#road3RB").change(function(ev){
+	if (ev.target.checked) {
+		tg.data.autoSelectRoadLevel = false
+		tg.data.roadLevel = 'level3'
+		tg.data.calLocalNodesRoads()
+		tg.map.updateLayers()
+	} 
+})
+
+$("#road4RB").change(function(ev){
+	if (ev.target.checked) {
+		tg.data.autoSelectRoadLevel = false
+		tg.data.roadLevel = 'level4'
+		tg.data.calLocalNodesRoads()
+		tg.map.updateLayers()
+	} 
+})
 
 /*var randomSlider = new Slider("#randomSlider");
 //$("#randomSlider").on("change", function(evt) {

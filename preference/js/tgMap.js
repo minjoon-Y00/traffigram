@@ -27,7 +27,6 @@ class TGMap {
 
 	  this.dispWater = []
 
-
 	  // Variables for others
 
 		this.currentZoom = this.map.getView().getZoom();
@@ -69,8 +68,8 @@ class TGMap {
 		this.calBoundaryBox()
   	this.finishGettingWaterData = false
 
-	  this.tg.data.initGrids()
-	  this.tg.data.setTravelTime()
+	  //this.tg.data.initGrids()
+	  //this.tg.data.setTravelTime()
 	  this.tg.data.calLocalNodesRoads()
 	  this.tg.data.calLocalLocations()
 	  this.updateLayers()
@@ -173,6 +172,9 @@ class TGMap {
 
 		for(var i = 0; i < localWater.length; i++) {
 			if (localWater[i].geotype == 'Polygon') {
+
+				//console.log(localWater[i].kind)
+
 				this.dispWater[i] = {'geotype':'Polygon', 
 					'coordinates':new Array(localWater[i].coordinates.length)}
 
@@ -189,34 +191,10 @@ class TGMap {
 					}
 				}
 			} 
-			else if (this.noiWater[i].geotype == 'MultiPolygon') {
-
-				this.dispWater[i] = {'geotype':'MultiPolygon', 
-					'coordinates':new Array(localWater[i].coordinates.length)}
-
-				for(var j = 0; j < localWater[i].coordinates.length; j++) {
-					this.dispWater[i].coordinates[j] 
-						= new Array(localWater[i].coordinates[j].length)
-
-					for(var k = 0; k < localWater[i].coordinates[j].length; k++) {
-						this.dispWater[i].coordinates[j][k] 
-							= new Array(localWater[i].coordinates[j][k].length)
-
-						for(var m = 0; m < localWater[i].coordinates[j][k].length; m++) {
-							this.dispWater[i].coordinates[j][k][m] = new Array(2)
-							this.dispWater[i].coordinates[j][k][m][0]
-								= localWater[i].coordinates[j][k].original.lng
-							this.dispWater[i].coordinates[j][k][m][1]
-								= localWater[i].coordinates[j][k].original.lat
-						}
-					}
-				}
-			}
 		}
 
-		console.log(this.tg.data.localWater)
+		//console.log(this.tg.data.localWater)
 		//console.log(this.dispWater)
-
 	}
 
 	//
@@ -264,6 +242,7 @@ class TGMap {
 		else this.removeLayer(this.map.centerPositionLayer) 
 
 		// temp
+	/*
 
 		var p1 = {lng:-122.312035, lat:47.658316}
 		var p2 = {lng:-122.312035 + 0.017, lat:47.648316}
@@ -306,10 +285,8 @@ class TGMap {
 
 		console.log('count = ' + countIntersection)
         
-
-
 		this.map.addLayer(this.olVectorFromFeatures(arr))
-
+		*/
 
 		console.log('updateLayers : ' + ((new Date()).getTime() - start) + 'ms')
 	}
@@ -463,23 +440,45 @@ class TGMap {
 		var arr = []
 		var feature
 
-		//for(var i = 0; i < this.dispWater.length; i++) {
-		var i = 5
-		{
-			if (this.dispWater[i].geotype == 'Polygon') {
-				feature = new ol.Feature({
-		      geometry: new ol.geom.Polygon(this.dispWater[i].coordinates)
-		  	})
-			} 
-			else if (this.dispWater[i].geotype == 'MultiPolygon') {
-				feature = new ol.Feature({
-		      geometry: new ol.geom.MultiPolygon(this.dispWater[i].coordinates)
-		  	})
-			}
 
-			feature.getGeometry().transform('EPSG:4326', 'EPSG:3857')
+		for(var i = 0; i < this.dispWater.length; i++) {
+
+			feature = new ol.Feature({
+	      geometry: new ol.geom.Polygon(this.dispWater[i].coordinates)
+	  	})
+
+	  	feature.getGeometry().transform('EPSG:4326', 'EPSG:3857')
 			feature.setStyle(this.polygonStyleFunc(this.tg.opt.color.water))		
 			arr.push(feature)
+
+
+
+
+
+			/*
+			if (this.dispWater[i].geotype == 'Polygon') {
+
+				console.log('Polygon')
+				
+
+			} 
+			
+			else if (this.dispWater[i].geotype == 'LineString') {
+
+				console.log('LineString')
+				feature = new ol.Feature({
+		      geometry: new ol.geom.LineString(this.dispWater[i].coordinates)
+		  	})
+
+		  	feature.getGeometry().transform('EPSG:4326', 'EPSG:3857')
+				feature.setStyle(this.polygonStyleFunc(this.tg.opt.color.water))		
+				arr.push(feature)
+			}
+			*/
+
+			//feature.getGeometry().transform('EPSG:4326', 'EPSG:3857')
+			//feature.setStyle(this.polygonStyleFunc(this.tg.opt.color.water))		
+			//arr.push(feature)
 		}
 
 		return new ol.layer.Vector({
@@ -646,16 +645,45 @@ class TGMap {
 	createWaterDataLayer() {
 		this.tg.data.localWater = []
 
+		var waterSource = new ol.source.TileVector({
+	    format: new ol.format.TopoJSON(),
+	    projection: 'EPSG:3857',
+	    tileGrid: new ol.tilegrid.XYZ({
+	      maxZoom: 19
+	    }),
+	    url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
+	    	+ 'api_key=vector-tiles-c1X4vZE'
+	    //url: 'http://{a-c}.tile.openstreetmap.us/' +
+	    //    'vectiles-water-areas/{z}/{x}/{y}.topojson'
+	  })
+
+	  var listenerKey = waterSource.on('change', function(e) {
+		  if (waterSource.getState() == 'ready') {
+
+		  	console.log('water ready!!!!!!!!!!')
+		    // hide loading icon
+		    // ...
+		    // and unregister the "change" listener 
+		    ol.Observable.unByKey(listenerKey);
+		    // or vectorSource.unByKey(listenerKey) if
+		    // you don't use the current master branch
+		    // of ol3
+		  }
+		})
+
 		var waterLayer = new ol.layer.Vector({
-		  source: new ol.source.TileVector({
+		  /*source: new ol.source.TileVector({
 		    format: new ol.format.TopoJSON(),
 		    projection: 'EPSG:3857',
 		    tileGrid: new ol.tilegrid.XYZ({
 		      maxZoom: 19
 		    }),
-		    url: 'http://{a-c}.tile.openstreetmap.us/' +
-		        'vectiles-water-areas/{z}/{x}/{y}.topojson'
-		  }),
+		    url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
+		    	+ 'api_key=vector-tiles-c1X4vZE'
+		    //url: 'http://{a-c}.tile.openstreetmap.us/' +
+		    //    'vectiles-water-areas/{z}/{x}/{y}.topojson'
+		  }),*/
+		  source: waterSource,
 		  style: this.addToLocalWater.bind(this)
 		})
 		return waterLayer
@@ -665,56 +693,37 @@ class TGMap {
 
 		if (this.timerWaterData) clearInterval(this.timerWaterData)
 		this.timerWaterData = setInterval(this.finishDraw.bind(this), 
-			this.tg.opt.timeWaitForGettingWaterData);
+			this.tg.opt.timeWaitForGettingWaterData)
 
-		var kind = feature.get('kind') // ocean, water, riverbank, reservoir, ...
-		var coords, obj
-		
-		if ((kind == 'reservoir')||(kind == 'water')) return null // skip reservoir, water
-
+		// ignores LineString, Point, ...
 		if (feature.getGeometry().getType() == 'Polygon') {
+
+			var kind = feature.get('kind')
+
+			// ignores dock, riverbank, swimming_pool
+			// so only water, ocean, and lake are considered.
+			if ((kind == 'dock')||(kind == 'riverbank')||(kind == 'swimming_pool')) 
+				return null
+
 			feature.getGeometry().transform('EPSG:3857', 'EPSG:4326')
+			var coords = feature.getGeometry().getCoordinates()
+			var lenCoords = coords.length
+				
+			var obj = {'geotype':'Polygon', 'kind':kind, 
+				'coordinates':new Array(lenCoords)}
 
-			coords = feature.getGeometry().getCoordinates()
-			obj = {'geotype':'Polygon', 'coordinates':new Array(coords.length), 'in':false}
+			var isIn = false
 
-			for(var i = 0; i < coords.length; i++) {
+			for(var i = 0; i < lenCoords; i++) {
 				obj.coordinates[i] = new Array(coords[i].length)
 
 				for(var j = 0; j < coords[i].length; j++) {
+					if (!isIn) isIn = this.isIn(coords[i][j][1], coords[i][j][0])
 					obj.coordinates[i][j] = new Node(coords[i][j][1], coords[i][j][0])
-					if (!obj.in) obj.in = this.isIn(coords[i][j][0], coords[i][j][1])
 				}
 			}
+			if (!isIn) this.tg.data.localWater.push(obj)			
 		}
-		else if (feature.getGeometry().getType() == 'MultiPolygon') {
-			feature.getGeometry().transform('EPSG:3857', 'EPSG:4326')
-
-			coords = feature.getGeometry().getCoordinates()
-			obj = {'geotype':'MultiPolygon', 'coordinates':new Array(coords.length), 'in':false}
-
-			for(var i = 0; i < coords.length; i++) {
-				obj.coordinates[i] = new Array(coords[i].length)
-
-				for(var j = 0; j < coords[i].length; j++) {
-					obj.coordinates[i][j] = new Array(coords[i][j].length)
-
-					for(var k = 0; k < coords[i][j].length; k++) {
-						obj.coordinates[i][j][k] = new Node(coords[i][j][k][1], coords[i][j][k][0])
-						if (!obj.in) obj.in = this.isIn(coords[i][j][k][0], coords[i][j][k][1])
-					}
-				}
-			}
-		}
-		
-		if (obj.in) {
-			this.tg.data.localWater.push(obj)
-			//console.log(coords)
-		}
-		else {
-			console.log('in = false')
-		}
-		
 		return null
 	}
 

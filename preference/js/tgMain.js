@@ -21,8 +21,15 @@ class TGPreference {
 	//
 	//
 	start() {
-	  this.data.nodes = nr.nodes
-	  this.data.roads = nr.roads	
+
+	  this.data.presetRoads.raw = nr_raw
+	  this.data.presetRoads.level1 = nr_level1
+	  this.data.presetRoads.level2 = nr_level2
+	  this.data.presetRoads.level3 = nr_level3
+	  this.data.presetRoads.level4 = nr_level4
+
+	  this.data.nodes = this.data.presetRoads[this.data.roadLevel].nodes
+	  this.data.roads = this.data.presetRoads[this.data.roadLevel].roads	
 	  this.data.travelTime = default_tt  
 	}
 
