@@ -639,13 +639,46 @@ class TGMap {
 		return this.olVectorFromFeatures(arr);
 	}
 
+	/*
+	var map = new ol.Map({
+        layers: [
+          new ol.layer.VectorTile({
+            source: new ol.source.VectorTile({
+              attributions: '© <a href="https://www.mapbox.com/map-feedback/">Mapbox</a> ' +
+                '© <a href="https://www.openstreetmap.org/copyright">' +
+                'OpenStreetMap contributors</a>',
+              format: new ol.format.MVT(),
+              tileGrid: ol.tilegrid.createXYZ({maxZoom: 22}),
+              tilePixelRatio: 16,
+              url: 'https://{a-d}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/' +
+                  '{z}/{x}/{y}.vector.pbf?access_token=' + key
+            }),
+            style: createMapboxStreetsV6Style()
+          })
+        ],
+
+	*/
+
 	//
 	//
 	//
 	createWaterDataLayer() {
 		this.tg.data.localWater = []
 
-		var waterSource = new ol.source.TileVector({
+		var waterSource = new ol.source.VectorTile({
+	    format: new ol.format.TopoJSON(),
+	    projection: 'EPSG:3857',
+	    tileGrid: new ol.tilegrid.createXYZ({maxZoom: 22}),
+	    url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
+	    	+ 'api_key=vector-tiles-c1X4vZE'
+	  })
+
+	  var waterLayer = new ol.layer.VectorTile({
+		  source: waterSource,
+		  style: this.addToLocalWater.bind(this)
+		})
+
+		/*var waterSource = new ol.source.TileVector({
 	    format: new ol.format.TopoJSON(),
 	    projection: 'EPSG:3857',
 	    tileGrid: new ol.tilegrid.XYZ({
@@ -653,43 +686,65 @@ class TGMap {
 	    }),
 	    url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
 	    	+ 'api_key=vector-tiles-c1X4vZE'
-	    //url: 'http://{a-c}.tile.openstreetmap.us/' +
-	    //    'vectiles-water-areas/{z}/{x}/{y}.topojson'
-	  })
+	  })*/
 
-	  var listenerKey = waterSource.on('change', function(e) {
+	  console.log('createwaterdatalayer')
+
+	  var key = waterSource.on('tileloadend', function(e) {
+	  	console.log('tileloadend : ' + waterSource.getState())
+		}.bind(this))
+
+	  var listenerKey = waterSource.on('propertychange', function(e) {
+	  	console.log('change : ' + waterSource.getState())
 		  if (waterSource.getState() == 'ready') {
 
-		  	console.log('water ready!!!!!!!!!!')
+		  	//console.log('water ready!!!!!!!!!!')
+		  	//console.log('len1 = ' + this.tg.data.localWater.length)
+
 		    // hide loading icon
 		    // ...
 		    // and unregister the "change" listener 
-		    ol.Observable.unByKey(listenerKey);
+		    
+		    //ol.Observable.unByKey(listenerKey);
+		    
 		    // or vectorSource.unByKey(listenerKey) if
 		    // you don't use the current master branch
 		    // of ol3
 		  }
+		}.bind(this))
+
+
+
+		waterLayer.on('change', function(e) {
+	  	console.log('change : ' + waterSource.getState())
 		})
 
-		var waterLayer = new ol.layer.Vector({
-		  /*source: new ol.source.TileVector({
-		    format: new ol.format.TopoJSON(),
-		    projection: 'EPSG:3857',
-		    tileGrid: new ol.tilegrid.XYZ({
-		      maxZoom: 19
-		    }),
-		    url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
-		    	+ 'api_key=vector-tiles-c1X4vZE'
-		    //url: 'http://{a-c}.tile.openstreetmap.us/' +
-		    //    'vectiles-water-areas/{z}/{x}/{y}.topojson'
-		  }),*/
-		  source: waterSource,
-		  style: this.addToLocalWater.bind(this)
+		waterLayer.on('postcompose', function(e) {
+	  	console.log('postcompose : ' + waterSource.getState())
 		})
+
+		waterLayer.on('precompose', function(e) {
+	  	console.log('precompose : ' + waterSource.getState())
+		})
+
+		waterLayer.on('propertychange', function(e) {
+	  	console.log('propertychange : ' + waterSource.getState())
+		})
+
+		waterLayer.on('render', function(e) {
+	  	console.log('render : ' + waterSource.getState())
+		})
+
+		
+
+
+
 		return waterLayer
 	}
 
 	addToLocalWater(feature, resolution) {
+
+		console.log('.')
 
 		if (this.timerWaterData) clearInterval(this.timerWaterData)
 		this.timerWaterData = setInterval(this.finishDraw.bind(this), 
