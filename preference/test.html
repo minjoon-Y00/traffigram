@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Traffigram - Test</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.20.0/css/ol.css" type="text/css">
+    <link rel="stylesheet" href="./css/traffigram.css">
+  </head>
+
+  <body>
+   <div id="ol_map" class="ol_map" style="width: 540px; height:960px"></div>
+   <button onclick="func()">change center</button>
+
+   
+
+<script src="https://openlayers.org/en/v3.20.0/build/ol.js" type="text/javascript"></script>
+<script src="./vendor/jquery-2.2.3.min.js"></script>
+
+<script>
+
+var map = new ol.Map({
+  target: "ol_map",
+  layers: [],
+  view: new ol.View({
+    center: ol.proj.fromLonLat([-122.312035,47.658316]),
+    maxZoom: 18,
+    minZoom: 10,
+    zoom: 14
+  })
+})
+
+//map.getView().on('change:resolution', changeResolution);
+map.on('moveend', onMoveEnd);
+
+var dLat = 1.0
+var curZoom = map.getView().getZoom()
+
+
+
+var waterSource = new ol.source.VectorTile({
+  format: new ol.format.TopoJSON(),
+  projection: 'EPSG:3857',
+  tileGrid: new ol.tilegrid.createXYZ({maxZoom: 22}),
+  url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
+    + 'api_key=vector-tiles-c1X4vZE'
+})
+
+var waterDataLayer = new ol.layer.VectorTile({
+  source: waterSource,
+  style: addToLocalWater
+})
+
+map.addLayer(waterDataLayer)
+
+function addToLocalWater() {
+  console.log('.')
+}
+
+function onMoveEnd(e) {
+  if (curZoom != map.getView().getZoom()) {
+    curZoom = map.getView().getZoom()
+    console.log('zoomEnd')
+  }
+  else {
+    console.log('onMoveEnd')
+  }
+}
+
+function changeResolution(e) {
+  console.log('change resolution')
+}
+
+
+function func() {
+  console.log('clicked')
+  map.getView().setCenter(ol.proj.fromLonLat([0 + dLat, 0]))
+  dLat += 1.0
+}
+      
+</script>
+    
+   
+
+
+
+  </body>
+</html>

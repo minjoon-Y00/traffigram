@@ -6,8 +6,13 @@ class TGData {
 		this.nodes = []
 		this.roads = []
 		this.localNodes = []
-		this.localRoads = []
+
 		this.localWater = []
+		this.localRoads = {'motorway':[], 'trunk':[], 'motorway_link':[], 'trunk_link':[], 
+			'primary':[], 'secondary':[], 'tertiary':[], 'primary_link':[], 
+			'secondary_link':[], 'tertiary_link':[]}
+
+	  
 	  this.centerPosition = {}
 	  this.controlPoints = []
 	  this.grids = []
@@ -50,7 +55,7 @@ class TGData {
 			}
 		}
 
-		console.log('lv = ' + this.roadLevel)
+		//console.log('lv = ' + this.roadLevel)
 
 		this.nodes = this.presetRoads[this.roadLevel].nodes
 	  this.roads = this.presetRoads[this.roadLevel].roads

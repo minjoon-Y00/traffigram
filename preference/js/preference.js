@@ -25,21 +25,21 @@ $("#citySFRB").change(function(ev){
 // Center Options
 //
 //
-$("#centerUWRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(47.658316, -122.312035);
-});
+$("#centerUWSeattleRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(47.658316, -122.312035)
+})
 
-/*$("#centerGasworksRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(47.648172, -122.336375);
-});
+$("#centerDowntownSeattleRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(47.6115744,-122.343777)
+})
 
-$("#centerSeattleUnivRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(47.610409, -122.316805);
-});
+$("#centerNYUNYRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(40.72946, -73.995708)
+})
 
-$("#centerBellevueRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(47.620179, -122.185630);
-});*/
+$("#centerLombardSFRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenter(37.802139,-122.4209287)
+})
 
 //
 //

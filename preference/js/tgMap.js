@@ -12,52 +12,46 @@ class TGMap {
 	    	zoom: this.tg.opt.zoom //10
 	    })
 	  })
+		this.mapUtil = new TGMapUtil(tg, this.map)
+	  this.tgWater = new TGMapWater(tg, this.map, this.mapUtil)
+	  this.tgRoads = new TGMapRoads(tg, this.map, this.mapUtil)
+
+	  this.tgWater.start()
+	  //this.tgRoads.start()
 
 
-	 	// Variables for Display
 
-	  this.dispWaterDataLayer = true;
-	  this.dispWaterLayer = true;
-	  this.dispRoadLayer = true;
-	  this.dispNodeLayer = false;
-	  this.dispCenterPositionLayer = false;
+	  this.dispCenterPositionLayer = true;
 	  this.dispControlPointLayer = false;
 	  this.dispGridLayer = false;
 	  this.dispLocationLayer = false;
 
-	  this.dispWater = []
+
 
 	  // Variables for others
 
-		this.currentZoom = this.map.getView().getZoom();
-	  this.clickRange = {lat:0, lng:0};
-	  this.finishGettingWaterData = false
-  	//this.needToCalTGWater = true
-  	this.timerWaterData = null
+		this.currentZoom = this.map.getView().getZoom()
+	  this.clickRange = {lat:0, lng:0}
 
 	  // Event Handlers
 
-		this.map.getView().on('propertychange', this.propertyChange.bind(this));
 		this.map.on('moveend', this.onMoveEnd.bind(this));
 		this.map.on('click', this.onClicked.bind(this));
 	}
 
-	//
-	// When zooming in / out
-	//
-	propertyChange(e) {
-	  switch (e.key) {
-	    case 'resolution':
-	      this.currentZoom = this.map.getView().getZoom()
-	      this.recalculateAndDraw()
-	    break;
-		} 
-	}
+
 
 	//
-	// When finising the mouse move
+	// When finising the mouse move or zoom in/out
 	//
 	onMoveEnd(e) {
+		if (this.currentZoom != this.map.getView().getZoom()) {
+	    this.currentZoom = this.map.getView().getZoom()
+	    console.log('zoomEnd')
+	  }
+	  else {
+	    console.log('centerEnd')
+	  }
 		this.recalculateAndDraw()
 	}
 
@@ -65,16 +59,19 @@ class TGMap {
 	// Recalculate information changed according to the interaction and draw it
 	//
 	recalculateAndDraw() {
+		console.log('recalculateAndDraw')
+		this.tgWater.resetTimes()
+		this.tgRoads.resetTimes()
 		this.calBoundaryBox()
-  	this.finishGettingWaterData = false
 
 	  //this.tg.data.initGrids()
 	  //this.tg.data.setTravelTime()
-	  this.tg.data.calLocalNodesRoads()
-	  this.tg.data.calLocalLocations()
+	  //this.tg.data.calLocalNodesRoads()
+	  //this.tg.data.calLocalLocations()
 	  this.updateLayers()
 		this.dispMapInfo()
 	}
+
 
 	//
 	// When mouse button is clicked
@@ -154,80 +151,23 @@ class TGMap {
 	  var height = this.tg.opt.box.top - this.tg.opt.box.bottom
   	var width = this.tg.opt.box.right - this.tg.opt.box.left
 
-  	this.clickRange = {
+  	/*this.clickRange = {
   		lat: height * this.tg.opt.constant.clickSensibility, 
   		lng: width * this.tg.opt.constant.clickSensibility
-  	}
+  	}*/
 	}
 
-	//
-	// Calculate all displayed object
-	//
-	calDispObjects() {
-
-		// calculate dispWater
-
-		var localWater = this.tg.data.localWater
-		this.dispWater = new Array(localWater.length)
-
-		for(var i = 0; i < localWater.length; i++) {
-			if (localWater[i].geotype == 'Polygon') {
-
-				//console.log(localWater[i].kind)
-
-				this.dispWater[i] = {'geotype':'Polygon', 
-					'coordinates':new Array(localWater[i].coordinates.length)}
-
-				for(var j = 0; j < localWater[i].coordinates.length; j++) {
-					this.dispWater[i].coordinates[j] 
-						= new Array(localWater[i].coordinates[j].length)
-
-					for(var k = 0; k < localWater[i].coordinates[j].length; k++) {
-						this.dispWater[i].coordinates[j][k] = new Array(2)
-						this.dispWater[i].coordinates[j][k][0] 
-							= localWater[i].coordinates[j][k].original.lng
-						this.dispWater[i].coordinates[j][k][1]
-							= localWater[i].coordinates[j][k].original.lat
-					}
-				}
-			} 
-		}
-
-		//console.log(this.tg.data.localWater)
-		//console.log(this.dispWater)
-	}
 
 	//
 	// Redraw all layers of displayed elements
-	//
+	//		
 	updateLayers() {
-		if (this.dispWaterLayer) { 
-			this.drawWaterDataLayer()
-		}
-		else {
-			this.removeLayer(this.map.waterDataLayer)
-			this.removeLayer(this.map.waterLayer)
-			this.updateLayersNext()
-		}
-	}
-		
-	updateLayersNext() {
-
-		// calculate all displayed objects (elements)
-		this.calDispObjects()
 
 		// display objects
 
 		var start = (new Date()).getTime()
 
-		if (this.dispWaterLayer) this.drawWaterLayer()
-		else this.removeLayer(this.map.waterLayer)
 
-		if (this.dispRoadLayer) this.drawRoadLayer()
-		else this.removeLayer(this.map.roadLayer)
-
-		if (this.dispNodeLayer) this.drawNodeLayer()
-		else this.removeLayer(this.map.nodeLayer)
 
 		if (this.dispGridLayer) this.drawGridLayer()
 		else this.removeLayer(this.map.gridLayer)
@@ -238,10 +178,12 @@ class TGMap {
 		if (this.dispLocationLayer) this.drawLocationLayer()
 		else this.removeLayer(this.map.locationLayer)
 
-		if (this.dispCenterPositionLayer) this.drawCenterPositionLayer()
+		if (this.dispCenterPositionLayer) this.addCenterPositionLayer()
 		else this.removeLayer(this.map.centerPositionLayer) 
 
-		// temp
+
+		
+
 	/*
 
 		var p1 = {lng:-122.312035, lat:47.658316}
@@ -250,14 +192,14 @@ class TGMap {
 		var arr = []
 
 		this.olFeaturesFromLineStrings(arr, p1.lng, p1.lat, p2.lng, p2.lat,
-			this.lineStyleFunc(this.tg.opt.color.controlPointLine, 
+			this.mapUtil.lineStyleFunc(this.tg.opt.color.controlPointLine, 
 				this.tg.opt.width.controlPointLine))
 
 		this.olFeaturesFromPoints(arr, p1.lng, p1.lat, 
-			this.nodeStyleFunc(this.tg.opt.color.node, this.tg.opt.radius.node))
+			this.mapUtil.nodeStyleFunc(this.tg.opt.color.node, this.tg.opt.radius.node))
 
 		this.olFeaturesFromPoints(arr, p2.lng, p2.lat, 
-			this.nodeStyleFunc(this.tg.opt.color.node, this.tg.opt.radius.node))
+			this.mapUtil.nodeStyleFunc(this.tg.opt.color.node, this.tg.opt.radius.node))
 
 		var idx = 5
 		var coord = this.dispWater[idx].coordinates
@@ -270,7 +212,7 @@ class TGMap {
 				this.olFeaturesFromLineStrings(arr, 
 					coord[i][j][0], coord[i][j][1], 
 					coord[i][j + 1][0], coord[i][j + 1][1],
-					this.lineStyleFunc(this.tg.opt.color.controlPointLine, 
+					this.mapUtil.lineStyleFunc(this.tg.opt.color.controlPointLine, 
 					this.tg.opt.width.controlPointLine))
 
 				if (this.tg.util.intersects(
@@ -292,32 +234,25 @@ class TGMap {
 	}
 
 	//
+	/*setVisiblityByZoom() {
+		console.log('--- set visibility')
+		//var roadTypes = ['primary', 'secondary', 'tertiary']
+		for(var t = 0; t < this.roadTypes.length; t++) {
+			if(this.tg.opt.dispZoom[this.roadTypes[t]].minZoom > this.currentZoom) {
+				for(var i = 0; i < this.dispRoads[this.roadTypes[t]].length; i++) {
+					this.roadObject[this.roadTypes[t]][i].visible = false
+				}
+			}
+			else {
+				this.roadObject[this.roadTypes[t]][i].visible = true
+			}
+		}
+	}*/
+
 	//
 	//
+	//
 
-	drawWaterDataLayer() {
-		this.removeLayer(this.map.waterDataLayer)
-		this.map.waterDataLayer = this.createWaterDataLayer()
-	  this.map.addLayer(this.map.waterDataLayer)
-	}
-
-	drawWaterLayer() {
-		this.removeLayer(this.map.waterLayer)
-		this.map.waterLayer = this.createWaterLayer()
-	  this.map.addLayer(this.map.waterLayer)
-	}
-
-	drawRoadLayer() {
-		this.removeLayer(this.map.roadLayer)
-		this.map.roadLayer = this.createRoadLayer()
-	  this.map.addLayer(this.map.roadLayer)
-	}
-
-	drawNodeLayer() {
-		this.removeLayer(this.map.nodeLayer)
-		this.map.nodeLayer = this.createNodeLayer()
-	  this.map.addLayer(this.map.nodeLayer)
-	}
 
 	drawCenterPositionLayer() {
 		this.removeLayer(this.map.centerPositionLayer)
@@ -346,54 +281,9 @@ class TGMap {
 	//
 	//
 	//
-	lineStyleFunc(color, width) {
-		return new ol.style.Style({
-	  	stroke: new ol.style.Stroke({
-	  		color: color,
-	  		width: width
-	  	})
-	 	})
-	}
 
-	nodeStyleFunc(color, radius) {
-		return new ol.style.Style({
-	    image: new ol.style.Circle({
-	    	radius: radius,
-	    	fill: new ol.style.Fill({
-	      	color: color
-	    	})
-	    })
-		})
-	}
 
-	polygonStyleFunc(color) {
-		return new ol.style.Style({
-	  	fill: new ol.style.Fill({
-	    	color: color
-	  	})
-	 	})
-	}
 
-	imageStyleFunc(src) {
-		return new ol.style.Style({
-			image: new ol.style.Icon({
-	  		src: src
-			})
-		});
-	};
-
-	textStyleFunc(text, color, font) {
-	  return new ol.style.Style({
-	  	text: new ol.style.Text({
-	    	textAlign: 'Center',
-	    	font: font,
-	    	text: text,
-	    	fill: new ol.style.Fill({color: color}),
-	    	offsetX: 0,
-	    	offsetY: 0
-	    })
-	  });
-	}
 
 	//
 	//
@@ -410,7 +300,7 @@ class TGMap {
 	  	source: new ol.source.Vector({
 	      	features: arr
 	  	})
-		});
+		})
 	}
 
 	olFeaturesFromPoints(arr, lng, lat, styleFunc) {
@@ -432,146 +322,27 @@ class TGMap {
   	arr.push(feature)
 	}
 
+
+
+
 	//
-	//
-	//
-
-	createWaterLayer() {
-		var arr = []
-		var feature
-
-
-		for(var i = 0; i < this.dispWater.length; i++) {
-
-			feature = new ol.Feature({
-	      geometry: new ol.geom.Polygon(this.dispWater[i].coordinates)
-	  	})
-
-	  	feature.getGeometry().transform('EPSG:4326', 'EPSG:3857')
-			feature.setStyle(this.polygonStyleFunc(this.tg.opt.color.water))		
-			arr.push(feature)
+	// 
+	//	
 
 
 
-
-
-			/*
-			if (this.dispWater[i].geotype == 'Polygon') {
-
-				console.log('Polygon')
-				
-
-			} 
-			
-			else if (this.dispWater[i].geotype == 'LineString') {
-
-				console.log('LineString')
-				feature = new ol.Feature({
-		      geometry: new ol.geom.LineString(this.dispWater[i].coordinates)
-		  	})
-
-		  	feature.getGeometry().transform('EPSG:4326', 'EPSG:3857')
-				feature.setStyle(this.polygonStyleFunc(this.tg.opt.color.water))		
-				arr.push(feature)
-			}
-			*/
-
-			//feature.getGeometry().transform('EPSG:4326', 'EPSG:3857')
-			//feature.setStyle(this.polygonStyleFunc(this.tg.opt.color.water))		
-			//arr.push(feature)
-		}
-
-		return new ol.layer.Vector({
-			source: new ol.source.Vector({
-		    features: arr
-			})
-		})
-	}
-
-
-	/*createWaterLayer2() {
-		return new ol.layer.Vector({
-		  source: new ol.source.TileVector({
-		    format: new ol.format.TopoJSON(),
-		    projection: 'EPSG:3857',
-		    tileGrid: new ol.tilegrid.XYZ({
-		      maxZoom: this.tg.opt.maxZoom
-		    }),
-		    url: 'http://{a-c}.tile.openstreetmap.us/' +
-		        'vectiles-water-areas/{z}/{x}/{y}.topojson'
-		  }),
-		  style: function(feature, resolution) {
-		  	return [new ol.style.Style({
-			    fill: new ol.style.Fill({
-			      color: this.tg.opt.color.water
-			    })
-			  })];
-		  }.bind(this)
-		});
-	}*/
-
-	createRoadLayer() {
-		var nodes = this.tg.data.localNodes
-		var roads = this.tg.data.localRoads
+	addCenterPositionLayer() {
 		var arr = []
 
-		// motorway_link, trunk_link, primary_link, secondary_link, tertiary_link
-		this.createRoadLayerByType(arr, nodes, roads, this.tg.opt.color.link, this.tg.opt.width.link, [21, 22, 23, 24, 25])
-			
-		// primary, secondary, tertiary
-		this.createRoadLayerByType(arr, nodes, roads, this.tg.opt.color.arterial, this.tg.opt.width.arterial, [11, 12, 13])
-			
-		// motorway, trunk
-		this.createRoadLayerByType(arr, nodes, roads, this.tg.opt.color.highway, this.tg.opt.width.highway, [1, 2])
+		this.mapUtil.removeLayer(this.map.centerPositionLayer)
 
-		return this.olVectorFromFeatures(arr)
-	}
+		this.mapUtil.addFeatureInFeatures(arr,
+			new ol.geom.Point([this.tg.data.centerPosition.lng, this.tg.data.centerPosition.lat]), 
+			this.mapUtil.imageStyleFunc(this.tg.opt.image.center))
 
-	createRoadLayerByType(arr, nodes, roads, clr, width, typeArr) {
-		var lenRoads = roads.length
-
-		for(var i = 0; i < lenRoads; i++) {
-			if (typeArr.indexOf(roads[i].type) === -1) continue
-
-			for(var j = 0; j < roads[i].nodes.length - 1; j++) {
-				this.olFeaturesFromLineStrings(arr, 
-					nodes[roads[i].nodes[j]].original.lng, 
-					nodes[roads[i].nodes[j]].original.lat, 
-					nodes[roads[i].nodes[j + 1]].original.lng, 
-					nodes[roads[i].nodes[j + 1]].original.lat, 
-					this.lineStyleFunc(clr, width))
-			}
-		}
-	}
-
-	createNodeLayer() {
-		var nodes = this.tg.data.localNodes
-		var roads = this.tg.data.localRoads
-		var lenRoads = roads.length
-		var clr = this.tg.opt.color.node
-		var radius = this.tg.opt.radius.node
-		var arr = []
-
-		for(var i = 0; i < lenRoads; i++) {
-			this.olFeaturesFromPoints(arr, 
-				nodes[roads[i].nodes[0]].original.lng, 
-				nodes[roads[i].nodes[0]].original.lat, 
-				this.nodeStyleFunc(clr, radius))
-
-			this.olFeaturesFromPoints(arr, 
-				nodes[roads[i].nodes[roads[i].nodes.length - 1]].original.lng, 
-				nodes[roads[i].nodes[roads[i].nodes.length - 1]].original.lat, 
-				this.nodeStyleFunc(clr, radius))	
-		}
-		return this.olVectorFromFeatures(arr)
-	}
-
-	createCenterPositionLayer() {
-		var arr = []
-		this.olFeaturesFromPoints(arr, 
-			this.tg.data.centerPosition.lng, this.tg.data.centerPosition.lat, 
-			this.imageStyleFunc(this.tg.opt.image.center))
-		return this.olVectorFromFeatures(arr)
+		this.map.centerPositionLayer = this.mapUtil.olVectorFromFeatures(arr)
+		this.map.centerPositionLayer.setZIndex(this.tg.opt.z.centerPosition)
+	  this.map.addLayer(this.map.centerPositionLayer)
 	}
 
 	createControlPointLayer() {
@@ -582,18 +353,18 @@ class TGMap {
 		for(var i = 0; i < nodes.length; i++) {
 			this.olFeaturesFromPoints(arr, nodes[i].target.lng, nodes[i].target.lat, 
 			//this.olFeaturesFromPoints(arr, nodes[i].travelLng, nodes[i].travelLat, 
-				this.nodeStyleFunc(this.tg.opt.color.controlPoint, this.tg.opt.radius.controlPoint))
+				this.mapUtil.nodeStyleFunc(this.tg.opt.color.controlPoint, this.tg.opt.radius.controlPoint))
 
 			if ((nodes[i].target.lng != nodes[i].original.lng) || (nodes[i].target.lat != nodes[i].original.lat)) {
 				this.olFeaturesFromLineStrings(arr, 
 					nodes[i].original.lng, nodes[i].original.lat, nodes[i].target.lng, nodes[i].target.lat,
-					this.lineStyleFunc(this.tg.opt.color.controlPointLine, this.tg.opt.width.controlPointLine))
+					this.mapUtil.lineStyleFunc(this.tg.opt.color.controlPointLine, this.tg.opt.width.controlPointLine))
 			}
 
 			str = nodes[i].travelTime
 
 			this.olFeaturesFromPoints(arr, nodes[i].target.lng, nodes[i].target.lat, 
-				this.textStyleFunc(str, this.tg.opt.color.text, this.tg.opt.font.text))
+				this.mapUtil.textStyleFunc(str, this.tg.opt.color.text, this.tg.opt.font.text))
 		}
 		return this.olVectorFromFeatures(arr);
 	}
@@ -602,7 +373,7 @@ class TGMap {
 	drawLineOfGrid(arr, pt1, pt2) {
 		this.olFeaturesFromLineStrings(arr, 
 			pt1.target.lng, pt1.target.lat, pt2.target.lng, pt2.target.lat, 
-			this.lineStyleFunc(this.tg.opt.color.grid, this.tg.opt.width.grid))
+			this.mapUtil.lineStyleFunc(this.tg.opt.color.grid, this.tg.opt.width.grid))
 	}
 
 	createGridLayer() {
@@ -625,181 +396,18 @@ class TGMap {
 		for(var i = 0; i < nodes.length; i++) {
 			this.olFeaturesFromPoints(arr, 
 				nodes[i].target.lng, nodes[i].target.lat, 
-				this.nodeStyleFunc(this.tg.opt.color.location, this.tg.opt.radius.location));
-				//this.imageStyleFunc(this.tg.opt.image.location));
+				this.mapUtil.nodeStyleFunc(this.tg.opt.color.location, this.tg.opt.radius.location));
+				//this.mapUtil.imageStyleFunc(this.tg.opt.image.location));
 
 			if ((nodes[i].target.lng != nodes[i].original.lng) 
 				|| (nodes[i].target.lat != nodes[i].original.lat)) {
 				this.olFeaturesFromLineStrings(arr, 
 					nodes[i].original.lng, nodes[i].original.lat,
 					nodes[i].target.lng, nodes[i].target.lat,
-					this.lineStyleFunc(this.tg.opt.color.locationLine, this.tg.opt.width.locationLine));
+					this.mapUtil.lineStyleFunc(this.tg.opt.color.locationLine, this.tg.opt.width.locationLine));
 			}
 		}
 		return this.olVectorFromFeatures(arr);
 	}
 
-	/*
-	var map = new ol.Map({
-        layers: [
-          new ol.layer.VectorTile({
-            source: new ol.source.VectorTile({
-              attributions: '© <a href="https://www.mapbox.com/map-feedback/">Mapbox</a> ' +
-                '© <a href="https://www.openstreetmap.org/copyright">' +
-                'OpenStreetMap contributors</a>',
-              format: new ol.format.MVT(),
-              tileGrid: ol.tilegrid.createXYZ({maxZoom: 22}),
-              tilePixelRatio: 16,
-              url: 'https://{a-d}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/' +
-                  '{z}/{x}/{y}.vector.pbf?access_token=' + key
-            }),
-            style: createMapboxStreetsV6Style()
-          })
-        ],
-
-	*/
-
-	//
-	//
-	//
-	createWaterDataLayer() {
-		this.tg.data.localWater = []
-
-		var waterSource = new ol.source.VectorTile({
-	    format: new ol.format.TopoJSON(),
-	    projection: 'EPSG:3857',
-	    tileGrid: new ol.tilegrid.createXYZ({maxZoom: 22}),
-	    url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
-	    	+ 'api_key=vector-tiles-c1X4vZE'
-	  })
-
-	  var waterLayer = new ol.layer.VectorTile({
-		  source: waterSource,
-		  style: this.addToLocalWater.bind(this)
-		})
-
-		/*var waterSource = new ol.source.TileVector({
-	    format: new ol.format.TopoJSON(),
-	    projection: 'EPSG:3857',
-	    tileGrid: new ol.tilegrid.XYZ({
-	      maxZoom: 19
-	    }),
-	    url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
-	    	+ 'api_key=vector-tiles-c1X4vZE'
-	  })*/
-
-	  console.log('createwaterdatalayer')
-
-	  var key = waterSource.on('tileloadend', function(e) {
-	  	console.log('tileloadend : ' + waterSource.getState())
-		}.bind(this))
-
-	  var listenerKey = waterSource.on('propertychange', function(e) {
-	  	console.log('change : ' + waterSource.getState())
-		  if (waterSource.getState() == 'ready') {
-
-		  	//console.log('water ready!!!!!!!!!!')
-		  	//console.log('len1 = ' + this.tg.data.localWater.length)
-
-		    // hide loading icon
-		    // ...
-		    // and unregister the "change" listener 
-		    
-		    //ol.Observable.unByKey(listenerKey);
-		    
-		    // or vectorSource.unByKey(listenerKey) if
-		    // you don't use the current master branch
-		    // of ol3
-		  }
-		}.bind(this))
-
-
-
-		waterLayer.on('change', function(e) {
-	  	console.log('change : ' + waterSource.getState())
-		})
-
-		waterLayer.on('postcompose', function(e) {
-	  	console.log('postcompose : ' + waterSource.getState())
-		})
-
-		waterLayer.on('precompose', function(e) {
-	  	console.log('precompose : ' + waterSource.getState())
-		})
-
-		waterLayer.on('propertychange', function(e) {
-	  	console.log('propertychange : ' + waterSource.getState())
-		})
-
-		waterLayer.on('render', function(e) {
-	  	console.log('render : ' + waterSource.getState())
-		})
-
-		
-
-
-
-		return waterLayer
-	}
-
-	addToLocalWater(feature, resolution) {
-
-		console.log('.')
-
-		if (this.timerWaterData) clearInterval(this.timerWaterData)
-		this.timerWaterData = setInterval(this.finishDraw.bind(this), 
-			this.tg.opt.timeWaitForGettingWaterData)
-
-		// ignores LineString, Point, ...
-		if (feature.getGeometry().getType() == 'Polygon') {
-
-			var kind = feature.get('kind')
-
-			// ignores dock, riverbank, swimming_pool
-			// so only water, ocean, and lake are considered.
-			if ((kind == 'dock')||(kind == 'riverbank')||(kind == 'swimming_pool')) 
-				return null
-
-			feature.getGeometry().transform('EPSG:3857', 'EPSG:4326')
-			var coords = feature.getGeometry().getCoordinates()
-			var lenCoords = coords.length
-				
-			var obj = {'geotype':'Polygon', 'kind':kind, 
-				'coordinates':new Array(lenCoords)}
-
-			var isIn = false
-
-			for(var i = 0; i < lenCoords; i++) {
-				obj.coordinates[i] = new Array(coords[i].length)
-
-				for(var j = 0; j < coords[i].length; j++) {
-					if (!isIn) isIn = this.isIn(coords[i][j][1], coords[i][j][0])
-					obj.coordinates[i][j] = new Node(coords[i][j][1], coords[i][j][0])
-				}
-			}
-			if (!isIn) this.tg.data.localWater.push(obj)			
-		}
-		return null
-	}
-
-	isIn(lng, lat) {
-	  return (lat > this.tg.opt.box.bottom)&&(lat < this.tg.opt.box.top)
-	  	&&(lng > this.tg.opt.box.left)&&(lng < this.tg.opt.box.right)
-	}
-
-	finishDraw() {
-		console.log('finish getting water data.')
-
-		this.finishGettingWaterData = true
-		clearInterval(this.timerWaterData)
-
-		if (this.tg.data.localWater.length > 0) {
-
-			//this.calTGWater(this.noiWater);
-			console.log('go update layer next')
-			this.updateLayersNext()
-		} 
-		
-		//console.log('## total process time = ' + (new Date().getTime() - this.startTime1));
-	}
 }

@@ -22,6 +22,12 @@ class TGAnalysis {
 	//
 	start() {
 
+		function checkTime(t) {
+			var curTime = (new Date()).getTime()
+			console.log('# ' + (curTime - t) + ' ms.')
+			return curTime
+		}
+
 		// I. parsing raw data
 		// <script src="data/seattle_org_raw.js"></script>
 		//
@@ -38,68 +44,120 @@ class TGAnalysis {
 		//
 
 		// for level 1
-		//nr = this.net.filterRoads(nr.nodes, nr.roads, [1, 2, 21, 22]) // (n 15986, r 2165)
-		//nr = this.net.separateRoads(nr.nodes, nr.roads) // (n 15986, r 2709)
-		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 15986, r 1520)
-		//nr = this.net.removeDeadLinks(nr.nodes, nr.roads) // (n 11294, r 1047)
-		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 11294, r 743)
-		//nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0001) // (n 2319, r 743)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[1,2], 0.005) // (n 1184, r 480)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[21, 22], 0.005) // (n 457, r 280)
-		//nr = this.net.removeMultipleRoads(nr.nodes, nr.roads) // (n 225, r 231)
+		/*
+		var t = (new Date()).getTime()
+		nr = this.net.filterRoads(nr.nodes, nr.roads, [1, 2, 21, 22]) // (n 15986, r 2165) [2546 ms]
+		t = checkTime(t)
+		nr = this.net.separateRoads(nr.nodes, nr.roads) // (n 15986, r 2709) [11 ms]
+		t = checkTime(t)
+		nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 15986, r 1520) [276 ms]
+		t = checkTime(t)
+		nr = this.net.removeDeadLinks(nr.nodes, nr.roads) // (n 11294, r 1047) [4428 ms]
+		t = checkTime(t)
+		nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 11294, r 743) [60 ms]
+		t = checkTime(t)
+		nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0001) // (n 2319, r 743) [85 ms]
+		t = checkTime(t)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[1,2], 0.005) // (n 1184, r 480)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[21, 22], 0.005) // (n 457, r 280) [24917 ms]
+		t = checkTime(t)
+		nr = this.net.removeMultipleRoads(nr.nodes, nr.roads) // (n 225, r 231) [31 ms]
+		t = checkTime(t)
+		*/
 
 		// for level 2
-		//nr = this.net.filterRoads(nr.nodes, nr.roads, [1, 2, 11, 21, 22, 23]) // (n 22866 , r 3245)
-		//nr = this.net.separateRoads(nr.nodes, nr.roads) // (n 22866, r 3995)
-		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 22866, r 2295)
-		//nr = this.net.removeDeadLinks(nr.nodes, nr.roads) // (n 19529, r 1918)
-		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 19529, r 1653)
-		//nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0001) // (n 3700, r 1653)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[1,2], 0.005) // (n 2538 , r 1321)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[21, 22], 0.005) // (n 1397 , r 832)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[23], 0.005) // (n 1249 , r 644)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[11], 0.002) // (n 851 , r 722)
-		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 851, r 245)
-		//nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0005) // (n 486, r 245)
-		//nr = this.net.divideRoads(nr.nodes, nr.roads) // (n 486, r 564)
-		//nr = this.net.removeMultipleRoads(nr.nodes, nr.roads) // (n 474, r 525)
+		/*
+		var t = (new Date()).getTime()
+		nr = this.net.filterRoads(nr.nodes, nr.roads, [1, 2, 11, 21, 22, 23]) // (n 22866 , r 3245) [6592 ms]
+		t = checkTime(t)
+		nr = this.net.separateRoads(nr.nodes, nr.roads) // (n 22866, r 3995) [19 ms]
+		t = checkTime(t)
+		nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 22866, r 2295) [557 ms]
+		t = checkTime(t)
+		nr = this.net.removeDeadLinks(nr.nodes, nr.roads) // (n 19529, r 1918) [19555 ms]
+		t = checkTime(t)
+		nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 19529, r 1653) [70 ms]
+		t = checkTime(t)
+		nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0001) // (n 3700, r 1653) [232 ms]
+		t = checkTime(t)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[1,2], 0.005) // (n 2538 , r 1321)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[21, 22], 0.005) // (n 1397 , r 832)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[23], 0.005) // (n 1249 , r 644)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[11], 0.002) // (n 851 , r 722) [35052 ms]
+		t = checkTime(t)
+		nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 851, r 245) [24 ms]
+		t = checkTime(t)
+		nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0005) // (n 486, r 245) [3 ms]
+		t = checkTime(t)
+		nr = this.net.divideRoads(nr.nodes, nr.roads) // (n 486, r 564) [1 ms]
+		t = checkTime(t)
+		nr = this.net.removeMultipleRoads(nr.nodes, nr.roads) // (n 474, r 525) [74 ms]
+		t = checkTime(t)
+		*/
 
 		// for level 3
-		//nr = this.net.filterRoads(nr.nodes, nr.roads, [1, 2, 11, 12, 21, 22, 23]) // (n 39614 , r 5483)
-		//nr = this.net.separateRoads(nr.nodes, nr.roads) // (n 39614, r 6530)
-		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 39614, r 3705)
-		//nr = this.net.removeDeadLinks(nr.nodes, nr.roads) // (n 38602, r 3564)
-		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 38602, r 3455)
-		//nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0001) // (n 6715, r 3455)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[1,2], 0.005) // (n 5499, r 3011)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[21, 22], 0.005) // (n 3782 , r 2022)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[23], 0.005) // (n 3602, r 1795)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[11], 0.001) // (n 3326, r 1947)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[12], 0.0005) // (n 3064, r 3325)
-		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 3064, r 1190)
-		//nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0005) // (n 1605, r 1190)
-		//nr = this.net.divideRoads(nr.nodes, nr.roads) // (n 1605, r 2045)
-		//nr = this.net.removeMultipleRoads(nr.nodes, nr.roads) // (n 1589, r 1932)
+		/*
+		var t = (new Date()).getTime()
+		nr = this.net.filterRoads(nr.nodes, nr.roads, [1, 2, 11, 12, 21, 22, 23]) // (n 39614 , r 5483) [26781 ms]
+		t = checkTime(t)
+		nr = this.net.separateRoads(nr.nodes, nr.roads) // (n 39614, r 6530) [29 ms]
+		t = checkTime(t)
+		nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 39614, r 3705) [1713 ms]
+		t = checkTime(t)
+		nr = this.net.removeDeadLinks(nr.nodes, nr.roads) // (n 38602, r 3564) [75742 ms]
+		t = checkTime(t)
+		nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 38602, r 3455) [82 ms]
+		t = checkTime(t)
+		nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0001) // (n 6715, r 3455) [911 ms]
+		t = checkTime(t)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[1,2], 0.005) // (n 5499, r 3011)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[21, 22], 0.005) // (n 3782 , r 2022)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[23], 0.005) // (n 3602, r 1795)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[11], 0.001) // (n 3326, r 1947)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[12], 0.0005) // (n 3064, r 3325) [69935 ms]
+		t = checkTime(t)
+		nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 3064, r 1190) [30 ms]
+		t = checkTime(t)
+		nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0005) // (n 1605, r 1190) [46 ms]
+		t = checkTime(t)
+		nr = this.net.divideRoads(nr.nodes, nr.roads) // (n 1605, r 2045) [2 ms]
+		t = checkTime(t)
+		nr = this.net.removeMultipleRoads(nr.nodes, nr.roads) // (n 1589, r 1932) [325 ms]
+		t = checkTime(t)
+		*/
+		
 
 		// for level 4
-		//nr = this.net.filterRoads(nr.nodes, nr.roads, [1, 2, 11, 12, 13, 21, 22, 23]) // (n 65824 , r 8196)
-		//nr = this.net.separateRoads(nr.nodes, nr.roads) // (n 65824, r 10279)
-		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 65824, r 6661)
-		//nr = this.net.removeDeadLinks(nr.nodes, nr.roads) // (n 65647, r 6638)
-		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 65647, r 6611)
-		//nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0001) // (n 11547, r 6611)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[1,2], 0.005) // (n 10327, r 6090)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[21, 22], 0.001) // (n 9010, r 5934)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[23], 0.005) // (n 8798, r 5660)
 		
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[11], 0.0005) // (n 8634, r 5861)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[12], 0.0005) // (n 8277, r 7022)
-		//nr = this.net.clusterNodes(nr.nodes, nr.roads,[13], 0.0005) // (n 7757, r 9311)
-		//nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 7757, r 4482)
-
-		//nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0005) // (n 4442, r 4482)
-		//nr = this.net.divideRoads(nr.nodes, nr.roads) // (n 4442, r 6190)
-		//nr = this.net.removeMultipleRoads(nr.nodes, nr.roads) // (n 4405, r 5785)
+		var t = (new Date()).getTime()
+		nr = this.net.filterRoads(nr.nodes, nr.roads, [1, 2, 11, 12, 13, 21, 22, 23]) // (n 65824 , r 8196) [ ms]
+		t = checkTime(t)
+		nr = this.net.separateRoads(nr.nodes, nr.roads) // (n 65824, r 10279) [ ms]
+		t = checkTime(t)
+		nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 65824, r 6661) [ ms]
+		t = checkTime(t)
+		nr = this.net.removeDeadLinks(nr.nodes, nr.roads) // (n 65647, r 6638) [ ms]
+		t = checkTime(t)
+		nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 65647, r 6611) [ ms]
+		t = checkTime(t)
+		nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0001) // (n 11547, r 6611) [ ms]
+		t = checkTime(t)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[1,2], 0.005) // (n 10327, r 6090)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[21, 22], 0.001) // (n 9010, r 5934)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[23], 0.005) // (n 8798, r 5660)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[11], 0.0005) // (n 8634, r 5861)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[12], 0.0005) // (n 8277, r 7022)
+		nr = this.net.clusterNodes(nr.nodes, nr.roads,[13], 0.0005) // (n 7757, r 9311) [ ms]
+		t = checkTime(t)
+		nr = this.net.mergeRoads(nr.nodes, nr.roads) // (n 7757, r 4482) [ ms]
+		t = checkTime(t)
+		nr = this.net.simplifyRDP(nr.nodes, nr.roads, 0.0005) // (n 4442, r 4482) [ ms]
+		t = checkTime(t)
+		nr = this.net.divideRoads(nr.nodes, nr.roads) // (n 4442, r 6190) [ ms]
+		t = checkTime(t)
+		nr = this.net.removeMultipleRoads(nr.nodes, nr.roads) // (n 4405, r 5785) [ ms]
+		t = checkTime(t)
+		
 
 
 

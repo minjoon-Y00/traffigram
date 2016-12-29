@@ -7,11 +7,12 @@ class TGPreference {
 		this.data = new TGData(this)
 		this.map = new TGMap(this, map_id)
 
-	  //this.setArea('Seattle');
-	  //this.map.setCenter(47.468419, -122.217903); // intersection
-	  //this.map.setCenter(47.462007, -122.265110); // intersection2
-	  //this.map.setCenter(47.611476, -122.340284); // downtown
-	  this.map.setCenter(47.658316, -122.312035) // UW
+	  //this.setArea('Seattle')
+	  //this.map.setCenter(47.468419, -122.217903) // intersection
+	  //this.map.setCenter(47.462007, -122.265110) // intersection2
+	  //this.map.setCenter(47.611476, -122.340284) // downtown
+	  //this.map.setCenter(47.658316, -122.312035) // UW
+	  this.map.setCenter(40.72946, -73.995708) // NYU, NY
 
 		this.start()
 	}

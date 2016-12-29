@@ -1,7 +1,7 @@
 const options = {
 	maxZoom: 18,
 	minZoom: 11,
-	zoom: 14, //13,
+	zoom: 13, //14
 
 	type: {
 		motorway: 1,
@@ -16,8 +16,32 @@ const options = {
 		tertiary_link: 25
 	},
 
+	z: {
+		water: 0,
+		waterNode: 1,
+		road: 2,
+		roadNode: 3,
+		centerPosition: 5
+	},
+
+	dispZoom: {
+		motorway: {minZoom:11, maxZoom:18},
+		trunk: {minZoom:11, maxZoom:18},
+		primary: {minZoom:12, maxZoom:18},
+		secondary: {minZoom:13, maxZoom:18},
+		tertiary: {minZoom:14, maxZoom:18}
+	},
+
 	color: {
 		water: 'rgba(146, 219, 238, 1)',
+		road: {
+			motorway: '#969696',
+			trunk: '#969696',
+			primary: '#969696',
+			secondary: '#969696',
+			tertiary: '#969696'
+		},
+
 		highway: '#969696',
 		arterial: '#969696',
 		link: '#BBB', //'#00ADEE'
@@ -32,6 +56,13 @@ const options = {
 	},
 
 	width: {
+		road: {
+			motorway: 4,
+			trunk: 4,
+			primary: 1,
+			secondary: 1,
+			tertiary: 1
+		},
 		highway: 1,
 		arterial: 1,
 		link: 1,
@@ -104,7 +135,8 @@ const options = {
 		randomness: 0.01,
 		clickSensibility: 0.01,
 		splitThreshold: 200,
-		timeWaitForGettingWaterData: 2000 // ms
+		timeToWaitForGettingWaterData: 0, // ms
+		timeToWaitForGettingRoadData: 20 // ms
 	},
 
 }

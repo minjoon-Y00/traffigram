@@ -49,6 +49,10 @@ class TGUtil {
 	  return Math.sqrt((lat1 - lat2)*(lat1 - lat2) + (lng1 - lng2)*(lng1 - lng2))
 	}
 
+	D2_s(lat1, lng1, lat2, lng2) {
+	  return (lat1 - lat2)*(lat1 - lat2) + (lng1 - lng2)*(lng1 - lng2)
+	}
+
 	getRandomInt(min, max) {
 	  return Math.floor(Math.random() * (max - min)) + min
 	}
@@ -74,6 +78,54 @@ class TGUtil {
 	    return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1)
 	  }
 	}
+
+	RDPSimp(nodeArr, eps) {
+		// Find the point with the maximum distance
+		var dmax = 0
+		var index = 0
+		var startNode = nodeArr[0]
+		var endNode = nodeArr[nodeArr.length - 1]
+
+		for(var i = 1; i < nodeArr.length - 1; i++) {
+			var testNode = nodeArr[i]
+
+			var d = this.distanceBetweenLineAndPoint(
+				startNode.original.lat, startNode.original.lng, 
+				endNode.original.lat, endNode.original.lng, 
+				testNode.original.lat, testNode.original.lng)
+
+			//console.log(d)
+			if (d > dmax) {
+				index = i
+				dmax = d
+			}
+		}
+
+		// If max distance is greater than eps, recursively simplify
+		if (dmax > eps) {
+			// Recursive call
+			var result1 = this.RDPSimp(nodeArr.slice(0, index + 1), eps)
+			var result2 = this.RDPSimp(nodeArr.slice(index, nodeArr.length), eps)
+
+			// Build the result list
+			var results = result1.concat(result2.slice(1))
+		}
+		else {
+			results = [nodeArr[0], nodeArr[nodeArr.length - 1]]
+		}
+		return results
+	}
+
+	distanceBetweenLineAndPoint(L1x, L1y, L2x, L2y, Px, Py) {
+		//console.log(L1x + ',' + L1y)
+		//console.log(L2x + ',' + L2y)
+		//console.log(Px + ',' + Py)
+		var t = Math.abs((L2y - L1y) * Px - (L2x - L1x) * Py + L2x * L1y - L2y * L1x)
+		var b = Math.sqrt((L2y - L1y) * (L2y - L1y) + (L2x - L1x) * (L2x - L1x))
+		//console.log(t + ' / ' + b)
+		return t / b
+	}
+
 
 }
 
@@ -106,3 +158,6 @@ $.arrayIntersect = function(a, b)
         return $.inArray(i, b) > -1;
     });
 };
+
+	
+
