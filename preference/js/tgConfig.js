@@ -21,7 +21,9 @@ const options = {
 		waterNode: 1,
 		road: 2,
 		roadNode: 3,
-		centerPosition: 5
+		grid: 4,
+		controlPoint: 5,
+		centerPosition: 10
 	},
 
 	dispZoom: {

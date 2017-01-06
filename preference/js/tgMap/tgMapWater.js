@@ -1,8 +1,11 @@
 class TGMapWater {
-	constructor(tg, map, mapUtil) {
+	constructor(tg, olMap, mapUtil) {
 		this.tg = tg
-		this.map = map // OL map
+		this.olMap = olMap
 		this.mapUtil = mapUtil
+
+		this.waterLayer = null
+		this.waterNodeLayer = null
   	
 	  this.waterObject = []
 	  this.dispWater
@@ -19,7 +22,7 @@ class TGMapWater {
 		    + 'api_key=vector-tiles-c1X4vZE'
 		})
 
-		this.map.addLayer(new ol.layer.VectorTile({
+		this.olMap.addLayer(new ol.layer.VectorTile({
 		  source: waterSource,
 		  style: this.addToWaterObject.bind(this)
 		}))
@@ -188,7 +191,7 @@ class TGMapWater {
 		var arr = []
 		var styleFunc = this.mapUtil.polygonStyleFunc(this.tg.opt.color.water)
 
-		this.mapUtil.removeLayer(this.map.waterLayer)
+		this.mapUtil.removeLayer(this.waterLayer)
 
 		for(var i = 0; i < this.dispWater.length; i++) {
 			if (this.dispWater[i].geoType == 'Polygon') {
@@ -202,9 +205,9 @@ class TGMapWater {
 		}
 
 
-		this.map.waterLayer = this.mapUtil.olVectorFromFeatures(arr)
-		this.map.waterLayer.setZIndex(this.tg.opt.z.water)
-		this.map.addLayer(this.map.waterLayer)
+		this.waterLayer = this.mapUtil.olVectorFromFeatures(arr)
+		this.waterLayer.setZIndex(this.tg.opt.z.water)
+		this.olMap.addLayer(this.waterLayer)
 		this.times.drawWater.end = (new Date()).getTime()
 
 		// Display time
@@ -218,8 +221,8 @@ class TGMapWater {
 
 	addWaterNodeLayer() {
 
-		if (this.map.waterNodeLayer) 
-			this.map.removeLayer(this.map.waterNodeLayer)
+		if (this.waterNodeLayer) 
+			this.olMap.removeLayer(this.waterNodeLayer)
 
 		var arr = []
 		var clrMinor = '#333'
@@ -315,14 +318,14 @@ class TGMapWater {
 		console.log('# of original node: ' + originalNodeCount)
 		console.log('# of waterNode : ' + arr.length)
 
-		this.map.waterNodeLayer = new ol.layer.Vector({
+		this.waterNodeLayer = new ol.layer.Vector({
 			source: new ol.source.Vector({
 		    features: arr
 			})
 		})
 
-		this.map.waterNodeLayer.setZIndex(1) // z-index of water node is 1
-		this.map.addLayer(this.map.waterNodeLayer)
+		this.waterNodeLayer.setZIndex(1) // z-index of water node is 1
+		this.olMap.addLayer(this.waterNodeLayer)
 
 
 

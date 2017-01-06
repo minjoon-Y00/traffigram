@@ -1,9 +1,11 @@
 class TGMapRoads {
 	constructor(tg, map, mapUtil) {
 		this.tg = tg
-		this.map = map // OL map
+		this.olMap = map
 		this.mapUtil = mapUtil
-  	
+
+		this.roadNodeLayer = null
+		this.roadLayer = null
 	  this.roadTypes = ['motorway', 'trunk', 'primary', 'secondary', 'tertiary']
 	  this.roadObject = {}
 	  this.dispRoads = {}
@@ -24,7 +26,7 @@ class TGMapRoads {
 	    	+ 'api_key=vector-tiles-c1X4vZE'
 	  })
 
-		this.map.addLayer(new ol.layer.VectorTile({
+		this.olMap.addLayer(new ol.layer.VectorTile({
 		  source: roadSource,
 		  style: this.addToRoadObject.bind(this)
 		}))
@@ -137,7 +139,7 @@ class TGMapRoads {
 		var arr = []
 		var styleFunc
 
-		this.mapUtil.removeLayer(this.map.roadLayer)
+		this.mapUtil.removeLayer(this.roadLayer)
 
 		for(var kind in this.dispRoads) {
 			styleFunc = this.mapUtil.lineStyleFunc(
@@ -163,9 +165,9 @@ class TGMapRoads {
 
 		console.log(arr.length)
 
-		this.map.roadLayer = this.mapUtil.olVectorFromFeatures(arr)
-		this.map.roadLayer.setZIndex(this.tg.opt.z.road)
-		this.map.addLayer(this.map.roadLayer)
+		this.roadLayer = this.mapUtil.olVectorFromFeatures(arr)
+		this.roadLayer.setZIndex(this.tg.opt.z.road)
+		this.olMap.addLayer(this.roadLayer)
 		this.times.drawRoads.end = (new Date()).getTime()
 
 		// Display time
@@ -176,8 +178,8 @@ class TGMapRoads {
 
 	addRoadNodeLayer() {
 
-		if (this.map.roadNodeLayer) 
-			this.map.removeLayer(this.map.roadNodeLayer)
+		if (this.roadNodeLayer) 
+			this.olMap.removeLayer(this.roadNodeLayer)
 
 		var arr = []
 		var clrMinor = '#333'
@@ -252,14 +254,14 @@ class TGMapRoads {
 		console.log('# of original road node: ' + originalNodeCount)
 		console.log('# of roadNode : ' + arr.length)
 
-		this.map.roadNodeLayer = new ol.layer.Vector({
+		this.roadNodeLayer = new ol.layer.Vector({
 			source: new ol.source.Vector({
 		    features: arr
 			})
 		})
 
-		this.map.roadNodeLayer.setZIndex(this.tg.opt.z.roadNode)
-		this.map.addLayer(this.map.roadNodeLayer)
+		this.roadNodeLayer.setZIndex(this.tg.opt.z.roadNode)
+		this.olMap.addLayer(this.roadNodeLayer)
 
 
 	}
