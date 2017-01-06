@@ -3,20 +3,6 @@ class TGData {
 	constructor(tg) {
 		this.tg = tg
 
-		this.nodes = []
-		this.roads = []
-		this.localNodes = []
-
-		this.localWater = []
-		this.localRoads = {'motorway':[], 'trunk':[], 'motorway_link':[], 'trunk_link':[], 
-			'primary':[], 'secondary':[], 'tertiary':[], 'primary_link':[], 
-			'secondary_link':[], 'tertiary_link':[]}
-
-	  
-	  this.centerPosition = {}
-	  
-	  
-
 
 		this.locations = {}
 		this.locations.japanese = uw_japanese
@@ -24,90 +10,16 @@ class TGData {
 	  this.locationType = '' //'japanese', 'french'
 	  this.localLocations = []
 
-	  this.presetRoads = {'raw':[], 'level1':[], 'level2':[], 'level3':[], 'level4':[]}
 	  this.autoSelectRoadLevel = true
-		this.roadLevel = 'raw'
 
 	  this.tt = new TravelTime()
 	  this.travelTime
 
-
-	  // [TYPE]
-	  // motorway(1), trunk(2), primary(11), secondary(12), tertiary(13)
-		// motorway_link(21), trunk_link(22), primary_link(23), secondary_link(24)
-		// tertiary_link(25)
+	  console.log(this.locations.japanese)
 
 	}
 
-	//
-	// Calculate local (displayed) nodes and roads
-	//
-	calLocalNodesRoads() {
-		
-		if (this.autoSelectRoadLevel) {
-			for(var lv in this.tg.opt.networkByZoom) {
-				if (this.tg.opt.networkByZoom[lv].indexOf(this.tg.map.currentZoom) != -1) {
-					this.roadLevel = lv
-					break
-				}
-			}
-		}
-
-		//console.log('lv = ' + this.roadLevel)
-
-		this.nodes = this.presetRoads[this.roadLevel].nodes
-	  this.roads = this.presetRoads[this.roadLevel].roads
-
-		this.localRoads = this.calLocalRoads(this.nodes, this.roads)
-		this.localNodes = this.calLocalNodes(this.nodes, this.localRoads)
-	}
-
-	calLocalRoads(nodes, roads) {
-		var len = roads.length
-		var lat, lng
-		var localRoads = []
-
-		for(var i = 0; i < len; i++) {
-			// put all motorway and trunks.
-			/*if ((roads[i].type == 1)||(roads[i].type == 2)) {
-				localRoads.push(roads[i])
-				continue
-			}*/
-
-			// If the start node of a road is in the screen, add the road.
-			lat = nodes[roads[i].nodes[0]].lat
-			lng = nodes[roads[i].nodes[0]].lng
-
-			if ((lat < this.tg.opt.box.top) && (lat > this.tg.opt.box.bottom) 
-				&& (lng < this.tg.opt.box.right)	&& (lng > this.tg.opt.box.left)) {
-				localRoads.push(tg.util.clone(roads[i]))
-				continue
-			}
-			
-			// If the last node of a road is in the screen, add the road.
-			lat = nodes[roads[i].nodes[roads[i].nodes.length - 1]].lat
-			lng = nodes[roads[i].nodes[roads[i].nodes.length - 1]].lng
-
-			if ((lat < this.tg.opt.box.top) && (lat > this.tg.opt.box.bottom) 
-				&& (lng < this.tg.opt.box.right)	&& (lng > this.tg.opt.box.left)) {
-				localRoads.push(tg.util.clone(roads[i]))
-			}
-		}
-		return localRoads
-	}
-
-	calLocalNodes(nodes, localRoads) {
-		var len = localRoads.length
-		var localNodes = []
-
-		for(var i = 0; i < len; i++) {
-			for(var j = 0; j < localRoads[i].nodes.length; j++) {
-				localNodes.push(new Node(nodes[localRoads[i].nodes[j]].lat, nodes[localRoads[i].nodes[j]].lng))
-				localRoads[i].nodes[j] = localNodes.length - 1
-			}
-		}
-		return localNodes
-	}
+	
 
 	//
 	//
@@ -130,12 +42,9 @@ class TGData {
 				this.localLocations.push(new Node(lat, lng));
 			}
 		}
+
 	}
 
-	//
-	//
-	//
-	
 
 	//
 	//

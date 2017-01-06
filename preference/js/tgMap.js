@@ -18,12 +18,11 @@ class TGMap {
 	  this.tgWater = new TGMapWater(tg, this.olMap, this.mapUtil)
 	  this.tgRoads = new TGMapRoads(tg, this.olMap, this.mapUtil)
 	  this.tgGrid = new TGMapGrid(tg, this.olMap, this.mapUtil)
+	  this.tgLocs = new TGMapLocs(tg, this.olMap, this.mapUtil)
 	  this.tgAux = new TGMapAux(tg, this.olMap, this.mapUtil)
 
 	  this.tgWater.start()
 	  //this.tgRoads.start()
-
-
 	  
 	  this.controlPoints = []
 	  this.centerPosition = {}
@@ -31,12 +30,7 @@ class TGMap {
 	  this.dispGridLayer = true
 	  this.dispCenterPositionLayer = false
 	  this.dispControlPointLayer = true
-
 	  this.dispLocationLayer = false
-
-
-
-	  // Variables for others
 
 		this.currentZoom = this.olMap.getView().getZoom()
 	  this.clickRange = {lat:0, lng:0}
@@ -78,11 +72,9 @@ class TGMap {
 		this.tgRoads.resetTimes()
 		this.calBoundaryBox()
 	  this.tgGrid.initGrids()
-
+	  this.tgLocs.calLocalLocations()
 
 	  //this.tg.data.setTravelTime()
-	  //this.tg.data.calLocalNodesRoads()
-	  //this.tg.data.calLocalLocations()
 	  this.updateLayers()
 		this.dispMapInfo()
 	}
@@ -106,6 +98,7 @@ class TGMap {
   		+ '), Center (' + centerLat.toPrecision(8) + ', ' + centerLng.toPrecision(9) + ')'
   	$("#mapInfo1").text(str)
 
+  	/*
   	// Display the total number of nodes & roads
 		var orgN = this.tg.data.nodes.length
 		var orgR = this.tg.data.roads.length
@@ -117,6 +110,7 @@ class TGMap {
 		var localR = this.tg.data.localRoads.length
 		var str = 'Displayed Nodes (' + localN + '), Roads (' + localR + ')'
 		$('#mapInfo3').text(str)
+		*/
   }
 
 	setCenter(lat, lng) {
@@ -164,12 +158,8 @@ class TGMap {
 		if (this.dispCenterPositionLayer) this.tgAux.drawCenterPositionLayer()
 		else this.tgAux.removeCenterPositionLayer()
 
-		/*
-		if (this.dispLocationLayer) this.drawLocationLayer()
-		else this.removeLayer(this.map.locationLayer)
-		*/
-
- 
+		if (this.dispLocationLayer) this.tgLocs.drawLocationLayer()
+		else this.tgLocs.removeLocationLayer()
 
 		console.log('updateLayers : ' + ((new Date()).getTime() - s) + 'ms')
 	}
@@ -189,104 +179,5 @@ class TGMap {
 			}
 		}
 	}*/
-
-	//
-	//
-	//
-
-	drawControlPointLayer() {
-		this.removeLayer(this.controlPointLayer)
-		this.controlPointLayer = this.createControlPointLayer()
-	  this.olMap.addLayer(this.controlPointLayer)
-	}
-
-
-
-	drawLocationLayer() {
-		this.removeLayer(this.locationLayer)
-		this.locationLayer = this.createLocationLayer()
-	  this.olMap.addLayer(this.locationLayer)
-	}
-
-	//
-	//
-	//
-
-
-
-
-	//
-	//
-	//
-	removeLayer(layer) {
-		if (layer) {
-			this.olMap.removeLayer(layer)
-			layer = null
-		}
-	}
-
-	olVectorFromFeatures(arr) {
-		return new ol.layer.Vector({
-	  	source: new ol.source.Vector({
-	      	features: arr
-	  	})
-		})
-	}
-
-	olFeaturesFromPoints(arr, lng, lat, styleFunc) {
-		var feature = new ol.Feature({
-  		geometry: new ol.geom.Point(
-    		ol.proj.transform([lng, lat], 'EPSG:4326', 'EPSG:3857'))
-		})
-  	feature.setStyle(styleFunc)
-  	arr.push(feature)
-	}
-
-	olFeaturesFromLineStrings(arr, sLng, sLat, eLng, eLat, styleFunc) {
-		var feature = new ol.Feature({
-  		geometry: new ol.geom.LineString(
-    		[ol.proj.transform([sLng, sLat], 'EPSG:4326', 'EPSG:3857'), 
-    		ol.proj.transform([eLng, eLat], 'EPSG:4326', 'EPSG:3857')])
-		})
-  	feature.setStyle(styleFunc)
-  	arr.push(feature)
-	}
-
-
-
-
-	//
-	// 
-	//	
-
-
-
-
-
-
-
-
-
-
-	createLocationLayer() {
-		var nodes = this.tg.data.localLocations
-		var arr = []
-
-		for(var i = 0; i < nodes.length; i++) {
-			this.olFeaturesFromPoints(arr, 
-				nodes[i].target.lng, nodes[i].target.lat, 
-				this.mapUtil.nodeStyleFunc(this.tg.opt.color.location, this.tg.opt.radius.location));
-				//this.mapUtil.imageStyleFunc(this.tg.opt.image.location));
-
-			if ((nodes[i].target.lng != nodes[i].original.lng) 
-				|| (nodes[i].target.lat != nodes[i].original.lat)) {
-				this.olFeaturesFromLineStrings(arr, 
-					nodes[i].original.lng, nodes[i].original.lat,
-					nodes[i].target.lng, nodes[i].target.lat,
-					this.mapUtil.lineStyleFunc(this.tg.opt.color.locationLine, this.tg.opt.width.locationLine));
-			}
-		}
-		return this.olVectorFromFeatures(arr);
-	}
 
 }

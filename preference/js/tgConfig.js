@@ -23,7 +23,8 @@ const options = {
 		roadNode: 3,
 		grid: 4,
 		controlPoint: 5,
-		centerPosition: 10
+		location: 6,
+		centerPosition: 10,
 	},
 
 	dispZoom: {

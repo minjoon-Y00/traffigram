@@ -129,18 +129,18 @@ $("#locationNoRB").change(function(ev){
 
 $("#location0RB").change(function(ev){
 	if (ev.target.checked) {
-		tg.data.locationType = 'japanese'
+		tg.map.tgLocs.locationType = 'japanese'
+		tg.map.tgLocs.calLocalLocations()
 		tg.map.dispLocationLayer = true
-		tg.data.calLocalLocations()
 		tg.map.updateLayers()
 	} 
 });
 
 $("#location1RB").change(function(ev){
 	if (ev.target.checked) {
-		tg.data.locationType = 'french'
+		tg.map.tgLocs.locationType = 'french'
+		tg.map.tgLocs.calLocalLocations()
 		tg.map.dispLocationLayer = true
-		tg.data.calLocalLocations()
 		tg.map.updateLayers()
 	} 
 });
