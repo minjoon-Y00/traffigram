@@ -18,7 +18,7 @@
 
         <!-- Map -->
 
-        <div class="col-sm-9" style="width:600px">
+        <div class="col-sm-8" style="width:600px">
           <div id="ol_map" class="ol_map"></div>
           <div id='mapInfo1'></div>
           <div id='mapInfo2'></div>
@@ -27,7 +27,7 @@
         </div>
 
         <!-- Right Options Panel -->
-        <div class="col-sm-3" style="width:250px">
+        <div class="col-sm-2" style="width:250px">
 
           <!--<h4>City</h4>
           <div class="radio">
@@ -40,9 +40,22 @@
             <label style="color:gray"><input type="radio" name="cityRadio" id="citySFRB" disabled>San Francisco</label>
           </div>-->
 
-          <!-- Center -->
+          
 
           <button type="button" class="btn btn-default btn-sm marginT" onclick="debug()">debug</button>
+
+          <!-- EM <-> DC -->
+
+          <h4>Map Mode</h4>
+          <div class="radio">
+            <label><input type="radio" name="emdcRadio" id="emModeRB" checked>Normal Map</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="emdcRadio" id="dcModeRB">Distance Cartogram</label>
+          </div>
+          <hr>
+
+          <!-- Center -->
 
           <h4>Center</h4>
           <div class="radio">
@@ -57,14 +70,28 @@
           <div class="radio">
             <label><input type="radio" name="centerRadio" id="centerLombardSFRB">Lombard St. SF</label>
           </div>
+          <div class="radio">
+            <label><input type="radio" name="centerRadio" id="centerYourPositionRB">Your Position</label>
+          </div>
+          <hr>
+
+          <!-- Non Intersection -->
+          <h4>Intersected Grids</h4>
+          <div class="radio">
+            <label><input type="radio" name="intersectRadio" id="intersectRB">Original</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="intersectRadio" id="noIntersectRB" checked>No Intersections</label>
+          </div>
           <hr>
 
 
 
-          <!-- EM -> DC -->
 
-          <h4>EM -> DC</h4>
+          <!--<label class='marginR'><input type="checkbox" id="noIntersectionCB" checked/><span class='marginL'>No Intersection</span></label>
+
           <button type="button" class="btn btn-default btn-sm marginT" onclick="getTravelTime()">get Travel Time</button>
+          <button type="button" class="btn btn-default btn-sm marginT" onclick="saveTravelTime()">save</button>
           <br/>
           <button type="button" class="btn btn-default btn-sm marginT" onclick="splitGrid()">split Grid</button>
           <br/>
@@ -72,23 +99,42 @@
           <br/>
           <button type="button" class="btn btn-default btn-sm marginT" onclick="calTPS()">cal TPS</button>
           <br/>
-          <button type="button" class="btn btn-default btn-sm marginT" onclick="moveGrids()">Move Grids</button>
+          <button type="button" class="btn btn-default btn-sm marginT" onclick="moveElements()">Move Elements</button>-->
           <hr>
 
           <!-- Visual Elements representation -->
 
           <h4>Visual Elements</h4>
-          <label class='marginR'><input type="checkbox" id="dispWaterCB" checked/><span class='marginL'>Water</span></label>
-          <label class='marginR'><input type="checkbox" id="dispRoadsCB" checked/><span class='marginL'>Roads</span></label>
-          <label class='marginR'><input type="checkbox" id="dispNodesCB"/><span class='marginL'>Nodes</span></label>
-          <label class='marginR'><input type="checkbox" id="dispCenterPositionCB"/><span class='marginL'>Center</span></label>
-          <label class='marginR'><input type="checkbox" id="dispControlPointsCB"/><span class='marginL'>Control Points</span></label>
-          <label class='marginR'><input type="checkbox" id="dispGridCB"/><span class='marginL'>Grid</span></label>
+          <label class='marginR'>
+            <input type="checkbox" id="dispWaterCB" checked/>
+            <span class='marginL'>Water</span>
+          </label>
+          <label class='marginR'>
+            <input type="checkbox" id="dispRoadsCB" checked/>
+            <span class='marginL'>Roads</span>
+          </label>
+          <label class='marginR'>
+            <input type="checkbox" id="dispCenterPositionCB" checked/>
+            <span class='marginL'>Center</span>
+          </label>
+          <label class='marginR'>
+            <input type="checkbox" id="dispGridCB" checked/>
+            <span class='marginL'>Grid</span>
+          </label>
+          <label class='marginR'>
+            <input type="checkbox" id="dispControlPointsCB"/>
+            <span class='marginL'>Control Points</span>
+          </label>
+          <label class='marginR'>
+            <input type="checkbox" id="dispNodesCB"/>
+            <span class='marginL'>Nodes</span>
+          </label>
+
           <hr>
 
           <!-- Locations -->
 
-          <h4>Locations</h4>
+          <!--<h4>Locations</h4>
 
           <div class="radio">
             <label><input type="radio" name="locationRadio" id="locationNoRB" checked>Do not display</label>
@@ -100,32 +146,9 @@
             <label><input type="radio" name="locationRadio" id="location1RB">French</label>
           </div>
 
-          <hr>
+          <hr>-->
 
-          <!-- Roads -->
 
-          <h4>Roads</h4>
-
-          <div class="radio">
-            <label><input type="radio" name="roadRadio" id="roadAutoRB" checked>Auto</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="roadRadio" id="roadRawRB">Raw Roads</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="roadRadio" id="road4RB">Road Level 4 (fine)</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="roadRadio" id="road3RB">Road Level 3</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="roadRadio" id="road2RB">Road Level 2</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="roadRadio" id="road1RB">Road Level 1 (coarse)</label>
-          </div>
-
-          <hr>
 
           <!-- Control Points -->
 
@@ -149,6 +172,58 @@
 
           
         </div>
+
+        <div class="col-sm-2" style="width:250px">
+
+          <!-- Time -->
+
+          <h4>Time</h4>
+
+          <div id="roadLoadingTime"></div>
+          <div id="waterLoadingTime"></div>
+          <div id="landuseLoadingTime"></div>
+          <div id="placeLoadingTime"></div>
+          <div id="travelTimeLoadingTime"></div>
+          <div id="controlPointWarpingTime"></div>
+          <div id="tpsCalculatingTime"></div>
+          <div id="elementsWarpingTime"></div>
+
+          <hr>
+
+          <h4>Data</h4>
+
+          <div id="numRoadLoading"></div>
+          <div id="numWaterLoading"></div>
+          <div id="numLanduseLoading"></div>
+          <div id="numPlaceLoading"></div>
+          <div id="numNewTravelTime"></div>
+
+          <hr>
+
+
+
+          <!--<div class="checkbox">
+            <label><input type="checkbox" id="roadTypeHighwayCB" checked>Highway</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="roadTypePrimaryCB" checked>Primary</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="roadTypeSecondaryCB" checked>Secondary</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="roadTypeTertiaryCB" checked>Tertiary</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="roadTypeResidentialCB" checked>Residential</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="roadTypeLinksCB" checked>Links</label>
+          </div>-->
+
+          
+
+        </div>
       </div>
     </div>
 
@@ -170,13 +245,14 @@
     <!-- load our files -->
 
 
-    <script src="data/seattle_raw.js"></script>
+    <!--<script src="data/seattle_raw.js"></script>
     <script src="data/nr_level1.js"></script>
     <script src="data/nr_level2.js"></script>
     <script src="data/nr_level3.js"></script>
-    <script src="data/nr_level4.js"></script>
+    <script src="data/nr_level4.js"></script>-->
 
-    <script src="data/default_tt_8am.js"></script>
+    <!--<script src="data/data_tt_ny_1pm.js"></script>-->
+    <!--<script src="data/default_tt_8am.js"></script>-->
     <script src="data/uw_japanese.js"></script>
     <script src="data/uw_french.js"></script>
     
@@ -188,7 +264,9 @@
     <script src="./js/tgMap/tgMapUtil.js"></script>
     <script src="./js/tgMap/tgMapWater.js"></script>
     <script src="./js/tgMap/tgMapRoads.js"></script>
-    <script src="./js/tgMap/tgMapGrid.js"></script>
+    <script src="./js/tgMap/map_places.js"></script>
+    <script src="./js/tgMap/map_landuse.js"></script>
+    <script src="./js/tgMap/map_control.js"></script>
     <script src="./js/tgMap/tgMapLocs.js"></script>
     <script src="./js/tgMap/tgMapAux.js"></script>
     <script src="./js/tgMain.js"></script>

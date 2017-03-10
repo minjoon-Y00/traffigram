@@ -28,55 +28,12 @@ class TGMapWater {
 		}))
 	}
 
-	resetTimes() {
-		this.times = {
-  		'getWaterData':{'start':(new Date()).getTime(), 'end':0},
-  		'calWaterData':{'elapsed':0},
-  		'drawWater':{'start':0, 'end':0}
-  	}
-	}
-
-	/*calVisibility() {
-		var geoType, coords, lenCoords, isIn
-		for(var i = 0; i < this.waterObject.length; i++) {
-			geoType = this.waterObject[i].geoType
-			coords = this.waterObject[i].coordinates
-			lenCoords = coords.length
-			isIn = false
-
-			if (geoType == 'Polygon') {
-				for(var i = 0; i < lenCoords; i++) {
-					for(var j = 0; j < coords[i].length; j++) {
-						isIn = this.mapUtil.isInTheBox(coords[i][j][1], coords[i][j][0])
-						if (isIn) break 
-					}
-					if (isIn) break 
-				}
-			}
-			else if (geoType == 'MultiPolygon') {
-				for(var i = 0; i < lenCoords; i++) {
-					for(var j = 0; j < coords[i].length; j++) {
-						for(var k = 0; k < coords[i][j].length; k++) {
-							isIn = this.mapUtil.isInTheBox(coords[i][j][k][1], coords[i][j][k][0])
-							if (isIn) break 
-						}
-						if (isIn) break 
-					}
-					if (isIn) break 
-				}
-			}
-
-			if (!isIn) this.waterObject[i].visible = false
-		}
-	}*/
-
 	addToWaterObject(feature, resolution) {
-
-		console.log('.')
-
-		if (this.timerGetWaterData) clearTimeout(this.timerGetWaterData)
-		this.timerGetWaterData = setTimeout(this.calDispWater.bind(this), 
-			this.tg.opt.constant.timeToWaitForGettingWaterData)
+		if (this.timerGetWaterData) clearTimeout(this.timerGetWaterData);
+		this.timerGetWaterData = 
+				setTimeout(
+						this.createDispWater.bind(this), 
+						this.tg.opt.constant.timeToWaitForGettingWaterData);
 
 		var geoType = feature.getGeometry().getType()
 
@@ -130,54 +87,46 @@ class TGMapWater {
 		return null
 	}
 
-	calDispWater() {
+	createDispWater() {
+		const t = (new Date()).getTime();
+		this.tg.map.setDataInfo('numWaterLoading', 'increase');
+		this.tg.map.setTime('waterLoading', 'end', t);
 
-		console.log('finish getting water data.')
-		
-		var s = (new Date()).getTime()
-		this.times.getWaterData.end = s
-		this.dispWater = []
+		this.dispWater = [];
 
-		for(var i = 0; i < this.waterObject.length; i++) {
+		for(let water of this.waterObject) {
+			const geoType = water.geoType;
+			const coords = water.coordinates;
+			let obj = {'geoType':geoType, 'coordinates':new Array(coords.length)}
 
-			//if (!this.waterObject[i].visible) continue
-
-			var geoType = this.waterObject[i].geoType
-			var coords = this.waterObject[i].coordinates
-			var obj = {'geoType':geoType, 'coordinates':new Array(coords.length)}
-
-			if (geoType == 'Polygon') {
-				for(var j = 0; j < coords.length; j++) {
-					obj.coordinates[j] = new Array(coords[j].length)
-
-					for(var k = 0; k < coords[j].length; k++) {
+			if (geoType === 'Polygon') {
+				for(let j = 0; j < coords.length; j++) {
+					obj.coordinates[j] = new Array(coords[j].length);
+					for(let k = 0; k < coords[j].length; k++) {
 						obj.coordinates[j][k] 
-							= [coords[j][k].original.lng, coords[j][k].original.lat]
+							= [coords[j][k].disp.lng, coords[j][k].disp.lat];
 					}
 				}
 			} 
-			else if (geoType == 'MultiPolygon') {
-				for(var j = 0; j < coords.length; j++) {
-					obj.coordinates[j] = new Array(coords[j].length)
-
-					for(var k = 0; k < coords[j].length; k++) {
-						obj.coordinates[j][k] = new Array(coords[j][k].length)
-
-						for(var l = 0; l < coords[j][k].length; l++) {
+			else if (geoType === 'MultiPolygon') {
+				for(let j = 0; j < coords.length; j++) {
+					obj.coordinates[j] = new Array(coords[j].length);
+					for(let k = 0; k < coords[j].length; k++) {
+						obj.coordinates[j][k] = new Array(coords[j][k].length);
+						for(let l = 0; l < coords[j][k].length; l++) {
 							obj.coordinates[j][k][l] 
-								= [coords[j][k][l].original.lng, coords[j][k][l].original.lat]
+								= [coords[j][k][l].disp.lng, coords[j][k][l].disp.lat];
 						}
 					}
 				}
 			}
-			this.dispWater.push(obj)
+			this.dispWater.push(obj);
 		}
 
 
-		this.times.calWaterData.elapsed += (new Date()).getTime() - s
 
-		console.log('# waterObject : ' +  this.waterObject.length)
-		console.log('# of dispWater : ' + this.dispWater.length)
+		//console.log('# waterObject : ' +  this.waterObject.length)
+		//console.log('# of dispWater : ' + this.dispWater.length)
 		//console.log(this.tg.data.localWater)
 		//console.log(this.dispWater)
 
@@ -185,9 +134,41 @@ class TGMapWater {
 		//this.addWaterNodeLayer()
 	}
 
+	updateDispWater() {
+		for(let i = 0; i < this.waterObject.length; i++) {
+			const geoType = this.waterObject[i].geoType;
+			const coords = this.waterObject[i].coordinates;
+
+			if (!this.dispWater[i]) {
+				console.log('no this.dispWater[i]');
+				console.log('i: ' + i);
+				console.log(this.dispWater[i]);
+				continue;
+			}
+
+			if (geoType === 'Polygon') {
+				for(let j = 0; j < coords.length; j++) {
+					for(let k = 0; k < coords[j].length; k++) {
+						this.dispWater[i].coordinates[j][k] 
+							= [coords[j][k].disp.lng, coords[j][k].disp.lat];
+					}
+				}
+			} 
+			else if (geoType === 'MultiPolygon') {
+				for(let j = 0; j < coords.length; j++) {
+					for(let k = 0; k < coords[j].length; k++) {
+						for(let l = 0; l < coords[j][k].length; l++) {
+							this.dispWater[i].coordinates[j][k][l] 
+								= [coords[j][k][l].disp.lng, coords[j][k][l].disp.lat];
+						}
+					}
+				}
+			}
+		}
+	}
+
 	//
 	addWaterLayer() {
-		this.times.drawWater.start = (new Date()).getTime()
 		var arr = []
 		var styleFunc = this.mapUtil.polygonStyleFunc(this.tg.opt.color.water)
 
@@ -208,13 +189,166 @@ class TGMapWater {
 		this.waterLayer = this.mapUtil.olVectorFromFeatures(arr)
 		this.waterLayer.setZIndex(this.tg.opt.z.water)
 		this.olMap.addLayer(this.waterLayer)
-		this.times.drawWater.end = (new Date()).getTime()
-
-		// Display time
-		this.mapUtil.printElapsedTime(this.times, 'getWaterData')
-		this.mapUtil.printElapsedTime(this.times, 'calWaterData')
-		this.mapUtil.printElapsedTime(this.times, 'drawWater')
 	}
+
+	calRealNodes() {
+		this.calModifiedNodes('real');
+	}
+
+	calTargetNodes() {
+		this.calModifiedNodes('target');
+	}
+
+	calModifiedNodes(type) {
+		let transformFuncName;
+		if (type === 'real') transformFuncName = 'transformReal';
+		else if (type === 'target') transformFuncName = 'transformTarget';
+		else throw 'ERROR in calModifiedNodes()';
+
+		const transform = this.tg.graph[transformFuncName].bind(this.tg.graph);
+
+		for(let water of this.waterObject) {
+			let coords = water.coordinates;
+			let modified;
+
+			if (water.geoType === 'Polygon') {
+				for(let j = 0; j < coords.length; j++) {
+					for(let k = 0; k < coords[j].length; k++) {
+						modified = 
+							transform(coords[j][k].original.lat, coords[j][k].original.lng);
+						coords[j][k][type].lat = modified.lat;
+						coords[j][k][type].lng = modified.lng;
+					}
+				}
+			}
+			else if (water.geoType === 'MultiPolygon') {
+				for(let j = 0; j < coords.length; j++) {
+					for(let k = 0; k < coords[j].length; k++) {
+						for(let l = 0; l < coords[j][k].length; l++) {
+							modified = 
+								transform(coords[j][k][l].original.lat, coords[j][k][l].original.lng);
+							coords[j][k][l][type].lat = modified.lat;
+							coords[j][k][l][type].lng = modified.lng;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	calDispNodes(type, value) {
+		for(let water of this.waterObject) {
+			let coords = water.coordinates;
+
+			if (water.geoType === 'Polygon') {
+				if (type === 'intermediateReal') {
+					for(let j = 0; j < coords.length; j++) {
+						for(let k = 0; k < coords[j].length; k++) {
+							coords[j][k].disp.lat = 
+								(1 - value) * coords[j][k].original.lat 
+								+ value * coords[j][k].real.lat;
+							coords[j][k].disp.lng = 
+								(1 - value) * coords[j][k].original.lng 
+								+ value * coords[j][k].real.lng;
+						}
+					}
+				}
+				else if (type === 'intermediateTarget') {
+					for(let j = 0; j < coords.length; j++) {
+						for(let k = 0; k < coords[j].length; k++) {
+							coords[j][k].disp.lat = 
+								(1 - value) * coords[j][k].original.lat 
+								+ value * coords[j][k].target.lat;
+							coords[j][k].disp.lng = 
+								(1 - value) * coords[j][k].original.lng 
+								+ value * coords[j][k].target.lng;
+						}
+					}
+				}
+				else {
+					for(let j = 0; j < coords.length; j++) {
+						for(let k = 0; k < coords[j].length; k++) {
+							coords[j][k].disp.lat = coords[j][k][type].lat;
+							coords[j][k].disp.lng = coords[j][k][type].lng;
+						}
+					}
+				}
+			}
+			else if (water.geoType === 'MultiPolygon') {
+				if (type === 'intermediateReal') {
+					for(let j = 0; j < coords.length; j++) {
+						for(let k = 0; k < coords[j].length; k++) {
+							for(let l = 0; l < coords[j][k].length; l++) {
+								coords[j][k][l].disp.lat = 
+									(1 - value) * coords[j][k][l].original.lat 
+									+ value * coords[j][k][l].real.lat;
+								coords[j][k][l].disp.lng = 
+									(1 - value) * coords[j][k][l].original.lng 
+									+ value * coords[j][k][l].real.lng;
+							}
+						}
+					}
+				}
+				else if (type === 'intermediateTarget') {
+					for(let j = 0; j < coords.length; j++) {
+						for(let k = 0; k < coords[j].length; k++) {
+							for(let l = 0; l < coords[j][k].length; l++) {
+								coords[j][k][l].disp.lat = 
+									(1 - value) * coords[j][k][l].original.lat 
+									+ value * coords[j][k][l].target.lat;
+								coords[j][k][l].disp.lng = 
+									(1 - value) * coords[j][k][l].original.lng 
+									+ value * coords[j][k][l].target.lng;
+							}
+						}
+					}
+				}
+				else {
+					for(let j = 0; j < coords.length; j++) {
+						for(let k = 0; k < coords[j].length; k++) {
+							for(let l = 0; l < coords[j][k].length; l++) {
+								coords[j][k][l].disp.lat = coords[j][k][l][type].lat;
+								coords[j][k][l].disp.lng = coords[j][k][l][type].lng;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/*calTargets() {
+		for(var i = 0; i < this.waterObject.length; i++) {
+
+			var geoType = this.waterObject[i].geoType
+			var coords = this.waterObject[i].coordinates
+			var obj = {'geoType':geoType, 'coordinates':new Array(coords.length)}
+			var target
+
+			if (geoType == 'Polygon') {
+				for(var j = 0; j < coords.length; j++) {
+					for(var k = 0; k < coords[j].length; k++) {
+						target = this.tg.graph.transform(
+							coords[j][k].original.lat, coords[j][k].original.lng)
+						coords[j][k].target.lat = target.lat
+						coords[j][k].target.lng = target.lng
+					}
+				}
+			} 
+			else if (geoType == 'MultiPolygon') {
+				for(var j = 0; j < coords.length; j++) {
+					for(var k = 0; k < coords[j].length; k++) {
+						for(var l = 0; l < coords[j][k].length; l++) {
+							target = this.tg.graph.transform(
+								coords[j][k][l].original.lat, coords[j][k][l].original.lng)
+							coords[j][k][l].target.lat = target.lat
+							coords[j][k][l].target.lng = target.lng
+						}
+					}
+				}
+			}
+		}
+	}*/
 
 
 	
@@ -326,9 +460,6 @@ class TGMapWater {
 
 		this.waterNodeLayer.setZIndex(1) // z-index of water node is 1
 		this.olMap.addLayer(this.waterNodeLayer)
-
-
-
 
 	}
 

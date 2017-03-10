@@ -26,6 +26,7 @@ class TGMapLocs {
 				this.localLocations.push(new Node(lat, lng))
 			}
 		}
+		//console.log(this.localLocations.length)
 
 	}
 

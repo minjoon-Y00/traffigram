@@ -1,0 +1,13 @@
+App ID
+YbrQpXXmE1UKSUEMMm8ErQ
+
+App Secret
+DKozFyLfqRXKELKWDteJAoaR7r9SbwoAxBpLI0UyVhkhlPmezob67tYPWL5VsUtB
+
+
+
+curl -X POST -H "Cache-Control: no-cache" -H "Postman-Token:Postman-Token" -H "Content-Type: application/x-www-form-urlencoded" -d 'client_id=YbrQpXXmE1UKSUEMMm8ErQ&client_secret=DKozFyLfqRXKELKWDteJAoaR7r9SbwoAxBpLI0UyVhkhlPmezob67tYPWL5VsUtB&grant_type=client_credentials' "https://api.yelp.com/oauth2/token"
+
+{"expires_in": 15550113, 
+"token_type": "Bearer", 
+"access_token": "Pmyvqe6JYD7YXMp4BqDV84a5id4--kQa8TZTar0uxXBK9L-0XjLGqF5Tx-yF6-BFxAC5mHs8OyHTIMunt3L4ESGZl_m0dRvdgN5Wnzy18a_c3SAtrJbyiBeXfA2iWHYx"}

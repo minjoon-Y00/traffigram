@@ -1,7 +1,7 @@
 const options = {
 	maxZoom: 18,
 	minZoom: 11,
-	zoom: 13, //14
+	zoom: 13,
 
 	type: {
 		motorway: 1,
@@ -19,12 +19,19 @@ const options = {
 	z: {
 		water: 0,
 		waterNode: 1,
-		road: 2,
-		roadNode: 3,
-		grid: 4,
-		controlPoint: 5,
-		location: 6,
-		centerPosition: 10,
+		landuse: 2,
+		residential: 5,
+		tertiary: 5,
+		secondary: 5,
+		primary: 5,
+		trunk: 6,
+		motorway: 7,
+		roadNode: 8,
+		grid: 10,
+		controlPoint: 15,
+		places: 19,
+		location: 20,
+		centerPosition: 50,
 	},
 
 	dispZoom: {
@@ -36,20 +43,23 @@ const options = {
 	},
 
 	color: {
-		water: 'rgba(146, 219, 238, 1)',
+		water: 'rgb(163, 204, 255)',
 		road: {
-			motorway: '#969696',
-			trunk: '#969696',
-			primary: '#969696',
-			secondary: '#969696',
-			tertiary: '#969696'
+			motorway: 'rgb(254, 216, 157)',
+			trunk: 'rgb(254, 241, 185)',
+			primary: '#FFF',
+			secondary: '#FFF',
+			tertiary: '#FFF',
+			residential: '#FFF',
 		},
+		landuse: 'rgb(203, 230, 163)',
+		places: '#686453', //'#000',
 
 		highway: '#969696',
 		arterial: '#969696',
 		link: '#BBB', //'#00ADEE'
 		node: '#A52A2A',
-		text: '#000',
+		text: '#686453', //'#000',
 		grid: '#FFA07A',
 
 		location: '#33cc33',
@@ -62,17 +72,18 @@ const options = {
 		road: {
 			motorway: 4,
 			trunk: 4,
-			primary: 1,
-			secondary: 1,
-			tertiary: 1
+			primary: 3,
+			secondary: 2,
+			tertiary: 2,
+			residential: 1,
 		},
 		highway: 1,
 		arterial: 1,
 		link: 1,
 		grid: 2,
 
-		locationLine: 1,
-		controlPointLine: 1,
+		locationLine: 2,
+		controlPointLine: 2,
 		
 	},
 
@@ -89,20 +100,25 @@ const options = {
 
 	font: {
 		text: '14px Source Sans Pro',
+		places: '14px Source Sans Pro',
 	},
 
 	center: {
-		seattle: {
-			lat: 47.6080445,
-			lng: -122.334108
+		seattle_uw: {
+			lat: 47.658316,
+			lng: -122.312035
 		},
-		NY: {
-			lat: 40.76702,
-			lng: -73.97644
+		seattle_downtown: {
+			lat: 47.6115744,
+			lng: -122.343777
 		},
-		SF: {
-			lat: 37.7794,
-			lng: -122.45636
+		ny_nyu: {
+			lat: 40.72946,
+			lng: -73.995708
+		},
+		sf_lombard: {
+			lat: 37.802139,
+			lng: -122.4209287
 		}
 	},
 
@@ -139,7 +155,8 @@ const options = {
 		clickSensibility: 0.01,
 		splitThreshold: 200,
 		timeToWaitForGettingWaterData: 0, // ms
-		timeToWaitForGettingRoadData: 20 // ms
+		timeToWaitForGettingRoadData: 50, // ms
+		timeToWaitForGettingData: 20 // ms
 	},
 
 }

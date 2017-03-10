@@ -26,32 +26,29 @@ function debug() {
 
 //
 //
-// Center Options
-//
-//
-$("#centerUWSeattleRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(47.658316, -122.312035)
-})
-
-$("#centerDowntownSeattleRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(47.6115744,-122.343777)
-})
-
-$("#centerNYUNYRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(40.72946, -73.995708)
-})
-
-$("#centerLombardSFRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenter(37.802139,-122.4209287)
-})
-
-//
-//
 // EM -> DC
 //
 //
+
+$("#emModeRB").change(function(ev){
+  if (ev.target.checked) tg.map.goToEm();
+})
+
+$("#dcModeRB").change(function(ev){
+  if (ev.target.checked) tg.map.goToDc();
+})
+
+
+/*$("#noIntersectionCB").change(function(ev){ 
+	tg.map.noIntersection = ev.target.checked
+});
+
 function getTravelTime() {
-	tg.data.getTravelTime()
+	tg.map.tgGrid.getTravelTime()
+}
+
+function saveTravelTime() {
+	tg.map.tgGrid.saveTravelTimeToFile()
 }
 
 function splitGrid() {
@@ -60,25 +57,67 @@ function splitGrid() {
 
 function calWarping() {
 	tg.graph.calWarping()
+
+	if (tg.map.noIntersection) {
+		tg.map.tgControl.makeNonIntersectedGrid();
+	}
+
 	tg.map.updateLayers()
 }
 
 function calTPS() {
-	tg.data.calTPS()
+	tg.graph.TPSSolve()
 
-	if (tg.data.testTPS()) console.log('TPS complete.')
+	if (tg.graph.TPSTest()) console.log('TPS complete.')
 	else console.log('TPS failed...')
 }
 
-function moveGrids() {
-	tg.data.moveGrids()
+function moveElements() {
+	tg.map.moveElements()
 	tg.map.updateLayers()
-}
+}*/
 
-function moveLocations() {
-	tg.data.moveLocations();
-	tg.map.updateLayers();
-}
+
+//
+//
+// Center Options
+//
+//
+$("#centerUWSeattleRB").change(function(ev){
+  if (ev.target.checked) tg.map.setArea('seattle_uw');
+})
+
+$("#centerDowntownSeattleRB").change(function(ev){
+  if (ev.target.checked) tg.map.setArea('seattle_downtown');
+})
+
+$("#centerNYUNYRB").change(function(ev){
+  if (ev.target.checked) tg.map.setArea('ny_nyu');
+})
+
+$("#centerLombardSFRB").change(function(ev){
+  if (ev.target.checked) tg.map.setArea('sf_lombard');
+})
+
+$("#centerYourPositionRB").change(function(ev){
+  if (ev.target.checked) tg.map.setCenterUserPosition();
+})
+
+//
+//
+// Intersection
+//
+//
+$("#intersectRB").change(function(ev){
+  if (ev.target.checked) tg.map.noIntersection = false;
+})
+
+$("#noIntersectRB").change(function(ev){
+  if (ev.target.checked) tg.map.noIntersection = true;
+})
+
+
+
 
 //
 //
@@ -150,57 +189,40 @@ $("#location1RB").change(function(ev){
 // Roads Options
 //
 //
-$("#roadAutoRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.data.autoSelectRoadLevel = true
-		tg.data.calLocalNodesRoads()
-		tg.map.updateLayers()
-	} 
+$("#roadTypeHighwayCB").change(function(ev){
+	if (ev.target.checked) tg.map.addRoadType('highway');
+	else tg.map.removeRoadType('highway');
+	tg.map.updateLayers();
 })
 
-$("#roadRawRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.data.autoSelectRoadLevel = false
-		tg.data.roadLevel = 'raw'
-		tg.data.calLocalNodesRoads()
-		tg.map.updateLayers()
-	} 
+$("#roadTypePrimaryCB").change(function(ev){
+	if (ev.target.checked) tg.map.addRoadType('primary');
+	else tg.map.removeRoadType('primary');
+	tg.map.updateLayers(); 
 })
 
-$("#road1RB").change(function(ev){
-	if (ev.target.checked) {
-		tg.data.autoSelectRoadLevel = false
-		tg.data.roadLevel = 'level1'
-		tg.data.calLocalNodesRoads()
-		tg.map.updateLayers()
-	} 
+$("#roadTypeSecondaryCB").change(function(ev){
+	if (ev.target.checked) tg.map.addRoadType('secondary');
+	else tg.map.removeRoadType('secondary');
+	tg.map.updateLayers(); 
 })
 
-$("#road2RB").change(function(ev){
-	if (ev.target.checked) {
-		tg.data.autoSelectRoadLevel = false
-		tg.data.roadLevel = 'level2'
-		tg.data.calLocalNodesRoads()
-		tg.map.updateLayers()
-	} 
+$("#roadTypeTertiaryCB").change(function(ev){
+	if (ev.target.checked) tg.map.addRoadType('tertiary');
+	else tg.map.removeRoadType('tertiary');
+	tg.map.updateLayers(); 
 })
 
-$("#road3RB").change(function(ev){
-	if (ev.target.checked) {
-		tg.data.autoSelectRoadLevel = false
-		tg.data.roadLevel = 'level3'
-		tg.data.calLocalNodesRoads()
-		tg.map.updateLayers()
-	} 
+$("#roadTypeResidentialCB").change(function(ev){
+	if (ev.target.checked) tg.map.addRoadType('residential');
+	else tg.map.removeRoadType('residential');
+	tg.map.updateLayers();  
 })
 
-$("#road4RB").change(function(ev){
-	if (ev.target.checked) {
-		tg.data.autoSelectRoadLevel = false
-		tg.data.roadLevel = 'level4'
-		tg.data.calLocalNodesRoads()
-		tg.map.updateLayers()
-	} 
+$("#roadTypeLinksCB").change(function(ev){
+	if (ev.target.checked) tg.map.addRoadType('links');
+	else tg.map.removeRoadType('links');
+	tg.map.updateLayers();  
 })
 
 /*var randomSlider = new Slider("#randomSlider");

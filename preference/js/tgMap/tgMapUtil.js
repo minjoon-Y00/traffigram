@@ -2,6 +2,12 @@ class TGMapUtil {
 	constructor(tg, map) {
 		this.tg = tg
 		this.map = map // OL map
+
+		this.lineStyle = this.lineStyleFunc;
+		this.nodeStyle = this.nodeStyleFunc;
+		this.polygonStyle = this.polygonStyleFunc;
+		this.imageStyle = this.imageStyleFunc;
+		this.textStyle = this.textStyleFunc;
 	}
 
 	addFeatureInFeatures(arr, geometry, styleFunc) {
@@ -29,6 +35,12 @@ class TGMapUtil {
 			str += (times[type].end - times[type].start) + ' ms.'
 		}
 		console.log(str)
+	}
+
+	addLayer(layer) {
+		if (layer) {
+			this.map.addLayer(layer);
+		}
 	}
 
 	removeLayer(layer) {

@@ -9,51 +9,117 @@ class Node {
 	}
 }
 
-class Grid {
-	constructor(BL, BR, TR, TL) {
-		this.BL = BL
-		this.BR = BR
-		this.TR = TR
-		this.TL = TL
-		this.level = 0
+class ControlPoint extends Node {
+	constructor(orgLat, orgLng) {
+		super(orgLat, orgLng);
+		this.connectedNodes = [];
+		this.index = -1;
 	}
 }
 
-class TravelTime {
+class TravelTimeApi {
 	constructor() {
-		this.locations = new Array(1);
+		this.centerLocation = {};
+		this.locations = [];
+		this.maxNumLocation = 48;
+		this.totalNumOfRequest = 0;
+		this.numOfRequest = 0;
+		this.timeoutTime = 500; //ms
+		this.times = [];
+		this.callbackFunction = null;
 	}
 
 	setStartLocation(lat, lng) {
-		this.locations[0] = {lat:lat, lon:lng};
+		this.centerLocation = {lat:lat, lon:lng};
 	}
 
-	addDestLocation(lat, lng) {
-		//this.locations.push({lat:lat, lon:lng});
-		this.locations.push({lat:lng, lon:lat});
+	addEndLocation(lat, lng) {
+		this.locations.push({lat:lat, lon:lng});
 	}
 
 	clearLocations() {
-		this.locations = new Array(1);
+		this.centerLocation = {};
+		this.locations = [];
 	}
 
-	clearDestLocations() {
-		var start = this.locations[0];
-		clearLocations();
-		setStartLocation(start.lat, start.lon);
+	clearEndLocations() {
+		this.locations = [];
 	}
 
-	getTravelTime(func) {
-		var json = {locations:this.locations, costing:'auto'};
-		var str = 'https://matrix.mapzen.com/one_to_many?json=';
+	getTravelTime(cb) {
+		//console.log('***');
+		//console.log(this.locations);
+
+		// [0, max) -> 1
+		// [max, max*2) -> 2
+		// ...
+		this.numOfRequest = 0;
+		this.totalNumOfRequest = parseInt(this.locations.length / this.maxNumLocation) + 1;
+		this.callbackFunction = cb;
+		this.queuedLocations = this.deepClone(this.locations);
+
+		this.requestTravelTime();
+	}
+
+	deepClone(input) {
+		return JSON.parse(JSON.stringify(input));
+	}
+
+	requestTravelTime() {
+		let locations;
+
+		// if locations.length > max (e.g. 49, 50, ...)
+		if (this.locations.length > this.maxNumLocation) {
+			locations = this.locations.slice(0, this.maxNumLocation); // [0, max) (e.g. [0, 47])
+			this.locations = this.locations.slice(this.maxNumLocation); // [max, len] (e.g. [48, ...])
+		}
+		// if queuedLocations.length <= max
+		else {
+			locations = this.locations;
+		}
+
+		locations.unshift(this.centerLocation);
+
+		console.log('locations: ');
+		console.log(locations);
+		console.log('this.locations: ');
+		console.log(this.locations);
+
+		const json = {locations:locations, costing:'auto'};
+		let str = 'https://matrix.mapzen.com/one_to_many?json=';
 		str += JSON.stringify(json);
 		//str += '&api_key=matrix-qUpjg6W';
 		str += '&api_key=matrix-AGvGZKs';
 
-		console.log(str);
-		$.get(str, function(data) {
-		  func(data);
-		});
+		//console.log(str);
+		$.get(str, this.processTravelTime.bind(this));
+	}
+
+	processTravelTime(result) {
+		console.log('result: ');
+		console.log(result);
+
+		for(let index = 1; index < result.one_to_many[0].length; index++) {
+			this.times.push(result.one_to_many[0][index].time);
+		}
+
+		//console.log('this.numOfRequest + 1: ' + this.numOfRequest + 1);
+		//console.log('this.totalNumOfRequest: ' + this.totalNumOfRequest);
+
+		if (++this.numOfRequest === this.totalNumOfRequest) {
+			this.finishGettingTravelTime();
+		}
+		else {
+			console.log('requesting...');
+			setTimeout(this.requestTravelTime.bind(this), this.timeoutTime);
+		}
+	}
+
+	finishGettingTravelTime() {
+		//func(data);
+		console.log('finished.');
+		console.log(this.times);
+		this.callbackFunction(this.times);
 	}
 }	
 

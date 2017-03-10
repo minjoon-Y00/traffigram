@@ -8,7 +8,7 @@
 	height:960px;
 	border-style: inset;
 	width: 100%;
-	background-color: rgba(255,255,255,1);
+	background-color: #EAEAEA; //rgba(234,234,234,1);
 	margin: 10px;
 }
 

@@ -13,38 +13,80 @@ class TGMap {
 	    })
 	  })
 
+		// modules
 
 		this.mapUtil = new TGMapUtil(tg, this.olMap)
 	  this.tgWater = new TGMapWater(tg, this.olMap, this.mapUtil)
 	  this.tgRoads = new TGMapRoads(tg, this.olMap, this.mapUtil)
-	  this.tgGrid = new TGMapGrid(tg, this.olMap, this.mapUtil)
+	  this.tgControl = new TGMapControl(tg, this.mapUtil)
 	  this.tgLocs = new TGMapLocs(tg, this.olMap, this.mapUtil)
+	  this.tgPlaces = new TGMapPlaces(tg, this.olMap, this.mapUtil);
+	  this.tgLanduse = new TGMapLanduse(tg, this.olMap, this.mapUtil);
 	  this.tgAux = new TGMapAux(tg, this.olMap, this.mapUtil)
 
-	  this.tgWater.start()
-	  //this.tgRoads.start()
-	  
-	  this.controlPoints = []
+	  // initialization
+
+	  this.tgWater.start();
+	  this.tgRoads.start();
+	  this.tgPlaces.start();
+	  this.tgLanduse.start();
+
+	  // variables
+
 	  this.centerPosition = {}
 
-	  this.dispGridLayer = true
-	  this.dispCenterPositionLayer = false
-	  this.dispControlPointLayer = true
-	  this.dispLocationLayer = false
+	  this.dispGridLayer = true;
+	  this.dispCenterPositionLayer = true;
+	  this.dispControlPointLayer = false;
+	  this.dispLocationLayer = false;
+	  this.noIntersection = true;
 
+	  this.currentMode = 'EM';
 		this.currentZoom = this.olMap.getView().getZoom()
 	  this.clickRange = {lat:0, lng:0}
 
 	  // Event Handlers
-
 		this.olMap.on('moveend', this.onMoveEnd.bind(this));
 		this.olMap.on('click', this.onClicked.bind(this));
+
+		this.times = {};
+		this.frame = 0; // [0 (EM), 10 (DC)]
+		this.timerFrame = null;
+		this.animationSpeed = 150; // ms
+		this.tpsReady = false;
+
+		this.displayString = 
+				{roadLoadingTime: 'Road Loading:', 
+				waterLoadingTime: 'Water Loading:', 
+				landuseLoadingTime: 'Landuse Loading:', 
+				placeLoadingTime: 'Place Loading:',
+				travelTimeLoadingTime: 'Travel Time Loading:', 
+				controlPointWarpingTime: 'Control Points Warping:',
+				tpsCalculatingTime: 'TPS Calculating:',
+				elementsWarpingTime: 'Elements Warping:',
+
+				numRoadLoading: '# of Road Loading:',
+				numWaterLoading: '# of Water Loading:',
+				numLanduseLoading: '# of Landuse Loading:',
+				numPlaceLoading: '# of Place Loading:',
+				numNewTravelTime: '# of New Travel Time:',
+			};
+
+		this.resetTime();
+
+
 	}
 
 	debug() {
-		console.log(this.tgWater.waterLayer.getZIndex())
+		//console.log(this.tgWater.waterLayer.getZIndex())
 		//console.log(this.tgRoads.roadLayer.getZIndex())
-		console.log(this.tgGrid.gridLayer.getZIndex())
+		//console.log(this.tgControl.gridLayer.getZIndex())
+
+		console.log(this.tgRoads.dispRoads);
+		console.log(this.tgWater.dispWater);
+
+		tg.util.saveTextAsFile(this.tgRoads.dispRoads, 'dispRoads.json');
+		tg.util.saveTextAsFile(this.tgRoads.dispWater, 'dispWater.json');
 	}
 
 
@@ -67,16 +109,38 @@ class TGMap {
 	// Recalculate information changed according to the interaction and draw it
 	//
 	recalculateAndDraw() {
-		console.log('recalculateAndDraw')
-		this.tgWater.resetTimes()
-		this.tgRoads.resetTimes()
-		this.calBoundaryBox()
-	  this.tgGrid.initGrids()
-	  this.tgLocs.calLocalLocations()
+		this.tpsReady = false;
+		this.resetTime();
+		this.resetDataInfo();
+		this.calBoundaryBox();
+	  this.tgControl.calculateControlPoints(() => {
 
-	  //this.tg.data.setTravelTime()
-	  this.updateLayers()
-		this.dispMapInfo()
+
+	  	this.tgLocs.calLocalLocations();
+
+		  if (this.tgRoads.roadLayer.motorway) {
+		  	this.tgRoads.setVisibleByCurrentZoom(this.currentZoom);
+		  }
+
+		  if (this.tgPlaces.placesLayer[this.tg.opt.minZoom]) {
+		  	this.tgPlaces.setVisibleByCurrentZoom(this.currentZoom);
+		  }
+
+		  if (this.currentMode === 'DC') {
+		  	this.currentMode = 'EM';
+		  	this.initElements();
+		  	this.goToDc();
+		  }
+		  else if (this.currentMode === 'EM') {
+		  	this.tgControl.calDispNodes('original');
+		  }
+
+			this.tgAux.drawCenterPositionLayer();
+
+		  this.updateLayers();
+			this.dispMapInfo();
+
+	  });	  
 	}
 
 
@@ -113,10 +177,27 @@ class TGMap {
 		*/
   }
 
+  setCenterUserPosition() {
+		if (!navigator.geolocation) {
+	    alert('Geolocation is not supported by this browser.');
+	    return;
+	  }
+	  navigator.geolocation.getCurrentPosition(saveCurrentLatLng.bind(this));
+
+	  function saveCurrentLatLng(position) {
+	  	this.setCenter(position.coords.latitude, position.coords.longitude);
+	  }
+  }
+
+  setArea(area) {
+		this.setCenter(this.tg.opt.center[area].lat, this.tg.opt.center[area].lng);
+	}
+
 	setCenter(lat, lng) {
 		this.olMap.getView().setCenter(ol.proj.fromLonLat([lng, lat]))
 		this.centerPosition.lng = lng
 		this.centerPosition.lat = lat
+		this.tgControl.setCenterPosition(lat, lng);
 	}
 
 	setZoom(zoom) {
@@ -149,14 +230,22 @@ class TGMap {
 	updateLayers() {
 		var s = (new Date()).getTime()
 
-	  if (this.dispGridLayer) this.tgGrid.drawGridLayer()
-		else this.tgGrid.removeGridLayer()
+		if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
+			if (this.currentMode === 'EM') this.tgControl.calDispNodes('original');
+			else if (this.currentMode === 'DC') {
+				if (this.noIntersection) this.tgControl.calDispNodes('real');
+				else this.tgControl.calDispNodes('target');
+			}
+		}
 
-		if (this.dispControlPointLayer) this.tgAux.drawControlPointLayer()
-		else this.tgAux.removeControlPointLayer()
+	  if (this.dispGridLayer) this.tgControl.drawGridLayer()
+		else this.tgControl.removeGridLayer()
 
-		if (this.dispCenterPositionLayer) this.tgAux.drawCenterPositionLayer()
-		else this.tgAux.removeCenterPositionLayer()
+		if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer()
+		else this.tgControl.removeControlPointLayer()
+
+		/*if (this.dispCenterPositionLayer) this.tgAux.drawCenterPositionLayer()
+		else this.tgAux.removeCenterPositionLayer()*/
 
 		if (this.dispLocationLayer) this.tgLocs.drawLocationLayer()
 		else this.tgLocs.removeLocationLayer()
@@ -179,5 +268,211 @@ class TGMap {
 			}
 		}
 	}*/
+
+	goToEm() {
+		if (this.currentMode === 'EM') return;
+
+  	//this.tgPlaces.calDispNodes('original');
+  	//this.tgPlaces.calDispPlaces(true);
+
+  	//this.tgLanduse.calDispNodes('original');
+  	//this.tgLanduse.calDispLanduse(true);
+
+		//this.initElements();
+		//this.updateLayers();
+
+		this.timerFrame = 
+				setInterval(this.moveElementsByFrame.bind(this, 'backward'), this.animationSpeed);
+
+		this.currentMode = 'EM';
+	}
+
+	goToDc() {
+		if (this.currentMode === 'DC') return;
+
+		if (!this.tpsReady) {
+			// cal warping
+			this.tg.graph.calWarping();
+			//if (this.noIntersection) {
+			this.tgControl.makeNonIntersectedGrid();
+			//}
+
+			// tps calculation
+			this.tg.graph.TPSSolve();
+			if (this.tg.graph.TPSTest()) {
+				console.log('TPS complete.');
+				this.tpsReady = true;
+			}
+			else console.log('TPS failed...');
+
+			
+		}
+
+		if (this.noIntersection) {
+			this.tgWater.calRealNodes();
+	  	this.tgRoads.calRealNodes();
+	  	this.tgPlaces.calRealNodes();
+	  	this.tgLanduse.calRealNodes();
+		}
+		else {
+			this.tgWater.calTargetNodes();
+	  	this.tgRoads.calTargetNodes();
+	  	this.tgPlaces.calTargetNodes();
+	  	this.tgLanduse.calTargetNodes();
+		}
+
+		this.timerFrame = 
+				setInterval(this.moveElementsByFrame.bind(this, 'forward'), this.animationSpeed);
+
+		this.currentMode = 'DC';
+	}
+
+	moveElementsByFrame(direction) {
+		this.setTime('elementsWarping', 'start', (new Date()).getTime());
+		this.frame += 1;
+
+		let value;
+		if (direction === 'forward') value = this.frame * 0.1;
+		else if (direction === 'backward') value = 1 - (this.frame * 0.1);
+
+		let intermediate;
+		if (this.noIntersection) intermediate = 'intermediateReal';
+		else intermediate = 'intermediateTarget';
+
+		this.tgWater.calDispNodes(intermediate, value);
+		this.tgWater.updateDispWater();
+		this.tgWater.addWaterLayer();
+
+		this.tgRoads.calDispNodes(intermediate, value);
+  	this.tgRoads.updateDispRoads();
+  	this.tgRoads.addRoadLayer();
+
+  	this.tgPlaces.calDispNodes(intermediate, value);
+  	this.tgPlaces.updateDispPlaces(true);
+  	this.tgPlaces.addPlacesLayer();
+
+  	this.tgLanduse.calDispNodes(intermediate, value);
+  	this.tgLanduse.updateDispLanduse(true);
+  	this.tgLanduse.addLanduseLayer();
+
+  	if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
+  		this.tgControl.calDispNodes(intermediate, value);
+
+  		if (this.dispGridLayer) this.tgControl.drawGridLayer();
+  		if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer();
+  	}
+  	
+
+  	this.setTime('elementsWarping', 'end', (new Date()).getTime());
+
+		if (this.frame >= 10) {
+			this.frame = 0;
+			clearInterval(this.timerFrame);
+			this.updateLayers();
+		} 
+	}
+
+	/*moveElements() {
+  	this.tgWater.calRealNodes();
+  	this.tgWater.calDispNodes('real');
+  	this.tgWater.updateDispWater();
+  	this.tgWater.addWaterLayer();
+
+  	this.tgRoads.calRealNodes();
+  	this.tgRoads.calDispNodes('real');
+  	this.tgRoads.updateDispRoads();
+  	this.tgRoads.addRoadLayer();
+
+  	this.tgPlaces.calRealNodes();
+  	this.tgPlaces.calDispNodes('real');
+  	this.tgPlaces.updateDispPlaces();
+  	this.tgPlaces.addPlacesLayer();
+
+  	this.tgLanduse.calRealNodes();
+  	this.tgLanduse.calDispNodes('real');
+  	this.tgLanduse.updateDispLanduse();
+  	this.tgLanduse.addLanduseLayer();
+	}*/
+
+	initElements() {
+  	this.tgWater.calDispNodes('original');
+  	this.tgWater.updateDispWater();
+  	this.tgWater.addWaterLayer();
+
+  	this.tgRoads.calDispNodes('original');
+  	this.tgRoads.updateDispRoads();
+  	this.tgRoads.addRoadLayer();
+
+  	this.tgPlaces.calDispNodes('original');
+  	this.tgPlaces.updateDispPlaces();
+  	this.tgPlaces.addPlacesLayer();
+
+  	this.tgLanduse.calDispNodes('original');
+  	this.tgLanduse.updateDispLanduse();
+  	this.tgLanduse.addLanduseLayer();
+
+  	this.tgControl.calDispNodes('original');
+	}
+
+	resetTime() {
+		const currentTime = (new Date()).getTime();
+		this.times = 
+				{roadLoading: {start:currentTime, end:currentTime}, 
+				waterLoading: {start:currentTime, end:currentTime},
+				landuseLoading: {start:currentTime, end:currentTime},
+				placeLoading: {start:currentTime, end:currentTime},
+				travelTimeLoading: {start:0, end:0},
+				controlPointWarping: {start:0, end:0},
+				tpsCalculating: {start:0, end:0},
+				elementsWarping: {start:0, end:0},
+			};
+
+		$('#roadLoadingTime').html(this.displayString.roadLoadingTime + ' - ms');
+		$('#waterLoadingTime').html(this.displayString.waterLoadingTime + ' - ms');
+		$('#landuseLoadingTime').html(this.displayString.landuseLoadingTime + ' - ms');
+		$('#placeLoadingTime').html(this.displayString.placeLoadingTime + ' - ms');
+		$('#travelTimeLoadingTime').html(this.displayString.travelTimeLoadingTime + ' - ms');
+		$('#controlPointWarpingTime').html(this.displayString.controlPointWarpingTime + ' - ms');
+		$('#tpsCalculatingTime').html(this.displayString.tpsCalculatingTime + ' - ms');
+		$('#elementsWarpingTime').html(this.displayString.elementsWarpingTime + ' - ms');
+	}
+
+	resetDataInfo() {
+		this.dataInfo = 
+				{numRoadLoading: 0, numWaterLoading: 0, numLanduseLoading: 0,
+				numPlaceLoading: 0, numNewTravelTime: 0,
+			}; 
+
+		$('#numRoadLoading').html(this.displayString.numRoadLoading + ' -');
+		$('#numWaterLoading').html(this.displayString.numWaterLoading + ' -');
+		$('#numLanduseLoading').html(this.displayString.numLanduseLoading + ' -');
+		$('#numPlaceLoading').html(this.displayString.numPlaceLoading + ' -');
+		$('#numNewTravelTime').html(this.displayString.numNewTravelTime + ' -');
+	}
+
+	setTime(type, se, time) {
+		this.times[type][se] = time;
+
+		if (se === 'end') {
+			let str = this.displayString[type + 'Time'];
+			str += ' ' + (this.times[type].end - this.times[type].start) + ' ms';
+			$('#' + type + 'Time').html(str);			
+		}
+	}
+
+	setDataInfo(type, action, value) {
+		switch(action) {
+			case 'increase' :
+				this.dataInfo[type]++;
+			break; 
+			case 'set' :
+				this.dataInfo[type] = value;
+			break;
+		}
+
+		const str = this.displayString[type] + ' ' + this.dataInfo[type];
+		$('#' + type).html(str);
+
+	}
 
 }

@@ -5,19 +5,23 @@ class TGMapRoads {
 		this.mapUtil = mapUtil
 
 		this.roadNodeLayer = null
-		this.roadLayer = null
-	  this.roadTypes = ['motorway', 'trunk', 'primary', 'secondary', 'tertiary']
-	  this.roadObject = {}
-	  this.dispRoads = {}
+	  this.roadTypes = 
+	  		['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'residential'];
+		this.roadLayer = {};
+	  this.roadObject = {};
+	  this.dispRoads = {};
   	this.timerGetRoadData = null
 
-  	for(var i = 0; i < this.roadTypes.length; i++) {
-			this.roadObject[this.roadTypes[i]] = []
+	  for(let type of this.roadTypes) {
+	  	this.roadLayer[type] = null;
+			this.roadObject[type] = [];
 		}
-
 	}
 
 	start() {
+
+		const s = (new Date()).getTime();
+
 		var roadSource = new ol.source.VectorTile({
 	    format: new ol.format.TopoJSON(),
 	    projection: 'EPSG:3857',
@@ -32,31 +36,28 @@ class TGMapRoads {
 		}))
 	}
 
-	resetTimes() {
-		this.times = {
-			'getRoadData':{'start':(new Date()).getTime(), 'end':0},
-  		'calRoadData':{'elapsed':0},
-  		'drawRoads':{'start':0, 'end':0}
-  	}
-	}
-
 	addToRoadObject(feature, resolution) {
 
-		//console.log('-')
-
-		if (this.timerGetRoadData) clearTimeout(this.timerGetRoadData)
-		this.timerGetRoadData = setTimeout(this.calDispRoads.bind(this), 
-			this.tg.opt.constant.timeToWaitForGettingRoadData)
+		const s = (new Date()).getTime();
+		
+		if (this.timerGetRoadData) clearTimeout(this.timerGetRoadData);
+		this.timerGetRoadData = 
+				setTimeout(
+						this.createDispRoads.bind(this), 
+						this.tg.opt.constant.timeToWaitForGettingRoadData);
 
 		var kind = feature.get('kind')
 
 		// only highway and major_road are considered.
-		if ((kind != 'highway')&&(kind != 'major_road')) return null
+		//if ((kind != 'highway')&&(kind != 'major_road')) return null
 
 		var kind_detail = feature.get('kind_detail')
 
+		//console.log(kind_detail);
+
 		// only types we want to consider are passed.
-		if (this.roadTypes.indexOf(kind_detail) < 0) return null
+		if (this.roadTypes.indexOf(kind_detail) < 0) return null;
+
 
 		var geoType = feature.getGeometry().getType()
 
@@ -86,15 +87,20 @@ class TGMapRoads {
 
 		this.roadObject[kind_detail].push(obj)	
 
+		const e = (new Date()).getTime();
+		//console.log('addToRoadObject: ' + (e - s) + ' ms');
+
 		return null
 	}
 
-	calDispRoads() {
+	createDispRoads() {
 
-		console.log('finish getting road data.')
-		
-		var s = (new Date()).getTime()
-		this.times.getRoadData.end = s
+		const s = (new Date()).getTime();
+
+		const t = (new Date()).getTime();
+		this.tg.map.setDataInfo('numRoadLoading', 'increase');
+		this.tg.map.setTime('roadLoading', 'end', t);
+
 		for(var i = 0; i < this.roadTypes.length; i++) {
 			this.dispRoads[this.roadTypes[i]] = []
 		}
@@ -107,7 +113,7 @@ class TGMapRoads {
 
 				if (geoType == 'LineString') {
 					for(var j = 0; j < coords.length; j++) {
-						obj.coordinates[j] = [coords[j].original.lng, coords[j].original.lat]
+						obj.coordinates[j] = [coords[j].disp.lng, coords[j].disp.lat]
 					}
 				} 
 				else if (geoType == 'MultiLineString') {
@@ -116,7 +122,7 @@ class TGMapRoads {
 
 						for(var k = 0; k < coords[j].length; k++) {
 							obj.coordinates[j][k] 
-								= [coords[j][k].original.lng, coords[j][k].original.lat]
+								= [coords[j][k].disp.lng, coords[j][k].disp.lat]
 						}
 					}
 				}
@@ -124,34 +130,68 @@ class TGMapRoads {
 			}
 		}
 
-		this.times.calRoadData.elapsed += (new Date()).getTime() - s
-
-		//console.log('# of dispRoads : ' + this.dispRoads.length)
-
-
 		this.addRoadLayer()
 		//this.addRoadNodeLayer()
+
+		const e = (new Date()).getTime();
+		console.log('createDispRoads: ' + (e - s) + ' ms');
+
+	}
+
+	updateDispRoads() {
+
+		const s = (new Date()).getTime();
+
+		for(let kind in this.roadObject) {
+			for(let i = 0; i < this.roadObject[kind].length; i++) {
+				const geoType = this.roadObject[kind][i].geoType;
+				const coords = this.roadObject[kind][i].coordinates;
+
+				if (!this.dispRoads[kind][i]) {
+					console.log('no this.dispRoads[kind][i]');
+					console.log('i: ' + i);
+					console.log(this.dispRoads[kind][i]);
+					continue;
+				}
+
+				if (geoType === 'LineString') {
+					for(let j = 0; j < coords.length; j++) {
+						this.dispRoads[kind][i].coordinates[j] = 
+								[coords[j].disp.lng, coords[j].disp.lat];
+					}
+				} 
+				else if (geoType === 'MultiLineString') {
+					for(let j = 0; j < coords.length; j++) {
+						for(let k = 0; k < coords[j].length; k++) {
+							this.dispRoads[kind][i].coordinates[j][k] =
+									[coords[j][k].disp.lng, coords[j][k].disp.lat];
+						}
+					}
+				}
+			}
+		}
+
+		const e = (new Date()).getTime();
+		console.log('updateDispRoads: ' + (e - s) + ' ms');
 	}
 
 	//
 	addRoadLayer() {
-		this.times.drawRoads.start = (new Date()).getTime()
+
+		const s = (new Date()).getTime();
+
 		var arr = []
 		var styleFunc
 
-		this.mapUtil.removeLayer(this.roadLayer)
+	  for(let type of this.roadTypes) {
+	  	this.mapUtil.removeLayer(this.roadLayer[type]);
+		}
 
 		for(var kind in this.dispRoads) {
 			styleFunc = this.mapUtil.lineStyleFunc(
 				this.tg.opt.color.road[kind], this.tg.opt.width.road[kind])
 
 			for(var i = 0; i < this.dispRoads[kind].length; i++) {
-
-				//if (!this.dispRoads[kind][i].visible) {
-				//	console.log('not visible.')
-				//	continue
-				//}
-
 				if (this.dispRoads[kind][i].geoType == 'LineString') {
 					this.mapUtil.addFeatureInFeatures(arr,
 						new ol.geom.LineString(this.dispRoads[kind][i].coordinates), styleFunc)
@@ -161,19 +201,153 @@ class TGMapRoads {
 						new ol.geom.MultiLineString(this.dispRoads[kind][i].coordinates), styleFunc)
 				}
 			}
+			this.roadLayer[kind] = this.mapUtil.olVectorFromFeatures(arr)
+			this.roadLayer[kind].setZIndex(this.tg.opt.z[kind]);
+			this.setVisibleByCurrentZoom(tg.map.currentZoom);
+			this.olMap.addLayer(this.roadLayer[kind])
 		}
 
-		console.log(arr.length)
+		const e = (new Date()).getTime();
+		console.log('addRoadLayer: ' + (e - s) + ' ms');
+	}
 
-		this.roadLayer = this.mapUtil.olVectorFromFeatures(arr)
-		this.roadLayer.setZIndex(this.tg.opt.z.road)
-		this.olMap.addLayer(this.roadLayer)
-		this.times.drawRoads.end = (new Date()).getTime()
+	setVisibleByCurrentZoom(currentZoom) {
+  	for(let type of this.roadTypes) {
+		  if (this.roadLayer[type])
+				this.roadLayer[type].setVisible(true);
+  	}
 
-		// Display time
-		this.mapUtil.printElapsedTime(this.times, 'getRoadData')
-		this.mapUtil.printElapsedTime(this.times, 'calRoadData')
-		this.mapUtil.printElapsedTime(this.times, 'drawRoads')
+  	switch(currentZoom) {
+  		case 11:
+  		case 12: // when zoom = 11 or 12, no secondary, tertiary and residential.
+				if (this.roadLayer.secondary)
+					this.roadLayer.secondary.setVisible(false);
+				// pass through
+			case 13: // when zoom = 13, no tertiary and residential.
+				if (this.roadLayer.tertiary)
+					this.roadLayer.tertiary.setVisible(false);
+				// pass through
+  		case 14: // when zoom = 14, no residential.
+	  		if (this.roadLayer.residential)
+					this.roadLayer.residential.setVisible(false);
+				break;
+  	}
+	}
+
+	calRealNodes() {
+		this.calModifiedNodes('real');
+	}
+
+	calTargetNodes() {
+		this.calModifiedNodes('target');
+	}
+
+	calModifiedNodes(type) {
+
+		const s = (new Date()).getTime();
+
+		let transformFuncName;
+		if (type === 'real') transformFuncName = 'transformReal';
+		else if (type === 'target') transformFuncName = 'transformTarget';
+		else throw 'ERROR in calModifiedNodes()';
+
+		const transform = this.tg.graph[transformFuncName].bind(this.tg.graph);
+
+		for(let kind in this.roadObject) {
+			for(let road of this.roadObject[kind]) {
+				let coords = road.coordinates;
+				let modified;
+
+				if (road.geoType === 'LineString') {
+					for(let j = 0; j < coords.length; j++) {
+						modified = transform(coords[j].original.lat, coords[j].original.lng);
+						coords[j][type].lat = modified.lat;
+						coords[j][type].lng = modified.lng;
+					}
+				} 
+				else if (road.geoType === 'MultiLineString') {
+					for(let j = 0; j < coords.length; j++) {
+						for(let k = 0; k < coords[j].length; k++) {
+							modified = transform(coords[j][k].original.lat, coords[j][k].original.lng);
+							coords[j][k][type].lat = modified.lat;
+							coords[j][k][type].lng = modified.lng;
+						}
+					}
+				}
+			}
+		}
+
+		const e = (new Date()).getTime();
+		console.log('calModifiedNodes: ' + (e - s) + ' ms');
+	}
+
+	calDispNodes(type, value) {
+
+		const s = (new Date()).getTime();
+
+		for(let kind in this.roadObject) {
+			for(let road of this.roadObject[kind]) {
+				let coords = road.coordinates;
+
+				if (road.geoType === 'LineString') {
+					if (type === 'intermediateReal') {
+						for(let j = 0; j < coords.length; j++) {
+							coords[j].disp.lat = 
+								(1 - value) * coords[j].original.lat + value * coords[j].real.lat;
+							coords[j].disp.lng = 
+								(1 - value) * coords[j].original.lng + value * coords[j].real.lng;
+						}
+					}
+					else if (type === 'intermediateTarget') {
+						for(let j = 0; j < coords.length; j++) {
+							coords[j].disp.lat = 
+								(1 - value) * coords[j].original.lat + value * coords[j].target.lat;
+							coords[j].disp.lng = 
+								(1 - value) * coords[j].original.lng + value * coords[j].target.lng;
+						}
+					}
+					else {
+						for(let j = 0; j < coords.length; j++) {
+							coords[j].disp.lat = coords[j][type].lat;
+							coords[j].disp.lng = coords[j][type].lng;
+						}
+					}
+				} 
+				else if (road.geoType === 'MultiLineString') {
+					if (type === 'intermediateReal') {
+						for(let j = 0; j < coords.length; j++) {
+							for(let k = 0; k < coords[j].length; k++) {
+								coords[j][k].disp.lat = 
+									(1 - value) * coords[j][k].original.lat + value * coords[j][k].real.lat;
+								coords[j][k].disp.lng = 
+									(1 - value) * coords[j][k].original.lng + value * coords[j][k].real.lng;
+							}
+						}
+					}
+					else if (type === 'intermediateTarget') {
+						for(let j = 0; j < coords.length; j++) {
+							for(let k = 0; k < coords[j].length; k++) {
+								coords[j][k].disp.lat = 
+									(1 - value) * coords[j][k].original.lat + value * coords[j][k].target.lat;
+								coords[j][k].disp.lng = 
+									(1 - value) * coords[j][k].original.lng + value * coords[j][k].target.lng;
+							}
+						}
+					}
+					else {
+						for(let j = 0; j < coords.length; j++) {
+							for(let k = 0; k < coords[j].length; k++) {
+								coords[j][k].disp.lat = coords[j][k][type].lat;
+								coords[j][k].disp.lng = coords[j][k][type].lng;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		const e = (new Date()).getTime();
+		//console.log('calDispNodes: ' + (e - s) + ' ms');
 	}
 
 	addRoadNodeLayer() {
