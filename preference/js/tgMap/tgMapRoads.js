@@ -19,10 +19,7 @@ class TGMapRoads {
 	}
 
 	start() {
-
-		const s = (new Date()).getTime();
-
-		var roadSource = new ol.source.VectorTile({
+		const roadSource = new ol.source.VectorTile({
 	    format: new ol.format.TopoJSON(),
 	    projection: 'EPSG:3857',
 	    tileGrid: new ol.tilegrid.createXYZ({maxZoom: 22}),
@@ -58,6 +55,25 @@ class TGMapRoads {
 		// only types we want to consider are passed.
 		if (this.roadTypes.indexOf(kind_detail) < 0) return null;
 
+		switch(kind_detail) {
+			case 'motorway':
+				// fall through
+			case 'trunk':
+				this.tg.map.setDataInfo('numHighwayLoading', 'increase');
+				break;
+			case 'primary':
+				this.tg.map.setDataInfo('numPrimaryLoading', 'increase');
+				break;	
+			case 'secondary':
+				this.tg.map.setDataInfo('numSecondaryLoading', 'increase');
+				break;		
+			case 'tertiary':
+				this.tg.map.setDataInfo('numTertiaryLoading', 'increase');
+				break;
+			case 'residential':
+				this.tg.map.setDataInfo('numResidentialLoading', 'increase');
+				break;
+		}
 
 		var geoType = feature.getGeometry().getType()
 

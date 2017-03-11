@@ -14,6 +14,7 @@ class ControlPoint extends Node {
 		super(orgLat, orgLng);
 		this.connectedNodes = [];
 		this.index = -1;
+		this.intersected = false;
 	}
 }
 

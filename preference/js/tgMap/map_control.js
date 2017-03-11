@@ -21,6 +21,12 @@ class TGMapControl {
 		 */
 	  this.controlPoints = [];
 
+	  /** 
+		 * one dimension array for Grid Lines.
+		 * @type {Array<ObjTypes>} 
+		 */
+	  this.gridLines_ = [];
+
 		/** 
 		 * number of control points in a row. (horizontally)
 		 * @private @type {number} 
@@ -51,8 +57,8 @@ class TGMapControl {
 	 */
 	calculateControlPoints(cb) {
 		// make a control point array.
-		const latFactor = 0.02 / 1; //0.01;
-		const lngFactor = 0.026 / 1; //0.013;
+		const latFactor = 0.02 / 2; //0.01;
+		const lngFactor = 0.026 / 2; //0.013;
 
 		const box = this.tg_.opt.box;
 		const eps = 0.000001;
@@ -100,6 +106,27 @@ class TGMapControl {
 			this.numLatInColumn_++;
 		}
 
+		// make an array for grid lines
+		this.gridLines_ = [];
+
+		for(let indexLat = 0; indexLat < this.numLatInColumn_ - 1; indexLat++) {
+			for(let indexLng = 0; indexLng < this.numLngInRow_; indexLng++) {
+				this.gridLines_.push({
+					start: this.getControlPoint2D_(indexLat, indexLng),
+					end: this.getControlPoint2D_(indexLat + 1, indexLng),
+				})
+			}
+		}
+
+		for(let indexLat = 0; indexLat < this.numLatInColumn_; indexLat++) {
+			for(let indexLng = 0; indexLng < this.numLngInRow_ - 1; indexLng++) {
+				this.gridLines_.push({
+					start: this.getControlPoint2D_(indexLat, indexLng),
+					end: this.getControlPoint2D_(indexLat, indexLng + 1),
+				})
+			}
+		}
+
 		/*console.log('box.top: ' + box.top); // 40.7914382000846
 		console.log('box.bottom): ' + box.bottom); // 40.66742401978021
 		console.log('box.right): ' + box.right); // -73.947356711586
@@ -112,7 +139,11 @@ class TGMapControl {
 		// -74.04, -74.02, -74.0, -73.98, -73.96,
 		console.log('numLngInRow: ' + this.numLngInRow_);
 		console.log('numLatInColumn: ' + this.numLatInColumn_);
+		console.log('# of controlPoints: ' + this.controlPoints.length);
+		console.log('# of gridLines: ' + this.gridLines_.length);
 		console.log(this.controlPoints);
+		console.log(this.gridLines_);
+
 
 		// find connected nodes per each control point.
 		for(let indexLat = 0; indexLat < this.numLatInColumn_; indexLat++) {
@@ -440,7 +471,7 @@ class TGMapControl {
 
 			// add text
 			let text = (point.travelTime != null) ? point.travelTime.toString() : '-';
-			//text += ',' + point.index;
+			text += ',' + point.index;
 			this.mapUtil_.addFeatureInFeatures(
 					features,
 					new ol.geom.Point(
@@ -468,7 +499,19 @@ class TGMapControl {
 		const opt = this.tg_.opt;
 		let features = [];
 
-		for(let point of this.controlPoints) {
+		for(let line of this.gridLines_) {
+			this.mapUtil_.addFeatureInFeatures(
+					features, 
+					new ol.geom.LineString(
+							[[line.start.disp.lng, line.start.disp.lat], 
+							[line.end.disp.lng, line.end.disp.lat]]), 
+							this.mapUtil_.lineStyle(opt.color.grid, opt.width.grid));
+		}
+
+
+
+
+		/*for(let point of this.controlPoints) {
 			for(let neighbor of point.connectedNodes) {
 				this.mapUtil_.addFeatureInFeatures(
 						features, 
@@ -476,7 +519,7 @@ class TGMapControl {
 								[[point.disp.lng, point.disp.lat], [neighbor.disp.lng, neighbor.disp.lat]]), 
 								this.mapUtil_.lineStyle(opt.color.grid, opt.width.grid));
 			}			
-		}
+		}*/
 
 		this.removeGridLayer();
 		this.gridLayer_ = this.mapUtil_.olVectorFromFeatures(features);
@@ -516,12 +559,95 @@ class TGMapControl {
 
 	getIJ(idx) {
 		return {
-			i:parseInt(idx / (this.tg_.opt.resolution.gridLng + 1)), 
-			j:idx % (this.tg_.opt.resolution.gridLng + 1)
+			i: parseInt(idx / (this.tg_.opt.resolution.gridLng + 1)), 
+			j: idx % (this.tg_.opt.resolution.gridLng + 1)
 		}
 	}
 
 	makeNonIntersectedGrid() {
+		//const s = (new Date()).getTime();
+
+		const dt = 0.1;
+		const eps = 0.000001;
+		const margin = 0.0; //0.3;
+		const setRealPosition = function(point, pct) {
+			point.real.lat = point.original.lat * (1 - pct) + point.target.lat * pct;
+			point.real.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
+		}
+
+		// 0.1, ..., 0.7 (if margin = 0.3)
+		for(let pct = dt; pct + margin < 1 + eps; pct += dt) {
+			console.log('pct = ' + pct);
+
+			// change the real position of all control points.
+			for(let point of this.controlPoints) {
+				if (!point.intersected) {
+					setRealPosition(point, pct);
+				}
+				else {
+					//console.log('frozen: ' + point.index);
+				}
+			}
+
+			// TODO: Check lat, lng before calculating intersections
+			// check intersections between grid lines.
+			for(let line1 of this.gridLines_) {
+				for(let line2 of this.gridLines_) {
+
+					//if ((line1.start.intersected)||(line1.end.intersected)||
+						//(line2.start.intersected)||(line2.end.intersected)) continue;
+
+					if (tg.util.intersects(
+							line1.start.real.lat, line1.start.real.lng, 
+							line1.end.real.lat, line1.end.real.lng, 
+							line2.start.real.lat, line2.start.real.lng, 
+							line2.end.real.lat, line2.end.real.lng)) {
+
+						if ((line1.end.index !== line2.start.index)
+								&&(line1.start.index !== line2.end.index)) {
+
+							// if intersected, move it back.
+
+							if (!line1.start.intersected) {
+								setRealPosition(line1.start, pct - dt);
+								line1.start.intersected = true;
+							}
+
+							if (!line1.end.intersected) {
+								setRealPosition(line1.end, pct - dt);
+								line1.end.intersected = true;
+							}
+
+							if (!line2.start.intersected) {
+								setRealPosition(line2.start, pct - dt);
+								line2.start.intersected = true;
+							}
+
+							if (!line2.end.intersected) {
+								setRealPosition(line2.end, pct - dt);
+								line2.end.intersected = true;
+							}
+
+							//console.log('intersected: ');
+							//console.log(line1.start.index + ' ' + line1.end.index);
+							//console.log(line2.start.index + ' ' + line2.end.index);
+						}
+					}
+				}
+			}
+
+		}
+		//const e = (new Date()).getTime();
+		//console.log('### time: ' + (e - s) + ' ms.');
+	}
+
+
+
+
+	/*_makeNonIntersectedGrid() {
+
+		const s = (new Date()).getTime();
+
 		const ctlPt = this.controlPoints;
 		const dt = 0.5;
 		let nextLat;
@@ -622,18 +748,10 @@ class TGMapControl {
 									intersected = true;
 								}
 								//console.log('step 3 = ' + connectedControlPointStep3.index)
-
-
 							}
 						} 
-
-
-
 					}
-
-
 				}
-
 
 				if (intersected) {
 					//ctlPt[i].real.lat 
@@ -643,13 +761,12 @@ class TGMapControl {
 
 					ctlPt[i].intersected = true;
 				}
-
 			}
-
 		}
+		const e = (new Date()).getTime();
+		console.log('### time: ' + (e - s) + ' ms.');
+	}*/
 
-
-	}
 
 
 }

@@ -65,7 +65,12 @@ class TGMap {
 				tpsCalculatingTime: 'TPS Calculating:',
 				elementsWarpingTime: 'Elements Warping:',
 
-				numRoadLoading: '# of Road Loading:',
+				numRoadLoading: '# of Road:',
+				numHighwayLoading: '# of Highway:',
+        numPrimaryLoading: '# of Primary Road:',
+        numSecondaryLoading: '# of Secondary Road:',
+        numTertiaryLoading: '# of Tertiary Road:',
+        numResidentialLoading: '# of Residential Road:',
 				numWaterLoading: '# of Water Loading:',
 				numLanduseLoading: '# of Landuse Loading:',
 				numPlaceLoading: '# of Place Loading:',
@@ -427,27 +432,31 @@ class TGMap {
 				elementsWarping: {start:0, end:0},
 			};
 
-		$('#roadLoadingTime').html(this.displayString.roadLoadingTime + ' - ms');
+		for(let time in this.times) {
+			$('#' + time + 'Time').html(this.displayString[time + 'Time'] + ' - ms');
+		}
+
+		/*$('#roadLoadingTime').html(this.displayString.roadLoadingTime + ' - ms');
 		$('#waterLoadingTime').html(this.displayString.waterLoadingTime + ' - ms');
 		$('#landuseLoadingTime').html(this.displayString.landuseLoadingTime + ' - ms');
 		$('#placeLoadingTime').html(this.displayString.placeLoadingTime + ' - ms');
 		$('#travelTimeLoadingTime').html(this.displayString.travelTimeLoadingTime + ' - ms');
 		$('#controlPointWarpingTime').html(this.displayString.controlPointWarpingTime + ' - ms');
 		$('#tpsCalculatingTime').html(this.displayString.tpsCalculatingTime + ' - ms');
-		$('#elementsWarpingTime').html(this.displayString.elementsWarpingTime + ' - ms');
+		$('#elementsWarpingTime').html(this.displayString.elementsWarpingTime + ' - ms');*/
 	}
 
 	resetDataInfo() {
 		this.dataInfo = 
-				{numRoadLoading: 0, numWaterLoading: 0, numLanduseLoading: 0,
-				numPlaceLoading: 0, numNewTravelTime: 0,
-			}; 
+				{numRoadLoading: 0, numHighwayLoading: 0, numPrimaryLoading: 0,
+					numSecondaryLoading: 0, numTertiaryLoading: 0, numResidentialLoading: 0,
+					numWaterLoading: 0, numLanduseLoading: 0,
+					numPlaceLoading: 0, numNewTravelTime: 0,
+				}; 
 
-		$('#numRoadLoading').html(this.displayString.numRoadLoading + ' -');
-		$('#numWaterLoading').html(this.displayString.numWaterLoading + ' -');
-		$('#numLanduseLoading').html(this.displayString.numLanduseLoading + ' -');
-		$('#numPlaceLoading').html(this.displayString.numPlaceLoading + ' -');
-		$('#numNewTravelTime').html(this.displayString.numNewTravelTime + ' -');
+		for(let info in this.dataInfo) {
+			$('#' + info).html(this.displayString[info] + ' -');
+		}
 	}
 
 	setTime(type, se, time) {
