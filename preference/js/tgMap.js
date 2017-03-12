@@ -52,7 +52,7 @@ class TGMap {
 		this.times = {};
 		this.frame = 0; // [0 (EM), 10 (DC)]
 		this.timerFrame = null;
-		this.animationSpeed = 150; // ms
+		this.animationSpeed = 100; // ms
 		this.tpsReady = false;
 
 		this.displayString = 
@@ -334,7 +334,7 @@ class TGMap {
 
 	moveElementsByFrame(direction) {
 		this.setTime('elementsWarping', 'start', (new Date()).getTime());
-		this.frame += 1;
+		this.frame += 2;
 
 		let value;
 		if (direction === 'forward') value = this.frame * 0.1;

@@ -1,6 +1,6 @@
 const options = {
 	maxZoom: 18,
-	minZoom: 11,
+	minZoom: 8,
 	zoom: 13,
 
 	type: {

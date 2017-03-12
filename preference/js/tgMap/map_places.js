@@ -4,10 +4,9 @@ class TGMapPlaces {
 		this.olMap = olMap;
 		this.mapUtil = mapUtil;
 
-		this.placesLayer = {};
-	  this.placesObject = {};
 	  this.placesZooms = [];
-	  this.dispPlaces = {};
+	  this.placesObjects = {};
+		this.placesLayer = {};
   	this.timerGetPlacesData = null;
 
   	for(let zoom = tg.opt.minZoom; zoom <= tg.opt.maxZoom; zoom++) {
@@ -16,9 +15,8 @@ class TGMapPlaces {
 
 	  for(let zoom of this.placesZooms) {
 	  	this.placesLayer[zoom] = {};
-  		this.placesObject[zoom] = {};
+  		this.placesObjects[zoom] = {};
   	}
-
 	}
 
 	start() {
@@ -34,14 +32,6 @@ class TGMapPlaces {
 		  source: source,
 		  style: this.addToPlacesObject.bind(this),
 		}));
-
-		//source.on('tileloadstart', function(){
-			//console.log('@@@@@@ tileloadstart');
-		//});
-
-		//source.on('tileloadend', function(){
-			//console.log('@@@@@@ tileloadend');
-		//});
 	}
 
 	addToPlacesObject(feature, resolution) {
@@ -65,12 +55,19 @@ class TGMapPlaces {
 		const coords = feature.getGeometry().getCoordinates();
 
   	for(let zoom = minZoom; zoom <= maxZoom; zoom++) {
-  		if (this.placesObject[zoom][name]) return null;
+  		if (this.placesObjects[zoom][name]) return null;
 
-  		this.placesObject[zoom][name] = 
-					{kind: kind, minZoom: minZoom, maxZoom: maxZoom,
-					coordinates: new Node(coords[1], coords[0])};
+  		//for(let i = 0; i < coords.length; i++) {
+				//coords[i].node = new Node(coords[i][1], coords[i][0]);
+  		//}
+			coords.node = new Node(coords[1], coords[0]);
+
+	  	this.placesObjects[zoom][name] = coords;
   	}
+
+  	//this.placesObjects[zoom][name] = 
+				//{kind: kind, minZoom: minZoom, maxZoom: maxZoom,
+				//coordinates: new Node(coords[1], coords[0])};
 
 		//const kind_detail = feature.get('kind_detail');
 		//const currentZoom = tg.map.currentZoom;
@@ -87,45 +84,19 @@ class TGMapPlaces {
 	}
 
 	createDispPlaces() {
-		const t = (new Date()).getTime();
 		this.tg.map.setDataInfo('numPlaceLoading', 'increase');
-		this.tg.map.setTime('placeLoading', 'end', t);
+		this.tg.map.setTime('placeLoading', 'end', (new Date()).getTime());
 
-		for(let zoom of this.placesZooms) {
-	  	this.dispPlaces[zoom] = [];
-  	}
-
-		for(let zoom of this.placesZooms) {
-			for(let name in this.placesObject[zoom]) {
-				this.dispPlaces[zoom].push(
-						{name: name, 
-						coordinates: [this.placesObject[zoom][name].coordinates.disp.lng, 
-								this.placesObject[zoom][name].coordinates.disp.lat]});
-			}
-		}
-
-		//console.log(this.placesObject);
-		//console.log(this.dispPlaces);
-
+		this.updateDispPlaces();
 		this.addPlacesLayer();
 	}
 
 	updateDispPlaces() {
 		for(let zoom of this.placesZooms) {
-			let index = 0;
-			for(let name in this.placesObject[zoom]) {
-
-				if (!this.dispPlaces[zoom][index]) {
-					console.log('no this.dispPlaces[zoom][index]');
-					console.log('index: ' + index);
-					console.log(this.dispPlaces[zoom][index]);
-					continue;
-				}
-
-				this.dispPlaces[zoom][index].coordinates = 
-						[this.placesObject[zoom][name].coordinates.disp.lng, 
-								this.placesObject[zoom][name].coordinates.disp.lat];
-				index++;
+			for(let name in this.placesObjects[zoom]) {
+				const place = this.placesObjects[zoom][name];
+				place[0] = place.node.disp.lng;
+				place[1] = place.node.disp.lat;
 			}
 		}
 	}
@@ -140,12 +111,13 @@ class TGMapPlaces {
 		}
 
 		for(let zoom of this.placesZooms) {
-			for(let place of this.dispPlaces[zoom]) {
+			for(let name in this.placesObjects[zoom]) {
+				const place = this.placesObjects[zoom][name];
 				const styleFunc = this.mapUtil.textStyleFunc(
-						place.name, this.tg.opt.color.places, this.tg.opt.font.places);
+						name, this.tg.opt.color.places, this.tg.opt.font.places);
 
-				this.mapUtil.addFeatureInFeatures(arr,
-						new ol.geom.Point(place.coordinates), styleFunc);
+				this.mapUtil.addFeatureInFeatures(
+					arr, new ol.geom.Point(place), styleFunc);
 			}
 
 			this.placesLayer[zoom] = this.mapUtil.olVectorFromFeatures(arr);
@@ -180,53 +152,53 @@ class TGMapPlaces {
 		this.calModifiedNodes('target');
 	}
 
-	calModifiedNodes(type) {
+	calModifiedNodes(kind) {
 		let transformFuncName;
-		if (type === 'real') transformFuncName = 'transformReal';
-		else if (type === 'target') transformFuncName = 'transformTarget';
+		if (kind === 'real') transformFuncName = 'transformReal';
+		else if (kind === 'target') transformFuncName = 'transformTarget';
 		else throw 'ERROR in calModifiedNodes()';
 
 		const transform = this.tg.graph[transformFuncName].bind(this.tg.graph);
 
 		for(let zoom of this.placesZooms) {
-			for(let name in this.placesObject[zoom]) {
-				let coords = this.placesObject[zoom][name].coordinates;
-				const modified = transform(coords.original.lat, coords.original.lng);
-				coords[type].lat = modified.lat;
-				coords[type].lng = modified.lng;
+			for(let name in this.placesObjects[zoom]) {
+				let place = this.placesObjects[zoom][name];
+				const modified = transform(place.node.original.lat, place.node.original.lng);
+				place.node[kind].lat = modified.lat;
+				place.node[kind].lng = modified.lng;
 			}
 		}
 	}
 
-	calDispNodes(type, value) {
-		if (type === 'intermediateReal') {
+	calDispNodes(kind, value) {
+		if (kind === 'intermediateReal') {
 			for(let zoom of this.placesZooms) {
-				for(let name in this.placesObject[zoom]) {
-					let coords = this.placesObject[zoom][name].coordinates;
-					coords.disp.lat = 
-						(1 - value) * coords.original.lat + value * coords.real.lat;
-					coords.disp.lng = 
-						(1 - value) * coords.original.lng + value * coords.real.lng;
+				for(let name in this.placesObjects[zoom]) {
+					let place = this.placesObjects[zoom][name];
+					place.node.disp.lat = 
+						(1 - value) * place.node.original.lat + value * place.node.real.lat;
+					place.node.disp.lng = 
+						(1 - value) * place.node.original.lng + value * place.node.real.lng;
 				}
 			}
 		}
-		else if (type === 'intermediateTarget') {
+		else if (kind === 'intermediateTarget') {
 			for(let zoom of this.placesZooms) {
-				for(let name in this.placesObject[zoom]) {
-					let coords = this.placesObject[zoom][name].coordinates;
-					coords.disp.lat = 
-						(1 - value) * coords.original.lat + value * coords.target.lat;
-					coords.disp.lng = 
-						(1 - value) * coords.original.lng + value * coords.target.lng;
+				for(let name in this.placesObjects[zoom]) {
+					let place = this.placesObjects[zoom][name];
+					place.node.disp.lat = 
+						(1 - value) * place.node.original.lat + value * place.node.target.lat;
+					place.node.disp.lng = 
+						(1 - value) * place.node.original.lng + value * place.node.target.lng;
 				}
 			}
 		}
 		else {
 			for(let zoom of this.placesZooms) {
-				for(let name in this.placesObject[zoom]) {
-					let coords = this.placesObject[zoom][name].coordinates;
-					coords.disp.lat = coords[type].lat;
-					coords.disp.lng = coords[type].lng;
+				for(let name in this.placesObjects[zoom]) {
+					let place = this.placesObjects[zoom][name];
+					place.node.disp.lat = place.node[kind].lat;
+					place.node.disp.lng = place.node[kind].lng;
 				}
 			}
 		}
