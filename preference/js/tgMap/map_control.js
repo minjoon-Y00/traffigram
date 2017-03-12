@@ -57,8 +57,8 @@ class TGMapControl {
 	 */
 	calculateControlPoints(cb) {
 		// make a control point array.
-		const latFactor = 0.02 / 2; //0.01;
-		const lngFactor = 0.026 / 2; //0.013;
+		const latFactor = 0.02 / 1; //0.01;
+		const lngFactor = 0.026 / 1; //0.013;
 
 		const box = this.tg_.opt.box;
 		const eps = 0.000001;
