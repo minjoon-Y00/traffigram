@@ -81,11 +81,6 @@ class TravelTimeApi {
 
 		locations.unshift(this.centerLocation);
 
-		console.log('locations: ');
-		console.log(locations);
-		console.log('this.locations: ');
-		console.log(this.locations);
-
 		const json = {locations:locations, costing:'auto'};
 		let str = 'https://matrix.mapzen.com/one_to_many?json=';
 		str += JSON.stringify(json);
@@ -97,8 +92,8 @@ class TravelTimeApi {
 	}
 
 	processTravelTime(result) {
-		console.log('result: ');
-		console.log(result);
+		//console.log('result: ');
+		//console.log(result);
 
 		for(let index = 1; index < result.one_to_many[0].length; index++) {
 			this.times.push(result.one_to_many[0][index].time);
@@ -111,15 +106,14 @@ class TravelTimeApi {
 			this.finishGettingTravelTime();
 		}
 		else {
-			console.log('requesting...');
+			//console.log('requesting...');
 			setTimeout(this.requestTravelTime.bind(this), this.timeoutTime);
 		}
 	}
 
 	finishGettingTravelTime() {
-		//func(data);
-		console.log('finished.');
-		console.log(this.times);
+		console.log('received travel time data.');
+		//console.log(this.times);
 		this.callbackFunction(this.times);
 	}
 }	

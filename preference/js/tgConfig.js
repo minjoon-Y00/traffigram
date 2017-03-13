@@ -35,11 +35,12 @@ const options = {
 	},
 
 	dispZoom: {
-		motorway: {minZoom:11, maxZoom:18},
-		trunk: {minZoom:11, maxZoom:18},
-		primary: {minZoom:12, maxZoom:18},
-		secondary: {minZoom:13, maxZoom:18},
-		tertiary: {minZoom:14, maxZoom:18}
+		motorway: {minZoom:1, maxZoom:20},
+		trunk: {minZoom:1, maxZoom:20},
+		primary: {minZoom:12, maxZoom:20},
+		secondary: {minZoom:13, maxZoom:20},
+		tertiary: {minZoom:14, maxZoom:20},
+		residential: {minZoom:15, maxZoom:20}
 	},
 
 	color: {

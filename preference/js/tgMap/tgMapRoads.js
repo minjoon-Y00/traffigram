@@ -7,6 +7,8 @@ class TGMapRoads {
 	  this.roadTypes = 
 	  		['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'residential'];
 	  this.roadObjects = {};
+	  this.dispRoads = {};
+	  this.dispRoadTypes = [];
 		this.roadLayer = {};
 		this.roadNodeLayer = null;
   	this.timerGetRoadData = null;
@@ -34,7 +36,7 @@ class TGMapRoads {
 
 	addToRoadObject(feature) {
 
-		const s = (new Date()).getTime();
+		//const s = (new Date()).getTime();
 		
 		if (this.timerGetRoadData) clearTimeout(this.timerGetRoadData);
 		this.timerGetRoadData = 
@@ -88,22 +90,76 @@ class TGMapRoads {
 		this.tg.map.setDataInfo(
 			'numResidentialLoading', 'set', this.roadObjects.residential.length);
 
-		const s = (new Date()).getTime();
+		//const s = (new Date()).getTime();
 
 		this.tg.map.setDataInfo('numRoadLoading', 'increase');
 		this.tg.map.setTime('roadLoading', 'end', (new Date()).getTime());
  		
+ 		this.calDispRoads();
 	  this.updateDispRoads();
 		this.addRoadLayer();
 		//this.addRoadNodeLayer();
 
-		const e = (new Date()).getTime();
+		//const e = (new Date()).getTime();
 		//console.log('createDispRoads: ' + (e - s) + ' ms');
 	}
 
-	updateDispRoads() {
+	calDispRoads() {
+		const currentZoom = this.tg.map.currentZoom;
+		const opt = this.tg.opt;
+		const top = opt.box.top;
+		const bottom = opt.box.bottom;
+		const right = opt.box.right;
+		const left = opt.box.left;
+
+		this.dispRoadTypes = [];
+		for(let type in opt.dispZoom) {
+			if (currentZoom >= opt.dispZoom[type].minZoom) {
+				this.dispRoadTypes.push(type);
+			}
+		}
+		//console.log(this.dispRoadTypes);
+
 		for(let type of this.roadTypes) {
+	  	this.dispRoads[type] = [];
+		}
+
+		for(let type of this.dispRoadTypes) {
 			for(let road of this.roadObjects[type]) {
+				
+				if (road[0].node) { // LineString
+					for(let i = 0; i < road.length; i++) {
+						const lat = road[i].node.original.lat;
+						const lng = road[i].node.original.lng;
+						if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
+							this.dispRoads[type].push(road);
+							break;
+						}
+					}
+				}
+				else if (road[0][0].node) { // MultiLineString
+					for(let i = 0; i < road.length; i++) {
+						for(let j = 0; j < road[i].length; j++) {
+							const lat = road[i][j].node.original.lat;
+							const lng = road[i][j].node.original.lng;
+							if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
+								this.dispRoads[type].push(road);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		//for(let type of this.roadTypes) {
+		//	console.log('# of ' + type + ': ' + this.dispRoads[type].length);
+		//}
+	}
+
+	updateDispRoads() {
+		for(let type of this.dispRoadTypes) {
+			for(let road of this.dispRoads[type]) {
 				if (road[0].node) { // LineString
 					for(let i = 0; i < road.length; i++) {
 						road[i][0] = road[i].node.disp.lng;
@@ -131,15 +187,15 @@ class TGMapRoads {
 		const s = (new Date()).getTime();
 
 	  for(let type of this.roadTypes) {
-	  	this.mapUtil.removeLayer(this.roadLayer[type]);
+			this.mapUtil.removeLayer(this.roadLayer[type]);
 		}
 
-	  for(let type of this.roadTypes) {
-	  	let arr = [];
+		for(let type of this.dispRoadTypes) {
+			let arr = [];
 			const styleFunc = this.mapUtil.lineStyleFunc(
 				this.tg.opt.color.road[type], this.tg.opt.width.road[type]);
 
-			for(let road of this.roadObjects[type]) {
+			for(let road of this.dispRoads[type]) {
 				if (road[0].node) { // LineString
 					this.mapUtil.addFeatureInFeatures(
 						arr, new ol.geom.LineString(road), styleFunc);
@@ -158,15 +214,14 @@ class TGMapRoads {
 			this.olMap.addLayer(this.roadLayer[type]);
 
 			console.log('### ' + type + ' : ' + arr.length);
-	  }
-
-
+		}
 
 		const e = (new Date()).getTime();
 		//console.log('addRoadLayer: ' + (e - s) + ' ms');
 	}
 
 	setVisibleByCurrentZoom(currentZoom) {
+		return;
   	for(let type of this.roadTypes) {
 		  if (this.roadLayer[type])
 				this.roadLayer[type].setVisible(true);
@@ -196,7 +251,7 @@ class TGMapRoads {
 
 	calModifiedNodes(kind) {
 
-		const s = (new Date()).getTime();
+		//const s = (new Date()).getTime();
 
 		let transformFuncName;
 		if (kind === 'real') transformFuncName = 'transformReal';
@@ -205,8 +260,8 @@ class TGMapRoads {
 
 		const transform = this.tg.graph[transformFuncName].bind(this.tg.graph);
 
-	  for(let type of this.roadTypes) {
-			for(let road of this.roadObjects[type]) {
+		for(let type of this.dispRoadTypes) {
+			for(let road of this.dispRoads[type]) {
 				let modified;
 
 				if (road[0].node) { // LineString {
@@ -229,16 +284,19 @@ class TGMapRoads {
 			}
 		}
 
-		const e = (new Date()).getTime();
-		console.log('calModifiedNodes: ' + (e - s) + ' ms');
+		//const e = (new Date()).getTime();
+		//console.log('calModifiedNodes: ' + (e - s) + ' ms');
 	}
 
 	calDispNodes(kind, value) {
 
 		const s = (new Date()).getTime();
 
-	  for(let type of this.roadTypes) {
-			for(let road of this.roadObjects[type]) {
+		for(let type of this.dispRoadTypes) {
+			for(let road of this.dispRoads[type]) {
+
+	  //for(let type of this.roadTypes) {
+			//for(let road of this.roadObjects[type]) {
 
 				if (road[0].node) { // LineString {
 					if (kind === 'intermediateReal') {
@@ -258,7 +316,7 @@ class TGMapRoads {
 						}
 					}
 					else {
-						for(let i = 0; i < road.length; j++) {
+						for(let i = 0; i < road.length; i++) {
 							road[i].node.disp.lat = road[i].node[kind].lat;
 							road[i].node.disp.lng = road[i].node[kind].lng;
 						}
@@ -278,7 +336,7 @@ class TGMapRoads {
 						}
 					}
 					else if (kind === 'intermediateTarget') {
-						for(let i = 0; i < road.length; j++) {
+						for(let i = 0; i < road.length; i++) {
 							for(let j = 0; j < road[i].length; j++) {
 								road[i][j].node.disp.lat = 
 									(1 - value) * road[i][j].node.original.lat + 
@@ -290,7 +348,7 @@ class TGMapRoads {
 						}
 					}
 					else {
-						for(let i = 0; i < road.length; j++) {
+						for(let i = 0; i < road.length; i++) {
 							for(let j = 0; j < road[i].length; j++) {
 								road[i][j].node.disp.lat = road[i][j].node[kind].lat;
 								road[i][j].node.disp.lng = road[i][j].node[kind].lng;

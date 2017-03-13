@@ -121,11 +121,11 @@ class TGMap {
 	  this.tgControl.calculateControlPoints(() => {
 
 
-	  	this.tgLocs.calLocalLocations();
+	  	//this.tgLocs.calLocalLocations();
 
-		  if (this.tgRoads.roadLayer.motorway) {
-		  	this.tgRoads.setVisibleByCurrentZoom(this.currentZoom);
-		  }
+		  //if (this.tgRoads.roadLayer.motorway) {
+		  //	this.tgRoads.setVisibleByCurrentZoom(this.currentZoom);
+		  //}
 
 		  if (this.tgPlaces.placesLayer[this.tg.opt.minZoom]) {
 		  	this.tgPlaces.setVisibleByCurrentZoom(this.currentZoom);
@@ -146,6 +146,11 @@ class TGMap {
 			this.dispMapInfo();
 
 	  });	  
+
+	  this.tgRoads.calDispRoads();
+	  this.tgRoads.updateDispRoads();
+		this.tgRoads.addRoadLayer();
+
 	}
 
 
