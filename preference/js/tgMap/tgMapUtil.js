@@ -45,9 +45,13 @@ class TGMapUtil {
 
 	removeLayer(layer) {
 		if (layer) {
-			this.map.removeLayer(layer)
-			layer = null
+			this.map.removeLayer(layer);
+			layer = null;
 		}
+	}
+
+	removeAllLayers() {
+		this.map.getLayers().clear();
 	}
 
 	olVectorFromFeatures(arr) {

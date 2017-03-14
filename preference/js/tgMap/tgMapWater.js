@@ -5,9 +5,12 @@ class TGMapWater {
 		this.mapUtil = mapUtil;
 
 		this.waterObjects = [];
+		this.newWaterObjects = {};
+		this.dispWaterObjects = {};
 		this.waterLayer = null;
 		this.waterNodeLayer = null;
   	this.timerGetWaterData = null;
+  	this.dispLayers = [];
 	}
 
 	start() {
@@ -55,6 +58,8 @@ class TGMapWater {
 					}
 				}
 				this.waterObjects.push(coords);
+				this.newWaterObjects.push(coords);
+				this.dispWaterObjects.push(coords);
 			}
 			else if (geoType == 'MultiPolygon') {
 				for(let i = 0; i < lenCoords; i++) {
@@ -65,6 +70,8 @@ class TGMapWater {
 					}
 				}
 				this.waterObjects.push(coords);
+				this.newWaterObjects.push(coords);
+				this.dispWaterObjects.push(coords);
 			}			
 		}
 		return null;
@@ -110,7 +117,7 @@ class TGMapWater {
 		let arr = [];
 		const styleFunc = this.mapUtil.polygonStyleFunc(this.tg.opt.color.water);
 
-		this.mapUtil.removeLayer(this.waterLayer)
+		this.mapUtil.removeLayer(this.waterLayer);
 
 		for(let water of this.waterObjects) {
 			if (water[0][0].node) { // Polygon

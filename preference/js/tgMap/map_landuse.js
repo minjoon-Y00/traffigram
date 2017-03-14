@@ -34,8 +34,11 @@ class TGMapLanduse {
 		const geoType = feature.getGeometry().getType();
 		const kind = feature.get('kind');
 		const name = feature.get('name');
+		const minZoom = feature.get('min_zoom');
 
 		//console.log('kind: ' + kind + ' type: ' + geoType + ' name: ' + name);
+
+		//console.log('kind: ' + kind + ' minZoom: ' + minZoom);
 
 		feature.getGeometry().transform('EPSG:3857', 'EPSG:4326');
 		

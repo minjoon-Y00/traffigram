@@ -7,16 +7,21 @@ class TGMapRoads {
 	  this.roadTypes = 
 	  		['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'residential'];
 	  this.roadObjects = {};
+	  this.newRoadObjects = {};
 	  this.dispRoads = {};
 	  this.dispRoadTypes = [];
 		this.roadLayer = {};
 		this.roadNodeLayer = null;
   	this.timerGetRoadData = null;
+  	this.dispLayers = [];
 
 	  for(let type of this.roadTypes) {
 	  	this.roadObjects[type] = [];
 	  	this.roadLayer[type] = null;
+	  	this.newRoadObjects[type] = [];
 		}
+
+		
 	}
 
 	start() {
@@ -35,13 +40,10 @@ class TGMapRoads {
 	}
 
 	addToRoadObject(feature) {
-
-		//const s = (new Date()).getTime();
-		
 		if (this.timerGetRoadData) clearTimeout(this.timerGetRoadData);
 		this.timerGetRoadData = 
 				setTimeout(
-						this.createDispRoads.bind(this), 
+						this.processNewRoadObjects.bind(this), 
 						this.tg.opt.constant.timeToWaitForGettingRoadData);
 
 		// only types we want to consider are passed.
@@ -61,6 +63,8 @@ class TGMapRoads {
 				coords[i].node = new Node(coords[i][1], coords[i][0]);
 			}
 			this.roadObjects[kind_detail].push(coords);
+			this.newRoadObjects[kind_detail].push(coords);
+			this.dispRoads[kind_detail].push(coords);
 		}
 		else if (geoType === 'MultiLineString') {
 			for(let i = 0; i < lenCoords; i++) {
@@ -69,15 +73,14 @@ class TGMapRoads {
 				}
 			}
 			this.roadObjects[kind_detail].push(coords);
+			this.newRoadObjects[kind_detail].push(coords);
+			this.dispRoads[kind_detail].push(coords);
 		}
 
 		return null;
 	}
 
-	createDispRoads() {
-
-		//console.log(this.roadObjects);
-
+	processNewRoadObjects() {
 		this.tg.map.setDataInfo(
 			'numHighwayLoading', 'set', 
 			this.roadObjects.motorway.length + this.roadObjects.trunk.length);
@@ -89,19 +92,30 @@ class TGMapRoads {
 			'numTertiaryLoading', 'set', this.roadObjects.tertiary.length);
 		this.tg.map.setDataInfo(
 			'numResidentialLoading', 'set', this.roadObjects.residential.length);
-
-		//const s = (new Date()).getTime();
-
 		this.tg.map.setDataInfo('numRoadLoading', 'increase');
 		this.tg.map.setTime('roadLoading', 'end', (new Date()).getTime());
- 		
- 		this.calDispRoads();
-	  this.updateDispRoads();
-		this.addRoadLayer();
+
+	  this.addNewRoadLayer();
+
+	  for(let type of this.roadTypes) {
+	  	this.newRoadObjects[type] = [];
+		}
+
+ 		//this.calDispRoads();
+	  //this.updateDispRoads();
+		//this.addRoadLayer();
 		//this.addRoadNodeLayer();
 
-		//const e = (new Date()).getTime();
-		//console.log('createDispRoads: ' + (e - s) + ' ms');
+	}
+
+	calDispRoadType(currentZoom) {
+		this.dispRoadTypes = [];
+		for(let type in this.tg.opt.dispZoom) {
+			if (currentZoom >= this.tg.opt.dispZoom[type].minZoom) {
+				this.dispRoadTypes.push(type);
+			}
+		}
+		//console.log(this.dispRoadTypes);
 	}
 
 	calDispRoads() {
@@ -111,14 +125,6 @@ class TGMapRoads {
 		const bottom = opt.box.bottom;
 		const right = opt.box.right;
 		const left = opt.box.left;
-
-		this.dispRoadTypes = [];
-		for(let type in opt.dispZoom) {
-			if (currentZoom >= opt.dispZoom[type].minZoom) {
-				this.dispRoadTypes.push(type);
-			}
-		}
-		//console.log(this.dispRoadTypes);
 
 		for(let type of this.roadTypes) {
 	  	this.dispRoads[type] = [];
@@ -151,10 +157,6 @@ class TGMapRoads {
 				}
 			}
 		}
-
-		//for(let type of this.roadTypes) {
-		//	console.log('# of ' + type + ': ' + this.dispRoads[type].length);
-		//}
 	}
 
 	updateDispRoads() {
@@ -179,6 +181,35 @@ class TGMapRoads {
 				}
 			}
 		}
+	}
+
+	addNewRoadLayer() {
+		let totalNumArr = 0;
+		for(let type of this.dispRoadTypes) {
+			let arr = [];
+			const styleFunc = this.mapUtil.lineStyleFunc(
+				this.tg.opt.color.road[type], this.tg.opt.width.road[type]);
+
+			for(let road of this.newRoadObjects[type]) {
+				if (road[0].node) { // LineString
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.LineString(road), styleFunc);
+				}
+				else if (road[0][0].node) { // MultiLineString
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.MultiLineString(road), styleFunc);
+				}
+				else {
+					console.log('not known geotype in createDispRoas()');
+				}
+			}
+			totalNumArr += arr.length;
+			const layer = this.mapUtil.olVectorFromFeatures(arr);
+			layer.setZIndex(this.tg.opt.z[type]);
+			this.olMap.addLayer(layer);
+			this.dispLayers.push(layer);
+		}
+		console.log('+ new road layer: ' + totalNumArr);
 	}
 
 	//
@@ -212,12 +243,19 @@ class TGMapRoads {
 			this.roadLayer[type].setZIndex(this.tg.opt.z[type]);
 			this.setVisibleByCurrentZoom(tg.map.currentZoom);
 			this.olMap.addLayer(this.roadLayer[type]);
+			this.dispLayers.push(this.roadLayer[type]);
 
-			console.log('### ' + type + ' : ' + arr.length);
+			//console.log('### ' + type + ' : ' + arr.length);
 		}
 
 		const e = (new Date()).getTime();
 		//console.log('addRoadLayer: ' + (e - s) + ' ms');
+	}
+
+	clearLayers() {
+		for(let layer of this.dispLayers) {
+			this.mapUtil.removeLayer(layer);
+		}
 	}
 
 	setVisibleByCurrentZoom(currentZoom) {

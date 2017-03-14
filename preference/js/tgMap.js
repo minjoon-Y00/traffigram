@@ -26,10 +26,10 @@ class TGMap {
 
 	  // initialization
 
-	  this.tgWater.start();
+	  //this.tgWater.start();
 	  this.tgRoads.start();
-	  this.tgPlaces.start();
-	  this.tgLanduse.start();
+	  //this.tgPlaces.start();
+	  //this.tgLanduse.start();
 
 	  // variables
 
@@ -42,7 +42,10 @@ class TGMap {
 	  this.noIntersection = true;
 
 	  this.currentMode = 'EM';
-		this.currentZoom = this.olMap.getView().getZoom()
+		this.currentZoom = this.olMap.getView().getZoom();
+	  this.tgRoads.calDispRoadType(this.currentZoom);
+
+
 	  this.clickRange = {lat:0, lng:0}
 
 	  // Event Handlers
@@ -52,7 +55,7 @@ class TGMap {
 		this.times = {};
 		this.frame = 0; // [0 (EM), 10 (DC)]
 		this.timerFrame = null;
-		this.animationSpeed = 100; // ms
+		this.animationSpeed = 50; // ms
 		this.tpsReady = false;
 
 		this.displayString = 
@@ -87,11 +90,14 @@ class TGMap {
 		//console.log(this.tgRoads.roadLayer.getZIndex())
 		//console.log(this.tgControl.gridLayer.getZIndex())
 
-		console.log(this.tgRoads.dispRoads);
-		console.log(this.tgWater.dispWater);
+		//console.log(this.tgRoads.dispRoads);
+		//console.log(this.tgWater.dispWater);
 
-		tg.util.saveTextAsFile(this.tgRoads.dispRoads, 'dispRoads.json');
-		tg.util.saveTextAsFile(this.tgRoads.dispWater, 'dispWater.json');
+		//tg.util.saveTextAsFile(this.tgRoads.dispRoads, 'dispRoads.json');
+		//tg.util.saveTextAsFile(this.tgRoads.dispWater, 'dispWater.json');
+
+		//console.log(this.olMap.getLayers().clear());
+		this.tgRoads.clearLayers();
 	}
 
 
@@ -101,7 +107,8 @@ class TGMap {
 	//
 	onMoveEnd(e) {
 		if (this.currentZoom != this.olMap.getView().getZoom()) {
-	    this.currentZoom = this.olMap.getView().getZoom()
+	    this.currentZoom = this.olMap.getView().getZoom();
+	    this.tgRoads.calDispRoadType(this.currentZoom);
 	    console.log('zoomEnd')
 	  }
 	  else {
@@ -118,6 +125,9 @@ class TGMap {
 		this.resetTime();
 		this.resetDataInfo();
 		this.calBoundaryBox();
+		this.tgRoads.clearLayers();
+//		console.log('removed all.');
+
 	  this.tgControl.calculateControlPoints(() => {
 
 
@@ -148,7 +158,7 @@ class TGMap {
 	  });	  
 
 	  this.tgRoads.calDispRoads();
-	  this.tgRoads.updateDispRoads();
+	  //this.tgRoads.updateDispRoads();
 		this.tgRoads.addRoadLayer();
 
 	}
@@ -339,7 +349,7 @@ class TGMap {
 
 	moveElementsByFrame(direction) {
 		this.setTime('elementsWarping', 'start', (new Date()).getTime());
-		this.frame += 2;
+		this.frame += 1;
 
 		let value;
 		if (direction === 'forward') value = this.frame * 0.1;
@@ -353,6 +363,7 @@ class TGMap {
 		this.tgWater.updateDispWater();
 		this.tgWater.addWaterLayer();
 
+		this.tgRoads.clearLayers();
 		this.tgRoads.calDispNodes(intermediate, value);
   	this.tgRoads.updateDispRoads();
   	this.tgRoads.addRoadLayer();
