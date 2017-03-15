@@ -28,7 +28,7 @@ class TGMap {
 
 	  this.tgWater.start();
 	  this.tgRoads.start();
-	  //this.tgPlaces.start();
+	  this.tgPlaces.start();
 	  this.tgLanduse.start();
 
 	  // variables
@@ -128,6 +128,7 @@ class TGMap {
 		this.tgRoads.clearLayers();
 		this.tgWater.clearLayers();
 		this.tgLanduse.clearLayers();
+		this.tgPlaces.clearLayers();
 //		console.log('removed all.');
 
 	  this.tgControl.calculateControlPoints(() => {
@@ -139,9 +140,9 @@ class TGMap {
 		  //	this.tgRoads.setVisibleByCurrentZoom(this.currentZoom);
 		  //}
 
-		  if (this.tgPlaces.placesLayer[this.tg.opt.minZoom]) {
-		  	this.tgPlaces.setVisibleByCurrentZoom(this.currentZoom);
-		  }
+		  //if (this.tgPlaces.placesLayer[this.tg.opt.minZoom]) {
+		  //	this.tgPlaces.setVisibleByCurrentZoom(this.currentZoom);
+		  //}
 
 		  if (this.currentMode === 'DC') {
 		  	this.currentMode = 'EM';
@@ -168,6 +169,9 @@ class TGMap {
 
 		this.tgLanduse.calDispLanduse();
 		this.tgLanduse.addLanduseLayer();
+
+		this.tgPlaces.calDispPlace();
+		this.tgPlaces.addPlaceLayer();
 
 	}
 
@@ -322,7 +326,8 @@ class TGMap {
 			// cal warping
 			this.tg.graph.calWarping();
 			//if (this.noIntersection) {
-			this.tgControl.makeNonIntersectedGrid();
+			//this.tgControl.makeNonIntersectedGrid();
+			this.tgControl.makeShapePreservingGrid();
 			//}
 
 			// tps calculation
@@ -380,9 +385,10 @@ class TGMap {
   	this.tgRoads.updateDispRoads();
   	this.tgRoads.addRoadLayer();
 
+		this.tgPlaces.clearLayers();
   	this.tgPlaces.calDispNodes(intermediate, value);
   	this.tgPlaces.updateDispPlaces(true);
-  	this.tgPlaces.addPlacesLayer();
+  	this.tgPlaces.addPlaceLayer();
 
 		this.tgLanduse.clearLayers();
   	this.tgLanduse.calDispNodes(intermediate, value);
@@ -439,7 +445,7 @@ class TGMap {
 
   	this.tgPlaces.calDispNodes('original');
   	this.tgPlaces.updateDispPlaces();
-  	this.tgPlaces.addPlacesLayer();
+  	this.tgPlaces.addPlaceLayer();
 
   	this.tgLanduse.calDispNodes('original');
   	this.tgLanduse.updateDispLanduse();

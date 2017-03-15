@@ -152,11 +152,11 @@ class TGMapControl {
 				if (candidate) 
 					this.getControlPoint2D_(indexLat, indexLng).connectedNodes.push(candidate); 
 
-				candidate = this.getControlPoint2D_(indexLat, indexLng - 1);
+				candidate = this.getControlPoint2D_(indexLat + 1, indexLng);
 				if (candidate)
 					this.getControlPoint2D_(indexLat, indexLng).connectedNodes.push(candidate);
-				
-				candidate = this.getControlPoint2D_(indexLat + 1, indexLng);
+
+				candidate = this.getControlPoint2D_(indexLat, indexLng - 1);
 				if (candidate)
 					this.getControlPoint2D_(indexLat, indexLng).connectedNodes.push(candidate);
 				
@@ -165,6 +165,27 @@ class TGMapControl {
 					this.getControlPoint2D_(indexLat, indexLng).connectedNodes.push(candidate);
 			}
 		}
+
+		for(let point of this.controlPoints) {
+			point.angles = [];
+			const cLat = point.original.lat;
+			const cLng = point.original.lng;
+			for(let i = 0; i < point.connectedNodes.length; i++) {
+				const eLat = point.connectedNodes[i].original.lat;
+				const eLng = point.connectedNodes[i].original.lng;
+				point.angles.push(
+						Math.abs(this.calAngleByTwoPoints(cLng, cLat, eLng, eLat)));
+			}
+
+			point.difAngles = [];
+			for(let i = 0; i < point.angles.length - 1; i++) {
+				point.difAngles.push(Math.abs(point.angles[i] - point.angles[i + 1]));
+			}
+			point.difAngles.push(
+					Math.abs(point.angles[0] - point.angles[point.angles.length - 1]));
+		}
+
+		// 
 
 		//return;
 
@@ -310,6 +331,15 @@ class TGMapControl {
 			console.log('could not find center control point')
 			return -1
 		}
+	}
+
+	calAngleByTwoPoints(cx, cy, ex, ey) {
+	  var dy = ey - cy;
+	  var dx = ex - cx;
+	  var theta = Math.atan2(dy, dx); // range (-PI, PI]
+	  theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
+	  //if (theta < 0) theta = 360 + theta; // range [0, 360)
+	  return theta;
 	}
 
 	calTargets() {
@@ -641,6 +671,126 @@ class TGMapControl {
 		//console.log('### time: ' + (e - s) + ' ms.');
 	}
 
+	makeShapePreservingGrid() {
+		//const s = (new Date()).getTime();
+
+		const threshold = 30;
+		const ctlPt = this.controlPoints;
+		const dt = 0.1;
+		const eps = 0.000001;
+		const setRealPosition = function(point, pct) {
+			point.real.lat = point.original.lat * (1 - pct) + point.target.lat * pct;
+			point.real.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
+		}
+
+		for(let pct = dt; pct < 1 + eps; pct += dt) {
+			console.log('pct = ' + pct);
+
+			// change the real position of all control points.
+			for(let point of this.controlPoints) {
+
+				if (point.done) {
+					console.log('done: ' + point.index);
+					continue;
+				}
+
+
+				// moving a point
+				//const preLat = point.real.lat;
+				//const preLng = point.real.lng;
+				setRealPosition(point, pct);
+
+				let angles = [];
+				const cLat = point.real.lat;
+				const cLng = point.real.lng;
+				for(let i = 0; i < point.connectedNodes.length; i++) {
+					const eLat = point.connectedNodes[i].real.lat;
+					const eLng = point.connectedNodes[i].real.lng;
+					angles.push(Math.abs(this.calAngleByTwoPoints(cLng, cLat, eLng, eLat)));
+				}
+
+				let difAngles = [];
+				for(let i = 0; i < angles.length - 1; i++) {
+					difAngles.push(Math.abs(angles[i] - angles[i + 1]));
+				}
+				difAngles.push(
+						Math.abs(angles[0] - angles[angles.length - 1]));
+
+				for(let i = 0; i < difAngles.length; i++) {
+					//console.log(Math.abs(point.difAngles[i] - difAngles[i]));
+					if (Math.abs(point.difAngles[i] - difAngles[i]) > threshold) {
+
+						let d = Math.abs(point.difAngles[i] - difAngles[i]);
+						console.log('p:' + point.index + ' i: ' + i  + ' d: ' + d);
+						// set back
+						setRealPosition(point, pct - dt);
+						//point.real.lat = preLat;
+						//point.real.lng = preLng;
+
+						point.done = true;
+						break;
+					}
+				}
+
+				//console.log('--');
+				//console.log(point.difAngles);
+				//console.log(difAngles);
+
+			}
+
+
+
+			
+
+			/*for(let line1 of this.gridLines_) {
+				for(let line2 of this.gridLines_) {
+
+					//if ((line1.start.intersected)||(line1.end.intersected)||
+						//(line2.start.intersected)||(line2.end.intersected)) continue;
+
+					if (tg.util.intersects(
+							line1.start.real.lat, line1.start.real.lng, 
+							line1.end.real.lat, line1.end.real.lng, 
+							line2.start.real.lat, line2.start.real.lng, 
+							line2.end.real.lat, line2.end.real.lng)) {
+
+						if ((line1.end.index !== line2.start.index)
+								&&(line1.start.index !== line2.end.index)) {
+
+							// if intersected, move it back.
+
+							if (!line1.start.intersected) {
+								setRealPosition(line1.start, pct - dt);
+								line1.start.intersected = true;
+							}
+
+							if (!line1.end.intersected) {
+								setRealPosition(line1.end, pct - dt);
+								line1.end.intersected = true;
+							}
+
+							if (!line2.start.intersected) {
+								setRealPosition(line2.start, pct - dt);
+								line2.start.intersected = true;
+							}
+
+							if (!line2.end.intersected) {
+								setRealPosition(line2.end, pct - dt);
+								line2.end.intersected = true;
+							}
+
+							//console.log('intersected: ');
+							//console.log(line1.start.index + ' ' + line1.end.index);
+							//console.log(line2.start.index + ' ' + line2.end.index);
+						}
+					}
+				}
+			}*/
+
+		}
+		//const e = (new Date()).getTime();
+		//console.log('### time: ' + (e - s) + ' ms.');
+	}
 
 
 

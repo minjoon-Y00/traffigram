@@ -381,7 +381,7 @@ class TGMapRoads {
 							for(let j = 0; j < road[i].length; j++) {
 								road[i][j].node.disp.lat = 
 									(1 - value) * road[i][j].node.original.lat + 
-									value * coords[j][k].node.target.lat;
+									value * road[i][j].node.target.lat;
 								road[i][j].node.disp.lng = 
 									(1 - value) * road[i][j].node.original.lng + 
 									value * road[i][j].node.target.lng;

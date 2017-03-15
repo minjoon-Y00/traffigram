@@ -147,7 +147,7 @@ class TGMapLanduse {
 
 		this.mapUtil.removeLayer(this.landuseLayer);
 
-		for(let landuse of this.landuseObjects) {
+		for(let landuse of this.dispLanduseObjects) {
 			if (landuse[0][0].node) { // Polygon
 				this.mapUtil.addFeatureInFeatures(
 					arr, new ol.geom.Polygon(landuse), styleFunc);
