@@ -5,8 +5,11 @@ class TGMapLanduse {
 		this.mapUtil = mapUtil;
 
 		this.landuseObjects = [];
+		this.newLanduseObjects = [];
+		this.dispLanduseObjects = [];
 		this.landuseLayer = null;
   	this.timerGetLanduseData = null;
+  	this.dispLayers = [];
 	}
 
 	start() {
@@ -28,7 +31,7 @@ class TGMapLanduse {
 		if (this.timerGetLanduseData) clearTimeout(this.timerGetLanduseData);
 		this.timerGetLanduseData = 
 				setTimeout(
-						this.createDispLanduse.bind(this), 
+						this.processNewLanduseObjects.bind(this), 
 						this.tg.opt.constant.timeToWaitForGettingData);
 
 		const geoType = feature.getGeometry().getType();
@@ -43,6 +46,9 @@ class TGMapLanduse {
 		feature.getGeometry().transform('EPSG:3857', 'EPSG:4326');
 		
 		const coords = feature.getGeometry().getCoordinates();
+		coords.minZoom = feature.get('min_zoom');
+		if (name) coords.name = name;
+
 		const lenCoords = coords.length;
 
 		if (geoType === 'Polygon') {
@@ -51,22 +57,60 @@ class TGMapLanduse {
 					coords[i][j].node = new Node(coords[i][j][1], coords[i][j][0]);
 				}
 			}
-			if (name) coords.name = name;
+			
 			this.landuseObjects.push(coords);
+			this.newLanduseObjects.push(coords);
+			this.dispLanduseObjects.push(coords);
 		}
 		return null;
 	}
 
-	createDispLanduse() {
+	processNewLanduseObjects() {
 		this.tg.map.setDataInfo('numLanduseLoading', 'increase');
 		this.tg.map.setTime('landuseLoading', 'end', (new Date()).getTime());
 
+		this.addNewLanduseLayer();
+		this.newLanduseObjects = [];
+	}
+
+	/*createDispLanduse() {
 		this.updateDispLanduse();
 		this.addLanduseLayer();
+	}*/
+
+	calDispLanduse() {
+		const currentZoom = this.tg.map.currentZoom;
+		const opt = this.tg.opt;
+		const top = opt.box.top;
+		const bottom = opt.box.bottom;
+		const right = opt.box.right;
+		const left = opt.box.left;
+
+		this.dispLanduseObjects = [];
+
+		for(let landuse of this.landuseObjects) {
+			if (currentZoom < landuse.minZoom) {
+				continue;
+			}
+			
+			if (landuse[0][0].node) { // Polygon
+				for(let i = 0; i < landuse.length; i++) {
+					for(let j = 0; j < landuse[i].length; j++) {
+						const lat = landuse[i][j].node.original.lat;
+						const lng = landuse[i][j].node.original.lng;
+
+						if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
+							this.dispLanduseObjects.push(landuse);
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	updateDispLanduse() {
-		for(let landuse of this.landuseObjects) {
+		for(let landuse of this.dispLanduseObjects) {
 			if (landuse[0][0].node) { // Polygon
 				for(let i = 0; i < landuse.length; i++) {
 					for(let j = 0; j < landuse[i].length; j++) {
@@ -76,6 +120,25 @@ class TGMapLanduse {
 				}
 			} 
 		}
+	}
+
+	addNewLanduseLayer() {
+		let arr = [];
+		const styleFunc = this.mapUtil.polygonStyleFunc(this.tg.opt.color.landuse);
+
+		for(let landuse of this.newLanduseObjects) {
+			if (landuse[0][0].node) { // Polygon
+				this.mapUtil.addFeatureInFeatures(
+					arr, new ol.geom.Polygon(landuse), styleFunc);
+			}
+		}
+
+		const layer = this.mapUtil.olVectorFromFeatures(arr);
+		layer.setZIndex(this.tg.opt.z.landuse);
+		this.olMap.addLayer(layer);
+		this.dispLayers.push(layer);
+		
+		console.log('+ new landuse layer: ' + arr.length);
 	}
 
 	addLanduseLayer() {
@@ -94,6 +157,13 @@ class TGMapLanduse {
 		this.landuseLayer = this.mapUtil.olVectorFromFeatures(arr);
 		this.landuseLayer.setZIndex(this.tg.opt.z.landuse);
 		this.olMap.addLayer(this.landuseLayer);
+		this.dispLayers.push(this.landuseLayer);
+	}
+
+	clearLayers() {
+		for(let layer of this.dispLayers) {
+			this.mapUtil.removeLayer(layer);
+		}
 	}
 
 	removeLanduseLayer() {
@@ -118,7 +188,7 @@ class TGMapLanduse {
 
 		const transform = this.tg.graph[transformFuncName].bind(this.tg.graph);
 
-		for(let landuse of this.landuseObjects) {
+		for(let landuse of this.dispLanduseObjects) {
 			let modified;
 
 			if (landuse[0][0].node) { // Polygon
@@ -135,7 +205,7 @@ class TGMapLanduse {
 	}
 
 	calDispNodes(kind, value) {
-		for(let landuse of this.landuseObjects) {
+		for(let landuse of this.dispLanduseObjects) {
 
 			if (landuse[0][0].node) { // Polygon
 				if (kind === 'intermediateReal') {

@@ -26,10 +26,10 @@ class TGMap {
 
 	  // initialization
 
-	  //this.tgWater.start();
+	  this.tgWater.start();
 	  this.tgRoads.start();
 	  //this.tgPlaces.start();
-	  //this.tgLanduse.start();
+	  this.tgLanduse.start();
 
 	  // variables
 
@@ -126,6 +126,8 @@ class TGMap {
 		this.resetDataInfo();
 		this.calBoundaryBox();
 		this.tgRoads.clearLayers();
+		this.tgWater.clearLayers();
+		this.tgLanduse.clearLayers();
 //		console.log('removed all.');
 
 	  this.tgControl.calculateControlPoints(() => {
@@ -160,6 +162,12 @@ class TGMap {
 	  this.tgRoads.calDispRoads();
 	  //this.tgRoads.updateDispRoads();
 		this.tgRoads.addRoadLayer();
+
+		this.tgWater.calDispWater();
+		this.tgWater.addWaterLayer();
+
+		this.tgLanduse.calDispLanduse();
+		this.tgLanduse.addLanduseLayer();
 
 	}
 
@@ -270,7 +278,7 @@ class TGMap {
 		if (this.dispLocationLayer) this.tgLocs.drawLocationLayer()
 		else this.tgLocs.removeLocationLayer()
 
-		console.log('updateLayers : ' + ((new Date()).getTime() - s) + 'ms')
+		//console.log('updateLayers : ' + ((new Date()).getTime() - s) + 'ms')
 	}
 
 	//
@@ -323,7 +331,10 @@ class TGMap {
 				console.log('TPS complete.');
 				this.tpsReady = true;
 			}
-			else console.log('TPS failed...');
+			else {
+				console.log('TPS failed...');
+				alert('TPS failed...');
+			}
 
 			
 		}
@@ -359,6 +370,7 @@ class TGMap {
 		if (this.noIntersection) intermediate = 'intermediateReal';
 		else intermediate = 'intermediateTarget';
 
+		this.tgWater.clearLayers();
 		this.tgWater.calDispNodes(intermediate, value);
 		this.tgWater.updateDispWater();
 		this.tgWater.addWaterLayer();
@@ -372,6 +384,7 @@ class TGMap {
   	this.tgPlaces.updateDispPlaces(true);
   	this.tgPlaces.addPlacesLayer();
 
+		this.tgLanduse.clearLayers();
   	this.tgLanduse.calDispNodes(intermediate, value);
   	this.tgLanduse.updateDispLanduse(true);
   	this.tgLanduse.addLanduseLayer();

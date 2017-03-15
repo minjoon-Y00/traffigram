@@ -20,8 +20,6 @@ class TGMapRoads {
 	  	this.roadLayer[type] = null;
 	  	this.newRoadObjects[type] = [];
 		}
-
-		
 	}
 
 	start() {
@@ -64,7 +62,10 @@ class TGMapRoads {
 			}
 			this.roadObjects[kind_detail].push(coords);
 			this.newRoadObjects[kind_detail].push(coords);
-			this.dispRoads[kind_detail].push(coords);
+
+			if (this.dispRoadTypes.indexOf(kind_detail) >= 0) {
+				this.dispRoads[kind_detail].push(coords);
+			}
 		}
 		else if (geoType === 'MultiLineString') {
 			for(let i = 0; i < lenCoords; i++) {
@@ -74,7 +75,10 @@ class TGMapRoads {
 			}
 			this.roadObjects[kind_detail].push(coords);
 			this.newRoadObjects[kind_detail].push(coords);
-			this.dispRoads[kind_detail].push(coords);
+
+			if (this.dispRoadTypes.indexOf(kind_detail) >= 0) {
+				this.dispRoads[kind_detail].push(coords);
+			}
 		}
 
 		return null;
@@ -105,7 +109,6 @@ class TGMapRoads {
 	  //this.updateDispRoads();
 		//this.addRoadLayer();
 		//this.addRoadNodeLayer();
-
 	}
 
 	calDispRoadType(currentZoom) {
@@ -241,7 +244,7 @@ class TGMapRoads {
 			}
 			this.roadLayer[type] = this.mapUtil.olVectorFromFeatures(arr);
 			this.roadLayer[type].setZIndex(this.tg.opt.z[type]);
-			this.setVisibleByCurrentZoom(tg.map.currentZoom);
+			//this.setVisibleByCurrentZoom(tg.map.currentZoom);
 			this.olMap.addLayer(this.roadLayer[type]);
 			this.dispLayers.push(this.roadLayer[type]);
 

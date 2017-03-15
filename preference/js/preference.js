@@ -20,6 +20,8 @@ $("#citySFRB").change(function(ev){
   if (ev.target.checked) tg.setArea('SF');
 });*/
 
+
+
 function debug() {
 	tg.map.debug()
 }
