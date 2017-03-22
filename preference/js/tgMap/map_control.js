@@ -40,6 +40,12 @@ class TGMapControl {
 		this.numLatInColumn_ = 0;
 
 		/** 
+		 * grid objects
+		 * @private @type {Array} 
+		 */
+		this.grids_ = [];
+
+		/** 
 		 * api object for getting travel time.
 		 * @private @type {!TravelTimeApi>} 
 		 */
@@ -166,6 +172,96 @@ class TGMapControl {
 			}
 		}
 
+		// make grids object
+		// 0 - 1 - 6 - 5
+		//1 - 2 - 7 - 6
+		//...
+		//5 - 6 - 11 - 10
+		//...
+		//25 - 26 - 31 - 30
+		//...
+		//28 - 29 - 34 - 33
+
+		// inrow = 5, incoloumn = 7
+		this.grids_ = [];
+		for(let indexLat = 0; indexLat < this.numLatInColumn_ - 1; indexLat++) {
+			for(let indexLng = 0; indexLng < this.numLngInRow_ - 1; indexLng++) {
+				let grid = {type: 'grid', pointIndexes: []};
+				grid.pointIndexes.push(this.numLngInRow_ * indexLat + indexLng);
+				grid.pointIndexes.push(this.numLngInRow_ * indexLat + indexLng + 1);
+				grid.pointIndexes.push(this.numLngInRow_ * (indexLat + 1) + indexLng + 1);
+				grid.pointIndexes.push(this.numLngInRow_ * (indexLat + 1) + indexLng);
+
+				this.grids_.push(grid);
+			}
+		}
+
+
+		this.calculateAnglesOfControlPoints();
+
+		
+
+
+
+
+
+
+		// check location of which we have to get a travel time by looking for in cache.
+		let newPointsArray = [];
+		this.travelTimeApi_.clearEndLocations();
+
+		for(let point of this.controlPoints) {
+			const key = point.original.lat.toFixed(3) + ' ' + point.original.lng.toFixed(3);
+			
+			// if a point is not in the cache, add it to travelTimeApi.
+			if (!this.travelTimeCache_.has(key)) {
+				this.travelTimeApi_.addEndLocation(point.original.lat, point.original.lng);
+				newPointsArray.push(point);
+			}
+			// if a point is in the cache, assign traveltime to it.
+			else {
+				point.travelTime = this.travelTimeCache_.get(key);
+			}
+		}
+
+		console.log('numNewPoints: ' + newPointsArray.length);
+		//console.log(newPointsArray);
+
+		// if there is points of which we need to traveltime,
+		if (newPointsArray.length > 0) {
+			this.tg_.map.setTime('travelTimeLoading', 'start', (new Date()).getTime());
+
+			this.travelTimeApi_.getTravelTime(times => {
+
+				if (times.length !== newPointsArray.length) {
+					console.log('ERROR: times.length !== newPointsArray.length');
+					console.log('times.length: ' + times.length);
+					console.log('newPointsArray.length: ' + newPointsArray.length);
+					return;
+				}
+
+				for(let index = 0; index < newPointsArray.length; index++) {
+					const point = newPointsArray[index];
+					const key = point.original.lat.toFixed(3) + ' ' + point.original.lng.toFixed(3);
+					point.travelTime = times[index];
+					this.travelTimeCache_.set(key, point.travelTime);
+				}
+
+				this.tg_.map.setDataInfo('numNewTravelTime', 'set', newPointsArray.length);
+				this.tg_.map.setTime('travelTimeLoading', 'end', (new Date()).getTime());
+				this.tg_.map.updateLayers();
+				//this.checkGridSplit();
+
+				if (cb) cb();
+			});
+		}
+		// if we don't need to request traveltime,
+		else {
+			if (cb) cb();
+		}
+	}
+
+	calculateAnglesOfControlPoints() {
 		for(let point of this.controlPoints) {
 			point.angles = [];
 			const cLat = point.original.lat;
@@ -184,57 +280,238 @@ class TGMapControl {
 			point.difAngles.push(
 					Math.abs(point.angles[0] - point.angles[point.angles.length - 1]));
 		}
+	}
 
-		// 
+	checkGridSplit() {
 
-		//return;
+		console.log(this.grids_);
+		let sumTimes = [];
 
-		// check location of which we have to get a travel time by looking for in cache.
-		let numNewPoints = 0;
+		for(let grid of this.grids_) {
+			let sumTime = 0;
+			for(let index = 0; index < grid.pointIndexes.length - 1; index++) {
+				const time1 = this.controlPoints[grid.pointIndexes[index]].travelTime;
+				const time2 = this.controlPoints[grid.pointIndexes[index + 1]].travelTime;
+
+				sumTime += Math.abs(time1 - time2);
+			}
+
+			const time1 = this.controlPoints[grid.pointIndexes[0]].travelTime;
+			const time2 = this.controlPoints[grid.pointIndexes[grid.pointIndexes.length - 1]].travelTime;
+			sumTime += Math.abs(time1 - time2);
+
+			sumTimes.push(sumTime);
+			//console.log(sumTime);
+		}
+
+		const threshold = 0.5; // std * threshold, usually 1
+		const outlinerIndex = this.selectOutliner(sumTimes, threshold);
+		console.log(outlinerIndex);
+
+		let newIndexObject = {};
 		this.travelTimeApi_.clearEndLocations();
-		for(let point of this.controlPoints) {
-			const key = point.original.lat.toFixed(3) + ' ' + point.original.lng.toFixed(3);
-			if (!this.travelTimeCache_.has(key)) {
-				this.travelTimeApi_.addEndLocation(point.original.lat, point.original.lng);
-				numNewPoints++;
+
+		for(let index of outlinerIndex) {
+			console.log('index: ' + index);
+			this.splitGrid(this.grids_[index], newIndexObject);
+		}
+
+
+	}
+
+	splitGrid(grid, newIndexObject) {
+
+		// add new control points and get indexes
+		let indexTop = this.addNewControlPoint(grid.pointIndexes[0], grid.pointIndexes[1]);
+		let indexRight = this.addNewControlPoint(grid.pointIndexes[1], grid.pointIndexes[2]);
+		let indexBottom = this.addNewControlPoint(grid.pointIndexes[2], grid.pointIndexes[3]);
+		let indexLeft = this.addNewControlPoint(grid.pointIndexes[3], grid.pointIndexes[0]);
+		let indexCenter = this.addNewControlPoint(indexTop, indexBottom);
+
+		// modify gridLines
+		this.modifyGridLine(grid.pointIndexes[0], grid.pointIndexes[1], indexTop);
+		this.modifyGridLine(grid.pointIndexes[1], grid.pointIndexes[2], indexRight);
+		this.modifyGridLine(grid.pointIndexes[2], grid.pointIndexes[3], indexBottom);
+		this.modifyGridLine(grid.pointIndexes[3], grid.pointIndexes[0], indexLeft);
+
+		// add gridLines to the center point
+		this.addGridLineBetween(indexTop, indexCenter);
+		this.addGridLineBetween(indexRight, indexCenter);
+		this.addGridLineBetween(indexBottom, indexCenter);
+		this.addGridLineBetween(indexLeft, indexCenter);
+
+		// modify connectedNodes
+		this.modifyConnectedNodes(grid.pointIndexes[0], grid.pointIndexes[3], indexLeft);
+		this.modifyConnectedNodes(grid.pointIndexes[0], grid.pointIndexes[1], indexTop);
+		this.modifyConnectedNodes(grid.pointIndexes[1], grid.pointIndexes[0], indexTop);
+		this.modifyConnectedNodes(grid.pointIndexes[1], grid.pointIndexes[2], indexRight);
+		this.modifyConnectedNodes(grid.pointIndexes[2], grid.pointIndexes[1], indexRight);
+		this.modifyConnectedNodes(grid.pointIndexes[2], grid.pointIndexes[3], indexBottom);
+		this.modifyConnectedNodes(grid.pointIndexes[3], grid.pointIndexes[2], indexBottom);
+		this.modifyConnectedNodes(grid.pointIndexes[3], grid.pointIndexes[0], indexLeft);
+
+		// add connectedNodes of new control points
+		this.addConnectedNodes(
+				indexTop, [grid.pointIndexes[1], indexCenter, grid.pointIndexes[0]]);
+		this.addConnectedNodes(
+				indexRight, [grid.pointIndexes[2], indexCenter, grid.pointIndexes[1]]);
+		this.addConnectedNodes(
+				indexBottom, [grid.pointIndexes[2], grid.pointIndexes[3], indexCenter]);
+		this.addConnectedNodes(
+				indexLeft, [indexCenter, grid.pointIndexes[3], grid.pointIndexes[0]]);
+		this.addConnectedNodes(
+				indexCenter, [indexRight, indexBottom, indexLeft, indexTop]);	
+
+		// remove a grid object
+		this.removeGridObject(grid.pointIndexes[0]);
+
+		// add grid objects
+		this.addGridObject([grid.pointIndexes[0], indexTop, indexCenter, indexLeft]);
+		this.addGridObject([indexTop, grid.pointIndexes[1], indexRight, indexCenter]);
+		this.addGridObject([indexCenter, indexRight, grid.pointIndexes[2], indexBottom]);
+		this.addGridObject([indexLeft, indexCenter, indexBottom, grid.pointIndexes[3]]);
+
+		// calculate angles of control points again.
+		this.calculateAnglesOfControlPoints();
+
+		// add new points into array to get the travel time
+		newIndexObject.push(); 
+
+		// put key into newIndexArray -> newIndexObject?
+
+		this.tg_.map.updateLayers();
+
+		// 3,4,9,8
+
+
+	}
+
+	addGridObject(indexes) {
+		this.grids_.push({type: 'grid', pointIndexes: indexes});
+	}
+
+	removeGridObject(startIndex) {
+		let originalIndex = -1;
+		for(let index = 0; index < this.grids_.length; index++) {
+			if (this.grids_[index].pointIndexes[0] ===  startIndex) {
+				originalIndex = index;
 			}
 		}
 
-		if (numNewPoints > 0) {
-			let countNewPoints = 0;
-			const t = (new Date()).getTime();
-			this.tg_.map.setTime('travelTimeLoading', 'start', t);
-
-			this.travelTimeApi_.getTravelTime(times => {
-				for(let point of this.controlPoints) {
-					const key = point.original.lat.toFixed(3) + ' ' + point.original.lng.toFixed(3);
-					if (this.travelTimeCache_.has(key)) {
-						point.travelTime = this.travelTimeCache_.get(key);
-					}
-					else {
-						//point.travelTime = result.one_to_many[0][countNewPoints++].time;
-						point.travelTime = times[countNewPoints++];
-						this.travelTimeCache_.set(key, point.travelTime);
-					}
-				}
-
-				const t = (new Date()).getTime();
-				this.tg_.map.setDataInfo('numNewTravelTime', 'set', (countNewPoints - 1));
-				this.tg_.map.setTime('travelTimeLoading', 'end', t);
-
-				this.tg_.map.updateLayers();
-
-				if (cb) cb();
-			});
+		if (originalIndex >= 0) {
+			this.grids_.splice(originalIndex, 1);
 		}
 		else {
-			for(let point of this.controlPoints) {
-				const key = point.original.lat.toFixed(3) + ' ' + point.original.lng.toFixed(3);
-				point.travelTime = this.travelTimeCache_.get(key);
-			}
-			if (cb) cb();
+			console.log('## NOT FOUND!');
 		}
 	}
+
+	addConnectedNodes(indexPivot, connectedIndexes) {
+		for(let index of conenctedIndexes) {
+			this.controlPoints[indexPivot].connectedNodes.push(this.controlPoints[index]);
+		}
+	}
+
+	modifyConnectedNodes(indexStart, indexEnd, indexNew) {
+		let nodes = this.controlPoints[indexStart].connectedNodes;
+		for(let index = 0; index < nodes.length; index++) {
+			if (nodes[index] === this.controlPoints[indexEnd]) {
+				nodes[index] = this.controlPoints[indexNew];
+				break;
+			}
+		}
+	}
+
+	addGridLineBetween(index1, index2) {
+		this.gridLines_.push({
+			start: this.controlPoints[index1],
+			end: this.controlPoints[index2]
+		});
+	}
+
+	modifyGridLine(indexStart, indexEnd, indexNew) {
+		const pointStart = this.controlPoints[indexStart];
+		const pointEnd = this.controlPoints[indexEnd];	
+
+		//console.log('pointStart.index: ' + pointStart.index);
+		//console.log('pointEnd.index: ' + pointEnd.index);
+		//console.log('indexNew: ' + indexNew);
+
+		let originalLineIndex = -1;
+		for(let index = 0; index < this.gridLines_.length; index++) {
+
+			//console.log('s: ' + this.gridLines_[index].start.index);
+			//console.log('e: ' + this.gridLines_[index].end.index);
+
+			if (((this.gridLines_[index].start.index === pointStart.index) &&
+					(this.gridLines_[index].end.index === pointEnd.index)) || 
+					((this.gridLines_[index].start.index === pointEnd.index) &&
+					(this.gridLines_[index].end.index === pointStart.index))) {
+				originalLineIndex = index;
+				break;
+			}
+		}
+
+		if (originalLineIndex >= 0) {
+			// delete the original grid line
+			this.gridLines_.splice(originalLineIndex, 1);
+
+			// add new two grid lines
+			this.addGridLineBetween(indexStart, indexNew);
+			this.addGridLineBetween(indexNew, indexEnd);
+		}
+	}
+
+	addNewControlPoint(index1, index2) {
+		const p1 = this.controlPoints[index1];
+		const p2 = this.controlPoints[index2];
+		const newLat = (p1.original.lat + p2.original.lat) / 2;
+		const newLng = (p1.original.lng + p2.original.lng) / 2;
+
+		// check if there is a same point in the controlPoints
+		for(let point of this.controlPoints) {
+			if ((point.original.lat === newLat)&&(point.original.lng === newLng)) {
+				console.log('found.');
+				return point.index;
+			}
+		}
+
+		const newPoint = new ControlPoint(newLat, newLng);
+		newPoint.index = this.controlPoints[this.controlPoints.length - 1].index + 1;
+		this.controlPoints.push(newPoint);
+		return newPoint.index;
+	}
+
+	selectOutliner(data, threshold) {
+		const calAvg = function(arr) {
+			let sum = 0;
+			for(let i of arr) {
+				sum += i;
+			}
+			return sum / arr.length;
+		}
+
+		const avg = calAvg(data);
+		const squaredDif = [];
+		for(let i of data) {
+			squaredDif.push((i - avg) * (i - avg));
+		}
+
+		const avg2 = calAvg(squaredDif);
+		const std = Math.sqrt(avg2);
+		let normalized = [];
+		for(let i of data) {
+			normalized.push((i - avg) / std);
+		}
+
+		let selected = [];
+		for(let index = 0; index < normalized.length; index++) {
+			if (normalized[index] >= threshold) selected.push(index);
+		}
+
+		return selected;
+	}
+
 
 	/**
 	 * get control point by index of lat and lng.
@@ -293,16 +570,20 @@ class TGMapControl {
 		this.travelTimeApi_.getTravelTime(func.bind(this))
 
 		function func(data) {
+			console.log('?????');
+
 			var end = (new Date()).getTime()
 			console.log('elapsed: ' + (end - start)/1000 + ' sec.')
-			//console.log(data)
+			console.log(data)
 			
 			//this.travelTime = data
 
 			for(var i = 0; i < this.controlPoints.length; i++) {
 				this.controlPoints[i].travelTime = data.one_to_many[0][i + 1].time
 			}
-			this.tg_.map.updateLayers()
+			this.tg_.map.updateLayers();
+			this.checkGridSplit();
+
 
 
 			//this.tg_.util.saveTextAsFile(data, 'data_tt.js')
@@ -312,6 +593,8 @@ class TGMapControl {
 			//this.tg_.map.updateLayers()
 		}
 	}
+
+
 
 	/*saveTravelTimeToFile() {
 		this.tg_.util.saveTextAsFile(this.travelTime, 'data_tt.js')
@@ -355,7 +638,7 @@ class TGMapControl {
 	//
 	//
 	//
-	splitGrid() {
+	splitGrid_old() {
 		var threshold = this.tg_.opt.constant.splitThreshold
 		var latM, lngM, idx
 		var idxBM, idxRM, idxTM, idxLM, idxMM
@@ -690,7 +973,7 @@ class TGMapControl {
 			for(let point of this.controlPoints) {
 
 				if (point.done) {
-					console.log('done: ' + point.index);
+					//console.log('done: ' + point.index);
 					continue;
 				}
 
@@ -721,7 +1004,7 @@ class TGMapControl {
 					if (Math.abs(point.difAngles[i] - difAngles[i]) > threshold) {
 
 						let d = Math.abs(point.difAngles[i] - difAngles[i]);
-						console.log('p:' + point.index + ' i: ' + i  + ' d: ' + d);
+						//console.log('p:' + point.index + ' i: ' + i  + ' d: ' + d);
 						// set back
 						setRealPosition(point, pct - dt);
 						//point.real.lat = preLat;

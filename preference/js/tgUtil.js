@@ -79,22 +79,25 @@ class TGUtil {
 	  }
 	}
 
-	RDPSimp(nodeArr, eps) {
+	RDPSimp2D(point2DArray, eps) {
+		for(let pointArray of point2DArray) {
+			pointArray = this.RDPSimp1D(pointArray, eps);
+		}
+		return point2DArray;
+	}
+
+	// pointArray: [[lng, lat], ..., [lng, lat]]
+	RDPSimp1D(pointArray, eps) {
 		// Find the point with the maximum distance
-		var dmax = 0
-		var index = 0
-		var startNode = nodeArr[0]
-		var endNode = nodeArr[nodeArr.length - 1]
+		let dmax = 0;
+		let index = 0;
+		const startPoint = pointArray[0];
+		const endPoint = pointArray[pointArray.length - 1];
 
-		for(var i = 1; i < nodeArr.length - 1; i++) {
-			var testNode = nodeArr[i]
+		for(let i = 1; i < pointArray.length - 1; i++) {
+			const testPoint = pointArray[i];
+			const d = this.distanceBetweenLineAndPoint(startPoint, endPoint, testPoint);
 
-			var d = this.distanceBetweenLineAndPoint(
-				startNode.original.lat, startNode.original.lng, 
-				endNode.original.lat, endNode.original.lng, 
-				testNode.original.lat, testNode.original.lng)
-
-			//console.log(d)
 			if (d > dmax) {
 				index = i
 				dmax = d
@@ -104,19 +107,30 @@ class TGUtil {
 		// If max distance is greater than eps, recursively simplify
 		if (dmax > eps) {
 			// Recursive call
-			var result1 = this.RDPSimp(nodeArr.slice(0, index + 1), eps)
-			var result2 = this.RDPSimp(nodeArr.slice(index, nodeArr.length), eps)
+			const result1 = this.RDPSimp1D(pointArray.slice(0, index + 1), eps);
+			const result2 = this.RDPSimp1D(pointArray.slice(index, pointArray.length), eps);
 
 			// Build the result list
-			var results = result1.concat(result2.slice(1))
+			return result1.concat(result2.slice(1));
 		}
 		else {
-			results = [nodeArr[0], nodeArr[nodeArr.length - 1]]
+			return [startPoint, endPoint];
 		}
-		return results
 	}
 
-	distanceBetweenLineAndPoint(L1x, L1y, L2x, L2y, Px, Py) {
+	distanceBetweenLineAndPoint(L1, L2, P) {
+		const t = 
+				Math.abs(
+						(L2[1] - L1[1]) * P[0] - (L2[0] - L1[0]) * P[1] + 
+						L2[0] * L1[1] - L2[1] * L1[0]);
+		const b = 
+				Math.sqrt(
+						(L2[1] - L1[1]) * (L2[1] - L1[1]) + 
+						(L2[0] - L1[0]) * (L2[0] - L1[0]));
+		return t / b
+	}
+
+	/*distanceBetweenLineAndPoint(L1x, L1y, L2x, L2y, Px, Py) {
 		//console.log(L1x + ',' + L1y)
 		//console.log(L2x + ',' + L2y)
 		//console.log(Px + ',' + Py)
@@ -124,9 +138,7 @@ class TGUtil {
 		var b = Math.sqrt((L2y - L1y) * (L2y - L1y) + (L2x - L1x) * (L2x - L1x))
 		//console.log(t + ' / ' + b)
 		return t / b
-	}
-
-
+	}*/
 }
 
 Math.randomGaussian = function(mean, standardDeviation) {

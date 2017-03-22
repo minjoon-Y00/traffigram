@@ -112,6 +112,7 @@ class TGMapWater {
 				continue;
 			}
 			
+			let isIn = false;
 			if (water[0][0].node) { // Polygon
 				for(let i = 0; i < water.length; i++) {
 					for(let j = 0; j < water[i].length; j++) {
@@ -120,9 +121,11 @@ class TGMapWater {
 
 						if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
 							this.dispWaterObjects.push(water);
+							isIn = true;
 							break;
 						}
 					}
+					if (isIn) break;
 				}
 			}
 			else if (water[0][0][0].node) { // MultiPolygon
@@ -133,13 +136,19 @@ class TGMapWater {
 							const lng = water[i][j][k].node.original.lng;
 							if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
 								this.dispWaterObjects.push(water);
+								isIn = true;
 								break;
 							}
 						}
+						if (isIn) break;
 					}
+					if (isIn) break;
 				}
 			}
 		}
+
+		console.log('/# of water : ' + this.waterObjects.length);
+		console.log('/# of disp water: ' + this.dispWaterObjects.length);
 	}
 
 	updateDispWater() {
@@ -270,6 +279,7 @@ class TGMapWater {
 	}
 
 	calDispNodes(kind, value) {
+
 		for(let water of this.dispWaterObjects) {
 
 			if (water[0][0].node) { // Polygon

@@ -54,6 +54,7 @@ class TravelTimeApi {
 		// [0, max) -> 1
 		// [max, max*2) -> 2
 		// ...
+		this.times = [];
 		this.numOfRequest = 0;
 		this.totalNumOfRequest = parseInt(this.locations.length / this.maxNumLocation) + 1;
 		this.callbackFunction = cb;

@@ -39,7 +39,8 @@ class TGMap {
 	  this.dispCenterPositionLayer = true;
 	  this.dispControlPointLayer = false;
 	  this.dispLocationLayer = false;
-	  this.noIntersection = true;
+	  this.adjustGrid = 'none';
+	  this.needToCalWarping = false;
 
 	  this.currentMode = 'EM';
 		this.currentZoom = this.olMap.getView().getZoom();
@@ -265,8 +266,8 @@ class TGMap {
 		if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
 			if (this.currentMode === 'EM') this.tgControl.calDispNodes('original');
 			else if (this.currentMode === 'DC') {
-				if (this.noIntersection) this.tgControl.calDispNodes('real');
-				else this.tgControl.calDispNodes('target');
+				if (this.adjustGrid === 'none') this.tgControl.calDispNodes('target');
+				else this.tgControl.calDispNodes('real');
 			}
 		}
 
@@ -322,13 +323,16 @@ class TGMap {
 	goToDc() {
 		if (this.currentMode === 'DC') return;
 
-		if (!this.tpsReady) {
+		//console.log('this.adjustGrid: ' + this.adjustGrid);
+
+		if ((this.needToCalWarping)||(!this.tpsReady)) {
 			// cal warping
 			this.tg.graph.calWarping();
-			//if (this.noIntersection) {
-			//this.tgControl.makeNonIntersectedGrid();
-			this.tgControl.makeShapePreservingGrid();
-			//}
+
+			if (this.adjustGrid === 'noIntersection')
+				this.tgControl.makeNonIntersectedGrid();
+			else if (this.adjustGrid === 'shapePreserving')
+				this.tgControl.makeShapePreservingGrid();
 
 			// tps calculation
 			this.tg.graph.TPSSolve();
@@ -340,21 +344,20 @@ class TGMap {
 				console.log('TPS failed...');
 				alert('TPS failed...');
 			}
-
-			
+			this.needToCalWarping = false;
 		}
 
-		if (this.noIntersection) {
-			this.tgWater.calRealNodes();
-	  	this.tgRoads.calRealNodes();
-	  	this.tgPlaces.calRealNodes();
-	  	this.tgLanduse.calRealNodes();
-		}
-		else {
+		if (this.adjustGrid === 'none') {
 			this.tgWater.calTargetNodes();
 	  	this.tgRoads.calTargetNodes();
 	  	this.tgPlaces.calTargetNodes();
 	  	this.tgLanduse.calTargetNodes();
+		}
+		else {
+			this.tgWater.calRealNodes();
+	  	this.tgRoads.calRealNodes();
+	  	this.tgPlaces.calRealNodes();
+	  	this.tgLanduse.calRealNodes();
 		}
 
 		this.timerFrame = 
@@ -372,28 +375,76 @@ class TGMap {
 		else if (direction === 'backward') value = 1 - (this.frame * 0.1);
 
 		let intermediate;
-		if (this.noIntersection) intermediate = 'intermediateReal';
-		else intermediate = 'intermediateTarget';
+		if (this.adjustGrid === 'none') intermediate = 'intermediateTarget';
+		else intermediate = 'intermediateReal';
+
+		let s = (new Date()).getTime();
 
 		this.tgWater.clearLayers();
+
+		let e = (new Date()).getTime();
+		console.log('[1.1] water: ' + (e - s) + 'ms');
+		s = (new Date()).getTime();
+
 		this.tgWater.calDispNodes(intermediate, value);
+
+		e = (new Date()).getTime();
+		console.log('[1.2] water: ' + (e - s) + 'ms');
+		s = (new Date()).getTime();
+
 		this.tgWater.updateDispWater();
+
+		e = (new Date()).getTime();
+		console.log('[1.3] water: ' + (e - s) + 'ms');
+		s = (new Date()).getTime();
+
 		this.tgWater.addWaterLayer();
 
+		e = (new Date()).getTime();
+		console.log('[1.4] water: ' + (e - s) + 'ms');
+		s = (new Date()).getTime();
+
 		this.tgRoads.clearLayers();
+
+		e = (new Date()).getTime();
+		console.log('[2.1] road: ' + (e - s) + 'ms');
+		s = (new Date()).getTime();
+
 		this.tgRoads.calDispNodes(intermediate, value);
+
+		e = (new Date()).getTime();
+		console.log('[2.2] road: ' + (e - s) + 'ms');
+		s = (new Date()).getTime();
+
   	this.tgRoads.updateDispRoads();
+
+  	e = (new Date()).getTime();
+		console.log('[2.3] road: ' + (e - s) + 'ms');
+		s = (new Date()).getTime();
+
   	this.tgRoads.addRoadLayer();
+
+  	e = (new Date()).getTime();
+		console.log('[2.4] road: ' + (e - s) + 'ms');
+		s = (new Date()).getTime();
 
 		this.tgPlaces.clearLayers();
   	this.tgPlaces.calDispNodes(intermediate, value);
   	this.tgPlaces.updateDispPlaces(true);
   	this.tgPlaces.addPlaceLayer();
 
+  	e = (new Date()).getTime();
+		//console.log('[3] place: ' + (e - s) + 'ms');
+		s = (new Date()).getTime();
+
 		this.tgLanduse.clearLayers();
   	this.tgLanduse.calDispNodes(intermediate, value);
   	this.tgLanduse.updateDispLanduse(true);
   	this.tgLanduse.addLanduseLayer();
+
+  	e = (new Date()).getTime();
+		console.log('[4] landuse: ' + (e - s) + 'ms');
+		//s = (new Date()).getTime();
 
   	if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
   		this.tgControl.calDispNodes(intermediate, value);
@@ -401,7 +452,9 @@ class TGMap {
   		if (this.dispGridLayer) this.tgControl.drawGridLayer();
   		if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer();
   	}
-  	
+
+  	//e = (new Date()).getTime();
+		//console.log('[e] grid and ...: ' + (e - s) + 'ms');
 
   	this.setTime('elementsWarping', 'end', (new Date()).getTime());
 

@@ -56,6 +56,9 @@ const options = {
 		landuse: 'rgb(203, 230, 163)',
 		places: '#686453', //'#000',
 
+		minorNode: '#666',
+		majorNode: '#000',
+
 		highway: '#969696',
 		arterial: '#969696',
 		link: '#BBB', //'#00ADEE'
@@ -89,6 +92,9 @@ const options = {
 	},
 
 	radius: {
+		minorNode: 2,
+		majorNode: 2,
+
 		node: 3,
 		controlPoint: 5,
 		location: 5,
@@ -157,7 +163,8 @@ const options = {
 		splitThreshold: 200,
 		timeToWaitForGettingWaterData: 0, // ms
 		timeToWaitForGettingRoadData: 50, // ms
-		timeToWaitForGettingData: 20 // ms
+		timeToWaitForGettingData: 20, // ms
+		rdpThreshold: 1, // 0.0001 (about 10 meter)
 	},
 
 }

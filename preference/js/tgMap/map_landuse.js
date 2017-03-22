@@ -93,6 +93,7 @@ class TGMapLanduse {
 				continue;
 			}
 			
+			let isIn = false;
 			if (landuse[0][0].node) { // Polygon
 				for(let i = 0; i < landuse.length; i++) {
 					for(let j = 0; j < landuse[i].length; j++) {
@@ -101,12 +102,17 @@ class TGMapLanduse {
 
 						if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
 							this.dispLanduseObjects.push(landuse);
+							isIn = true;
 							break;
 						}
 					}
+					if (isIn) break;
 				}
 			}
 		}
+
+		console.log('/# of landuse : ' + this.landuseObjects.length);
+		console.log('/# of disp landuse: ' + this.dispLanduseObjects.length);
 	}
 
 	updateDispLanduse() {
@@ -205,6 +211,7 @@ class TGMapLanduse {
 	}
 
 	calDispNodes(kind, value) {
+
 		for(let landuse of this.dispLanduseObjects) {
 
 			if (landuse[0][0].node) { // Polygon
