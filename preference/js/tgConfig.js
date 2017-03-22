@@ -53,7 +53,14 @@ const options = {
 			tertiary: '#FFF',
 			residential: '#FFF',
 		},
-		landuse: 'rgb(203, 230, 163)',
+		landuse: [
+			'rgb(203, 230, 163)', // recreation_ground, park, garden
+			'rgb(214, 233, 185)', // cemetery, golf_course, zoo
+			'rgb(228, 228, 223)', // university, college, school
+			'rgb(236, 239, 234)', // stadium
+			'rgb(249, 237, 241)', // hospital
+			'rgb(240, 224, 200)', // retail
+		],
 		places: '#686453', //'#000',
 
 		minorNode: '#666',
@@ -165,6 +172,7 @@ const options = {
 		timeToWaitForGettingRoadData: 50, // ms
 		timeToWaitForGettingData: 20, // ms
 		rdpThreshold: 1, // 0.0001 (about 10 meter)
+		numLanduseClasses: 6,
 	},
 
 }

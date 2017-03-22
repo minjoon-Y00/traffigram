@@ -4,12 +4,27 @@ class TGMapLanduse {
 		this.olMap = olMap;
 		this.mapUtil = mapUtil;
 
-		this.landuseObjects = [];
-		this.newLanduseObjects = [];
-		this.dispLanduseObjects = [];
+		this.landuseObjects = this.initLanduseArray(); 
+		this.newLanduseObjects = this.initLanduseArray(); 
+		this.dispLanduseObjects = this.initLanduseArray(); 
 		this.landuseLayer = null;
+		this.landuseNodeLayer = null;
   	this.timerGetLanduseData = null;
   	this.dispLayers = [];
+  	this.rdpThreshold = this.tg.opt.constant.rdpThreshold;
+
+  	this.simplifyLanduse = true;
+		this.showLanduseNodeLayer = false;
+	}
+
+	initLanduseArray() {
+		// 6 classes of landuse
+		const numClass = this.tg.opt.constant.numLanduseClasses;
+		let outArray = new Array(6);
+		for(let index = 0; index < outArray.length; index++) {
+			outArray[index] = [];
+		}
+		return outArray;
 	}
 
 	start() {
@@ -34,33 +49,94 @@ class TGMapLanduse {
 						this.processNewLanduseObjects.bind(this), 
 						this.tg.opt.constant.timeToWaitForGettingData);
 
-		const geoType = feature.getGeometry().getType();
 		const kind = feature.get('kind');
+		let landuseClass = -1;
+
+		switch(kind) {
+			case 'recreation_ground':
+			case 'park':
+			case 'garden':
+				landuseClass = 0;
+				break;
+			case 'cemetery':
+			case 'golf_course':
+			case 'zoo':
+				landuseClass = 1;
+				break;	
+			case 'university':
+			case 'college':
+			case 'school':
+				landuseClass = 2;
+				break;	
+			case 'stadium':
+				landuseClass = 3;
+				break;
+			case 'hospital':
+				landuseClass = 4;
+				break;
+			case 'retail':
+				landuseClass = 5;
+				break;
+			default:
+				return null;
+		}
+
+		const geoType = feature.getGeometry().getType();
 		const name = feature.get('name');
-		const minZoom = feature.get('min_zoom');
+		// console.log('kind: ' + kind + ' type: ' + geoType + ' name: ' + name);
+		// console.log('kind: ' + kind + ' minZoom: ' + minZoom);
 
-		//console.log('kind: ' + kind + ' type: ' + geoType + ' name: ' + name);
 
-		//console.log('kind: ' + kind + ' minZoom: ' + minZoom);
+		// class 0
+		//if (kind !== 'recreation_ground') return null; // green
+		//if (kind !== 'park') return null;
+		//if (kind !== 'garden') return null;
+
+		// 1
+		//if (kind !== 'cemetery') return null; // 214, 233, 185
+		//if (kind !== 'golf_course') return null;
+		//if (kind !== 'zoo') return null;
+
+		// 2
+		//if (kind !== 'university') return null; -> 228, 228, 223
+		//if (kind !== 'college') return null;
+		//if (kind !== 'school') return null; 
+
+		// 3
+		//if (kind !== 'stadium') return null; // 236,239,234
+
+		// 4
+		//if (kind !== 'hospital') return null; // 249, 237, 241
+
+		// 5
+		//if (kind !== 'retail') return null; // 240 224 200
+
 
 		feature.getGeometry().transform('EPSG:3857', 'EPSG:4326');
 		
-		const coords = feature.getGeometry().getCoordinates();
+		let coords = feature.getGeometry().getCoordinates();
 		coords.minZoom = feature.get('min_zoom');
 		if (name) coords.name = name;
 
-		const lenCoords = coords.length;
+		//const lenCoords = coords.length;
 
 		if (geoType === 'Polygon') {
-			for(let i = 0; i < lenCoords; i++) {
+
+			if (this.simplifyLanduse) {
+				//console.log('before: ' + coords.length);
+				//coords = this.tg.util.RDPSimp2D(coords, this.rdpThreshold);
+				//console.log('after: ' + coords.length);
+			}
+
+			for(let i = 0; i < coords.length; i++) {
 				for(let j = 0; j < coords[i].length; j++) {
 					coords[i][j].node = new Node(coords[i][j][1], coords[i][j][0]);
 				}
 			}
 			
-			this.landuseObjects.push(coords);
-			this.newLanduseObjects.push(coords);
-			this.dispLanduseObjects.push(coords);
+			this.landuseObjects[landuseClass].push(coords);
+			this.newLanduseObjects[landuseClass].push(coords);
+			this.dispLanduseObjects[landuseClass].push(coords);
 		}
 		return null;
 	}
@@ -70,7 +146,7 @@ class TGMapLanduse {
 		this.tg.map.setTime('landuseLoading', 'end', (new Date()).getTime());
 
 		this.addNewLanduseLayer();
-		this.newLanduseObjects = [];
+		this.newLanduseObjects = this.initLanduseArray();
 	}
 
 	/*createDispLanduse() {
@@ -85,28 +161,33 @@ class TGMapLanduse {
 		const bottom = opt.box.bottom;
 		const right = opt.box.right;
 		const left = opt.box.left;
+		const numClass = this.tg.opt.constant.numLanduseClasses;
 
-		this.dispLanduseObjects = [];
+		this.dispLanduseObjects = this.initLanduseArray();
 
-		for(let landuse of this.landuseObjects) {
-			if (currentZoom < landuse.minZoom) {
-				continue;
-			}
-			
-			let isIn = false;
-			if (landuse[0][0].node) { // Polygon
-				for(let i = 0; i < landuse.length; i++) {
-					for(let j = 0; j < landuse[i].length; j++) {
-						const lat = landuse[i][j].node.original.lat;
-						const lng = landuse[i][j].node.original.lng;
 
-						if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
-							this.dispLanduseObjects.push(landuse);
-							isIn = true;
-							break;
+
+		for(let cl = 0; cl < numClass; cl++) {
+			for(let landuse of this.landuseObjects[cl]) {
+				if (currentZoom < landuse.minZoom) {
+					continue;
+				}
+				
+				let isIn = false;
+				if (landuse[0][0].node) { // Polygon
+					for(let i = 0; i < landuse.length; i++) {
+						for(let j = 0; j < landuse[i].length; j++) {
+							const lat = landuse[i][j].node.original.lat;
+							const lng = landuse[i][j].node.original.lng;
+
+							if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
+								this.dispLanduseObjects[cl].push(landuse);
+								isIn = true;
+								break;
+							}
 						}
+						if (isIn) break;
 					}
-					if (isIn) break;
 				}
 			}
 		}
@@ -116,26 +197,34 @@ class TGMapLanduse {
 	}
 
 	updateDispLanduse() {
-		for(let landuse of this.dispLanduseObjects) {
-			if (landuse[0][0].node) { // Polygon
-				for(let i = 0; i < landuse.length; i++) {
-					for(let j = 0; j < landuse[i].length; j++) {
-						landuse[i][j][0] = landuse[i][j].node.disp.lng; 
-						landuse[i][j][1] = landuse[i][j].node.disp.lat; 
+		const numClass = this.tg.opt.constant.numLanduseClasses;
+
+		for(let cl = 0; cl < numClass; cl++) {
+			for(let landuse of this.dispLanduseObjects[cl]) {
+				if (landuse[0][0].node) { // Polygon
+					for(let i = 0; i < landuse.length; i++) {
+						for(let j = 0; j < landuse[i].length; j++) {
+							landuse[i][j][0] = landuse[i][j].node.disp.lng; 
+							landuse[i][j][1] = landuse[i][j].node.disp.lat; 
+						}
 					}
-				}
-			} 
+				} 
+			}
 		}
 	}
 
 	addNewLanduseLayer() {
 		let arr = [];
-		const styleFunc = this.mapUtil.polygonStyleFunc(this.tg.opt.color.landuse);
+		const numClass = this.tg.opt.constant.numLanduseClasses;
 
-		for(let landuse of this.newLanduseObjects) {
-			if (landuse[0][0].node) { // Polygon
-				this.mapUtil.addFeatureInFeatures(
-					arr, new ol.geom.Polygon(landuse), styleFunc);
+		for(let cl = 0; cl < numClass; cl++) {
+			const styleFunc = this.mapUtil.polygonStyleFunc(this.tg.opt.color.landuse[cl]);
+
+			for(let landuse of this.newLanduseObjects[cl]) {
+				if (landuse[0][0].node) { // Polygon
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.Polygon(landuse), styleFunc);
+				}
 			}
 		}
 
@@ -145,18 +234,23 @@ class TGMapLanduse {
 		this.dispLayers.push(layer);
 		
 		console.log('+ new landuse layer: ' + arr.length);
+		if (this.showLanduseNodeLayer) this.addNewLanduseNodeLayer();
 	}
 
 	addLanduseLayer() {
 		let arr = [];
-		const styleFunc = this.mapUtil.polygonStyleFunc(this.tg.opt.color.landuse);
+		const numClass = this.tg.opt.constant.numLanduseClasses;
 
 		this.mapUtil.removeLayer(this.landuseLayer);
 
-		for(let landuse of this.dispLanduseObjects) {
-			if (landuse[0][0].node) { // Polygon
-				this.mapUtil.addFeatureInFeatures(
-					arr, new ol.geom.Polygon(landuse), styleFunc);
+		for(let cl = 0; cl < numClass; cl++) {
+			const styleFunc = this.mapUtil.polygonStyleFunc(this.tg.opt.color.landuse[cl]);
+
+			for(let landuse of this.dispLanduseObjects[cl]) {
+				if (landuse[0][0].node) { // Polygon
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.Polygon(landuse), styleFunc);
+				}
 			}
 		}
 
@@ -164,6 +258,8 @@ class TGMapLanduse {
 		this.landuseLayer.setZIndex(this.tg.opt.z.landuse);
 		this.olMap.addLayer(this.landuseLayer);
 		this.dispLayers.push(this.landuseLayer);
+
+		if (this.showLanduseNodeLayer) this.addLanduseNodeLayer();
 	}
 
 	clearLayers() {
@@ -193,17 +289,20 @@ class TGMapLanduse {
 		else throw 'ERROR in calModifiedNodes()';
 
 		const transform = this.tg.graph[transformFuncName].bind(this.tg.graph);
+		const numClass = this.tg.opt.constant.numLanduseClasses;
 
-		for(let landuse of this.dispLanduseObjects) {
-			let modified;
+		for(let cl = 0; cl < numClass; cl++) {
+			for(let landuse of this.dispLanduseObjects[cl]) {
+				let modified;
 
-			if (landuse[0][0].node) { // Polygon
-				for(let i = 0; i < landuse.length; i++) {
-					for(let j = 0; j < landuse[i].length; j++) {
-						modified = 
-							transform(landuse[i][j].node.original.lat, landuse[i][j].node.original.lng);
-						landuse[i][j].node[kind].lat = modified.lat;
-						landuse[i][j].node[kind].lng = modified.lng;
+				if (landuse[0][0].node) { // Polygon
+					for(let i = 0; i < landuse.length; i++) {
+						for(let j = 0; j < landuse[i].length; j++) {
+							modified = 
+								transform(landuse[i][j].node.original.lat, landuse[i][j].node.original.lng);
+							landuse[i][j].node[kind].lat = modified.lat;
+							landuse[i][j].node[kind].lng = modified.lng;
+						}
 					}
 				}
 			}
@@ -211,44 +310,122 @@ class TGMapLanduse {
 	}
 
 	calDispNodes(kind, value) {
+		const numClass = this.tg.opt.constant.numLanduseClasses;
 
-		for(let landuse of this.dispLanduseObjects) {
+		for(let cl = 0; cl < numClass; cl++) {
+			for(let landuse of this.dispLanduseObjects[cl]) {
 
-			if (landuse[0][0].node) { // Polygon
-				if (kind === 'intermediateReal') {
-					for(let i = 0; i < landuse.length; i++) {
-						for(let j = 0; j < landuse[i].length; j++) {
-							landuse[i][j].node.disp.lat = 
-								(1 - value) * landuse[i][j].node.original.lat +
-								value * landuse[i][j].node.real.lat;
-							landuse[i][j].node.disp.lng = 
-								(1 - value) * landuse[i][j].node.original.lng +
-								value * landuse[i][j].node.real.lng;
+				if (landuse[0][0].node) { // Polygon
+					if (kind === 'intermediateReal') {
+						for(let i = 0; i < landuse.length; i++) {
+							for(let j = 0; j < landuse[i].length; j++) {
+								landuse[i][j].node.disp.lat = 
+									(1 - value) * landuse[i][j].node.original.lat +
+									value * landuse[i][j].node.real.lat;
+								landuse[i][j].node.disp.lng = 
+									(1 - value) * landuse[i][j].node.original.lng +
+									value * landuse[i][j].node.real.lng;
+							}
 						}
 					}
-				}
-				else if (kind === 'intermediateTarget') {
-					for(let i = 0; i < landuse.length; i++) {
-						for(let j = 0; j < landuse[i].length; j++) {
-							landuse[i][j].node.disp.lat = 
-								(1 - value) * landuse[i][j].node.original.lat +
-								value * landuse[i][j].node.target.lat;
-							landuse[i][j].node.disp.lng = 
-								(1 - value) * landuse[i][j].node.original.lng +
-								value * landuse[i][j].node.target.lng;
+					else if (kind === 'intermediateTarget') {
+						for(let i = 0; i < landuse.length; i++) {
+							for(let j = 0; j < landuse[i].length; j++) {
+								landuse[i][j].node.disp.lat = 
+									(1 - value) * landuse[i][j].node.original.lat +
+									value * landuse[i][j].node.target.lat;
+								landuse[i][j].node.disp.lng = 
+									(1 - value) * landuse[i][j].node.original.lng +
+									value * landuse[i][j].node.target.lng;
+							}
 						}
 					}
-				}
-				else {
-					for(let i = 0; i < landuse.length; i++) {
-						for(let j = 0; j < landuse[i].length; j++) {
-							landuse[i][j].node.disp.lat = landuse[i][j].node[kind].lat;
-							landuse[i][j].node.disp.lng = landuse[i][j].node[kind].lng;
+					else {
+						for(let i = 0; i < landuse.length; i++) {
+							for(let j = 0; j < landuse[i].length; j++) {
+								landuse[i][j].node.disp.lat = landuse[i][j].node[kind].lat;
+								landuse[i][j].node.disp.lng = landuse[i][j].node[kind].lng;
+							}
 						}
 					}
 				}
 			}
 		}
+	}
+
+	addNewLanduseNodeLayer() {
+		let arr = [];
+		const clrMinor = this.tg.opt.color.minorNode;
+		const clrMajor = this.tg.opt.color.majorNode;
+		const radiusMinor = this.tg.opt.radius.minorNode;
+		const radiusMajor = this.tg.opt.radius.majorNode;
+		const numClass = this.tg.opt.constant.numLanduseClasses;
+
+		for(let cl = 0; cl < numClass; cl++) {
+			for(let landuse of this.newLanduseObjects[cl]) {
+				if (landuse[0][0].node) { // Polygon
+					for(let landuse2 of landuse) {
+						this.mapUtil.addFeatureInFeatures(
+							arr, new ol.geom.Point(landuse2[0]), 
+							this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
+
+						this.mapUtil.addFeatureInFeatures(
+							arr, new ol.geom.Point(landuse2[landuse2.length - 1]), 
+							this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
+
+						for(let index = 1; index < landuse2.length - 1; index++) {
+							this.mapUtil.addFeatureInFeatures(
+								arr, new ol.geom.Point(landuse2[index]), 
+								this.mapUtil.nodeStyleFunc(clrMinor, radiusMinor));
+						}
+					}
+				}
+			}
+		}
+		
+		const layer = this.mapUtil.olVectorFromFeatures(arr);
+		layer.setZIndex(this.tg.opt.z.roadNode);
+		this.olMap.addLayer(layer);
+		this.dispLayers.push(layer);
+	}
+
+	addLanduseNodeLayer() {
+
+		this.mapUtil.removeLayer(this.landuseNodeLayer);
+
+		let arr = [];
+		const clrMinor = this.tg.opt.color.minorNode;
+		const clrMajor = this.tg.opt.color.majorNode;
+		const radiusMinor = this.tg.opt.radius.minorNode;
+		const radiusMajor = this.tg.opt.radius.majorNode;
+		const numClass = this.tg.opt.constant.numLanduseClasses;
+
+		for(let cl = 0; cl < numClass; cl++) {
+			for(let landuse of this.dispLanduseObjects[cl]) {
+				if (landuse[0][0].node) { // Polygon
+					for(let landuse2 of landuse) {
+						this.mapUtil.addFeatureInFeatures(
+							arr, new ol.geom.Point(landuse2[0]), 
+							this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
+
+						this.mapUtil.addFeatureInFeatures(
+							arr, new ol.geom.Point(landuse2[landuse2.length - 1]), 
+							this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
+
+						for(let index = 1; index < landuse2.length - 1; index++) {
+							this.mapUtil.addFeatureInFeatures(
+								arr, new ol.geom.Point(landuse2[index]), 
+								this.mapUtil.nodeStyleFunc(clrMinor, radiusMinor));
+						}
+					}
+				}
+			}
+		}
+		
+		this.landuseNodeLayer = this.mapUtil.olVectorFromFeatures(arr);
+		this.landuseNodeLayer.setZIndex(this.tg.opt.z.roadNode);
+		this.olMap.addLayer(this.landuseNodeLayer);
+		this.dispLayers.push(this.landuseNodeLayer);
 	}
 
 }
