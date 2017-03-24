@@ -31,6 +31,7 @@ const options = {
 		controlPoint: 15,
 		places: 19,
 		location: 20,
+		isochrone: 25,
 		centerPosition: 50,
 	},
 
@@ -61,7 +62,7 @@ const options = {
 			'rgb(249, 237, 241)', // hospital
 			'rgb(240, 224, 200)', // retail
 		],
-		places: '#686453', //'#000',
+		textPlace: 'rgb(150, 122, 89)',
 
 		minorNode: '#666',
 		majorNode: '#000',
@@ -71,12 +72,17 @@ const options = {
 		link: '#BBB', //'#00ADEE'
 		node: '#A52A2A',
 		text: '#686453', //'#000',
+		isochroneText: '#FFF',
 		grid: '#FFA07A',
 
 		location: '#33cc33',
 		locationLine: '#33cc33',
 		controlPoint: '#FFD700',
 		controlPointLine: '#FFD700',
+	},
+
+	alpha: {
+		isochrone: 0.5,
 	},
 
 	width: {
@@ -95,6 +101,7 @@ const options = {
 
 		locationLine: 2,
 		controlPointLine: 2,
+		isochrone: 2,
 		
 	},
 
@@ -110,11 +117,13 @@ const options = {
 	image: {
 		center: 'img/icon_origin.png',
 		location: 'img/map_loc.png',
+		redBackground: 'img/red_bg.png',
 	},
 
 	font: {
 		text: '14px Source Sans Pro',
 		places: '14px Source Sans Pro',
+		isochroneText: '24px Source Sans Pro',
 	},
 
 	center: {
@@ -171,7 +180,8 @@ const options = {
 		timeToWaitForGettingWaterData: 0, // ms
 		timeToWaitForGettingRoadData: 50, // ms
 		timeToWaitForGettingData: 20, // ms
-		rdpThreshold: 1, // 0.0001 (about 10 meter)
+		timeToWaitForFinishGettingWaterData: 1000, // ms
+		rdpThreshold: 0.0001, //(about 10 meter)
 		numLanduseClasses: 6,
 	},
 

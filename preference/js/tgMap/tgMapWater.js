@@ -10,7 +10,13 @@ class TGMapWater {
 		this.waterLayer = null;
 		this.waterNodeLayer = null;
   	this.timerGetWaterData = null;
+  	this.timerFinishGettingWaterData = null;
   	this.dispLayers = [];
+  	this.rdpThreshold = this.tg.opt.constant.rdpThreshold;
+
+  	this.timeInterval = 0;
+  	this.timeIntervalArray = [];
+
 	}
 
 	start() {
@@ -50,29 +56,40 @@ class TGMapWater {
 
 			let coords = feature.getGeometry().getCoordinates();
 			coords.minZoom = feature.get('min_zoom');
+			
 
 			//console.log(coords.minZoom + ' : ' + kind);
 
-			const lenCoords = coords.length;
+			//const lenCoords = coords.length;
 
 			if (geoType === 'Polygon') {
-				for(let i = 0; i < lenCoords; i++) {
+
+				//console.log('before: ' + coords.length);
+				//coords = this.tg.util.RDPSimp2D(coords, 0);
+				//console.log('after: ' + coords.length);
+
+				for(let i = 0; i < coords.length; i++) {
 					for(let j = 0; j < coords[i].length; j++) {
 						coords[i][j].node = new Node(coords[i][j][1], coords[i][j][0]);
 					}
 				}
+				
 				this.waterObjects.push(coords);
 				this.newWaterObjects.push(coords);
 				this.dispWaterObjects.push(coords);
 			}
 			else if (geoType == 'MultiPolygon') {
-				for(let i = 0; i < lenCoords; i++) {
+
+				//coords = this.tg.util.RDPSimp3D(coords, this.rdpThreshold);
+
+				for(let i = 0; i < coords.length; i++) {
 					for(let j = 0; j < coords[i].length; j++) {
 						for(let k = 0; k < coords[i][j].length; k++) {
 							coords[i][j][k].node = new Node(coords[i][j][k][1], coords[i][j][k][0]);
 						}
 					}
 				}
+
 				this.waterObjects.push(coords);
 				this.newWaterObjects.push(coords);
 				this.dispWaterObjects.push(coords);
@@ -82,11 +99,28 @@ class TGMapWater {
 	}
 
 	processNewWaterObjects() {
+		if (this.timerFinishGettingWaterData) {
+			clearTimeout(this.timerFinishGettingWaterData);
+		}
+		this.timerFinishGettingWaterData = 
+				setTimeout(
+						this.finishGettingWaterObjects.bind(this), 
+						this.tg.opt.constant.timeToWaitForFinishGettingWaterData);
+
 		this.tg.map.setDataInfo('numWaterLoading', 'increase');
 		this.tg.map.setTime('waterLoading', 'end', (new Date()).getTime());
 
 		this.addNewWaterLayer();
 		this.newWaterObjects = [];
+
+		const cur = (new Date()).getTime();
+		if (this.timeInterval !== 0) {
+			const dif = (cur - this.timeInterval);
+			this.timeIntervalArray.push(dif)
+			console.log('### elapsed: ' + dif + ' ms');
+		}
+		this.timeInterval = cur;
+
 	}
 
 	/*createDispWater() {
@@ -358,6 +392,153 @@ class TGMapWater {
 			}
 		}
 	}
+
+	arePointsInWater(points) {
+
+		const s = (new Date()).getTime();
+
+		const centerPoint = this.tg.map.centerPosition;
+		for(let point of points) {
+			this.isPointInWater(centerPoint, point);
+		}
+
+		const e = (new Date()).getTime();
+		console.log('arePointsInWater: ' + (e - s) + ' ms');
+	}
+
+	isPointInWater(centerPoint, point) {
+
+		let countIntersection = 0;
+		for(let water of this.dispWaterObjects) {
+
+			if (water[0][0].node) { // Polygon
+				for(let i = 0; i < water.length; i++) {
+					for(let j = 0; j < water[i].length - 1; j++) {
+
+						if (this.tg.util.intersects(
+							centerPoint.lat, centerPoint.lng, 
+							point.original.lat, point.original.lng, 
+		        	water[i][j][1], water[i][j][0], 
+		        	water[i][j + 1][1], water[i][j + 1][0])) {
+							countIntersection++;
+						}
+					}
+				}
+			}
+			else if (water[0][0][0].node) { // MultiPolygon
+				for(let i = 0; i < water.length; i++) {
+					for(let j = 0; j < water[i].length; j++) {
+						for(let k = 0; k < water[i][j].length - 1; k++) {
+
+							if (this.tg.util.intersects(
+								centerPoint.lat, centerPoint.lng, 
+								point.original.lat, point.original.lng, 
+			        	water[i][j][k][1], water[i][j][k][0], 
+			        	water[i][j][k + 1][1], water[i][j][k + 1][0])) {
+								countIntersection++;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if ((countIntersection % 2) === 1) {
+			point.travelTime = null;
+			console.log('i: ' + point.index + ' #: ' + countIntersection);
+		}
+	}
+
+	calNumberOfNode() {
+		let count = 0;
+
+		for(let water of this.dispWaterObjects) {
+			if (water[0][0].node) { // Polygon
+				for(let water2 of water) {
+					count += water2.length;
+				}
+			}
+			else if (water[0][0][0].node) { // MultiPolygon
+				for(let water2 of water) {
+					for(let water3 of water2) {
+						count += water3.length;
+					}
+				}
+			}
+		}
+		return count;
+	}
+
+	finishGettingWaterObjects() {
+
+		let sum = 0;
+		for(let time of this.timeIntervalArray) sum += time;
+
+		console.log('################ FIN.');
+		console.log('AVG: ' + (sum / this.timeIntervalArray.length));
+			
+
+		this.timeInterval = 0;
+		this.timeIntervalArray = [];
+		this.arePointsInWater(this.tg.map.tgControl.controlPoints);
+		this.tg.map.tgControl.checkGridSplit();
+	}
+
+
+	/*isPointInWater(point) {
+
+		const s = (new Date()).getTime();
+
+		const centerPoint = this.tg.map.centerPosition;
+
+		for(let point of this.tg.map.tgControl.controlPoints) {
+
+
+			let countIntersection = 0;
+			for(let water of this.dispWaterObjects) {
+
+				if (water[0][0].node) { // Polygon
+					for(let i = 0; i < water.length; i++) {
+						for(let j = 0; j < water[i].length - 1; j++) {
+
+							if (this.tg.util.intersects(
+								centerPoint.lat, centerPoint.lng, 
+								point.original.lat, point.original.lng, 
+			        	water[i][j][1], water[i][j][0], 
+			        	water[i][j + 1][1], water[i][j + 1][0])) {
+								countIntersection++;
+							}
+						}
+					}
+				}
+				else if (water[0][0][0].node) { // MultiPolygon
+					for(let i = 0; i < water.length; i++) {
+						for(let j = 0; j < water[i].length; j++) {
+							for(let k = 0; k < water[i][j].length - 1; k++) {
+
+								if (this.tg.util.intersects(
+									centerPoint.lat, centerPoint.lng, 
+									point.original.lat, point.original.lng, 
+				        	water[i][j][k][1], water[i][j][k][0], 
+				        	water[i][j][k + 1][1], water[i][j][k + 1][0])) {
+									countIntersection++;
+								}
+							}
+						}
+					}
+				}
+			}
+			console.log('i: ' + point.index + ' #: ' + countIntersection);
+		}
+
+
+		const e = (new Date()).getTime();
+		console.log('time: ' + (e - s) + ' ms');
+
+		
+	}*/
+
+
 
 	/*addWaterNodeLayer() {
 

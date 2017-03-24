@@ -79,9 +79,20 @@ class TGUtil {
 	  }
 	}
 
+	RDPSimp3D(point3DArray, eps) {
+		for(let index = 0; index < point3DArray.length; index++) {
+			for(let index2 = 0; index2 < point3DArray[index].length; index2++) {
+				point3DArray[index][index2] = this.RDPSimp1D(point3DArray[index][index2], eps);
+			}
+		}
+		return point3DArray;
+	}
+
 	RDPSimp2D(point2DArray, eps) {
-		for(let pointArray of point2DArray) {
-			pointArray = this.RDPSimp1D(pointArray, eps);
+		for(let index = 0; index < point2DArray.length; index++) {
+			console.log('before: ' + point2DArray[index].length);
+			point2DArray[index] = this.RDPSimp1D(point2DArray[index], eps);
+			console.log('after: ' + point2DArray[index].length);
 		}
 		return point2DArray;
 	}
@@ -89,14 +100,20 @@ class TGUtil {
 	// pointArray: [[lng, lat], ..., [lng, lat]]
 	RDPSimp1D(pointArray, eps) {
 		// Find the point with the maximum distance
+
 		let dmax = 0;
 		let index = 0;
 		const startPoint = pointArray[0];
 		const endPoint = pointArray[pointArray.length - 1];
 
+		console.log(startPoint);
+		console.log(endPoint);
+
 		for(let i = 1; i < pointArray.length - 1; i++) {
 			const testPoint = pointArray[i];
 			const d = this.distanceBetweenLineAndPoint(startPoint, endPoint, testPoint);
+
+			
 
 			if (d > dmax) {
 				index = i

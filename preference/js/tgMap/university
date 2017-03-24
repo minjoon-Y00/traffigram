@@ -1,0 +1,87 @@
+university
+college
+school
+stadium
+hospital
+retail
+recreation_ground
+park
+cemetery
+golf_course
+zoo
+garden
+
+- library
+- fuel
+- theatre
+- residential
+- recreation_track
+- footway
+- commercial
+- industrial
+- railway
+- enclosure
+- military
+- hedge
+- pier
+- caravan_site
+- picnic_site
+- dog_park
+- bridge
+- wetland
+- scrub
+- grass
+- natural_wood
+- nature_reserve
+- meadow
+- forest
+- sports_centre
+- attraction
+- water_park
+- city_wall
+- prison
+- apron
+- grave_yard
+
+
+91
+119
+133
+89
+96
+
+93
+114
+112
+113
+111
+
+
+45
+49
+47
+65
+45
+
+
+rdp roads
+5005 -> 3292 (z13)
+5724 -> 4914 (z12)
+4387 -> 4244 (z11)
+
+TODO: split grid restore
+TODO: rdp water
+TODO: rdp landuse
+
+TODO: functions -> faster
+more road simplification
+cartodraw algorithm
+locations
+isochrone
+comparisons
+other texts
+overlapped texts
+
+
+
+

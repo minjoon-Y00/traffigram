@@ -22,7 +22,7 @@ class TGMapRoads {
 	  	this.newRoadObjects[type] = [];
 		}
 
-		this.simplifyRoads = true;
+		this.simplifyRoads = false;
 		this.showRoadNodeLayer = false;
 	}
 
@@ -62,7 +62,6 @@ class TGMapRoads {
 		if (geoType === 'LineString') {
 
 			if (this.simplifyRoads) {
-				// rdp simplification
 				//console.log('before: ' + coords.length);
 				coords = this.tg.util.RDPSimp1D(coords, this.rdpThreshold);
 				//console.log('after: ' + coords.length);
@@ -81,7 +80,6 @@ class TGMapRoads {
 		else if (geoType === 'MultiLineString') {
 
 			if (this.simplifyRoads) {
-				// rdp simplification
 				//console.log('before: ' + coords.length);
 				coords = this.tg.util.RDPSimp2D(coords, this.rdpThreshold);
 				//console.log('after: ' + coords.length);
@@ -183,6 +181,7 @@ class TGMapRoads {
 			}
 		}
 
+		/*
 		let numRoad = 0;
 		for(let type of this.roadTypes) {
 			for(let road of this.roadObjects[type]) {
@@ -200,6 +199,7 @@ class TGMapRoads {
 
 		console.log('/# of road : ' + numRoad);
 		console.log('/# of disp road: ' + numDispRoad);
+		*/
 	}
 
 	updateDispRoads() {
@@ -227,7 +227,7 @@ class TGMapRoads {
 	}
 
 	addNewRoadLayer() {
-		let totalNumArr = 0;
+		//let totalNumArr = 0;
 		for(let type of this.dispRoadTypes) {
 			let arr = [];
 			const styleFunc = this.mapUtil.lineStyleFunc(
@@ -246,21 +246,18 @@ class TGMapRoads {
 					console.log('not known geotype in createDispRoas()');
 				}
 			}
-			totalNumArr += arr.length;
+			//totalNumArr += arr.length;
 			const layer = this.mapUtil.olVectorFromFeatures(arr);
 			layer.setZIndex(this.tg.opt.z[type]);
 			this.olMap.addLayer(layer);
 			this.dispLayers.push(layer);
 		}
-		console.log('+ new road layer: ' + totalNumArr);
+		//console.log('+ new road layer: ' + totalNumArr);
 		if (this.showRoadNodeLayer) this.addNewRoadNodeLayer();
 	}
 
 	//
 	addRoadLayer() {
-
-		const s = (new Date()).getTime();
-
 	  for(let type of this.roadTypes) {
 			this.mapUtil.removeLayer(this.roadLayer[type]);
 		}
@@ -291,11 +288,6 @@ class TGMapRoads {
 
 			//console.log('### ' + type + ' : ' + arr.length);
 		}
-
-		//console.log('+ road layer: ' + arr.length);
-
-		const e = (new Date()).getTime();
-		//console.log('addRoadLayer: ' + (e - s) + ' ms');
 		if (this.showRoadNodeLayer) this.addRoadNodeLayer();
 	}
 
@@ -336,8 +328,6 @@ class TGMapRoads {
 
 	calModifiedNodes(kind) {
 
-		//const s = (new Date()).getTime();
-
 		let transformFuncName;
 		if (kind === 'real') transformFuncName = 'transformReal';
 		else if (kind === 'target') transformFuncName = 'transformTarget';
@@ -368,20 +358,12 @@ class TGMapRoads {
 				}
 			}
 		}
-
-		//const e = (new Date()).getTime();
-		//console.log('calModifiedNodes: ' + (e - s) + ' ms');
 	}
 
 	calDispNodes(kind, value) {
 
-		const s = (new Date()).getTime();
-
 		for(let type of this.dispRoadTypes) {
 			for(let road of this.dispRoads[type]) {
-
-	  //for(let type of this.roadTypes) {
-			//for(let road of this.roadObjects[type]) {
 
 				if (road[0].node) { // LineString {
 					if (kind === 'intermediateReal') {
@@ -443,9 +425,24 @@ class TGMapRoads {
 				}
 			}
 		}
+	}
 
-		const e = (new Date()).getTime();
-		//console.log('calDispNodes: ' + (e - s) + ' ms');
+	calNumberOfNode() {
+		let count = 0;
+
+		for(let type of this.dispRoadTypes) {
+			for(let road of this.dispRoads[type]) {
+				if (road[0].node) { // LineString
+					count += road.length;
+				}
+				else if (road[0][0].node) { // MultiLineString
+					for(let road2 of road) {
+						count += road2.length;
+					}
+				}
+			}
+		}
+		return count;
 	}
 
 	addNewRoadNodeLayer() {
@@ -553,7 +550,6 @@ class TGMapRoads {
 				}
 			}
 		}
-		console.log(arr);
 		this.roadNodeLayer = this.mapUtil.olVectorFromFeatures(arr);
 		this.roadNodeLayer.setZIndex(this.tg.opt.z.roadNode);
 		this.olMap.addLayer(this.roadNodeLayer);

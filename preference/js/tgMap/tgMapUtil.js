@@ -8,6 +8,7 @@ class TGMapUtil {
 		this.polygonStyle = this.polygonStyleFunc;
 		this.imageStyle = this.imageStyleFunc;
 		this.textStyle = this.textStyleFunc;
+		this.isochroneStyle = this.isochroneStyleFunc;
 	}
 
 	addFeatureInFeatures(arr, geometry, styleFunc) {
@@ -91,25 +92,39 @@ class TGMapUtil {
 	 	})
 	}
 
-	imageStyleFunc(src) {
+	imageStyleFunc(src, xPixel = 0.5) {
 		return new ol.style.Style({
 			image: new ol.style.Icon({
-	  		src: src
+	  		src: src,
+	  		//anchor: [0.5, 0.5],
+      	//anchorXUnits: 'pixels'
 			})
 		})
 	}
 
-	textStyleFunc(text, color, font) {
+	textStyleFunc(text, color, font, offsetX = 0, offsetY = 0) {
 	  return new ol.style.Style({
 	  	text: new ol.style.Text({
-	    	textAlign: 'Center',
+	    	textAlign: 'center',
 	    	font: font,
 	    	text: text,
 	    	fill: new ol.style.Fill({color: color}),
-	    	offsetX: 0,
-	    	offsetY: 0
+	    	offsetX: offsetX,
+	    	offsetY: offsetY,
 	    })
-	  })
+	  });
+	}
+
+	isochroneStyleFunc(radius, color, width) {
+	  return new ol.style.Style({
+	    image: new ol.style.Circle({
+	      radius: radius,
+	      stroke: new ol.style.Stroke({
+	        color: color,
+	        width: width,
+	      })
+	    })
+	  });
 	}
 
 

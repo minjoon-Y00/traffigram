@@ -34,7 +34,7 @@ class TGMapPlaces {
 						this.processNewPlaceObjects.bind(this), 
 						this.tg.opt.constant.timeToWaitForGettingData);
 
-		const name = feature.get('name');
+		const name = feature.get('name').toUpperCase();
 
 		if (this.placeObjects[name]) return null;
 
@@ -123,11 +123,9 @@ class TGMapPlaces {
 
 			if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
 				this.dispPlaceObjects[name] = this.placeObjects[name];
-				break;
 			}
 		}
 	}
-
 
 	updateDispPlaces() {
 		for(let name in this.dispPlaceObjects) {
@@ -137,14 +135,13 @@ class TGMapPlaces {
 		}
 	}
 
-
 	addNewPlaceLayer() {
 		let arr = [];
 
 		for(let name in this.newPlaceObjects) {
 			const place = this.newPlaceObjects[name];
 			const styleFunc = this.mapUtil.textStyleFunc(
-					name, this.tg.opt.color.places, this.tg.opt.font.places);
+					name, this.tg.opt.color.textPlace, this.tg.opt.font.places);
 
 			this.mapUtil.addFeatureInFeatures(
 				arr, new ol.geom.Point(place), styleFunc);
@@ -166,7 +163,7 @@ class TGMapPlaces {
 		for(let name in this.dispPlaceObjects) {
 			const place = this.dispPlaceObjects[name];
 			const styleFunc = this.mapUtil.textStyleFunc(
-					name, this.tg.opt.color.places, this.tg.opt.font.places);
+					name, this.tg.opt.color.textPlace, this.tg.opt.font.places);
 
 			this.mapUtil.addFeatureInFeatures(
 				arr, new ol.geom.Point(place), styleFunc);

@@ -98,7 +98,14 @@ class TGMap {
 		//tg.util.saveTextAsFile(this.tgRoads.dispWater, 'dispWater.json');
 
 		//console.log(this.olMap.getLayers().clear());
-		this.tgRoads.clearLayers();
+		//this.tgRoads.clearLayers();
+
+		//this.tgWater.isPointInWater();
+		//this.tgWater.arePointsInWater();
+
+		//console.log(this.tgRoads.calNumberOfNode());
+		console.log(this.tgWater.calNumberOfNode());
+
 	}
 
 
@@ -283,6 +290,8 @@ class TGMap {
 		if (this.dispLocationLayer) this.tgLocs.drawLocationLayer()
 		else this.tgLocs.removeLocationLayer()
 
+		this.tgAux.drawIsochroneLayer();
+
 		//console.log('updateLayers : ' + ((new Date()).getTime() - s) + 'ms')
 	}
 
@@ -368,11 +377,11 @@ class TGMap {
 
 	moveElementsByFrame(direction) {
 		this.setTime('elementsWarping', 'start', (new Date()).getTime());
-		this.frame += 1;
 
-		let value;
-		if (direction === 'forward') value = this.frame * 0.1;
-		else if (direction === 'backward') value = 1 - (this.frame * 0.1);
+		if (direction === 'forward') this.frame += 1;
+		else if (direction === 'backward') this.frame -= 1;
+
+		const value = this.frame * 0.1;
 
 		let intermediate;
 		if (this.adjustGrid === 'none') intermediate = 'intermediateTarget';
@@ -381,51 +390,21 @@ class TGMap {
 		let s = (new Date()).getTime();
 
 		this.tgWater.clearLayers();
-
-		let e = (new Date()).getTime();
-		console.log('[1.1] water: ' + (e - s) + 'ms');
-		s = (new Date()).getTime();
-
 		this.tgWater.calDispNodes(intermediate, value);
-
-		e = (new Date()).getTime();
-		console.log('[1.2] water: ' + (e - s) + 'ms');
-		s = (new Date()).getTime();
-
 		this.tgWater.updateDispWater();
-
-		e = (new Date()).getTime();
-		console.log('[1.3] water: ' + (e - s) + 'ms');
-		s = (new Date()).getTime();
-
 		this.tgWater.addWaterLayer();
 
-		e = (new Date()).getTime();
-		console.log('[1.4] water: ' + (e - s) + 'ms');
+		let e = (new Date()).getTime();
+		console.log('[1] water: ' + (e - s) + 'ms');
 		s = (new Date()).getTime();
 
 		this.tgRoads.clearLayers();
-
-		e = (new Date()).getTime();
-		console.log('[2.1] road: ' + (e - s) + 'ms');
-		s = (new Date()).getTime();
-
 		this.tgRoads.calDispNodes(intermediate, value);
-
-		e = (new Date()).getTime();
-		console.log('[2.2] road: ' + (e - s) + 'ms');
-		s = (new Date()).getTime();
-
   	this.tgRoads.updateDispRoads();
-
-  	e = (new Date()).getTime();
-		console.log('[2.3] road: ' + (e - s) + 'ms');
-		s = (new Date()).getTime();
-
   	this.tgRoads.addRoadLayer();
 
   	e = (new Date()).getTime();
-		console.log('[2.4] road: ' + (e - s) + 'ms');
+		console.log('[2] road: ' + (e - s) + 'ms');
 		s = (new Date()).getTime();
 
 		this.tgPlaces.clearLayers();
@@ -434,7 +413,7 @@ class TGMap {
   	this.tgPlaces.addPlaceLayer();
 
   	e = (new Date()).getTime();
-		//console.log('[3] place: ' + (e - s) + 'ms');
+		console.log('[3] place: ' + (e - s) + 'ms');
 		s = (new Date()).getTime();
 
 		this.tgLanduse.clearLayers();
@@ -444,7 +423,6 @@ class TGMap {
 
   	e = (new Date()).getTime();
 		console.log('[4] landuse: ' + (e - s) + 'ms');
-		//s = (new Date()).getTime();
 
   	if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
   		this.tgControl.calDispNodes(intermediate, value);
@@ -453,16 +431,18 @@ class TGMap {
   		if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer();
   	}
 
-  	//e = (new Date()).getTime();
-		//console.log('[e] grid and ...: ' + (e - s) + 'ms');
+  	this.tgAux.drawIsochroneLayer();
 
   	this.setTime('elementsWarping', 'end', (new Date()).getTime());
 
-		if (this.frame >= 10) {
-			this.frame = 0;
+		if ((direction === 'forward') && (this.frame >= 10)) {
 			clearInterval(this.timerFrame);
 			this.updateLayers();
-		} 
+		}
+		else if ((direction === 'backward') && (this.frame <= 0)) {
+			clearInterval(this.timerFrame);
+			this.updateLayers();
+		}
 	}
 
 	/*moveElements() {
