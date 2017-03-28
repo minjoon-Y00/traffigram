@@ -8,6 +8,18 @@
 	<script src="./vendor/jquery-2.2.3.min.js"></script>
 	<script>
 
+const s = (new Date()).getTime();
+
+$.post("http://citygram.smusic.nyu.edu:2999/yelpSearch", {term: "food", lat: 40.72946, lng: -73.995708, radius: 1000})
+.done(function(data) {
+
+	const e = (new Date()).getTime();
+	console.log('elapsed: ' + (e - s) + ' ms.');
+
+  console.log(data);
+});
+
+/*
 const data = {
 	grant_type: '', //'client_credentials', 
 	client_id: 'YbrQpXXmE1UKSUEMMm8ErQ',
@@ -30,6 +42,8 @@ $.ajax({
   console.log( "error" );
   console.log(data);
 });
+
+*/
 
 	</script>
 </body>

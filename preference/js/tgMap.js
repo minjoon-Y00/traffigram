@@ -38,6 +38,7 @@ class TGMap {
 	  this.dispGridLayer = true;
 	  this.dispCenterPositionLayer = true;
 	  this.dispControlPointLayer = false;
+	  this.dispIsochroneLayer = false;
 	  this.dispLocationLayer = false;
 	  this.adjustGrid = 'none';
 	  this.needToCalWarping = false;
@@ -104,7 +105,10 @@ class TGMap {
 		//this.tgWater.arePointsInWater();
 
 		//console.log(this.tgRoads.calNumberOfNode());
-		console.log(this.tgWater.calNumberOfNode());
+		//console.log(this.tgWater.calNumberOfNode());
+
+		console.log(this.calMaxDistance('lat'));
+		console.log(this.calMaxDistance('lng'));
 
 	}
 
@@ -290,7 +294,8 @@ class TGMap {
 		if (this.dispLocationLayer) this.tgLocs.drawLocationLayer()
 		else this.tgLocs.removeLocationLayer()
 
-		this.tgAux.drawIsochroneLayer();
+		if (this.dispIsochroneLayer) this.tgAux.drawIsochroneLayer();
+		else this.tgAux.removeIsochroneLayer();
 
 		//console.log('updateLayers : ' + ((new Date()).getTime() - s) + 'ms')
 	}
@@ -341,7 +346,8 @@ class TGMap {
 			if (this.adjustGrid === 'noIntersection')
 				this.tgControl.makeNonIntersectedGrid();
 			else if (this.adjustGrid === 'shapePreserving')
-				this.tgControl.makeShapePreservingGrid();
+				//this.tgControl.makeShapePreservingGrid();
+				this.tgControl.makeShapePreservingGridByFFT();
 
 			// tps calculation
 			this.tg.graph.TPSSolve();
@@ -431,7 +437,7 @@ class TGMap {
   		if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer();
   	}
 
-  	this.tgAux.drawIsochroneLayer();
+  	if (this.dispIsochroneLayer) this.tgAux.drawIsochroneLayer();
 
   	this.setTime('elementsWarping', 'end', (new Date()).getTime());
 
@@ -550,6 +556,32 @@ class TGMap {
 		const str = this.displayString[type] + ' ' + this.dataInfo[type];
 		$('#' + type).html(str);
 
+	}
+
+	calTimeFromLatLng(lat, lng) {
+		const centerLat = this.centerPosition.lat;
+  	const centerLng = this.centerPosition.lng;
+  	return this.tg.util.D2(centerLat, centerLng, lat, lng) * this.tg.graph.factor;
+	}
+
+	calDistanceFromLatLng(lat, lng) {
+		const centerLat = this.centerPosition.lat;
+  	const centerLng = this.centerPosition.lng;
+  	return this.tg.util.distance(centerLat, centerLng, lat, lng); // km
+	}
+
+	calMaxDistance(latOrLng = 'lat') {
+		const centerLat = this.centerPosition.lat;
+  	const centerLng = this.centerPosition.lng;
+
+		if (latOrLng === 'lat') {
+			const halfHeightLat = (this.tg.opt.box.top - this.tg.opt.box.bottom) / 2;
+			return this.calDistanceFromLatLng(centerLat + halfHeightLat, centerLng);
+		}
+		else if (latOrLng === 'lng') {
+			const halfWidthLng = (this.tg.opt.box.right - this.tg.opt.box.left) / 2;
+			return this.calDistanceFromLatLng(centerLat, centerLng + halfWidthLng);
+		}
 	}
 
 }

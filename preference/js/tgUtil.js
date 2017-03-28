@@ -156,6 +156,101 @@ class TGUtil {
 		//console.log(t + ' / ' + b)
 		return t / b
 	}*/
+
+	abByFFT(p, type, d) {
+		const a = function(k, angs, ts, r) {
+			let sum = 0;
+			for(let i = 0; i < angs.length; i++) {
+				sum += Math.sin(k * (ts[i] + angs[i] * r / 2)) - Math.sin(k * (ts[i] - angs[i] * r / 2));
+			}
+			return sum / (Math.PI * k * r);
+		}
+
+		const b = function(k, angs, ts, r) {
+			let sum = 0;
+			for(let i = 0; i < angs.length; i++) {
+				sum += Math.cos(k * (ts[i] + angs[i] * r / 2)) - Math.cos(k * (ts[i] - angs[i] * r / 2));
+			}
+			return -sum / (Math.PI * k * r);
+		}
+
+		const D2 = function(x1, y1, x2, y2) {
+		  return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+		}
+
+		const lenVector = function(x, y) {
+			return Math.sqrt(x * x + y * y);
+		}
+
+		// arclength parameterization
+		const numPoints = p.length;
+		const r = Math.PI / 50;
+
+		let dists = new Array(numPoints);
+		for(let i = 0; i < numPoints - 1; i++) {
+			dists[i] = (D2(p[i][type].lat, p[i][type].lng, p[i + 1][type].lat, p[i + 1][type].lng));
+		}
+		dists[numPoints - 1] = (D2(p[numPoints - 1][type].lat, p[numPoints - 1][type].lng, p[0][type].lat, p[0][type].lng));
+
+		let sumDist = 0;
+		for(let i = 0; i < numPoints; i++) {
+			sumDist += dists[i];
+		}
+
+		let ts = new Array(numPoints);
+		ts[0] = 0;
+		let partialDist = 0;
+
+		for(let i = 0; i < numPoints - 1; i++) {
+			partialDist += dists[i];
+			ts[i + 1] = partialDist / sumDist;
+		}
+
+		// calculate angles
+		let vs = new Array(numPoints);
+		for(let i = 0; i < numPoints; i++) vs[i] = new Array(2);
+
+		for(let i = 0; i < numPoints - 1; i++) {
+			vs[i][0] = p[i][type].lat - p[i + 1][type].lat;
+			vs[i][1] = p[i][type].lng - p[i + 1][type].lng;
+		}
+		vs[numPoints - 1][0] = p[numPoints - 1][type].lat - p[0][type].lat;
+		vs[numPoints - 1][1] = p[numPoints - 1][type].lng - p[0][type].lng;
+
+		let angs = new Array(numPoints);
+
+		angs[0] = Math.acos(
+				vs[0][0] * vs[numPoints - 1][0] + vs[0][1] * vs[numPoints - 1][1] / 
+				(lenVector(vs[0][0], vs[0][1]) * lenVector(vs[numPoints - 1][0], vs[numPoints - 1][1])));
+
+		for(let i = 1; i < numPoints; i++) {
+			angs[i] = Math.acos(
+					vs[i][0] * vs[i - 1][0] + vs[i][1] * vs[i - 1][1] / 
+					(lenVector(vs[i][0], vs[i][1]) * lenVector(vs[i - 1][0], vs[i - 1][1])));
+		}
+
+		let as = new Array(d - 1);
+		let bs = new Array(d - 1);
+		for(let k = 1; k <= d; k++) {
+			as[k - 1] = a(k, angs, ts, r);
+			bs[k - 1] = b(k, angs, ts, r);
+		}
+
+		//console.log('type: ' + type);
+		//console.log('dists: ');
+		//console.log(dists);
+		//console.log('ts: ');
+		//console.log(ts);
+		//console.log('angs: ');
+		//console.log(angs);
+
+		//console.log('as: ');
+		//console.log(as);
+		//console.log('bs: ');
+		//console.log(bs);
+
+		return {as:as, bs:bs};
+	}
 }
 
 Math.randomGaussian = function(mean, standardDeviation) {

@@ -107,7 +107,7 @@ $("#centerYourPositionRB").change(function(ev){
 
 //
 //
-// Intersection
+// Grid Warping
 //
 //
 $("#originalGridRB").change(function(ev){
@@ -163,6 +163,13 @@ $("#dispGridCB").change(function(ev){
 	tg.map.dispGridLayer = ev.target.checked
 	tg.map.updateLayers()
 });
+
+$("#dispIsochroneCB").change(function(ev){
+	tg.map.dispIsochroneLayer = ev.target.checked
+	tg.map.updateLayers()
+});
+
+
 
 //
 //

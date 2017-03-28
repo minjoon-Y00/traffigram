@@ -13,8 +13,10 @@ class ControlPoint extends Node {
 	constructor(orgLat, orgLng) {
 		super(orgLat, orgLng);
 		this.connectedNodes = [];
+		this.connectedGrids = [];
 		this.index = -1;
 		this.intersected = false;
+
 	}
 }
 

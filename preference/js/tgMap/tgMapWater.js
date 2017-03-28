@@ -481,7 +481,7 @@ class TGMapWater {
 		this.timeInterval = 0;
 		this.timeIntervalArray = [];
 		this.arePointsInWater(this.tg.map.tgControl.controlPoints);
-		this.tg.map.tgControl.checkGridSplit();
+		//this.tg.map.tgControl.checkGridSplit();
 	}
 
 
