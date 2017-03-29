@@ -117,7 +117,7 @@ class TGMapWater {
 		if (this.timeInterval !== 0) {
 			const dif = (cur - this.timeInterval);
 			this.timeIntervalArray.push(dif)
-			console.log('### elapsed: ' + dif + ' ms');
+			//console.log('### elapsed: ' + dif + ' ms');
 		}
 		this.timeInterval = cur;
 

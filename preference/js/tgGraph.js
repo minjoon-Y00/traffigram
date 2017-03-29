@@ -79,8 +79,7 @@ class TGGraph {
 			if (nodes[i].travelTime) {
 				len = nodes[i].travelTime / factor
 	  		target[i].lat = cLat + len * Math.cos(nodes[i].deg)
-	  		target[i].lng = cLng + len * Math.sin(nodes[i].deg)
-	  		//target[i].lng = cLng + len * Math.sin(nodes[i].deg) * this.toLat(nodes[i].deg);
+	  		target[i].lng = cLng + len * Math.sin(nodes[i].deg) * this.toLat();
 	  	}
 		}
 
@@ -104,8 +103,8 @@ class TGGraph {
 			if (nodes[i].travelTime) {
 				nodes[i].len = nodes[i].travelTime / this.factor
 				nodes[i].target.lat = xLat + nodes[i].len * Math.cos(nodes[i].deg)
-				nodes[i].target.lng = xLng + nodes[i].len * Math.sin(nodes[i].deg)
-				//nodes[i].target.lng = xLng + nodes[i].len * Math.sin(nodes[i].deg) * this.toLat(nodes[i].deg);
+				nodes[i].target.lng = 
+						xLng + nodes[i].len * Math.sin(nodes[i].deg) * this.toLat();
 			}
 			else {
 				nodes[i].target.lat = nodes[i].original.lat
@@ -120,16 +119,25 @@ class TGGraph {
 
 	    nodes[i].real.lat = nodes[i].target.lat;
 	    nodes[i].real.lng = nodes[i].target.lng;
-	    //console.log(nodes[i].len + ',' + nodes[i].deg);
-	    //console.log(nodes[i].original.lat + '->' + nodes[i].target.lat);
 	  }
 	}
 
-	toLat(deg) {
-	  //var v = -0.2427 * Math.cos(2*deg) + 1.2427
-	  //var d = 0.06;
-	  //return (-d * Math.cos(4*deg) + 1 + d) * v;
-	  return -0.2427 * Math.cos(2*deg) + 1.2427;
+	toLat() {
+		/*
+		let heightPX = $('#ol_map').css('height'); 
+  	heightPX = Number(heightPX.slice(0, heightPX.length - 2));
+		const heightLat = this.tg.opt.box.top - this.tg.opt.box.bottom;
+		const latPerPx = heightLat / heightPX;
+
+		let widthPX = $('#ol_map').css('width');  
+  	widthPX = Number(widthPX.slice(0, widthPX.length - 2));
+  	const widthLng = this.tg.opt.box.right - this.tg.opt.box.left;
+		const lngPerPx = widthLng / widthPX;
+
+		return lngPerPx / latPerPx;
+		*/
+		
+	  return 0.00016965364355785907 / 0.00011481966468342245; //org
 	}
 
 	//

@@ -39,7 +39,7 @@ class TGMap {
 	  this.dispCenterPositionLayer = true;
 	  this.dispControlPointLayer = false;
 	  this.dispIsochroneLayer = false;
-	  this.dispLocationLayer = false;
+	  this.dispLocationLayer = true;
 	  this.adjustGrid = 'none';
 	  this.needToCalWarping = false;
 
@@ -59,6 +59,7 @@ class TGMap {
 		this.timerFrame = null;
 		this.animationSpeed = 50; // ms
 		this.tpsReady = false;
+		this.requestLocations = true;
 
 		this.displayString = 
 				{roadLoadingTime: 'Road Loading:', 
@@ -107,9 +108,22 @@ class TGMap {
 		//console.log(this.tgRoads.calNumberOfNode());
 		//console.log(this.tgWater.calNumberOfNode());
 
-		console.log(this.calMaxDistance('lat'));
-		console.log(this.calMaxDistance('lng'));
+		//console.log(this.calMaxDistance('lat'));
+		//console.log(this.calMaxDistance('lng'));
 
+		let heightPX = $('#ol_map').css('height'); 
+  	heightPX = Number(heightPX.slice(0, heightPX.length - 2));
+		const heightLat = this.tg.opt.box.top - this.tg.opt.box.bottom;
+		const latPerPx = heightLat / heightPX;
+
+		let widthPX = $('#ol_map').css('width');  
+  	widthPX = Number(widthPX.slice(0, widthPX.length - 2));
+  	const widthLng = this.tg.opt.box.right - this.tg.opt.box.left;
+		const lngPerPx = widthLng / widthPX;
+
+		// LAT * 
+		console.log('latPerPx: ' + latPerPx);
+		console.log('lngPerPx: ' + lngPerPx);
 	}
 
 
@@ -121,6 +135,7 @@ class TGMap {
 		if (this.currentZoom != this.olMap.getView().getZoom()) {
 	    this.currentZoom = this.olMap.getView().getZoom();
 	    this.tgRoads.calDispRoadType(this.currentZoom);
+	    this.requestLocations = true;
 	    console.log('zoomEnd')
 	  }
 	  else {
@@ -137,6 +152,12 @@ class TGMap {
 		this.resetTime();
 		this.resetDataInfo();
 		this.calBoundaryBox();
+
+		if (this.requestLocations) {
+			this.tgLocs.request();
+			this.requestLocations = false;
+		}
+
 		this.tgRoads.clearLayers();
 		this.tgWater.clearLayers();
 		this.tgLanduse.clearLayers();
@@ -343,11 +364,14 @@ class TGMap {
 			// cal warping
 			this.tg.graph.calWarping();
 
-			if (this.adjustGrid === 'noIntersection')
+			if (this.adjustGrid === 'noIntersection') {
 				this.tgControl.makeNonIntersectedGrid();
-			else if (this.adjustGrid === 'shapePreserving')
+			}
+			else if (this.adjustGrid === 'shapePreserving') {
 				//this.tgControl.makeShapePreservingGrid();
 				this.tgControl.makeShapePreservingGridByFFT();
+				console.log('!!shape');
+			}
 
 			// tps calculation
 			this.tg.graph.TPSSolve();
@@ -362,6 +386,8 @@ class TGMap {
 			this.needToCalWarping = false;
 		}
 
+		this.tgLocs.calTargetNodes();
+
 		if (this.adjustGrid === 'none') {
 			this.tgWater.calTargetNodes();
 	  	this.tgRoads.calTargetNodes();
@@ -373,6 +399,7 @@ class TGMap {
 	  	this.tgRoads.calRealNodes();
 	  	this.tgPlaces.calRealNodes();
 	  	this.tgLanduse.calRealNodes();
+	  	this.tgLocs.calRealNodes();
 		}
 
 		this.timerFrame = 
@@ -430,6 +457,10 @@ class TGMap {
   	e = (new Date()).getTime();
 		console.log('[4] landuse: ' + (e - s) + 'ms');
 
+		this.tgLocs.removeLocationLayer();
+		this.tgLocs.calDispNodes(intermediate, value);
+		this.tgLocs.drawLocationLayer();
+
   	if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
   		this.tgControl.calDispNodes(intermediate, value);
 
@@ -450,28 +481,6 @@ class TGMap {
 			this.updateLayers();
 		}
 	}
-
-	/*moveElements() {
-  	this.tgWater.calRealNodes();
-  	this.tgWater.calDispNodes('real');
-  	this.tgWater.updateDispWater();
-  	this.tgWater.addWaterLayer();
-
-  	this.tgRoads.calRealNodes();
-  	this.tgRoads.calDispNodes('real');
-  	this.tgRoads.updateDispRoads();
-  	this.tgRoads.addRoadLayer();
-
-  	this.tgPlaces.calRealNodes();
-  	this.tgPlaces.calDispNodes('real');
-  	this.tgPlaces.updateDispPlaces();
-  	this.tgPlaces.addPlacesLayer();
-
-  	this.tgLanduse.calRealNodes();
-  	this.tgLanduse.calDispNodes('real');
-  	this.tgLanduse.updateDispLanduse();
-  	this.tgLanduse.addLanduseLayer();
-	}*/
 
 	initElements() {
   	this.tgWater.calDispNodes('original');

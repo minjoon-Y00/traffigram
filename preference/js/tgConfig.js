@@ -117,6 +117,7 @@ const options = {
 	image: {
 		center: 'img/icon_origin.png',
 		location: 'img/map_loc.png',
+		anchor: 'img/anchor.png',
 		redBackground: 'img/red_bg.png',
 	},
 

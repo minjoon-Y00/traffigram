@@ -10,7 +10,7 @@
 
 const s = (new Date()).getTime();
 
-$.post("http://citygram.smusic.nyu.edu:2999/yelpSearch", {term: "food", lat: 40.72946, lng: -73.995708, radius: 1000})
+$.post("http://citygram.smusic.nyu.edu:2999/yelpSearch", {term: "food", lat: 47.658316, lng: -122.312035, radius: 6128.334812076474})
 .done(function(data) {
 
 	const e = (new Date()).getTime();
@@ -43,6 +43,10 @@ $.ajax({
   console.log(data);
 });
 
+// 2000, 12000, 1682, 1316, 1416
+// 1490, 1308, 1280, 1301, 1423, 1168, 1234, 1191
+// 1356, 1444, 1143, 1152, 1432, 1115, 1245, 1187
+1432
 */
 
 	</script>
