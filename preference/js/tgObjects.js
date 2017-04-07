@@ -16,7 +16,14 @@ class ControlPoint extends Node {
 		this.connectedGrids = [];
 		this.index = -1;
 		this.intersected = false;
+	}
+}
 
+class LocationNode extends Node {
+	constructor(orgLat, orgLng) {
+		super(orgLat, orgLng);
+		this.dispAnchor = {lat: orgLat, lng:orgLng};
+		this.dispLoc = {lat: orgLat, lng:orgLng};
 	}
 }
 
@@ -87,8 +94,8 @@ class TravelTimeApi {
 		const json = {locations:locations, costing:'auto'};
 		let str = 'https://matrix.mapzen.com/one_to_many?json=';
 		str += JSON.stringify(json);
-		//str += '&api_key=matrix-qUpjg6W';
-		str += '&api_key=matrix-AGvGZKs';
+		str += '&api_key=matrix-qUpjg6W';
+		//str += '&api_key=matrix-AGvGZKs';
 
 		//console.log(str);
 		$.get(str, this.processTravelTime.bind(this));

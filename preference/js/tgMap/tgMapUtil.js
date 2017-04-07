@@ -102,10 +102,10 @@ class TGMapUtil {
 		})
 	}
 
-	textStyleFunc(text, color, font, offsetX = 0, offsetY = 0) {
+	textStyleFunc(text, color, font, offsetX = 0, offsetY = 0, align = 'center') {
 	  return new ol.style.Style({
 	  	text: new ol.style.Text({
-	    	textAlign: 'center',
+	    	textAlign: align,
 	    	font: font,
 	    	text: text,
 	    	fill: new ol.style.Fill({color: color}),

@@ -90,7 +90,9 @@ class TGMapPlaces {
 		this.tg.map.setDataInfo('numPlaceLoading', 'increase');
 		this.tg.map.setTime('placeLoading', 'end', (new Date()).getTime());
 
-		this.addNewPlaceLayer();
+		if (this.tg.map.dispPlaceLayer) {
+			this.addNewPlaceLayer();
+		}
 		this.newPlaceObjects = [];
 	}
 

@@ -21,9 +21,20 @@ $("#citySFRB").change(function(ev){
 });*/
 
 
+function zoomIn() {
+	tg.map.zoomIn();
+}
+
+function zoomOut() {
+	tg.map.zoomOut();
+}
 
 function debug() {
 	tg.map.debug()
+}
+
+function debug2() {
+	tg.map.debug2()
 }
 
 //
@@ -85,29 +96,37 @@ function moveElements() {
 // Center Options
 //
 //
-$("#centerUWSeattleRB").change(function(ev){
-  if (ev.target.checked) tg.map.setArea('seattle_uw');
-})
-
 $("#centerDowntownSeattleRB").change(function(ev){
-  if (ev.target.checked) tg.map.setArea('seattle_downtown');
-})
+  if (ev.target.checked) tg.map.setArea('seattleDowntown');
+});
 
-$("#centerNYUNYRB").change(function(ev){
-  if (ev.target.checked) tg.map.setArea('ny_nyu');
-})
+$("#centerUWSeattleRB").change(function(ev){
+  if (ev.target.checked) tg.map.setArea('seattleUw');
+});
 
 $("#centerLombardSFRB").change(function(ev){
-  if (ev.target.checked) tg.map.setArea('sf_lombard');
-})
+  if (ev.target.checked) tg.map.setArea('sfLombard');
+});
+
+$("#centerNYUNYRB").change(function(ev){
+  if (ev.target.checked) tg.map.setArea('nyNyu');
+});
+
+$("#centerStanfordPaloAltoRB").change(function(ev){
+  if (ev.target.checked) tg.map.setArea('paloAltoStanford');
+});
+
+$("#centerCitadelleQuebecRB").change(function(ev){
+  if (ev.target.checked) tg.map.setArea('quebecCitadelle');
+});
 
 $("#centerYourPositionRB").change(function(ev){
   if (ev.target.checked) tg.map.setCenterUserPosition();
-})
+});
 
 //
 //
-// Grid Warping
+// Warping Mode
 //
 //
 $("#originalGridRB").change(function(ev){
@@ -124,8 +143,44 @@ $("#shapePreservingGridRB").change(function(ev){
   tg.map.needToCalWarping = true;
 })
 
+//
+//
+// Locations
+//
+//
+$("#locationRestaurantRB").change(function(ev){
+	if (ev.target.checked) {
+		//tg.map.dispLocationLayer = false
+		//tg.map.updateLayers()
+	} 
+});
 
+$("#locatioBarRB").change(function(ev){
+	if (ev.target.checked) {
+		//tg.map.tgLocs.locationType = 'japanese'
+		//tg.map.tgLocs.calLocalLocations()
+		//tg.map.dispLocationLayer = true
+		//tg.map.updateLayers()
+	} 
+});
 
+$("#locationParkRB").change(function(ev){
+	if (ev.target.checked) {
+
+	} 
+});
+
+$("#locationMuseumRB").change(function(ev){
+	if (ev.target.checked) {
+		
+	} 
+});
+
+$("#locationNoRB").change(function(ev){
+	if (ev.target.checked) {
+		
+	} 
+});
 
 
 
@@ -141,6 +196,11 @@ $("#dispWaterCB").change(function(ev){
 
 $("#dispRoadsCB").change(function(ev){ 
 	tg.map.dispRoadLayer = ev.target.checked
+	tg.map.updateLayers()
+});
+
+$("#dispPlaceCB").change(function(ev){ 
+	tg.map.dispPlaceLayer = ev.target.checked
 	tg.map.updateLayers()
 });
 
@@ -169,37 +229,33 @@ $("#dispIsochroneCB").change(function(ev){
 	tg.map.updateLayers()
 });
 
-
-
-//
-//
-// Locations Options
-//
-//
-$("#locationNoRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.dispLocationLayer = false
-		tg.map.updateLayers()
-	} 
+$("#dispLocationCB").change(function(ev){
+	tg.map.dispLocationLayer = ev.target.checked;
+	tg.map.updateLayers();
 });
 
-$("#location0RB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.tgLocs.locationType = 'japanese'
-		tg.map.tgLocs.calLocalLocations()
-		tg.map.dispLocationLayer = true
-		tg.map.updateLayers()
-	} 
+$("#dispLocationNameCB").change(function(ev){
+	tg.map.dispLocationNameLayer = ev.target.checked;
+	tg.map.updateLayers();
 });
 
-$("#location1RB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.tgLocs.locationType = 'french'
-		tg.map.tgLocs.calLocalLocations()
-		tg.map.dispLocationLayer = true
-		tg.map.updateLayers()
-	} 
+$("#dispWaterNodeCB").change(function(ev){ 
+	tg.map.dispWaterNodeLayer = ev.target.checked;
+	tg.map.updateLayers();
 });
+
+$("#dispRoadNodeCB").change(function(ev){ 
+	tg.map.dispRoadNodeLayer = ev.target.checked;
+	tg.map.updateLayers();
+});
+
+$("#dispLanduseNodeCB").change(function(ev){ 
+	tg.map.dispLanduseNodeLayer = ev.target.checked;
+	tg.map.updateLayers();
+});
+
+
+
 
 //
 //

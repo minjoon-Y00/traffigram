@@ -18,7 +18,7 @@ const options = {
 
 	z: {
 		water: 0,
-		waterNode: 1,
+		waterNode: 20,
 		landuse: 2,
 		residential: 5,
 		tertiary: 5,
@@ -32,6 +32,7 @@ const options = {
 		places: 19,
 		location: 20,
 		isochrone: 25,
+		boundingBox: 30,
 		centerPosition: 50,
 	},
 
@@ -63,20 +64,29 @@ const options = {
 			'rgb(240, 224, 200)', // retail
 		],
 		textPlace: 'rgb(150, 122, 89)',
+		textLocation: 'rgb(122, 62, 44)',
 
 		minorNode: '#666',
 		majorNode: '#000',
+		boundingBox: 'rgba(75,0,130, 0.5)',
 
 		highway: '#969696',
 		arterial: '#969696',
 		link: '#BBB', //'#00ADEE'
-		node: '#A52A2A',
+
+		//node: '#A52A2A',
+		roadNode: '#E00B62',
+		waterNode: '#0071BC',
+		landuseNode: '#009245',
+		edge: '#888',
+		anchor: 'rgba(0,0,0,0.5)',
+		
 		text: '#686453', //'#000',
 		isochroneText: '#FFF',
-		grid: '#FFA07A',
+		grid: '#000', //'#FFA07A',
 
 		location: '#33cc33',
-		locationLine: '#33cc33',
+		locationLine: 'rgba(0,0,0,0.5)',
 		controlPoint: '#FFD700',
 		controlPointLine: '#FFD700',
 	},
@@ -98,10 +108,11 @@ const options = {
 		arterial: 1,
 		link: 1,
 		grid: 2,
+		edge: 2,
 
-		locationLine: 2,
+		locationLine: 1,
 		controlPointLine: 2,
-		isochrone: 2,
+		isochrone: 1,
 		
 	},
 
@@ -112,13 +123,15 @@ const options = {
 		node: 3,
 		controlPoint: 5,
 		location: 5,
+		anchor: 5,
 	},
 
 	image: {
-		center: 'img/icon_origin.png',
-		location: 'img/map_loc.png',
+		center: 'img/map_origin.png',
+		location: 'img/map_food.png',
 		anchor: 'img/anchor.png',
-		redBackground: 'img/red_bg.png',
+		red10min: 'img/10min.png',
+		red100min: 'img/100min.png',
 	},
 
 	font: {
@@ -128,22 +141,30 @@ const options = {
 	},
 
 	center: {
-		seattle_uw: {
-			lat: 47.658316,
-			lng: -122.312035
-		},
-		seattle_downtown: {
+		seattleDowntown: {
 			lat: 47.6115744,
-			lng: -122.343777
+			lng: -122.343777,
 		},
-		ny_nyu: {
-			lat: 40.72946,
-			lng: -73.995708
+		seattleUw: {
+			lat: 47.658316,
+			lng: -122.312035,
 		},
-		sf_lombard: {
+		sfLombard: {
 			lat: 37.802139,
-			lng: -122.4209287
+			lng: -122.4209287,
 		}
+		nyNyu: {
+			lat: 40.72946,
+			lng: -73.995708,
+		},
+		paloAltoStanford: {
+			lat: 37.4275172,
+			lng: -122.170233,
+		},
+		quebecCitadelle: {
+			lat: 46.8078034,
+			lng: -71.2090926,
+		},
 	},
 
 	boundary: {
@@ -176,14 +197,21 @@ const options = {
 
 	constant: {
 		randomness: 0.01,
-		clickSensibility: 0.01,
+		clickRangePX: 10,
 		splitThreshold: 200,
 		timeToWaitForGettingWaterData: 0, // ms
 		timeToWaitForGettingRoadData: 50, // ms
 		timeToWaitForGettingData: 20, // ms
 		timeToWaitForFinishGettingWaterData: 1000, // ms
-		rdpThreshold: 0.0001, //(about 10 meter)
+		rdpThreshold: {
+			road: 0.001, //0.0001 (about 10 meter)
+			water: 0.0005,
+			landuse: 0.001,
+		}, 
 		numLanduseClasses: 6,
+		shapePreservingDegree: 1.0,
+		maxSplitLevel: 1,
+		locationType: 'food',
 	},
 
 }

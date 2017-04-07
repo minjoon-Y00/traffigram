@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="./vendor/bootstrap-slate.min.css">
     <link rel="stylesheet" href="./vendor/bootstrap-slider.min.css">
+    <link rel="stylesheet" href="./vendor/remodal.css">
+    <link rel="stylesheet" href="./vendor/remodal-default-theme.css">
     <!--<link rel="stylesheet" href="http://openlayers.org/en/v3.11.2/css/ol.css" type="text/css">-->
     <!--<link rel="stylesheet" href="./vendor/ol.css">-->
     <link rel="stylesheet" href="https://openlayers.org/en/v3.20.0/css/ol.css" type="text/css">
@@ -18,7 +20,7 @@
 
         <!-- Map -->
 
-        <div class="col-sm-8" style="width:600px">
+        <div class="col-sm-8" style="width:600px; height:900px">
           <div id="ol_map" class="ol_map"></div>
           <div id='mapInfo1'></div>
           <div id='mapInfo2'></div>
@@ -29,93 +31,97 @@
         <!-- Right Options Panel -->
         <div class="col-sm-2" style="width:250px">
 
-          <!--<h4>City</h4>
+          <!-- Origin -->
+
+          <h4>Origin</h4>
           <div class="radio">
-            <label><input type="radio" name="cityRadio" id="citySeattleRB" checked>Seattle</label>
+            <label><input type="radio" name="centerRadio" id="centerDowntownSeattleRB">Downtown, Seattle</label>
           </div>
           <div class="radio">
-            <label style="color:gray"><input type="radio" name="cityRadio" id="cityNYRB" disabled>New York</label>
+            <label><input type="radio" name="centerRadio" id="centerUWSeattleRB" checked>UW, Seattle</label>
           </div>
           <div class="radio">
-            <label style="color:gray"><input type="radio" name="cityRadio" id="citySFRB" disabled>San Francisco</label>
-          </div>-->
+            <label><input type="radio" name="centerRadio" id="centerLombardSFRB">Lombard St. San Francisco</label>
+          </div>
 
-          
+          <div class="radio">
+            <label><input type="radio" name="centerRadio" id="centerNYUNYRB">NYU, New York</label>
+          </div>
 
-          <button type="button" class="btn btn-default btn-sm marginT" onclick="debug()">debug</button>
+          <div class="radio">
+            <label><input type="radio" name="centerRadio" id="centerStanfordPaloAltoRB">Stanford University, Palo Alto</label>
+          </div>
 
-          <!-- EM <-> DC -->
+          <div class="radio">
+            <label><input type="radio" name="centerRadio" id="centerCitadelleQuebecRB">La Citadelle de Québec, Québec</label>
+          </div>
+
+          <div class="radio">
+            <label><input type="radio" name="centerRadio" id="centerYourPositionRB">Your Position</label>
+          </div>
+          <hr>
+
+           <!-- EM <-> DC -->
 
           <h4>Map Mode</h4>
           <div class="radio">
-            <label><input type="radio" name="emdcRadio" id="emModeRB" checked>Normal Map</label>
+            <label><input type="radio" name="emdcRadio" id="emModeRB" checked>Equidistant Map</label>
           </div>
           <div class="radio">
             <label><input type="radio" name="emdcRadio" id="dcModeRB">Distance Cartogram</label>
           </div>
           <hr>
 
-          <!-- Center -->
+          <!-- Distortion mode -->
 
-          <h4>Center</h4>
+          <h4>Distortion mode</h4>
+          <!--<div class="radio">
+            <label><input type="radio" name="gridWarpingRadio" id="originalGridRB" >Original</label>
+          </div>-->
           <div class="radio">
-            <label><input type="radio" name="centerRadio" id="centerUWSeattleRB" checked>UW, Seattle</label>
+            <label><input type="radio" name="gridWarpingRadio" id="noIntersectedGridRB">GAP</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="centerRadio" id="centerDowntownSeattleRB">Downtown, Seattle</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="centerRadio" id="centerNYUNYRB">NYU, NY</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="centerRadio" id="centerLombardSFRB">Lombard St. SF</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="centerRadio" id="centerYourPositionRB">Your Position</label>
+            <label><input type="radio" name="gridWarpingRadio" id="shapePreservingGridRB" checked>S-GAP</label>
           </div>
           <hr>
 
-          <!-- Grid Warping -->
+          <!-- Locations -->
 
-          <h4>Grid Warping</h4>
+          <h4>Type of Destination</h4>
+
           <div class="radio">
-            <label><input type="radio" name="gridWarpingRadio" id="originalGridRB" checked>Original</label>
+            <label><input type="radio" name="locationRadio" id="locationRestaurantRB" checked>Restaurants</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="gridWarpingRadio" id="noIntersectedGridRB">No Intersection</label>
+            <label><input type="radio" name="locationRadio" id="locatioBarRB">Bars</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="gridWarpingRadio" id="shapePreservingGridRB">Shape Preserving</label>
+            <label><input type="radio" name="locationRadio" id="locationParkRB">Parks / Arboretum</label>
           </div>
-          <hr>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="locationMuseumRB">Art Museums</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="locationNoRB">No destination type</label>
+          </div>
 
-
-
-
-          <!--<label class='marginR'><input type="checkbox" id="noIntersectionCB" checked/><span class='marginL'>No Intersection</span></label>
-
-          <button type="button" class="btn btn-default btn-sm marginT" onclick="getTravelTime()">get Travel Time</button>
-          <button type="button" class="btn btn-default btn-sm marginT" onclick="saveTravelTime()">save</button>
-          <br/>
-          <button type="button" class="btn btn-default btn-sm marginT" onclick="splitGrid()">split Grid</button>
-          <br/>
-          <button type="button" class="btn btn-default btn-sm marginT" onclick="calWarping()">cal Warping</button>
-          <br/>
-          <button type="button" class="btn btn-default btn-sm marginT" onclick="calTPS()">cal TPS</button>
-          <br/>
-          <button type="button" class="btn btn-default btn-sm marginT" onclick="moveElements()">Move Elements</button>-->
           <hr>
 
           <!-- Visual Elements representation -->
 
-          <h4>Visual Elements</h4>
+          <h4>Visual Element</h4>
           <label class='marginR'>
             <input type="checkbox" id="dispWaterCB" checked/>
             <span class='marginL'>Water</span>
           </label>
           <label class='marginR'>
             <input type="checkbox" id="dispRoadsCB" checked/>
-            <span class='marginL'>Roads</span>
+            <span class='marginL'>Road</span>
+          </label>
+          <label class='marginR'>
+            <input type="checkbox" id="dispPlaceCB"/>
+            <span class='marginL'>Place</span>
           </label>
           <label class='marginR'>
             <input type="checkbox" id="dispCenterPositionCB" checked/>
@@ -127,12 +133,34 @@
           </label>
           <label class='marginR'>
             <input type="checkbox" id="dispControlPointsCB"/>
-            <span class='marginL'>Control Points</span>
+            <span class='marginL'>Control Point</span>
           </label>
-           <label class='marginR'>
-            <input type="checkbox" id="dispIsochroneCB"/>
+          <label class='marginR'>
+            <input type="checkbox" id="dispIsochroneCB" checked/>
             <span class='marginL'>Isochrone</span>
-          </label>    
+          </label> 
+          <label class='marginR'>
+            <input type="checkbox" id="dispLocationCB" checked/>
+            <span class='marginL'>Location</span>
+          </label> 
+          <label class='marginR'>
+            <input type="checkbox" id="dispLocationNameCB"/>
+            <span class='marginL'>Location Name</span>
+          </label>   
+          <label class='marginR'>
+            <input type="checkbox" id="dispWaterNodeCB"/>
+            <span class='marginL'>Water Node</span>
+          </label>
+          <label class='marginR'>
+            <input type="checkbox" id="dispRoadNodeCB"/>
+            <span class='marginL'>Road Node</span>
+          </label>
+
+          <label class='marginR'>
+            <input type="checkbox" id="dispLanduseNodeCB"/>
+            <span class='marginL'>Landuse Node</span>
+          </label>
+
           <!--<label class='marginR'>
             <input type="checkbox" id="dispNodesCB"/>
             <span class='marginL'>Nodes</span>
@@ -140,21 +168,7 @@
 
           <hr>
 
-          <!-- Locations -->
 
-          <!--<h4>Locations</h4>
-
-          <div class="radio">
-            <label><input type="radio" name="locationRadio" id="locationNoRB" checked>Do not display</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="locationRadio" id="location0RB">Japanese</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="locationRadio" id="location1RB">French</label>
-          </div>
-
-          <hr>-->
 
 
 
@@ -183,6 +197,11 @@
 
         <div class="col-sm-2" style="width:250px">
 
+           <button type="button" class="btn btn-default btn-sm marginT" onclick="zoomIn()">ZoomIn</button>
+           <button type="button" class="btn btn-default btn-sm marginT" onclick="zoomOut()">ZoomOut</button>
+           <button type="button" class="btn btn-default btn-sm marginT" onclick="debug()">nonOverlappedLocs</button>
+           <button type="button" class="btn btn-default btn-sm marginT" onclick="debug2()">nonOverlappedPlaces</button>
+
           <!-- Time -->
 
           <h4>Time</h4>
@@ -192,23 +211,32 @@
           <div id="landuseLoadingTime"></div>
           <div id="placeLoadingTime"></div>
           <div id="travelTimeLoadingTime"></div>
+          <div id="locationLoadingTime"></div>
+          <br/>
           <div id="controlPointWarpingTime"></div>
           <div id="tpsCalculatingTime"></div>
+          <br/>
           <div id="elementsWarpingTime"></div>
+          <div id="waterWarpingTime"></div>
+          <div id="roadWarpingTime"></div>
+          <div id="placeWarpingTime"></div>
+          <div id="landuseWarpingTime"></div>
+          <div id="etcWarpingTime"></div>
 
           <hr>
 
           <h4>Data</h4>
 
           <div id="numRoadLoading"></div>
+          <div id="numWaterLoading"></div>
+          <div id="numLanduseLoading"></div>
+          <div id="numPlaceLoading"></div>
+          <br/>
           <div id="numHighwayLoading"></div>
           <div id="numPrimaryLoading"></div>
           <div id="numSecondaryLoading"></div>
           <div id="numTertiaryLoading"></div>
           <div id="numResidentialLoading"></div>
-          <div id="numWaterLoading"></div>
-          <div id="numLanduseLoading"></div>
-          <div id="numPlaceLoading"></div>
           <div id="numNewTravelTime"></div>
 
           <hr>
@@ -240,6 +268,46 @@
       </div>
     </div>
 
+    <div data-remodal-id="modal">
+      <button data-remodal-action="close" class="remodal-close"></button>
+      <h1 id='modal-name'>Name</h1>
+      <img id='modal-img' style="width:300px"/>
+      <p>
+        <span style="font-weight: bold">Category:</span>
+        <span id='modal-category'>...</span>
+      </p>
+      <p>
+        <span style="font-weight: bold">Address:</span>
+        <span id='modal-address'>...</span>
+      </p>
+      <p>
+        <span style="font-weight: bold">Phone Number:</span>
+        <span id='modal-phone'>...</span>
+      </p>
+      <p>
+        <span style="font-weight: bold">Distance:</span>
+        <span id='modal-distance'>...</span>
+      </p>
+      <p>
+        <span style="font-weight: bold">Travel Time:</span>
+        <span id='modal-travel-time'>...</span>
+      </p>
+      <p>
+        <span style="font-weight: bold">Price:</span>
+        <span id='modal-price'>...</span>
+      </p>
+      <p>
+        <span style="font-weight: bold">Rating:</span>
+        <span id='modal-rating'>...</span>
+      </p>
+      <p>
+        <span style="font-weight: bold">Review Count:</span>
+        <span id='modal-review-count'>...</span>
+      </p>
+      <a id='modal-yelp-url' target="_blank" style="color: blue">Show it in Yelp.</a>
+    </div>
+
+
     <!-- load third party libraries -->
 
     <!--<script src="http://openlayers.org/en/v3.11.2/build/ol.js"></script>-->
@@ -253,6 +321,7 @@
     <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>-->
     <script src="./vendor/bootstrap.min.js"></script>
     <script src="./vendor/bootstrap-slider.min.js"></script>
+    <script src="./vendor/remodal.min.js"></script>
     <script src="./vendor/tps.js"></script>
 
     <!-- load our files -->
@@ -269,6 +338,7 @@
     <script src="data/uw_japanese.js"></script>
     <script src="data/uw_french.js"></script>
     
+    <script src="./js/getParameters.js"></script>
     <script src="./js/tgConfig.js"></script>
     <script src="./js/tgObjects.js"></script>
     <script src="./js/tgData.js"></script>
@@ -282,6 +352,7 @@
     <script src="./js/tgMap/map_control.js"></script>
     <script src="./js/tgMap/tgMapLocs.js"></script>
     <script src="./js/tgMap/tgMapAux.js"></script>
+    <script src="./js/tgMap/tgMapBoundingBox.js"></script>
     <script src="./js/tgMain.js"></script>
     <script src="./js/tgRoadNetwork.js"></script>
     <script src="./js/tgRoadNetworkAlgorithm.js"></script>

@@ -66,6 +66,21 @@ class TGUtil {
 	  return radians * 180 / Math.PI
 	};
 
+	median(values) {
+    values.sort( function(a,b) {return a - b;} );
+    const half = Math.floor(values.length/2);
+
+    if(values.length % 2) return values[half];
+    else return (values[half-1] + values[half]) / 2.0;
+	}
+
+	average(values) {
+		let sum = 0;
+		for(let v of values) sum += v;
+		if (values.length > 0) return sum / values.length;
+		else return 0;
+	}
+
 	// i_sLat, i_sLng, i_eLat, i_eLng, j_sLat, j_sLng, j_eLat, j_eLng
 	intersects(a, b, c, d, p, q, r, s) {
 	  var det, gamma, lambda
@@ -79,6 +94,13 @@ class TGUtil {
 	  }
 	}
 
+	intersectRect(r1, r2) {
+	  return !(r2.left > r1.right || 
+	           r2.right < r1.left || 
+	           r2.top > r1.bottom ||
+	           r2.bottom < r1.top);
+	}
+
 	RDPSimp3D(point3DArray, eps) {
 		for(let index = 0; index < point3DArray.length; index++) {
 			for(let index2 = 0; index2 < point3DArray[index].length; index2++) {
@@ -90,9 +112,9 @@ class TGUtil {
 
 	RDPSimp2D(point2DArray, eps) {
 		for(let index = 0; index < point2DArray.length; index++) {
-			console.log('before: ' + point2DArray[index].length);
+			//console.log('before: ' + point2DArray[index].length);
 			point2DArray[index] = this.RDPSimp1D(point2DArray[index], eps);
-			console.log('after: ' + point2DArray[index].length);
+			//console.log('after: ' + point2DArray[index].length);
 		}
 		return point2DArray;
 	}
@@ -106,14 +128,12 @@ class TGUtil {
 		const startPoint = pointArray[0];
 		const endPoint = pointArray[pointArray.length - 1];
 
-		console.log(startPoint);
-		console.log(endPoint);
+		//console.log(startPoint);
+		//console.log(endPoint);
 
 		for(let i = 1; i < pointArray.length - 1; i++) {
 			const testPoint = pointArray[i];
 			const d = this.distanceBetweenLineAndPoint(startPoint, endPoint, testPoint);
-
-			
 
 			if (d > dmax) {
 				index = i
@@ -133,6 +153,53 @@ class TGUtil {
 		else {
 			return [startPoint, endPoint];
 		}
+	}
+
+	RDPSimp3DLoop(point3DArray, eps) {
+		for(let index = 0; index < point3DArray.length; index++) {
+			point3DArray[index] = this.RDPSimp2DLoop(point3DArray[index], eps);
+		}
+		return point3DArray;
+	}
+
+	RDPSimp2DLoop(point2DArray, eps) {
+		for(let index = 0; index < point2DArray.length; index++) {
+
+			const nodes = point2DArray[index];
+			const pivot = nodes[0];
+			let max = 0.0;
+			let maxK = 0;
+			for(let k = 1; k < nodes.length; k++) {
+				const d = this.distance(nodes[0][0], nodes[0][1], nodes[k][0], nodes[k][1])
+				//const d = this.D2_s(nodes[0][0], nodes[0][1], nodes[k][0], nodes[k][1])
+				if (d > max) {
+					max = d;
+					maxK = k;
+				}
+			}
+
+			/*const distance = 0.1;
+			if (max < distance) {
+				point2DArray[index] = [];
+				continue;
+			}*/
+
+			//console.log('max: ' + max);
+
+			let nodes1 = nodes.slice(0, maxK + 1);
+			let nodes2 = nodes.slice(maxK, nodes.length);
+
+			let simplifiedNodes1 = this.RDPSimp1D(nodes1, eps);
+			let simplifiedNodes2 = this.RDPSimp1D(nodes2, eps);
+			simplifiedNodes1.pop();
+
+			//console.log('before: ' + point2DArray[index].length);
+			point2DArray[index] = simplifiedNodes1.concat(simplifiedNodes2);
+			//console.log('after: ' + point2DArray[index].length);
+
+			//point2DArray[index] = [];
+		}
+		return point2DArray;
 	}
 
 	distanceBetweenLineAndPoint(L1, L2, P) {

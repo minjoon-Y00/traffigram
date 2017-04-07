@@ -14,16 +14,13 @@ class TGMapRoads {
 		this.roadNodeLayer = null;
   	this.timerGetRoadData = null;
   	this.dispLayers = [];
-  	this.rdpThreshold = this.tg.opt.constant.rdpThreshold;
+  	this.rdpThreshold = this.tg.opt.constant.rdpThreshold.road;
 
 	  for(let type of this.roadTypes) {
 	  	this.roadObjects[type] = [];
 	  	this.roadLayer[type] = null;
 	  	this.newRoadObjects[type] = [];
 		}
-
-		this.simplifyRoads = false;
-		this.showRoadNodeLayer = false;
 	}
 
 	start() {
@@ -61,7 +58,7 @@ class TGMapRoads {
 
 		if (geoType === 'LineString') {
 
-			if (this.simplifyRoads) {
+			if (this.tg.map.simplify) {
 				//console.log('before: ' + coords.length);
 				coords = this.tg.util.RDPSimp1D(coords, this.rdpThreshold);
 				//console.log('after: ' + coords.length);
@@ -79,7 +76,7 @@ class TGMapRoads {
 		}
 		else if (geoType === 'MultiLineString') {
 
-			if (this.simplifyRoads) {
+			if (this.tg.map.simplify) {
 				//console.log('before: ' + coords.length);
 				coords = this.tg.util.RDPSimp2D(coords, this.rdpThreshold);
 				//console.log('after: ' + coords.length);
@@ -253,7 +250,7 @@ class TGMapRoads {
 			this.dispLayers.push(layer);
 		}
 		//console.log('+ new road layer: ' + totalNumArr);
-		if (this.showRoadNodeLayer) this.addNewRoadNodeLayer();
+		if (this.dispRoadNodeLayer) this.addNewRoadNodeLayer();
 	}
 
 	//
@@ -288,7 +285,13 @@ class TGMapRoads {
 
 			//console.log('### ' + type + ' : ' + arr.length);
 		}
-		if (this.showRoadNodeLayer) this.addRoadNodeLayer();
+		if (this.dispRoadNodeLayer) this.addRoadNodeLayer();
+	}
+
+	removeRoadLayer() {
+		for(let type of this.roadTypes) {
+			this.mapUtil.removeLayer(this.roadLayer[type]);
+		};
 	}
 
 	clearLayers() {
@@ -447,47 +450,37 @@ class TGMapRoads {
 
 	addNewRoadNodeLayer() {
 		let arr = [];
-		const clrMinor = this.tg.opt.color.minorNode;
-		const clrMajor = this.tg.opt.color.majorNode;
-		const radiusMinor = this.tg.opt.radius.minorNode;
-		const radiusMajor = this.tg.opt.radius.majorNode;
+		const edgeStyleFunc = 
+			this.mapUtil.lineStyleFunc(this.tg.opt.color.edge, this.tg.opt.width.edge);
+		const nodeStyleFunc = 
+			this.mapUtil.nodeStyleFunc(this.tg.opt.color.roadNode, this.tg.opt.radius.node);
 
 		for(let type of this.dispRoadTypes) {
-			for(let road of this.newRoadObjects[type]) {
-				if (road[0].node) { // LineString
-					this.mapUtil.addFeatureInFeatures(
-						arr, new ol.geom.Point(road[0]), 
-						this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
+			for(let roads of this.newRoadObjects[type]) {
 
+				if (roads[0].node) { // LineString
+					// edge
 					this.mapUtil.addFeatureInFeatures(
-						arr, new ol.geom.Point(road[road.length - 1]), 
-						this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
+						arr, new ol.geom.LineString(roads), edgeStyleFunc);
 
-					for(let index = 1; index < road.length - 1; index++) {
+					// node
+					for(let node of roads) {
 						this.mapUtil.addFeatureInFeatures(
-							arr, new ol.geom.Point(road[index]), 
-							this.mapUtil.nodeStyleFunc(clrMinor, radiusMinor));
+							arr, new ol.geom.Point(node), nodeStyleFunc);
 					}
 				}
-				else if (road[0][0].node) { // MultiLineString
-					for(let road2 of road) {
+				else if (roads[0][0].node) { // MultiLineString
+					for(let nodes of roads) {
+						// edge
 						this.mapUtil.addFeatureInFeatures(
-							arr, new ol.geom.Point(road2[0]), 
-							this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
+							arr, new ol.geom.LineString(nodes), edgeStyleFunc);
 
-						this.mapUtil.addFeatureInFeatures(
-							arr, new ol.geom.Point(road2[road2.length - 1]), 
-							this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
-
-						for(let index = 1; index < road2.length - 1; index++) {
+						// node
+						for(let node of nodes) {
 							this.mapUtil.addFeatureInFeatures(
-								arr, new ol.geom.Point(road2[index]), 
-								this.mapUtil.nodeStyleFunc(clrMinor, radiusMinor));
+								arr, new ol.geom.Point(node), nodeStyleFunc);
 						}
 					}
-				}
-				else {
-					console.log('not known geotype in createDispRoas()');
 				}
 			}
 		}
@@ -504,49 +497,36 @@ class TGMapRoads {
 		this.mapUtil.removeLayer(this.roadNodeLayer);
 
 		let arr = [];
-		const clrMinor = this.tg.opt.color.minorNode;
-		const clrMajor = this.tg.opt.color.majorNode;
-		const radiusMinor = this.tg.opt.radius.minorNode;
-		const radiusMajor = this.tg.opt.radius.majorNode;
+		const edgeStyleFunc = 
+				this.mapUtil.lineStyleFunc(this.tg.opt.color.edge, this.tg.opt.width.edge);
+		const nodeStyleFunc = 
+				this.mapUtil.nodeStyleFunc(this.tg.opt.color.roadNode, this.tg.opt.radius.node);
 
 		for(let type of this.dispRoadTypes) {
-			for(let road of this.dispRoads[type]) {
-
-				if (road[0].node) { // LineString
-
+			for(let roads of this.dispRoads[type]) {
+				if (roads[0].node) { // LineString
+					// edge
 					this.mapUtil.addFeatureInFeatures(
-						arr, new ol.geom.Point(road[0]), 
-						this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
+						arr, new ol.geom.LineString(roads), edgeStyleFunc);
 
-					this.mapUtil.addFeatureInFeatures(
-						arr, new ol.geom.Point(road[road.length - 1]), 
-						this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
-
-					for(let index = 1; index < road.length - 1; index++) {
+					// node
+					for(let node of roads) {
 						this.mapUtil.addFeatureInFeatures(
-							arr, new ol.geom.Point(road[index]), 
-							this.mapUtil.nodeStyleFunc(clrMinor, radiusMinor));
+							arr, new ol.geom.Point(node), nodeStyleFunc);
 					}
 				}
-				else if (road[0][0].node) { // MultiLineString
-					for(let road2 of road) {
+				else if (roads[0][0].node) { // MultiLineString
+					for(let nodes of roads) {
+						// edge
 						this.mapUtil.addFeatureInFeatures(
-							arr, new ol.geom.Point(road2[0]), 
-							this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
+							arr, new ol.geom.LineString(nodes), edgeStyleFunc);
 
-						this.mapUtil.addFeatureInFeatures(
-							arr, new ol.geom.Point(road2[road2.length - 1]), 
-							this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor));
-
-						for(let index = 1; index < road2.length - 1; index++) {
+						// node
+						for(let node of nodes) {
 							this.mapUtil.addFeatureInFeatures(
-								arr, new ol.geom.Point(road2[index]), 
-								this.mapUtil.nodeStyleFunc(clrMinor, radiusMinor));
+								arr, new ol.geom.Point(node), nodeStyleFunc);
 						}
 					}
-				}
-				else {
-					console.log('not known geotype in createDispRoas()');
 				}
 			}
 		}
@@ -554,5 +534,9 @@ class TGMapRoads {
 		this.roadNodeLayer.setZIndex(this.tg.opt.z.roadNode);
 		this.olMap.addLayer(this.roadNodeLayer);
 		this.dispLayers.push(this.roadNodeLayer);
+	}
+
+	removeRoadNodeLayer() {
+		this.mapUtil.removeLayer(this.roadNodeLayer);
 	}
 }

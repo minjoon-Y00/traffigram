@@ -4,10 +4,11 @@
 }
 
 .ol_map {
-	width: 540px;
-	height:960px;
+	//width: 600px; // 540px
+	//height: 900px; // 960px
 	border-style: inset;
 	width: 100%;
+	height: 100%;
 	background-color: #EAEAEA; //rgba(234,234,234,1);
 	margin: 10px;
 }

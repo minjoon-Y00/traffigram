@@ -85,9 +85,9 @@ function parse(results) {
 
 		// categories
 		if (ret.categories.length > 0) {
-			obj.categories = ret.categories[0];
+			obj.categories = ret.categories[0].title;
 			for(let i = 1; i < ret.categories.length; i++) {
-				obj.categories += ', ' + ret.categories[i];
+				obj.categories += ', ' + ret.categories[i].title;
 			}
 		}
 		else {

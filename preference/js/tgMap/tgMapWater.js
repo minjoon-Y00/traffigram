@@ -12,11 +12,10 @@ class TGMapWater {
   	this.timerGetWaterData = null;
   	this.timerFinishGettingWaterData = null;
   	this.dispLayers = [];
-  	this.rdpThreshold = this.tg.opt.constant.rdpThreshold;
+  	this.rdpThreshold = this.tg.opt.constant.rdpThreshold.water;
 
   	this.timeInterval = 0;
   	this.timeIntervalArray = [];
-
 	}
 
 	start() {
@@ -41,6 +40,10 @@ class TGMapWater {
 						this.processNewWaterObjects.bind(this), 
 						this.tg.opt.constant.timeToWaitForGettingWaterData);
 
+		if (this.tg.map.timerCheckGridSplitInTgMap) {
+			clearTimeout(this.tg.map.timerCheckGridSplitInTgMap);
+		}
+
 		const geoType = feature.getGeometry().getType();
 
 		// ignores LineString, Point, ...
@@ -64,9 +67,9 @@ class TGMapWater {
 
 			if (geoType === 'Polygon') {
 
-				//console.log('before: ' + coords.length);
-				//coords = this.tg.util.RDPSimp2D(coords, 0);
-				//console.log('after: ' + coords.length);
+				if (this.tg.map.simplify) {
+					coords = this.tg.util.RDPSimp2DLoop(coords, this.rdpThreshold);
+				}
 
 				for(let i = 0; i < coords.length; i++) {
 					for(let j = 0; j < coords[i].length; j++) {
@@ -80,7 +83,9 @@ class TGMapWater {
 			}
 			else if (geoType == 'MultiPolygon') {
 
-				//coords = this.tg.util.RDPSimp3D(coords, this.rdpThreshold);
+				if (this.tg.map.simplify) {
+					coords = this.tg.util.RDPSimp3DLoop(coords, this.rdpThreshold);
+				}
 
 				for(let i = 0; i < coords.length; i++) {
 					for(let j = 0; j < coords[i].length; j++) {
@@ -147,6 +152,8 @@ class TGMapWater {
 			}
 			
 			let isIn = false;
+			if (water[0].length === 0) continue;
+
 			if (water[0][0].node) { // Polygon
 				for(let i = 0; i < water.length; i++) {
 					for(let j = 0; j < water[i].length; j++) {
@@ -187,6 +194,8 @@ class TGMapWater {
 
 	updateDispWater() {
 		for(let water of this.dispWaterObjects) {
+			if (water[0].length === 0) continue;
+
 			if (water[0][0].node) { // Polygon
 				for(let i = 0; i < water.length; i++) {
 					for(let j = 0; j < water[i].length; j++) {
@@ -216,6 +225,10 @@ class TGMapWater {
 		const styleFunc = this.mapUtil.polygonStyleFunc(this.tg.opt.color.water);
 
 		for(let water of this.newWaterObjects) {
+
+			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
+
+
 			if (water[0][0].node) { // Polygon
 				this.mapUtil.addFeatureInFeatures(
 					arr, new ol.geom.Polygon(water), styleFunc);
@@ -232,6 +245,7 @@ class TGMapWater {
 		this.dispLayers.push(layer);
 		
 		console.log('+ new water layer: ' + arr.length);
+		if (this.tg.map.dispWaterNodeLayer) this.addNewWaterNodeLayer();
 	}
 
 	//
@@ -242,6 +256,8 @@ class TGMapWater {
 		this.mapUtil.removeLayer(this.waterLayer);
 
 		for(let water of this.dispWaterObjects) {
+			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
+
 			if (water[0][0].node) { // Polygon
 				this.mapUtil.addFeatureInFeatures(
 					arr, new ol.geom.Polygon(water), styleFunc);
@@ -258,6 +274,11 @@ class TGMapWater {
 		this.dispLayers.push(this.waterLayer);
 
 		console.log('+ water layer: ' + arr.length);
+		if (this.tg.map.dispWaterNodeLayer) this.addWaterNodeLayer();
+	}
+
+	removeWaterLayer() {
+		this.mapUtil.removeLayer(this.waterLayer);
 	}
 
 	clearLayers() {
@@ -287,6 +308,8 @@ class TGMapWater {
 		for(let water of this.dispWaterObjects) {
 			let modified;
 
+			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
+
 			if (water[0][0].node) { // Polygon
 				for(let i = 0; i < water.length; i++) {
 					for(let j = 0; j < water[i].length; j++) {
@@ -315,6 +338,8 @@ class TGMapWater {
 	calDispNodes(kind, value) {
 
 		for(let water of this.dispWaterObjects) {
+
+			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
 
 			if (water[0][0].node) { // Polygon
 				if (kind === 'intermediateReal') {
@@ -393,7 +418,7 @@ class TGMapWater {
 		}
 	}
 
-	arePointsInWater(points) {
+	checkPointsInWater(points) {
 
 		const s = (new Date()).getTime();
 
@@ -403,13 +428,15 @@ class TGMapWater {
 		}
 
 		const e = (new Date()).getTime();
-		console.log('arePointsInWater: ' + (e - s) + ' ms');
+		console.log('checkPointsInWater: ' + (e - s) + ' ms');
 	}
 
 	isPointInWater(centerPoint, point) {
 
 		let countIntersection = 0;
 		for(let water of this.dispWaterObjects) {
+			
+			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
 
 			if (water[0][0].node) { // Polygon
 				for(let i = 0; i < water.length; i++) {
@@ -453,6 +480,9 @@ class TGMapWater {
 		let count = 0;
 
 		for(let water of this.dispWaterObjects) {
+			
+			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
+
 			if (water[0][0].node) { // Polygon
 				for(let water2 of water) {
 					count += water2.length;
@@ -473,16 +503,113 @@ class TGMapWater {
 
 		let sum = 0;
 		for(let time of this.timeIntervalArray) sum += time;
-
 		console.log('################ FIN.');
 		console.log('AVG: ' + (sum / this.timeIntervalArray.length));
-			
-
 		this.timeInterval = 0;
 		this.timeIntervalArray = [];
-		this.arePointsInWater(this.tg.map.tgControl.controlPoints);
-		//this.tg.map.tgControl.checkGridSplit();
+
+		this.tg.map.calSplittedGrid();
 	}
+
+	addNewWaterNodeLayer() {
+		let arr = [];
+		const edgeStyleFunc = 
+			this.mapUtil.lineStyleFunc(this.tg.opt.color.edge, this.tg.opt.width.edge);
+		const nodeStyleFunc = 
+			this.mapUtil.nodeStyleFunc(this.tg.opt.color.waterNode, this.tg.opt.radius.node);
+
+		for(let water of this.newWaterObjects) {
+			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
+
+			if (water[0][0].node) { // Polygon
+				for(let nodes of water) {
+					// edge
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.LineString(nodes), edgeStyleFunc);
+
+					// node
+					for(let node of nodes) {
+						this.mapUtil.addFeatureInFeatures(
+							arr, new ol.geom.Point(node), nodeStyleFunc);
+					}
+				}
+			}
+			else if (water[0][0][0].node) { // MultiPolygon
+				for(let water2 of water) {
+					for(let nodes of water2) {
+						// edge
+							this.mapUtil.addFeatureInFeatures(
+								arr, new ol.geom.LineString(nodes), edgeStyleFunc);
+
+						// node
+						for(let node of nodes) {
+							this.mapUtil.addFeatureInFeatures(
+								arr, new ol.geom.Point(node), nodeStyleFunc);
+						}
+					}
+				}
+			}
+		}
+
+		const layer = this.mapUtil.olVectorFromFeatures(arr);
+		layer.setZIndex(this.tg.opt.z.waterNode);
+		this.olMap.addLayer(layer);
+		this.dispLayers.push(layer);
+	}
+
+	addWaterNodeLayer() {
+
+		this.mapUtil.removeLayer(this.waterNodeLayer);
+
+		let arr = [];
+		const edgeStyleFunc = 
+			this.mapUtil.lineStyleFunc(this.tg.opt.color.edge, this.tg.opt.width.edge);
+		const nodeStyleFunc = 
+			this.mapUtil.nodeStyleFunc(this.tg.opt.color.waterNode, this.tg.opt.radius.node);
+
+		for(let water of this.dispWaterObjects) {
+			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
+
+			if (water[0][0].node) { // Polygon
+				for(let nodes of water) {
+					// edge
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.LineString(nodes), edgeStyleFunc);
+
+					// node
+					for(let node of nodes) {
+						this.mapUtil.addFeatureInFeatures(
+							arr, new ol.geom.Point(node), nodeStyleFunc);
+					}
+				}
+			}
+			else if (water[0][0][0].node) { // MultiPolygon
+				for(let water2 of water) {
+					for(let nodes of water2) {
+						// edge
+							this.mapUtil.addFeatureInFeatures(
+								arr, new ol.geom.LineString(nodes), edgeStyleFunc);
+
+						// node
+						for(let node of nodes) {
+							this.mapUtil.addFeatureInFeatures(
+								arr, new ol.geom.Point(node), nodeStyleFunc);
+						}
+					}
+				}
+			}
+		}
+		this.waterNodeLayer = this.mapUtil.olVectorFromFeatures(arr);
+		this.waterNodeLayer.setZIndex(this.tg.opt.z.waterNode);
+		this.olMap.addLayer(this.waterNodeLayer);
+		this.dispLayers.push(this.waterNodeLayer);
+	}
+
+	removeWaterNodeLayer() {
+		this.mapUtil.removeLayer(this.waterNodeLayer);
+	}
+
+
 
 
 	/*isPointInWater(point) {
