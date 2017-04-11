@@ -1,7 +1,6 @@
 class TGMapRoads {
-	constructor(tg, map, mapUtil) {
+	constructor(tg, mapUtil) {
 		this.tg = tg;
-		this.olMap = map;
 		this.mapUtil = mapUtil;
 
 	  this.roadTypes = 
@@ -10,20 +9,34 @@ class TGMapRoads {
 	  this.newRoadObjects = {};
 	  this.dispRoads = {};
 	  this.dispRoadTypes = [];
-		this.roadLayer = {};
-		this.roadNodeLayer = null;
+		this.layer = {};
+		this.nodeLayer = null;
   	this.timerGetRoadData = null;
   	this.dispLayers = [];
   	this.rdpThreshold = this.tg.opt.constant.rdpThreshold.road;
+  	this.simplify = true;
 
 	  for(let type of this.roadTypes) {
 	  	this.roadObjects[type] = [];
-	  	this.roadLayer[type] = null;
+	  	this.layer[type] = null;
 	  	this.newRoadObjects[type] = [];
 		}
 	}
 
-	start() {
+	turn(tf) {
+		this.display = tf;
+	}
+
+	disabled(tf) {
+		this.isDisabled = tf;
+	}
+	
+	render() {
+		if (this.isDisabled||(!this.display)) this.clearLayers();
+		else this.updateLayer();
+	}
+
+	init() {
 		const roadSource = new ol.source.VectorTile({
 	    format: new ol.format.TopoJSON(),
 	    projection: 'EPSG:3857',
@@ -32,7 +45,7 @@ class TGMapRoads {
 	    	+ 'api_key=vector-tiles-c1X4vZE'
 	  })
 
-		this.olMap.addLayer(new ol.layer.VectorTile({
+		this.mapUtil.addLayer(new ol.layer.VectorTile({
 		  source: roadSource,
 		  style: this.addToRoadObject.bind(this)
 		}))
@@ -53,16 +66,19 @@ class TGMapRoads {
 		feature.getGeometry().transform('EPSG:3857', 'EPSG:4326');
 
 		let coords = feature.getGeometry().getCoordinates();
+		//const minZoom = feature.get('min_zoom');
+		//coords.minZoom = feature.get('min_zoom');
 
 		// TODO: test lenCoords vs coords.length
 
 		if (geoType === 'LineString') {
 
-			if (this.tg.map.simplify) {
-				//console.log('before: ' + coords.length);
+			if ((this.simplify)&&(this.tg.map.simplify)) {
 				coords = this.tg.util.RDPSimp1D(coords, this.rdpThreshold);
-				//console.log('after: ' + coords.length);
 			}
+			coords.minZoom = feature.get('min_zoom');
+			//coords.minZoom = minZoom;
+
 
 			for(let i = 0; i < coords.length; i++) {
 				coords[i].node = new Node(coords[i][1], coords[i][0]);
@@ -76,11 +92,12 @@ class TGMapRoads {
 		}
 		else if (geoType === 'MultiLineString') {
 
-			if (this.tg.map.simplify) {
-				//console.log('before: ' + coords.length);
+			if ((this.simplify)&&(this.tg.map.simplify)) {
 				coords = this.tg.util.RDPSimp2D(coords, this.rdpThreshold);
-				//console.log('after: ' + coords.length);
 			}
+			coords.minZoom = feature.get('min_zoom');
+			//coords.minZoom = minZoom;
+
 
 			for(let i = 0; i < coords.length; i++) {
 				for(let j = 0; j < coords[i].length; j++) {
@@ -113,26 +130,21 @@ class TGMapRoads {
 		this.tg.map.setDataInfo('numRoadLoading', 'increase');
 		this.tg.map.setTime('roadLoading', 'end', (new Date()).getTime());
 
-	  this.addNewRoadLayer();
+	  this.addNewLayer();
 
 	  for(let type of this.roadTypes) {
 	  	this.newRoadObjects[type] = [];
 		}
-
- 		//this.calDispRoads();
-	  //this.updateDispRoads();
-		//this.addRoadLayer();
-		//this.addRoadNodeLayer();
 	}
 
-	calDispRoadType(currentZoom) {
+	updateDisplayedRoadType(currentZoom) {
 		this.dispRoadTypes = [];
 		for(let type in this.tg.opt.dispZoom) {
 			if (currentZoom >= this.tg.opt.dispZoom[type].minZoom) {
 				this.dispRoadTypes.push(type);
 			}
 		}
-		//console.log(this.dispRoadTypes);
+		console.log(this.dispRoadTypes);
 	}
 
 	calDispRoads() {
@@ -149,6 +161,9 @@ class TGMapRoads {
 
 		for(let type of this.dispRoadTypes) {
 			for(let road of this.roadObjects[type]) {
+				if (currentZoom < road.minZoom) {
+					continue;
+				}
 				
 				if (road[0].node) { // LineString
 					for(let i = 0; i < road.length; i++) {
@@ -177,26 +192,6 @@ class TGMapRoads {
 				}
 			}
 		}
-
-		/*
-		let numRoad = 0;
-		for(let type of this.roadTypes) {
-			for(let road of this.roadObjects[type]) {
-				numRoad++;
-			}
-		}
-
-
-		let numDispRoad = 0;
-		for(let type of this.dispRoadTypes) {
-			for(let road of this.dispRoads[type]) {
-				numDispRoad++;
-			}
-		}
-
-		console.log('/# of road : ' + numRoad);
-		console.log('/# of disp road: ' + numDispRoad);
-		*/
 	}
 
 	updateDispRoads() {
@@ -223,8 +218,7 @@ class TGMapRoads {
 		}
 	}
 
-	addNewRoadLayer() {
-		//let totalNumArr = 0;
+	addNewLayer() {
 		for(let type of this.dispRoadTypes) {
 			let arr = [];
 			const styleFunc = this.mapUtil.lineStyleFunc(
@@ -243,21 +237,20 @@ class TGMapRoads {
 					console.log('not known geotype in createDispRoas()');
 				}
 			}
-			//totalNumArr += arr.length;
 			const layer = this.mapUtil.olVectorFromFeatures(arr);
 			layer.setZIndex(this.tg.opt.z[type]);
-			this.olMap.addLayer(layer);
+			this.mapUtil.addLayer(layer);
 			this.dispLayers.push(layer);
 		}
-		//console.log('+ new road layer: ' + totalNumArr);
-		if (this.dispRoadNodeLayer) this.addNewRoadNodeLayer();
+
+		if (this.dispNodeLayer) this.addNewNodeLayer();
 	}
 
 	//
-	addRoadLayer() {
-	  for(let type of this.roadTypes) {
-			this.mapUtil.removeLayer(this.roadLayer[type]);
-		}
+	updateLayer() {
+		//this.removeLayer();
+		this.clearLayers();
+		this.updateDispRoads();
 
 		for(let type of this.dispRoadTypes) {
 			let arr = [];
@@ -277,20 +270,18 @@ class TGMapRoads {
 					console.log('not known geotype in createDispRoas()');
 				}
 			}
-			this.roadLayer[type] = this.mapUtil.olVectorFromFeatures(arr);
-			this.roadLayer[type].setZIndex(this.tg.opt.z[type]);
-			//this.setVisibleByCurrentZoom(tg.map.currentZoom);
-			this.olMap.addLayer(this.roadLayer[type]);
-			this.dispLayers.push(this.roadLayer[type]);
-
-			//console.log('### ' + type + ' : ' + arr.length);
+			this.layer[type] = this.mapUtil.olVectorFromFeatures(arr);
+			this.layer[type].setZIndex(this.tg.opt.z[type]);
+			this.mapUtil.addLayer(this.layer[type]);
+			this.dispLayers.push(this.layer[type]);
 		}
-		if (this.dispRoadNodeLayer) this.addRoadNodeLayer();
+
+		if (this.dispNodeLayer) this.addNodeLayer();
 	}
 
-	removeRoadLayer() {
+	removeLayer() {
 		for(let type of this.roadTypes) {
-			this.mapUtil.removeLayer(this.roadLayer[type]);
+			this.mapUtil.removeLayer(this.layer[type]);
 		};
 	}
 
@@ -298,27 +289,6 @@ class TGMapRoads {
 		for(let layer of this.dispLayers) {
 			this.mapUtil.removeLayer(layer);
 		}
-	}
-
-	setVisibleByCurrentZoom(currentZoom) {
-		return;
-  	for(let type of this.roadTypes) {
-		  if (this.roadLayer[type])
-				this.roadLayer[type].setVisible(true);
-  	}
-
-  	if (currentZoom <= 14) {
-  		if (this.roadLayer.residential)
-				this.roadLayer.residential.setVisible(false);
-  	}
-  	if (currentZoom <= 13) {
-  		if (this.roadLayer.tertiary)
-				this.roadLayer.tertiary.setVisible(false);
-  	} 
-  	if (currentZoom <= 12) {
-  		if (this.roadLayer.secondary)
-				this.roadLayer.secondary.setVisible(false);
-  	}
 	}
 
 	calRealNodes() {
@@ -448,7 +418,7 @@ class TGMapRoads {
 		return count;
 	}
 
-	addNewRoadNodeLayer() {
+	addNewNodeLayer() {
 		let arr = [];
 		const edgeStyleFunc = 
 			this.mapUtil.lineStyleFunc(this.tg.opt.color.edge, this.tg.opt.width.edge);
@@ -486,15 +456,15 @@ class TGMapRoads {
 		}
 		const layer = this.mapUtil.olVectorFromFeatures(arr);
 		layer.setZIndex(this.tg.opt.z.roadNode);
-		this.olMap.addLayer(layer);
+		this.mapUtil.addLayer(layer);
 		this.dispLayers.push(layer);
 	}
 
 
 
-	addRoadNodeLayer() {
+	addNodeLayer() {
 
-		this.mapUtil.removeLayer(this.roadNodeLayer);
+		this.mapUtil.removeLayer(this.nodeLayer);
 
 		let arr = [];
 		const edgeStyleFunc = 
@@ -530,13 +500,13 @@ class TGMapRoads {
 				}
 			}
 		}
-		this.roadNodeLayer = this.mapUtil.olVectorFromFeatures(arr);
-		this.roadNodeLayer.setZIndex(this.tg.opt.z.roadNode);
-		this.olMap.addLayer(this.roadNodeLayer);
-		this.dispLayers.push(this.roadNodeLayer);
+		this.nodeLayer = this.mapUtil.olVectorFromFeatures(arr);
+		this.nodeLayer.setZIndex(this.tg.opt.z.roadNode);
+		this.mapUtil.addLayer(this.nodeLayer);
+		this.dispLayers.push(this.nodeLayer);
 	}
 
-	removeRoadNodeLayer() {
-		this.mapUtil.removeLayer(this.roadNodeLayer);
+	removeNodeLayer() {
+		this.mapUtil.removeLayer(this.nodeLayer);
 	}
 }

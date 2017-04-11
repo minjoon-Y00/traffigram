@@ -1,7 +1,7 @@
 const options = {
 	maxZoom: 18,
-	minZoom: 8,
-	zoom: 13,
+	minZoom: 10,
+	zoom: 14,
 
 	type: {
 		motorway: 1,
@@ -32,8 +32,8 @@ const options = {
 		places: 19,
 		location: 20,
 		isochrone: 25,
-		boundingBox: 30,
-		centerPosition: 50,
+		origin: 30,
+		boundingBox: 50,
 	},
 
 	dispZoom: {
@@ -79,20 +79,17 @@ const options = {
 		waterNode: '#0071BC',
 		landuseNode: '#009245',
 		edge: '#888',
-		anchor: 'rgba(0,0,0,0.5)',
+		anchor: 'rgba(0, 0, 0, 0.5)',
 		
 		text: '#686453', //'#000',
+		isochrone: 'rgba(255, 0, 0, 0.5)',
 		isochroneText: '#FFF',
 		grid: '#000', //'#FFA07A',
 
 		location: '#33cc33',
-		locationLine: 'rgba(0,0,0,0.5)',
+		locationLine: 'rgba(0, 0, 0, 0.5)',
 		controlPoint: '#FFD700',
 		controlPointLine: '#FFD700',
-	},
-
-	alpha: {
-		isochrone: 0.5,
 	},
 
 	width: {
@@ -127,11 +124,16 @@ const options = {
 	},
 
 	image: {
-		center: 'img/map_origin.png',
-		location: 'img/map_food.png',
+		origin: 'img/map_origin.png',
 		anchor: 'img/anchor.png',
 		red10min: 'img/10min.png',
 		red100min: 'img/100min.png',
+		location: {
+			'food': 'img/location_food.png',
+			'bar': 'img/location_bar.png',
+			'park': 'img/location_park.png',
+			'museum': 'img/location_museum.png',
+		},
 	},
 
 	font: {
@@ -152,7 +154,7 @@ const options = {
 		sfLombard: {
 			lat: 37.802139,
 			lng: -122.4209287,
-		}
+		},
 		nyNyu: {
 			lat: 40.72946,
 			lng: -73.995708,
@@ -195,6 +197,11 @@ const options = {
 		'level4': [15, 16, 17, 18]
 	},
 
+	variable: {
+		latPerPx: 0,
+		lngPerPx: 0,	
+	},
+
 	constant: {
 		randomness: 0.01,
 		clickRangePX: 10,
@@ -210,8 +217,7 @@ const options = {
 		}, 
 		numLanduseClasses: 6,
 		shapePreservingDegree: 1.0,
-		maxSplitLevel: 1,
-		locationType: 'food',
+		maxSplitLevel: 0,
 	},
 
 }

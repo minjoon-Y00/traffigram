@@ -3,17 +3,12 @@ class TGMapBoundingBox {
 		this.tg = tg;
 		this.olMap = olMap;
 		this.mapUtil = mapUtil;
-		this.latPerPx = 0;
-		this.lngPerPx = 0;
+
+		this.display = false;
+		this.boundingBoxLayer = null;
 
 		this.BBs = [];
-		this.BBPolygons = [];
 		this.locs = [];
-		this.nonOverlappedLocations = [];
-		this.nonOverlappedPlaces = {};
-
-
-		
 
 		/*const lat = 47.658316;
 		const lng = -122.312035;
@@ -25,67 +20,264 @@ class TGMapBoundingBox {
 			*/
 	}
 
-	calConstants() {
-		const opt = this.tg.opt;
-  	const heightLat = opt.box.top - opt.box.bottom; // 0.11
-		const widthLng = opt.box.right - opt.box.left; // 0.09784
-
-		let heightPX = $('#ol_map').css('height'); 
-  	heightPX = Number(heightPX.slice(0, heightPX.length - 2)); // 900
-  	let widthPX = $('#ol_map').css('width');  
-  	widthPX = Number(widthPX.slice(0, widthPX.length - 2)); // 600
-
-  	this.latPerPx = heightLat / heightPX;
-  	this.lngPerPx = widthLng / widthPX;
+	turn(tf) {
+		this.display = tf;
 	}
 
-	calNonOverlappedLocations(locations) {
-		const pxLat = 30;
-		const pxLng = 30;
-		const heightLat = pxLat * this.latPerPx;
-		const widthLng = pxLng * this.lngPerPx;
-		const dLat = pxLat * this.latPerPx / 2;
-		const dLng = pxLng * this.lngPerPx / 2;
+	render() {
+		if (this.display) this.updateLayer();
+		else this.removeLayer();
+	}
+
+	isItNotOverlapped(inBB) {
+		for(let bb of this.BBs) {
+			if (this.tg.util.intersectRect(inBB, bb)) return false;
+		}
+		return true;
+	}
+
+	addOriginToBB() {
+		const iconLatPx = 40;
+		const iconLngPx = 50;
+		const dLat = (iconLatPx * this.tg.opt.variable.latPerPx) / 2;
+		const dLng = (iconLngPx * this.tg.opt.variable.lngPerPx) / 2;
+		const bb = {
+			left: this.tg.map.origin.lng - dLng, 
+			right: this.tg.map.origin.lng + dLng,
+			top: this.tg.map.origin.lat - dLat,
+			bottom: this.tg.map.origin.lat + dLat,
+			type: 'origin',
+		};
+
+		this.BBs.push(bb);
+	}
+
+	getNonOverlappedLocations(locations) {
+		const iconLatPx = 30;
+		const iconLngPx = 30;
+		const dLat = (iconLatPx * this.tg.opt.variable.latPerPx) / 2;
+		const dLng = (iconLngPx * this.tg.opt.variable.lngPerPx) / 2;
+		let nonOverlappedLocations = [];
 
 		for(let loc of locations) {
-			const lat = loc.node.dispLoc.lat;
-			const lng = loc.node.dispLoc.lng;
 			const bb = {
-				left: lng - dLng, 
-				right: lng + dLng,
-				top: lat - dLat,
-				bottom: lat + dLat
+				left: loc.lng - dLng, 
+				right: loc.lng + dLng,
+				top: loc.lat - dLat,
+				bottom: loc.lat + dLat,
+				type: 'location',
 			};
 
-			const ok = this.checkBB(bb);
-
-			if (ok) {
+			if (this.isItNotOverlapped(bb)) {
+				nonOverlappedLocations.push(loc);
 				this.BBs.push(bb);
-				
-				this.BBPolygons.push([
-					[bb.right, bb.top],
-					[bb.right, bb.bottom],
-					[bb.left, bb.bottom],
-					[bb.left, bb.top],
-					[bb.right, bb.top]]);
-
-				this.nonOverlappedLocations.push(loc);
 			}
 		}
-		//console.log(this.nonOverlappedLocations);
+		return nonOverlappedLocations;
+	}
+
+	addBBOfLocations() {
+		const locations = this.tg.map.tgLocs.locations[this.tg.map.tgLocs.currentType];
+		const iconLatPx = 30;
+		const iconLngPx = 30;
+		const dLat = (iconLatPx * this.tg.opt.variable.latPerPx) / 2;
+		const dLng = (iconLngPx * this.tg.opt.variable.lngPerPx) / 2;
+
+		for(let loc of locations) {
+			this.BBs.push({
+				left: loc.node.dispLoc.lng - dLng, 
+				right: loc.node.dispLoc.lng + dLng,
+				top: loc.node.dispLoc.lat - dLat,
+				bottom: loc.node.dispLoc.lat + dLat,
+				type: 'location',
+			});
+		}
+	}
+
+	getCandidatePosition(index, lat, lng, name) {
+		const latPerPx = this.tg.opt.variable.latPerPx;
+		const lngPerPx = this.tg.opt.variable.lngPerPx;
+
+		const widthPx = name.length * 7;
+		const heightPx = 14;
+
+		const lngMarginPx = 20; // left/right margin
+		const latMarginPx = 25; // top/bottom margin
+		const extraLatMarginPx = 10;
+
+		const dLng = (widthPx * lngPerPx) / 2;
+		const dLat = (heightPx * latPerPx) / 2;
+
+		switch(index) {
+			case 0: // right
+				return {
+					bb: {
+						left: lng + (lngMarginPx * lngPerPx),
+						right: lng + (lngMarginPx * lngPerPx) + (2 * dLng), 
+						top: lat - dLat,
+						bottom: lat + dLat,
+						type: 'locationName',
+					},
+					offset: {
+						x: lngMarginPx, y: 0, align:'left',
+					}
+				}
+			case 1: // up
+				return {
+					bb: {
+						left: lng - dLng,
+						right: lng + dLng,
+						top: lat + (latMarginPx * latPerPx) - dLat,
+						bottom: lat + (latMarginPx * latPerPx) + dLat,
+						type: 'locationName',
+					},
+					offset: {
+						x: 0, y: -latMarginPx, align:'center',
+					}
+				}
+			case 2: // left
+				return {
+					bb: {
+						left: lng - (lngMarginPx * lngPerPx) - (2 * dLng),
+						right: lng - (lngMarginPx * lngPerPx),
+						top: lat - dLat,
+						bottom: lat + dLat,
+						type: 'locationName',
+					},
+					offset: {
+						x: -lngMarginPx, y: 0, align:'right',
+					}
+				}
+			case 3: // bottom
+				return {
+					bb: {
+						left: lng - dLng,
+						right: lng + dLng,
+						top: lat - (latMarginPx * latPerPx) - dLat,
+						bottom: lat - (latMarginPx * latPerPx) + dLat,
+						type: 'locationName',
+					},
+					offset: {
+						x: 0, y: latMarginPx, align:'center',
+					}
+				}
+			case 4: // right - up
+				return {
+					bb: {
+						left: lng + (lngMarginPx * lngPerPx),
+						right: lng + (lngMarginPx * lngPerPx) + (2 * dLng),
+						top: lat + (extraLatMarginPx * latPerPx) - dLat,
+						bottom: lat + (extraLatMarginPx * latPerPx) + dLat,
+						type: 'locationName',
+					},
+					offset: {
+						x: lngMarginPx, y: -extraLatMarginPx, align:'left',
+					}
+				}
+			case 5: // left - up
+				return {
+					bb: {
+						left: lng - (lngMarginPx * lngPerPx) - (2 * dLng),
+						right: lng - (lngMarginPx * lngPerPx),
+						top: lat + (extraLatMarginPx * latPerPx) - dLat,
+						bottom: lat + (extraLatMarginPx * latPerPx) + dLat,
+						type: 'locationName',
+					},
+					offset: {
+						x: -lngMarginPx, y: -extraLatMarginPx, align:'right',
+					}
+				}
+			case 6: // left - bottom
+				return {
+					bb: {
+						left: lng - (lngMarginPx * lngPerPx) - (2 * dLng),
+						right: lng - (lngMarginPx * lngPerPx),
+						top: lat - (extraLatMarginPx * latPerPx) - dLat,
+						bottom: lat - (extraLatMarginPx * latPerPx) + dLat,
+						type: 'locationName',
+					},
+					offset: {
+						x: -lngMarginPx, y: extraLatMarginPx, align:'right',
+					}
+				}
+			case 7: // right - bottom
+				return {
+					bb: {
+						left: lng + (lngMarginPx * lngPerPx),
+						right: lng + (lngMarginPx * lngPerPx) + (2 * dLng),
+						top: lat - (extraLatMarginPx * latPerPx) - dLat,
+						bottom: lat - (extraLatMarginPx * latPerPx) + dLat,
+						type: 'locationName',
+					},
+					offset: {
+						x: lngMarginPx, y: extraLatMarginPx, align:'left',
+					}
+				}
+		}
+	}
+
+	getNonOverlappedLocationNames(locations) {
+
+		this.deleteBBByType('locationName');
+
+		for(let loc of locations) {
+			for(let i = 0; i < 8; i++) {
+				const ret = 
+						this.getCandidatePosition(
+								i, loc.node.dispLoc.lat, loc.node.dispLoc.lng, loc.name);
+
+				if (this.isItNotOverlapped(ret.bb)) {
+					loc.dispName = true;
+					loc.nameOffsetX = ret.offset.x;
+					loc.nameOffsetY = ret.offset.y;
+					loc.nameAlign = ret.offset.align;
+					this.BBs.push(ret.bb);
+					break;
+				}
+
+				// if not possible
+				if (i === 7) {
+					loc.dispName = false;
+					console.log('fail to put a loc.');
+				}
+			}
+		}
+		return locations;
+	}
+
+	cleanBB() {
+		this.BBs = [];
+		this.addOriginToBB();
+	}
+
+	deleteBBByType(type) {
+		let newBBs = [];
+
+		while(this.BBs.length > 0) {
+			const bb = this.BBs.shift();
+			if (bb.type !== type) newBBs.push(bb);
+		}
+		this.BBs = newBBs;	
 	}
 
 	calNonOverlappedPlaces(places) {
+		this.deleteBBByType('place');
+
 		const currentZoom = this.tg.map.currentZoom;
+		const latPerPx = this.tg.opt.variable.latPerPx;
+		const lngPerPx = this.tg.opt.variable.lngPerPx;
+		const nonOverlappedPlaces = {};
 
 		for(let name in places) {
 			const place = places[name];
 
 			if (currentZoom < place.minZoom) {
+				console.log('zoooooooom!');
 				continue;
 			}
 
 			if (currentZoom > place.maxZoom) {
+				console.log('zoooooooom?');
 				continue;
 			}
 			
@@ -93,47 +285,30 @@ class TGMapBoundingBox {
 			const lng = place.node.disp.lng;
 			const pxLat = 14;
 			const pxLng = name.length * 7;
-			const heightLat = pxLat * this.latPerPx;
-			const widthLng = pxLng * this.lngPerPx;
-			const dLat = pxLat * this.latPerPx / 2;
-			const dLng = pxLng * this.lngPerPx / 2;
+			const heightLat = pxLat * latPerPx;
+			const widthLng = pxLng * lngPerPx;
+			const dLat = pxLat * latPerPx / 2;
+			const dLng = pxLng * lngPerPx / 2;
 			const bb = {
 				left: lng - dLng, 
 				right: lng + dLng,
 				top: lat - dLat,
-				bottom: lat + dLat
+				bottom: lat + dLat,
+				type: 'place',
 			};
 
-			const ok = this.checkBB(bb);
-
-			if (ok) {
+			if (this.isItNotOverlapped(bb)) {
 				this.BBs.push(bb);
-				
-				this.BBPolygons.push([
-					[bb.right, bb.top],
-					[bb.right, bb.bottom],
-					[bb.left, bb.bottom],
-					[bb.left, bb.top],
-					[bb.right, bb.top]]);
-
-				this.nonOverlappedPlaces[name] = place;
+				nonOverlappedPlaces[name] = place;
 			}
 		}
-		console.log(this.nonOverlappedPlaces);
+		return nonOverlappedPlaces;
 	}
+
+
 
 	addBB(lat, lng, pxLat, pxLng, offsetPxLat = 0, offsetPxLng = 0, 
 		kind = 'center', loc = null, noCheck = false) {
-
-		//console.log('addBB: ' + lat + ', ' + lng);
-
-		const heightLat = pxLat * this.latPerPx;
-		const widthLng = pxLng * this.lngPerPx;
-		const dLat = pxLat * this.latPerPx / 2;
-		const dLng = pxLng * this.lngPerPx / 2;
-		const offsetLat = offsetPxLat * this.latPerPx;
-		const offsetLng = offsetPxLng * this.lngPerPx;
-
 
 		let bb;
 		if (kind === 'center') {
@@ -160,17 +335,17 @@ class TGMapBoundingBox {
 		if (!noCheck) {
 
 			// try original (right) position
-			ok = this.checkBB(bb);
+			ok = this.isItNotOverlapped(bb);
 
 			// try upper position
 			if (!ok) {
 				bb = {
 					left: lng - dLng, 
 					right: lng + dLng,
-					top: (25 * this.latPerPx) + lat - dLat,
-					bottom: (25 * this.latPerPx) + lat + dLat,
+					top: (25 * latPerPx) + lat - dLat,
+					bottom: (25 * latPerPx) + lat + dLat,
 				}
-				ok = this.checkBB(bb);
+				ok = this.isItNotOverlapped(bb);
 				//ok = false;
 
 				if (ok) {
@@ -184,12 +359,12 @@ class TGMapBoundingBox {
 			// try left position
 			if (!ok) {
 				bb = {
-					left: -(20 * this.lngPerPx) + lng - widthLng, 
-					right: -(20 * this.lngPerPx) + lng,
+					left: -(20 * lngPerPx) + lng - widthLng, 
+					right: -(20 * lngPerPx) + lng,
 					top: lat - dLat,
 					bottom: lat + dLat,
 				}
-				ok = this.checkBB(bb);
+				ok = this.isItNotOverlapped(bb);
 				//ok = false;
 
 				if (ok) {
@@ -205,10 +380,10 @@ class TGMapBoundingBox {
 				bb = {
 					left: lng - dLng, 
 					right: lng + dLng,
-					top: -(25 * this.latPerPx) + lat - dLat,
-					bottom: -(25 * this.latPerPx) + lat + dLat,
+					top: -(25 * latPerPx) + lat - dLat,
+					bottom: -(25 * latPerPx) + lat + dLat,
 				}
-				ok = this.checkBB(bb);
+				ok = this.isItNotOverlapped(bb);
 				//ok = false;
 
 				if (ok) {
@@ -224,10 +399,10 @@ class TGMapBoundingBox {
 				bb = {
 					left: offsetLng + lng, 
 					right: offsetLng + lng + widthLng,
-					top: (5 * this.latPerPx) + offsetLat + lat,
-					bottom: (5 * this.latPerPx) + offsetLat + lat + heightLat,
+					top: (5 * latPerPx) + offsetLat + lat,
+					bottom: (5 * latPerPx) + offsetLat + lat + heightLat,
 				}
-				ok = this.checkBB(bb);
+				ok = this.isItNotOverlapped(bb);
 				//ok = false;
 
 				if (ok) {
@@ -241,12 +416,12 @@ class TGMapBoundingBox {
 			// try left - top position
 			if (!ok) {
 				bb = {
-					left: -(17 * this.lngPerPx) + lng - widthLng, 
-					right: -(17 * this.lngPerPx) + lng,
-					top: (5 * this.latPerPx) + offsetLat + lat,
-					bottom: (5 * this.latPerPx) + offsetLat + lat + heightLat,
+					left: -(17 * lngPerPx) + lng - widthLng, 
+					right: -(17 * lngPerPx) + lng,
+					top: (5 * latPerPx) + offsetLat + lat,
+					bottom: (5 * latPerPx) + offsetLat + lat + heightLat,
 				}
-				ok = this.checkBB(bb);
+				ok = this.isItNotOverlapped(bb);
 				//ok = true;
 
 				if (ok) {
@@ -286,8 +461,6 @@ class TGMapBoundingBox {
 
 		
 
-		//console.log('latPerPx: ' + this.latPerPx);
-		//console.log('lngPerPx: ' + this.lngPerPx);
 		//console.log('heightLat: ' + heightLat);
 		//console.log('widthLng: ' + widthLng);
 		//console.log('dLat: ' + dLat);
@@ -296,25 +469,11 @@ class TGMapBoundingBox {
 
 	}
 
-	checkBB(inBB) {
 
-		//console.log('inBB: ');
-		//console.log(inBB);
 
-		for(let bb of this.BBs) {
-			if (this.tg.util.intersectRect(inBB, bb)) {
-				console.log('!!!!!!!!!!!!!!------------');
-				return false;
-			}
-		}
-		return true;
 
-		//
-	}
 
-	addCenterPositionToBB() {
-		this.addBB(this.tg.map.centerPosition.lat, this.tg.map.centerPosition.lng, 40, 50);
-	}
+
 
 	addLocationsToBB() {
 		for(let loc of this.tg.map.tgLocs.locations[this.tg.map.tgLocs.currentType]) {
@@ -323,12 +482,22 @@ class TGMapBoundingBox {
 		}
 	}
 
-	addLayer() {
+	updateLayer() {
+		if (this.BBs.length === 0) return;
+
+		const BBPolygons = [];
+		for(let bb of this.BBs) {
+			BBPolygons.push([
+				[bb.right, bb.top], [bb.right, bb.bottom],
+				[bb.left, bb.bottom], [bb.left, bb.top],
+				[bb.right, bb.top]
+			]);
+		}
+
 		let arr = [];
 		const styleFunc = this.mapUtil.polygonStyleFunc(this.tg.opt.color.boundingBox);
 
-		for(let bb of this.BBPolygons) {
-			//console.log(bb);
+		for(let bb of BBPolygons) {
 			this.mapUtil.addFeatureInFeatures(
 				arr, new ol.geom.Polygon([bb]), styleFunc);
 		}
@@ -339,16 +508,15 @@ class TGMapBoundingBox {
 		this.olMap.addLayer(this.boundingBoxLayer);
 	}
 
-	repositionElements() {
+	removeLayer() {
+		this.mapUtil.removeLayer(this.boundingBoxLayer);
+	}
 
-		// center position
-		this.addBB(
-				this.tg.map.centerPosition.lat, this.tg.map.centerPosition.lng, 
-				40, 50, 0, 0, 'center', null, true);
+	repositionElements() {
 
 		const locations = this.tg.map.tgLocs.locations[this.tg.map.tgLocs.currentType];
 
-		this.calNonOverlappedLocations(locations);
+		this.getNonOverlappedLocations(locations);
 
 		this.tg.map.tgLocs.removeLocationLayer();
 		this.drawLocationLayer();

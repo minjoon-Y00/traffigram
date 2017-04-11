@@ -35,10 +35,10 @@
 
           <h4>Origin</h4>
           <div class="radio">
-            <label><input type="radio" name="centerRadio" id="centerDowntownSeattleRB">Downtown, Seattle</label>
+            <label><input type="radio" name="centerRadio" id="centerDowntownSeattleRB"checked>Downtown, Seattle</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="centerRadio" id="centerUWSeattleRB" checked>UW, Seattle</label>
+            <label><input type="radio" name="centerRadio" id="centerUWSeattleRB">UW, Seattle</label>
           </div>
           <div class="radio">
             <label><input type="radio" name="centerRadio" id="centerLombardSFRB">Lombard St. San Francisco</label>
@@ -68,23 +68,26 @@
             <label><input type="radio" name="emdcRadio" id="emModeRB" checked>Equidistant Map</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="emdcRadio" id="dcModeRB">Distance Cartogram</label>
+            <label><input type="radio" name="emdcRadio" id="dcGapModeRB">Distance Cartogram (GAP)</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="emdcRadio" id="dcSGapModeRB">Distance Cartogram (S-GAP)</label>
           </div>
           <hr>
 
           <!-- Distortion mode -->
 
-          <h4>Distortion mode</h4>
-          <!--<div class="radio">
+          <!--<h4>Distortion mode</h4>
+          <div class="radio">
             <label><input type="radio" name="gridWarpingRadio" id="originalGridRB" >Original</label>
-          </div>-->
-          <div class="radio">
-            <label><input type="radio" name="gridWarpingRadio" id="noIntersectedGridRB">GAP</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="gridWarpingRadio" id="shapePreservingGridRB" checked>S-GAP</label>
+            <label><input type="radio" name="gridWarpingRadio" id="noIntersectedGridRB" disabled>GAP</label>
           </div>
-          <hr>
+          <div class="radio">
+            <label><input type="radio" name="gridWarpingRadio" id="shapePreservingGridRB" checked disabled>S-GAP</label>
+          </div>
+          <hr>-->
 
           <!-- Locations -->
 
@@ -116,7 +119,7 @@
             <span class='marginL'>Water</span>
           </label>
           <label class='marginR'>
-            <input type="checkbox" id="dispRoadsCB" checked/>
+            <input type="checkbox" id="dispRoadsCB"/>
             <span class='marginL'>Road</span>
           </label>
           <label class='marginR'>
@@ -124,11 +127,11 @@
             <span class='marginL'>Place</span>
           </label>
           <label class='marginR'>
-            <input type="checkbox" id="dispCenterPositionCB" checked/>
-            <span class='marginL'>Center</span>
+            <input type="checkbox" id="dispOriginCB"/>
+            <span class='marginL'>Origin</span>
           </label>
           <label class='marginR'>
-            <input type="checkbox" id="dispGridCB" checked/>
+            <input type="checkbox" id="dispGridCB"/>
             <span class='marginL'>Grid</span>
           </label>
           <label class='marginR'>
@@ -136,7 +139,7 @@
             <span class='marginL'>Control Point</span>
           </label>
           <label class='marginR'>
-            <input type="checkbox" id="dispIsochroneCB" checked/>
+            <input type="checkbox" id="dispIsochroneCB" disabled/>
             <span class='marginL'>Isochrone</span>
           </label> 
           <label class='marginR'>
@@ -144,10 +147,11 @@
             <span class='marginL'>Location</span>
           </label> 
           <label class='marginR'>
-            <input type="checkbox" id="dispLocationNameCB"/>
+            <input type="checkbox" id="dispLocationNameCB" checked/>
             <span class='marginL'>Location Name</span>
           </label>   
-          <label class='marginR'>
+          
+          <!-- <label class='marginR'>
             <input type="checkbox" id="dispWaterNodeCB"/>
             <span class='marginL'>Water Node</span>
           </label>
@@ -159,7 +163,7 @@
           <label class='marginR'>
             <input type="checkbox" id="dispLanduseNodeCB"/>
             <span class='marginL'>Landuse Node</span>
-          </label>
+          </label> -->
 
           <!--<label class='marginR'>
             <input type="checkbox" id="dispNodesCB"/>
@@ -197,10 +201,10 @@
 
         <div class="col-sm-2" style="width:250px">
 
-           <button type="button" class="btn btn-default btn-sm marginT" onclick="zoomIn()">ZoomIn</button>
+           <!--<button type="button" class="btn btn-default btn-sm marginT" onclick="zoomIn()">ZoomIn</button>
            <button type="button" class="btn btn-default btn-sm marginT" onclick="zoomOut()">ZoomOut</button>
            <button type="button" class="btn btn-default btn-sm marginT" onclick="debug()">nonOverlappedLocs</button>
-           <button type="button" class="btn btn-default btn-sm marginT" onclick="debug2()">nonOverlappedPlaces</button>
+           <button type="button" class="btn btn-default btn-sm marginT" onclick="debug2()">nonOverlappedPlaces</button> -->
 
           <!-- Time -->
 
@@ -350,8 +354,10 @@
     <script src="./js/tgMap/map_places.js"></script>
     <script src="./js/tgMap/map_landuse.js"></script>
     <script src="./js/tgMap/map_control.js"></script>
+    <script src="./js/tgMap/map_origin.js"></script>
+    <script src="./js/tgMap/map_isochrone.js"></script>
     <script src="./js/tgMap/tgMapLocs.js"></script>
-    <script src="./js/tgMap/tgMapAux.js"></script>
+    <!--<script src="./js/tgMap/tgMapAux.js"></script>-->
     <script src="./js/tgMap/tgMapBoundingBox.js"></script>
     <script src="./js/tgMain.js"></script>
     <script src="./js/tgRoadNetwork.js"></script>

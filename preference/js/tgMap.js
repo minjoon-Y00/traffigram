@@ -1,93 +1,92 @@
 class TGMap {
 	
 	constructor(tg, map_id) {
-		this.tg = tg
+		this.tg = tg;
 		this.olMap = new ol.Map({
 	    target: map_id,
-	    controls: [],
+	    //controls: [],
 	    layers: [],
 	    view: new ol.View({
 	      center: ol.proj.fromLonLat([0,0]),
 	      maxZoom: this.tg.opt.maxZoom, //18,
 	    	minZoom: this.tg.opt.minZoom, //10,
-	    	zoom: this.tg.opt.zoom //10
+	    	zoom: this.tg.opt.zoom, //10
 	    })
-	  })
+	  });
 
-	  // get parameters
-	  if ((params.simplify)&&(params.simplify === 'false')) {
-	  	this.simplify = false;
-	  	console.log('no simplification.');
-	  }
-	  else {
-	  	this.simplify = true;
-	  }
+	  this.olMap.getInteractions().forEach((interaction) => {
+		  if (interaction instanceof ol.interaction.DragPan) {
+		  	this.olMap.dragPan = interaction;
+		  }
+		}, this);
 
-	  if (params.spThreshold) {
-	  	this.tg.opt.constant.shapePreservingDegree = Number(params.spThreshold);
-	  	console.log('spThreshold: ' + Number(params.spThreshold));
-	  }
 
-	  if (params.maxSplitLevel) {
-	  	this.tg.opt.constant.maxSplitLevel = Number(params.maxSplitLevel);
-	  	console.log('maxSplitLevel: ' + Number(params.maxSplitLevel));
-	  }
 
-	  if (params.locationType) {
-	  	this.tg.opt.constant.locationType = params.locationType;
-	  	console.log('locationType: '  + params.locationType);
 
-	  	if (params.locationType === 'museum') {
-	  		this.tg.opt.image.location = 'img/map_museum.png';
-	  	}
-	  	else if (params.locationType === 'park') {
-	  		this.tg.opt.image.location = 'img/map_park.png';
-	  	}
-	  }
+	  this.checkParameters();
 
 		// modules
 
 		this.mapUtil = new TGMapUtil(tg, this.olMap)
 	  this.tgWater = new TGMapWater(tg, this.olMap, this.mapUtil)
-	  this.tgRoads = new TGMapRoads(tg, this.olMap, this.mapUtil)
+	  this.tgRoads = new TGMapRoads(tg, this.mapUtil)
 	  this.tgControl = new TGMapControl(tg, this.mapUtil)
 	  this.tgLocs = new TGMapLocs(tg, this.olMap, this.mapUtil)
 	  this.tgPlaces = new TGMapPlaces(tg, this.olMap, this.mapUtil);
 	  this.tgLanduse = new TGMapLanduse(tg, this.olMap, this.mapUtil);
-	  this.tgAux = new TGMapAux(tg, this.olMap, this.mapUtil);
+	  //this.tgAux = new TGMapAux(tg, this.olMap, this.mapUtil);
 	  this.tgBB = new TGMapBoundingBox(tg, this.olMap, this.mapUtil);
+	  this.tgOrigin = new TGMapOrigin(tg, this.mapUtil);
+	  this.tgIsochrone = new TGMapIsochrone(tg, this.mapUtil);
 
 	  // initialization
 
 	  this.tgWater.start();
-	  this.tgRoads.start();
+	  this.tgRoads.init();
 	  this.tgPlaces.start();
 	  this.tgLanduse.start();
 
 	  // variables
 
-	  this.centerPosition = {}
+	  //this.tgBB.turn(true);
 
-	  this.dispGridLayer = true;
-	  this.dispCenterPositionLayer = true;
+	  this.tgRoads.turn(true);
+	  $('#dispRoadsCB').prop('checked', true);
+
+	  this.tgOrigin.turn(true);
+	  $('#dispOriginCB').prop('checked', true);
+
+	  this.tgIsochrone.turn(true);
+	  $('#dispIsochroneCB').prop('checked', true);
+
+	  this.origin = {};
+	  this.originChanged = false;
+
+	  this.dispGridLayer = false;
+	  //this.dispCenterPositionLayer = true;
 	  this.dispControlPointLayer = false;
 	  this.dispIsochroneLayer = true;
-	  this.adjustGrid = 'shapePreserving'; //'none';
+	  this.warpingMode = 'shapePreserving'; //'none';
 	  this.needToCalWarping = false;
 	  this.dispWaterNodeLayer = false;
 	  this.dispRoadNodeLayer = false;
 	  this.dispPlaceLayer = false;
 	  this.dispLanduseNodeLayer = false;
 	  this.dispLocationLayer = true;
-	  this.dispLocationNameLayer = false;
+	  this.dispLocationNameLayer = true;
 
 	  this.currentMode = 'EM';
 		this.currentZoom = this.olMap.getView().getZoom();
-	  this.tgRoads.calDispRoadType(this.currentZoom);
+	  this.tgRoads.updateDisplayedRoadType(this.currentZoom);
 
+  	this.olMapHeightPX = $('#ol_map').css('height'); 
+  	this.olMapHeightPX = 
+  			Number(this.olMapHeightPX.slice(0, this.olMapHeightPX.length - 2)); // 900
+  	this.olMapWidthPX = $('#ol_map').css('width');  
+  	this.olMapWidthPX = 
+  			Number(this.olMapWidthPX.slice(0, this.olMapWidthPX.length - 2)); // 600
 
-
-	  this.clickRange = {lat:0, lng:0}
+	  this.clickRange = {lat:0, lng:0};
 
 	  // Event Handlers
 		this.olMap.on('moveend', this.onMoveEnd.bind(this));
@@ -170,6 +169,30 @@ class TGMap {
 	}
 
 
+	checkParameters() {
+	  if ((params.simplify)&&(params.simplify === 'false')) {
+	  	this.simplify = false;
+	  	console.log('no simplification.');
+	  }
+	  else {
+	  	this.simplify = true;
+	  	//this.simplify = false;
+	  }
+
+	  if (params.spThreshold) {
+	  	this.tg.opt.constant.shapePreservingDegree = Number(params.spThreshold);
+	  	console.log('spThreshold: ' + Number(params.spThreshold));
+	  }
+
+	  if (params.maxSplitLevel) {
+	  	this.tg.opt.constant.maxSplitLevel = Number(params.maxSplitLevel);
+	  	console.log('maxSplitLevel: ' + Number(params.maxSplitLevel));
+	  }
+	}
+
+
+
+
 
 	//
 	// When finising the mouse move or zoom in/out
@@ -177,7 +200,7 @@ class TGMap {
 	onMoveEnd(e) {
 		if (this.currentZoom != this.olMap.getView().getZoom()) {
 	    this.currentZoom = this.olMap.getView().getZoom();
-	    this.tgRoads.calDispRoadType(this.currentZoom);
+	    this.tgRoads.updateDisplayedRoadType(this.currentZoom);
 	    this.requestLocations = true;
 	    console.log('zoomEnd')
 	  }
@@ -197,6 +220,16 @@ class TGMap {
 		this.resetTime();
 		this.resetDataInfo();
 		this.calBoundaryBox();
+
+		//this.tgRoads.clearLayers();
+	  this.tgRoads.calDispRoads();
+		this.tgRoads.render();
+
+
+		if (this.originChanged) {
+			this.tgBB.addOriginToBB();
+			this.originChanged = false;
+		}
 
 		if (this.requestLocations) {
 			this.tgLocs.request();
@@ -228,11 +261,7 @@ class TGMap {
 
 	  });	
 
-	  this.tgBB.calConstants();  
 
-		this.tgRoads.clearLayers();
-	  this.tgRoads.calDispRoads();
-		this.tgRoads.addRoadLayer();
 
 		this.tgWater.clearLayers();
 		this.tgWater.calDispWater();
@@ -311,16 +340,17 @@ class TGMap {
   }
 
   setArea(area) {
+  	this.originChanged = true;
 		this.setCenter(this.tg.opt.center[area].lat, this.tg.opt.center[area].lng);
 	}
 
 	setCenter(lat, lng) {
 		this.requestLocations = true;
 		this.olMap.getView().setCenter(ol.proj.fromLonLat([lng, lat]))
-		this.centerPosition.lng = lng
-		this.centerPosition.lat = lat
-		this.tgControl.setCenterPosition(lat, lng);
-		//this.tgBB.addCenterPositionToBB();
+		this.origin.lng = lng
+		this.origin.lat = lat
+		this.tgControl.setOrigin(lat, lng);
+		this.tgOrigin.render();
 	}
 
 	setZoom(zoom) {
@@ -336,17 +366,21 @@ class TGMap {
 	}
 
 	calBoundaryBox() {
-		var extent = this.olMap.getView().calculateExtent(this.olMap.getSize())
-	  var bottomLeft = ol.proj.transform(ol.extent.getBottomLeft(extent), 'EPSG:3857', 'EPSG:4326')
-	  var topRight = ol.proj.transform(ol.extent.getTopRight(extent), 'EPSG:3857', 'EPSG:4326')
+		const extent = this.olMap.getView().calculateExtent(this.olMap.getSize());
+	  const bottomLeft = 
+	  		ol.proj.transform(ol.extent.getBottomLeft(extent), 'EPSG:3857', 'EPSG:4326');
+	  const topRight = 
+	  		ol.proj.transform(ol.extent.getTopRight(extent), 'EPSG:3857', 'EPSG:4326');
 
-	  this.tg.opt.box.left = bottomLeft[0]
-	  this.tg.opt.box.bottom = bottomLeft[1]
-	  this.tg.opt.box.right = topRight[0]
-	  this.tg.opt.box.top = topRight[1]
+	  this.tg.opt.box.left = bottomLeft[0];
+	  this.tg.opt.box.bottom = bottomLeft[1];
+	  this.tg.opt.box.right = topRight[0];
+	  this.tg.opt.box.top = topRight[1];
 
-	  var height = this.tg.opt.box.top - this.tg.opt.box.bottom
-  	var width = this.tg.opt.box.right - this.tg.opt.box.left
+  	this.tg.opt.variable.latPerPx = 
+  			(this.tg.opt.box.top - this.tg.opt.box.bottom) / this.olMapHeightPX;
+  	this.tg.opt.variable.lngPerPx = 
+  			(this.tg.opt.box.right - this.tg.opt.box.left) / this.olMapWidthPX;
 
   	/*this.clickRange = {
   		lat: height * this.tg.opt.constant.clickSensibility, 
@@ -361,12 +395,10 @@ class TGMap {
 	updateLayers() {
 		var s = (new Date()).getTime();
 
-
-
 		if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
 			if (this.currentMode === 'EM') this.tgControl.calDispNodes('original');
 			else if (this.currentMode === 'DC') {
-				if (this.adjustGrid === 'none') this.tgControl.calDispNodes('target');
+				if (this.warpingMode === 'none') this.tgControl.calDispNodes('target');
 				else this.tgControl.calDispNodes('real');
 			}
 		}
@@ -380,8 +412,8 @@ class TGMap {
 		if (this.dispWaterNodeLayer) this.tgWater.addWaterNodeLayer();
 		else this.tgWater.removeWaterNodeLayer();
 
-		if (this.dispRoadNodeLayer) this.tgRoads.addRoadNodeLayer();
-		else this.tgRoads.removeRoadNodeLayer();
+		if (this.dispRoadNodeLayer) this.tgRoads.addNodeLayer();
+		else this.tgRoads.removeNodeLayer();
 
 		if (this.dispLanduseNodeLayer) this.tgLanduse.addLanduseNodeLayer();
 		else this.tgLanduse.removeLanduseNodeLayer();
@@ -392,21 +424,22 @@ class TGMap {
 		if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer()
 		else this.tgControl.removeControlPointLayer()
 
-		if (this.dispCenterPositionLayer) this.tgAux.drawCenterPositionLayer()
-		else this.tgAux.removeCenterPositionLayer();
+		//if (this.dispCenterPositionLayer) this.tgAux.drawCenterPositionLayer()
+		//else this.tgAux.removeCenterPositionLayer();
 
-		if (this.dispLocationLayer) this.tgLocs.drawLocationLayer()
-		else this.tgLocs.removeLocationLayer();
+		//if (this.dispLocationLayer) this.tgLocs.drawLocationLayer()
+		//else this.tgLocs.removeLocationLayer();
 
-		if (this.dispLocationNameLayer) this.tgLocs.drawLocationNameLayer()
-		else this.tgLocs.removeLocationNameLayer();
+		//if (this.dispLocationNameLayer) this.tgLocs.drawLocationNameLayer()
+		//else this.tgLocs.removeLocationNameLayer();
 
-		if (this.dispIsochroneLayer) this.tgAux.drawIsochroneLayer();
-		else this.tgAux.removeIsochroneLayer();
+		//if (this.dispIsochroneLayer) this.tgAux.drawIsochroneLayer();
+		//else this.tgAux.removeIsochroneLayer();
 
-		//this.tgBB.addLayer();
+		//this.tgOrigin.render();
+		this.tgBB.render();
 
-		//console.log('updateLayers : ' + ((new Date()).getTime() - s) + 'ms')
+		console.log('updateLayers : ' + ((new Date()).getTime() - s) + 'ms')
 	}
 
 	//
@@ -439,44 +472,40 @@ class TGMap {
 
 		this.timerFrame = 
 				setInterval(this.moveElementsByFrame.bind(this, 'backward'), this.animationSpeed);
-
-		this.currentMode = 'EM';
 	}
 
-	goToDc() {
-		if (this.currentMode === 'DC') return;
+	goToDc(animation = true) {
+		//if (this.currentMode === 'DC') return;
 
-		//console.log('this.adjustGrid: ' + this.adjustGrid);
+		//console.log('this.warpingMode: ' + this.warpingMode);
 
-		if ((this.needToCalWarping)||(!this.tpsReady)) {
-			// cal warping
-			this.tg.graph.calWarping();
+		//if ((this.needToCalWarping)||(!this.tpsReady)) {
+		// cal warping
+		this.tg.graph.calWarping();
 
-			if (this.adjustGrid === 'noIntersection') {
-				this.tgControl.makeNonIntersectedGrid();
-			}
-			else if (this.adjustGrid === 'shapePreserving') {
-				//this.tgControl.makeShapePreservingGrid();
-				this.tgControl.makeShapePreservingGridByFFT();
-				console.log('!!shape');
-			}
-
-			// tps calculation
-			this.tg.graph.TPSSolve();
-			if (this.tg.graph.TPSTest()) {
-				console.log('TPS complete.');
-				this.tpsReady = true;
-			}
-			else {
-				console.log('TPS failed...');
-				alert('TPS failed...');
-			}
-			this.needToCalWarping = false;
+		if (this.warpingMode === 'noIntersection') {
+			this.tgControl.makeNonIntersectedGrid();
 		}
+		else if (this.warpingMode === 'shapePreserving') {
+			this.tgControl.makeShapePreservingGridByFFT();
+		}
+
+		// tps calculation
+		this.tg.graph.TPSSolve();
+
+		if (this.tg.graph.TPSTest()) {
+			console.log('TPS complete.');
+			this.tpsReady = true;
+		}
+		else {
+			//console.log('TPS failed...');
+			alert('TPS failed...');
+		}
+		//this.needToCalWarping = false;
 
 		this.tgLocs.calTargetNodes();
 
-		if (this.adjustGrid === 'none') {
+		if (this.warpingMode === 'none') {
 			this.tgWater.calTargetNodes();
 	  	this.tgRoads.calTargetNodes();
 	  	this.tgPlaces.calTargetNodes();
@@ -490,25 +519,17 @@ class TGMap {
 	  	this.tgLocs.calRealNodes();
 		}
 
-		this.timerFrame = 
+		if (animation) {
+			this.timerFrame = 
 				setInterval(this.moveElementsByFrame.bind(this, 'forward'), this.animationSpeed);
-
-		this.currentMode = 'DC';
+		}
+		else {
+			this.moveElementsByValue('intermediateReal', 1.0);
+			this.reachDCOrEM();
+		}
 	}
 
-	moveElementsByFrame(direction) {
-
-		const sTotal = (new Date()).getTime();
-
-		if (direction === 'forward') this.frame += 1;
-		else if (direction === 'backward') this.frame -= 1;
-
-		const value = this.frame * 0.1;
-
-		let intermediate;
-		if (this.adjustGrid === 'none') intermediate = 'intermediateTarget';
-		else intermediate = 'intermediateReal';
-
+	moveElementsByValue(intermediate, value) {
 		const t1 = (new Date()).getTime();
 
 		this.tgWater.clearLayers();
@@ -520,10 +541,10 @@ class TGMap {
 		this.tempTimes.waterWarping.push(t2 - t1);
 		console.log('[1] water: ' + (t2 - t1) + 'ms');
 
-		this.tgRoads.clearLayers();
+		//this.tgRoads.clearLayers();
 		this.tgRoads.calDispNodes(intermediate, value);
-  	this.tgRoads.updateDispRoads();
-  	this.tgRoads.addRoadLayer();
+  	//this.tgRoads.updateDispRoads();
+  	this.tgRoads.render();
 
   	const t3 = (new Date()).getTime();
 		this.tempTimes.roadWarping.push(t3 - t2);
@@ -567,50 +588,82 @@ class TGMap {
   		if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer();
   	}
 
-  	if (this.dispIsochroneLayer) this.tgAux.drawIsochroneLayer();
+  	//if (this.dispIsochroneLayer) this.tgAux.drawIsochroneLayer();
 
   	const t6 = (new Date()).getTime();
 		this.tempTimes.etcWarping.push(t6 - t5);
 		console.log('[5] etc: ' + (t6 - t5) + 'ms');
 
-		this.tempTimes.totalWarping.push((new Date()).getTime() - sTotal);
+		this.tempTimes.totalWarping.push((new Date()).getTime() - t1);
+	}
 
-		if (((direction === 'forward') && (this.frame >= 10))||
-				((direction === 'backward') && (this.frame <= 0))) {
-			clearInterval(this.timerFrame);
+	moveElementsByFrame(direction) {
+		if (direction === 'forward') this.frame += 1;
+		else if (direction === 'backward') this.frame -= 1;
 
-			/* // median
-			const medianTotal = this.tg.util.median(this.tempTimes.totalWarping);
-			const medianWater = this.tg.util.median(this.tempTimes.waterWarping); 
-			const medianRoad = this.tg.util.median(this.tempTimes.roadWarping); 
-			const medianPlace = this.tg.util.median(this.tempTimes.placeWarping); 
-			const medianLanduse = this.tg.util.median(this.tempTimes.landuseWarping); 
-			const medianEtc = this.tg.util.median(this.tempTimes.etcWarping);
-			this.setTime('elementsWarping', 'set', medianTotal);
-  		this.setTime('waterWarping', 'set', medianWater);
-  		this.setTime('roadWarping', 'set', medianRoad);
-  		this.setTime('placeWarping', 'set', medianPlace);
-  		this.setTime('landuseWarping', 'set', medianLanduse);
-  		this.setTime('etcWarping', 'set', medianEtc); 
-  		*/
+		const value = this.frame * 0.1;
 
+		// let intermediate;
+		// if (this.warpingMode === 'none') intermediate = 'intermediateTarget';
+		// else intermediate = 'intermediateReal';
 
-			const averageTotal = this.tg.util.average(this.tempTimes.totalWarping);
-			const averageWater = this.tg.util.average(this.tempTimes.waterWarping); 
-			const averageRoad = this.tg.util.average(this.tempTimes.roadWarping); 
-			const averagePlace = this.tg.util.average(this.tempTimes.placeWarping); 
-			const averageLanduse = this.tg.util.average(this.tempTimes.landuseWarping); 
-			const averageEtc = this.tg.util.average(this.tempTimes.etcWarping); 
+		this.moveElementsByValue('intermediateReal', value);
+		
+		if ((direction === 'forward') && (this.frame >= 10)) {
+			// completely go to dc mode
+			this.currentMode = 'DC';
+			this.tgIsochrone.disabled(false);
+			this.tgIsochrone.render();
+			this.reachDCOrEM();
 
-  		this.setTime('elementsWarping', 'set', averageTotal);
-  		this.setTime('waterWarping', 'set', averageWater);
-  		this.setTime('roadWarping', 'set', averageRoad);
-  		this.setTime('placeWarping', 'set', averagePlace);
-  		this.setTime('landuseWarping', 'set', averageLanduse);
-  		this.setTime('etcWarping', 'set', averageEtc);
-			this.resetTempTime();
-			this.updateLayers();
+			// ui
+			this.olMap.dragPan.setActive(false);
+			$('#dispIsochroneCB').prop('disabled', false);
+			$('#noIntersectedGridRB').prop('disabled', false);
+			$('#shapePreservingGridRB').prop('disabled', false);
 		}
+		else if ((direction === 'backward') && (this.frame <= 0)) {
+			// completely go to em mode
+			this.currentMode = 'EM';
+			this.reachDCOrEM();
+
+			// ui
+			this.olMap.dragPan.setActive(true);
+			$('#dispIsochroneCB').prop('disabled', true);
+			$('#noIntersectedGridRB').prop('disabled', true);
+			$('#shapePreservingGridRB').prop('disabled', true);
+		}
+		else {
+			// intermediate mode
+			this.tgIsochrone.disabled(true);
+			this.tgIsochrone.render();
+		}
+	}
+
+	reachDCOrEM() {
+		clearInterval(this.timerFrame);
+		this.tgBB.cleanBB();
+		this.tgBB.addBBOfLocations();
+		this.tgLocs.updateNonOverlappedLocationNames();
+		this.tgLocs.drawLocationNameLayer();
+		this.tgBB.render();
+
+		//this.updateLayers();
+
+		const averageTotal = this.tg.util.average(this.tempTimes.totalWarping);
+		const averageWater = this.tg.util.average(this.tempTimes.waterWarping); 
+		const averageRoad = this.tg.util.average(this.tempTimes.roadWarping); 
+		const averagePlace = this.tg.util.average(this.tempTimes.placeWarping); 
+		const averageLanduse = this.tg.util.average(this.tempTimes.landuseWarping); 
+		const averageEtc = this.tg.util.average(this.tempTimes.etcWarping); 
+
+		this.setTime('elementsWarping', 'set', averageTotal);
+		this.setTime('waterWarping', 'set', averageWater);
+		this.setTime('roadWarping', 'set', averageRoad);
+		this.setTime('placeWarping', 'set', averagePlace);
+		this.setTime('landuseWarping', 'set', averageLanduse);
+		this.setTime('etcWarping', 'set', averageEtc);
+		this.resetTempTime();
 	}
 
 	initElements() {
@@ -619,8 +672,8 @@ class TGMap {
   	this.tgWater.addWaterLayer();
 
   	this.tgRoads.calDispNodes('original');
-  	this.tgRoads.updateDispRoads();
-  	this.tgRoads.addRoadLayer();
+  	//this.tgRoads.updateDispRoads();
+  	this.tgRoads.render();
 
   	if (this.dispPlaceLayer) {
 	  	this.tgPlaces.calDispNodes('original');
@@ -710,20 +763,20 @@ class TGMap {
 	calTimeFromLatLng(lat, lng) {
 		if (!this.tg.graph.factor) return 0;
 		
-		const centerLat = this.centerPosition.lat;
-  	const centerLng = this.centerPosition.lng;
+		const centerLat = this.origin.lat;
+  	const centerLng = this.origin.lng;
   	return this.tg.util.D2(centerLat, centerLng, lat, lng) * this.tg.graph.factor;
 	}
 
 	calDistanceFromLatLng(lat, lng) {
-		const centerLat = this.centerPosition.lat;
-  	const centerLng = this.centerPosition.lng;
+		const centerLat = this.origin.lat;
+  	const centerLng = this.origin.lng;
   	return this.tg.util.distance(centerLat, centerLng, lat, lng); // km
 	}
 
 	calMaxDistance(latOrLng = 'lat') {
-		const centerLat = this.centerPosition.lat;
-  	const centerLng = this.centerPosition.lng;
+		const centerLat = this.origin.lat;
+  	const centerLng = this.origin.lng;
 
 		if (latOrLng === 'lat') {
 			const halfHeightLat = (this.tg.opt.box.top - this.tg.opt.box.bottom) / 2;

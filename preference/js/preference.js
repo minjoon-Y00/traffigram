@@ -3,22 +3,7 @@ var tg = new TGPreference('ol_map');
 
 //if ($("#waterCB").is(':checked')) tg.map.dispWaterLayer = true;
 
-//
-//
-// City Options
-//
-//
-/*$("#citySeattleRB").change(function(ev){
-	if (ev.target.checked) tg.setArea('Seattle'); 
-});
 
-$("#cityNYRB").change(function(ev){
-  if (ev.target.checked) tg.setArea('NY'); 
-});
-
-$("#citySFRB").change(function(ev){
-  if (ev.target.checked) tg.setArea('SF');
-});*/
 
 
 function zoomIn() {
@@ -37,19 +22,7 @@ function debug2() {
 	tg.map.debug2()
 }
 
-//
-//
-// EM -> DC
-//
-//
 
-$("#emModeRB").change(function(ev){
-  if (ev.target.checked) tg.map.goToEm();
-})
-
-$("#dcModeRB").change(function(ev){
-  if (ev.target.checked) tg.map.goToDc();
-})
 
 
 /*$("#noIntersectionCB").change(function(ev){ 
@@ -126,10 +99,40 @@ $("#centerYourPositionRB").change(function(ev){
 
 //
 //
+// EM -> DC
+//
+//
+
+$("#emModeRB").change(function(ev){
+  if (ev.target.checked) tg.map.goToEm();
+});
+
+$("#dcGapModeRB").change(function(ev){
+  if (ev.target.checked) {
+  	tg.map.warpingMode = 'noIntersection';
+
+  	if (tg.map.currentMode !== 'DC') tg.map.goToDc(true); // animation
+  	else tg.map.goToDc(false); // no animation
+  	
+  }
+});
+
+$("#dcSGapModeRB").change(function(ev){
+  if (ev.target.checked) {
+  	tg.map.warpingMode = 'shapePreserving';
+
+  	if (tg.map.currentMode !== 'DC') tg.map.goToDc(true); // animation
+  	else tg.map.goToDc(false); // no animation
+  }
+});
+
+
+//
+//
 // Warping Mode
 //
 //
-$("#originalGridRB").change(function(ev){
+/*$("#originalGridRB").change(function(ev){
   if (ev.target.checked) tg.map.adjustGrid = 'none';
 })
 
@@ -141,7 +144,7 @@ $("#noIntersectedGridRB").change(function(ev){
 $("#shapePreservingGridRB").change(function(ev){
   if (ev.target.checked) tg.map.adjustGrid = 'shapePreserving';
   tg.map.needToCalWarping = true;
-})
+})*/
 
 //
 //
@@ -150,29 +153,25 @@ $("#shapePreservingGridRB").change(function(ev){
 //
 $("#locationRestaurantRB").change(function(ev){
 	if (ev.target.checked) {
-		//tg.map.dispLocationLayer = false
-		//tg.map.updateLayers()
+		tg.map.tgLocs.changeType('food');
 	} 
 });
 
 $("#locatioBarRB").change(function(ev){
 	if (ev.target.checked) {
-		//tg.map.tgLocs.locationType = 'japanese'
-		//tg.map.tgLocs.calLocalLocations()
-		//tg.map.dispLocationLayer = true
-		//tg.map.updateLayers()
+		tg.map.tgLocs.changeType('bar');
 	} 
 });
 
 $("#locationParkRB").change(function(ev){
 	if (ev.target.checked) {
-
+		tg.map.tgLocs.changeType('park');
 	} 
 });
 
 $("#locationMuseumRB").change(function(ev){
 	if (ev.target.checked) {
-		
+		tg.map.tgLocs.changeType('museum');
 	} 
 });
 
@@ -195,8 +194,8 @@ $("#dispWaterCB").change(function(ev){
 });
 
 $("#dispRoadsCB").change(function(ev){ 
-	tg.map.dispRoadLayer = ev.target.checked
-	tg.map.updateLayers()
+	tg.map.tgRoads.turn(ev.target.checked);
+	tg.map.tgRoads.render();
 });
 
 $("#dispPlaceCB").change(function(ev){ 
@@ -209,9 +208,9 @@ $("#dispNodesCB").change(function(ev){
 	tg.map.updateLayers()
 });
 
-$("#dispCenterPositionCB").change(function(ev){ 
-	tg.map.dispCenterPositionLayer = ev.target.checked
-	tg.map.updateLayers()
+$("#dispOriginCB").change(function(ev){ 
+	tg.map.tgOrigin.turn(ev.target.checked);
+	tg.map.tgOrigin.render();
 });
 
 $("#dispControlPointsCB").change(function(ev){
@@ -225,8 +224,8 @@ $("#dispGridCB").change(function(ev){
 });
 
 $("#dispIsochroneCB").change(function(ev){
-	tg.map.dispIsochroneLayer = ev.target.checked
-	tg.map.updateLayers()
+	tg.map.tgIsochrone.turn(ev.target.checked);
+	tg.map.tgIsochrone.render();
 });
 
 $("#dispLocationCB").change(function(ev){

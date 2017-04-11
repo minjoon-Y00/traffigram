@@ -13,6 +13,7 @@ class TGMapWater {
   	this.timerFinishGettingWaterData = null;
   	this.dispLayers = [];
   	this.rdpThreshold = this.tg.opt.constant.rdpThreshold.water;
+  	this.simplify = false;
 
   	this.timeInterval = 0;
   	this.timeIntervalArray = [];
@@ -67,7 +68,7 @@ class TGMapWater {
 
 			if (geoType === 'Polygon') {
 
-				if (this.tg.map.simplify) {
+				if ((this.simplify)&&(this.tg.map.simplify)) {
 					coords = this.tg.util.RDPSimp2DLoop(coords, this.rdpThreshold);
 				}
 
@@ -83,7 +84,7 @@ class TGMapWater {
 			}
 			else if (geoType == 'MultiPolygon') {
 
-				if (this.tg.map.simplify) {
+				if ((this.simplify)&&(this.tg.map.simplify)) {
 					coords = this.tg.util.RDPSimp3DLoop(coords, this.rdpThreshold);
 				}
 
@@ -273,7 +274,7 @@ class TGMapWater {
 		this.olMap.addLayer(this.waterLayer);
 		this.dispLayers.push(this.waterLayer);
 
-		console.log('+ water layer: ' + arr.length);
+		//console.log('+ water layer: ' + arr.length);
 		if (this.tg.map.dispWaterNodeLayer) this.addWaterNodeLayer();
 	}
 
@@ -290,8 +291,6 @@ class TGMapWater {
 	calRealNodes() {
 		this.calModifiedNodes('real');
 	}
-
-	// TODO: setVisibleByCurrentZoom
 
 	calTargetNodes() {
 		this.calModifiedNodes('target');
@@ -422,16 +421,16 @@ class TGMapWater {
 
 		const s = (new Date()).getTime();
 
-		const centerPoint = this.tg.map.centerPosition;
+		const origin = this.tg.map.origin;
 		for(let point of points) {
-			this.isPointInWater(centerPoint, point);
+			this.isPointInWater(origin, point);
 		}
 
 		const e = (new Date()).getTime();
 		console.log('checkPointsInWater: ' + (e - s) + ' ms');
 	}
 
-	isPointInWater(centerPoint, point) {
+	isPointInWater(origin, point) {
 
 		let countIntersection = 0;
 		for(let water of this.dispWaterObjects) {
@@ -443,7 +442,7 @@ class TGMapWater {
 					for(let j = 0; j < water[i].length - 1; j++) {
 
 						if (this.tg.util.intersects(
-							centerPoint.lat, centerPoint.lng, 
+							origin.lat, origin.lng, 
 							point.original.lat, point.original.lng, 
 		        	water[i][j][1], water[i][j][0], 
 		        	water[i][j + 1][1], water[i][j + 1][0])) {
@@ -458,7 +457,7 @@ class TGMapWater {
 						for(let k = 0; k < water[i][j].length - 1; k++) {
 
 							if (this.tg.util.intersects(
-								centerPoint.lat, centerPoint.lng, 
+								origin.lat, origin.lng, 
 								point.original.lat, point.original.lng, 
 			        	water[i][j][k][1], water[i][j][k][0], 
 			        	water[i][j][k + 1][1], water[i][j][k + 1][0])) {
@@ -472,7 +471,7 @@ class TGMapWater {
 
 		if ((countIntersection % 2) === 1) {
 			point.travelTime = null;
-			console.log('i: ' + point.index + ' #: ' + countIntersection);
+			//console.log('i: ' + point.index + ' #: ' + countIntersection);
 		}
 	}
 
@@ -608,173 +607,4 @@ class TGMapWater {
 	removeWaterNodeLayer() {
 		this.mapUtil.removeLayer(this.waterNodeLayer);
 	}
-
-
-
-
-	/*isPointInWater(point) {
-
-		const s = (new Date()).getTime();
-
-		const centerPoint = this.tg.map.centerPosition;
-
-		for(let point of this.tg.map.tgControl.controlPoints) {
-
-
-			let countIntersection = 0;
-			for(let water of this.dispWaterObjects) {
-
-				if (water[0][0].node) { // Polygon
-					for(let i = 0; i < water.length; i++) {
-						for(let j = 0; j < water[i].length - 1; j++) {
-
-							if (this.tg.util.intersects(
-								centerPoint.lat, centerPoint.lng, 
-								point.original.lat, point.original.lng, 
-			        	water[i][j][1], water[i][j][0], 
-			        	water[i][j + 1][1], water[i][j + 1][0])) {
-								countIntersection++;
-							}
-						}
-					}
-				}
-				else if (water[0][0][0].node) { // MultiPolygon
-					for(let i = 0; i < water.length; i++) {
-						for(let j = 0; j < water[i].length; j++) {
-							for(let k = 0; k < water[i][j].length - 1; k++) {
-
-								if (this.tg.util.intersects(
-									centerPoint.lat, centerPoint.lng, 
-									point.original.lat, point.original.lng, 
-				        	water[i][j][k][1], water[i][j][k][0], 
-				        	water[i][j][k + 1][1], water[i][j][k + 1][0])) {
-									countIntersection++;
-								}
-							}
-						}
-					}
-				}
-			}
-			console.log('i: ' + point.index + ' #: ' + countIntersection);
-		}
-
-
-		const e = (new Date()).getTime();
-		console.log('time: ' + (e - s) + ' ms');
-
-		
-	}*/
-
-
-
-	/*addWaterNodeLayer() {
-
-		if (this.waterNodeLayer) 
-			this.olMap.removeLayer(this.waterNodeLayer)
-
-		var arr = []
-		var clrMinor = '#333'
-		var clrMajor = '#F33'
-		var radiusMinor = 1
-		var radiusMajor = 2
-		var eps = 0.0001
-
-		var originalNodeCount = 0
-
-
-		for(var i = 0; i < this.waterObject.length; i++) {
-			var geoType = this.waterObject[i].geoType
-
-			if (geoType == 'Polygon') {
-				for(var j = 0; j < this.waterObject[i].coordinates.length; j++) {
-					originalNodeCount += this.waterObject[i].coordinates[j].length
-
-					var nodes = this.waterObject[i].coordinates[j]
-					var pivot = nodes[0]
-					var max = -987654321
-					var maxK = 0
-					for(var k = 1; k < nodes.length; k++) {
-						var d = tg.util.D2_s(nodes[0].original.lat, nodes[0].original.lng, 
-							nodes[k].original.lat, nodes[k].original.lng)
-						if (d > max) {
-							max = d
-							maxK = k
-						}
-					}
-
-					var arr1 = this.waterObject[i].coordinates[j].slice(0, maxK + 1)
-					var arr2 = this.waterObject[i].coordinates[j].slice(maxK, nodes.length)
-
-					var simple_arr1 = this.tg.util.RDPSimp(arr1, eps)
-					var simple_arr2 = this.tg.util.RDPSimp(arr2, eps)
-					simple_arr1.pop()
-					//this.waterObject[i].coordinates[j] = simple_arr1.concat(simple_arr2)
-
-
-					//console.log('maxK = ' + maxK + ' , len = ' + nodes.length) // 42, 63
-					//console.log(this.waterObject[i].coordinates[j])
-					//break
-
-					this.olFeaturesFromPoints(arr, 
-						this.waterObject[i].coordinates[j][0].original.lng, 
-						this.waterObject[i].coordinates[j][0].original.lat, 
-						this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor))
-
-					this.olFeaturesFromPoints(arr, 
-						this.waterObject[i].coordinates[j][this.waterObject[i].coordinates[j].length - 1].original.lng, 
-						this.waterObject[i].coordinates[j][this.waterObject[i].coordinates[j].length - 1].original.lat, 
-						this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor))
-
-					for(var k = 1; k < this.waterObject[i].coordinates[j].length - 1; k++) {
-						this.olFeaturesFromPoints(arr, 
-							this.waterObject[i].coordinates[j][k].original.lng, 
-							this.waterObject[i].coordinates[j][k].original.lat, 
-							this.mapUtil.nodeStyleFunc(clrMinor, radiusMinor))
-					}
-				}
-			} 
-			else if (geoType == 'MultiPolygon') {
-				for(var j = 0; j < this.waterObject[i].coordinates.length; j++) {
-					for(var k = 0; k < this.waterObject[i].coordinates[j].length; k++) {
-						originalNodeCount += this.waterObject[i].coordinates[j][k].length
-
-						this.waterObject[i].coordinates[j][k] 
-							= this.tg.util.RDPSimp(this.waterObject[i].coordinates[j][k], eps)
-
-						this.olFeaturesFromPoints(arr, 
-							this.waterObject[i].coordinates[j][k][0].original.lng, 
-							this.waterObject[i].coordinates[j][k][0].original.lat, 
-							this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor))
-
-						this.olFeaturesFromPoints(arr, 
-							this.waterObject[i].coordinates[j][k][this.waterObject[i].coordinates[j][k].length - 1].original.lng, 
-							this.waterObject[i].coordinates[j][k][this.waterObject[i].coordinates[j][k].length - 1].original.lat, 
-							this.mapUtil.nodeStyleFunc(clrMajor, radiusMajor))
-
-
-						for(var l = 1; l < this.waterObject[i].coordinates[j][k].length - 1; l++) {
-							this.olFeaturesFromPoints(arr, 
-								this.waterObject[i].coordinates[j][k][l].original.lng, 
-								this.waterObject[i].coordinates[j][k][l].original.lat, 
-								this.mapUtil.nodeStyleFunc(clrMinor, radiusMinor))
-						}
-					}
-				}
-			}
-		}
-
-		console.log('# of original node: ' + originalNodeCount)
-		console.log('# of waterNode : ' + arr.length)
-
-		this.waterNodeLayer = new ol.layer.Vector({
-			source: new ol.source.Vector({
-		    features: arr
-			})
-		})
-
-		this.waterNodeLayer.setZIndex(1) // z-index of water node is 1
-		this.olMap.addLayer(this.waterNodeLayer)
-
-	}*/
-
 }

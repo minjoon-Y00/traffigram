@@ -205,9 +205,6 @@ class TGMapControl {
 
 		//console.log(this.grids_);
 
-
-		//this.calculateAnglesOfControlPoints();
-
 		// check location of which we have to get a travel time by looking for in cache.
 		let newPointsArray = [];
 		this.travelTimeApi_.clearEndLocations();
@@ -693,11 +690,11 @@ class TGMapControl {
 	}*/
 
 	/**
-	 * (re)set center position. It also reset TravelTimeApi.
+	 * (re)set origin. It also reset TravelTimeApi.
 	 * @param {number} lat
 	 * @param {number} lng
 	 */
-	setCenterPosition(lat, lng) {
+	setOrigin(lat, lng) {
 		this.travelTimeApi_.setStartLocation(lat, lng);
 		this.travelTimeApi_.clearEndLocations();
 		this.travelTimeCache_.clear();
@@ -763,7 +760,7 @@ class TGMapControl {
 
 		for(var i = 0; i < this.controlPoints.length; i++) {
 			dist = this.tg_.util.D2(this.controlPoints[i].original.lat, this.controlPoints[i].original.lng,
-				this.tg_.map.centerPosition.lat, this.tg_.map.centerPosition.lng)
+				this.tg_.map.origin.lat, this.tg_.map.origin.lng)
 			if (dist < threshold) return i
 		}
 
@@ -929,6 +926,8 @@ class TGMapControl {
 			point.real.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
 		}
 
+		for(let point of this.controlPoints) point.intersected = false;
+
 		// 0.1, ..., 0.7 (if margin = 0.3)
 		for(let pct = dt; pct + margin < 1 + eps; pct += dt) {
 			console.log('pct = ' + pct);
@@ -995,151 +994,18 @@ class TGMapControl {
 		//console.log('### time: ' + (e - s) + ' ms.');
 	}
 
-	makeShapePreservingGrid() {
-		//const s = (new Date()).getTime();
-
-		const threshold = this.tg_.opt.constant.shapePreservingDegree;
-		const ctlPt = this.controlPoints;
-		const dt = 0.1;
-		const eps = 0.000001;
-		const setRealPosition = function(point, pct) {
-			point.real.lat = point.original.lat * (1 - pct) + point.target.lat * pct;
-			point.real.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
-		}
-
-		for(let pct = dt; pct < 1 + eps; pct += dt) {
-			console.log('pct = ' + pct);
-
-			// change the real position of all control points.
-			for(let point of this.controlPoints) {
-
-				if (point.done) {
-					//console.log('done: ' + point.index);
-					continue;
-				}
-
-
-				// moving a point
-				//const preLat = point.real.lat;
-				//const preLng = point.real.lng;
-				setRealPosition(point, pct);
-
-				let angles = [];
-				const cLat = point.real.lat;
-				const cLng = point.real.lng;
-				for(let i = 0; i < point.connectedNodes.length; i++) {
-					const eLat = point.connectedNodes[i].real.lat;
-					const eLng = point.connectedNodes[i].real.lng;
-					angles.push(Math.abs(this.calAngleByTwoPoints(cLng, cLat, eLng, eLat)));
-				}
-
-				let difAngles = [];
-				for(let i = 0; i < angles.length - 1; i++) {
-					difAngles.push(Math.abs(angles[i] - angles[i + 1]));
-				}
-				difAngles.push(
-						Math.abs(angles[0] - angles[angles.length - 1]));
-
-				for(let i = 0; i < difAngles.length; i++) {
-					//console.log(Math.abs(point.difAngles[i] - difAngles[i]));
-					if (Math.abs(point.difAngles[i] - difAngles[i]) > threshold) {
-
-						let d = Math.abs(point.difAngles[i] - difAngles[i]);
-						//console.log('p:' + point.index + ' i: ' + i  + ' d: ' + d);
-						// set back
-						setRealPosition(point, pct - dt);
-						//point.real.lat = preLat;
-						//point.real.lng = preLng;
-
-						point.done = true;
-						break;
-					}
-				}
-
-				//console.log('--');
-				//console.log(point.difAngles);
-				//console.log(difAngles);
-
-			}
-
-
-
-			
-
-			/*for(let line1 of this.gridLines_) {
-				for(let line2 of this.gridLines_) {
-
-					//if ((line1.start.intersected)||(line1.end.intersected)||
-						//(line2.start.intersected)||(line2.end.intersected)) continue;
-
-					if (tg.util.intersects(
-							line1.start.real.lat, line1.start.real.lng, 
-							line1.end.real.lat, line1.end.real.lng, 
-							line2.start.real.lat, line2.start.real.lng, 
-							line2.end.real.lat, line2.end.real.lng)) {
-
-						if ((line1.end.index !== line2.start.index)
-								&&(line1.start.index !== line2.end.index)) {
-
-							// if intersected, move it back.
-
-							if (!line1.start.intersected) {
-								setRealPosition(line1.start, pct - dt);
-								line1.start.intersected = true;
-							}
-
-							if (!line1.end.intersected) {
-								setRealPosition(line1.end, pct - dt);
-								line1.end.intersected = true;
-							}
-
-							if (!line2.start.intersected) {
-								setRealPosition(line2.start, pct - dt);
-								line2.start.intersected = true;
-							}
-
-							if (!line2.end.intersected) {
-								setRealPosition(line2.end, pct - dt);
-								line2.end.intersected = true;
-							}
-
-							//console.log('intersected: ');
-							//console.log(line1.start.index + ' ' + line1.end.index);
-							//console.log(line2.start.index + ' ' + line2.end.index);
-						}
-					}
-				}
-			}*/
-
-		}
-		//const e = (new Date()).getTime();
-		//console.log('### time: ' + (e - s) + ' ms.');
-	}
-
-/*
-let pointsArray = new Array(4);
-
-				for(let i = 0; i < pointIndexes.length; i++) {
-					this.controlPoints[pointIndexes[i]].connectedGrids.push(newGrid);
-					pointsArray[i] = this.controlPoints[pointIndexes[i]];
-				}
-
-				const ab = this.tg_.util.abByFFT(pointsArray, 'original', 5);
-				newGrid.a = ab.as;
-				newGrid.b = ab.bs;
-*/
-
 	makeShapePreservingGridByFFT() {
 		//const s = (new Date()).getTime();
 
 		const threshold = this.tg_.opt.constant.shapePreservingDegree;
-		const ctlPt = this.controlPoints;
 		const dt = 0.1;
 		const eps = 0.000001;
 		const setRealPosition = function(point, pct) {
 			point.real.lat = point.original.lat * (1 - pct) + point.target.lat * pct;
 			point.real.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
 		}
+		
+		for(let point of this.controlPoints) point.done = false;
 
 		for(let pct = dt; pct < 1 + eps; pct += dt) {
 			console.log('pct = ' + pct);
@@ -1179,236 +1045,67 @@ let pointsArray = new Array(4);
 		//console.log('### time: ' + (e - s) + ' ms.');
 	}
 
-	/*_makeNonIntersectedGrid() {
-
-		const s = (new Date()).getTime();
-
+	/*
+	makeShapePreservingGrid() {
+		const threshold = this.tg_.opt.constant.shapePreservingDegree;
 		const ctlPt = this.controlPoints;
-		const dt = 0.5;
-		let nextLat;
-		let nextLng;
+		const dt = 0.1;
+		const eps = 0.000001;
+		const setRealPosition = function(point, pct) {
+			point.real.lat = point.original.lat * (1 - pct) + point.target.lat * pct;
+			point.real.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
+		}
 
-		for(let pct = 0; pct < 1; pct += dt) 
-		//var pct = 0
-		{
+		for(let pct = dt; pct < 1 + eps; pct += dt) {
+			console.log('pct = ' + pct);
 
-			//if (pct > 0.5) return; 
+			// change the real position of all control points.
+			for(let point of this.controlPoints) {
 
-			console.log('pct = ' + pct)
+				if (point.done) {
+					//console.log('done: ' + point.index);
+					continue;
+				}
 
-			
-			for(var i = 0; i < ctlPt.length; i++) 
-			//var i = 22
-			{
+				// moving a point
+				setRealPosition(point, pct);
 
-				if (ctlPt[i].intersected) continue;
+				let angles = [];
+				const cLat = point.real.lat;
+				const cLng = point.real.lng;
+				for(let i = 0; i < point.connectedNodes.length; i++) {
+					const eLat = point.connectedNodes[i].real.lat;
+					const eLng = point.connectedNodes[i].real.lng;
+					angles.push(Math.abs(this.calAngleByTwoPoints(cLng, cLat, eLng, eLat)));
+				}
 
-				var intersected = false;
-				var indexOfPivotControlPoint = i;
-			//
+				let difAngles = [];
+				for(let i = 0; i < angles.length - 1; i++) {
+					difAngles.push(Math.abs(angles[i] - angles[i + 1]));
+				}
+				difAngles.push(
+						Math.abs(angles[0] - angles[angles.length - 1]));
 
-				ctlPt[i].real.lat 
-					= ctlPt[i].original.lat * (1 - pct) + ctlPt[i].target.lat * pct
-				ctlPt[i].real.lng
-					= ctlPt[i].original.lng * (1 - pct) + ctlPt[i].target.lng * pct
+				for(let i = 0; i < difAngles.length; i++) {
+					//console.log(Math.abs(point.difAngles[i] - difAngles[i]));
+					if (Math.abs(point.difAngles[i] - difAngles[i]) > threshold) {
 
-				nextLat 
-					= ctlPt[i].original.lat * (1 - (pct + dt)) + ctlPt[i].target.lat * (pct + dt)
-				nextLng 
-					= ctlPt[i].original.lng * (1 - (pct + dt)) + ctlPt[i].target.lng * (pct + dt)
+						let d = Math.abs(point.difAngles[i] - difAngles[i]);
+						//console.log('p:' + point.index + ' i: ' + i  + ' d: ' + d);
+						// set back
+						setRealPosition(point, pct - dt);
+						//point.real.lat = preLat;
+						//point.real.lng = preLng;
 
-				//console.log('originalLat = ' + ctlPt[i].original.lat)
-				//console.log('realLat = ' + ctlPt[i].real.lat)
-				//console.log('nextLat = ' + nextLat)
-				//console.log('targetLat = ' + ctlPt[i].target.lat)
-				//console.log(ctlPt[i].connectedNodes)
-
-				for(var j = 0; j < ctlPt[i].connectedNodes.length; j++) 
-				//var j = 0;
-				{
-
-					var connectedControlPointStep1 = ctlPt[i].connectedNodes[j];
-					// 17 //21, 23, 27
-
-					//console.log('1 = ' + connectedControlPointStep1.index);
-
-
-					var lat1 = nextLat
-					var lng1 = nextLng
-					var lat2 = connectedControlPointStep1.real.lat
-					var lng2 = connectedControlPointStep1.real.lng
-
-					//console.log('lat1 = ' + lat1)
-					//console.log('lng1 = ' + lng1)
-					//console.log('lat2 = ' + lat2)
-					//console.log('lng2 = ' + lng2)
-
-					for(var k = 0; k < connectedControlPointStep1.connectedNodes.length; k++) {
-
-						var connectedControlPointStep2 = connectedControlPointStep1.connectedNodes[k];
-						// 12, 16, 18, 22
-
-						if (connectedControlPointStep2 === ctlPt[i]) continue;
-						// 12, 16, 18
-
-						//console.log('2 = ' + connectedControlPointStep2.index);
-						
-
-						for(var m = 0; m < connectedControlPointStep2.connectedNodes.length; m++) {
-
-							var connectedControlPointStep3 = connectedControlPointStep2.connectedNodes[m];
-							// 12 (7, 11, 13, 17), 16 (11, 15, 17, 21), 18 (13, 17, 19, 23)
-
-							if (connectedControlPointStep3 === connectedControlPointStep1) continue;
-							// 12 (7, 11, 13), 16 (11, 15, 21), 18 (13, 19, 23)
-
-
-							if (ctlPt[i].connectedNodes.indexOf
-								(connectedControlPointStep3) >= 0) {
-
-								var lat3 = connectedControlPointStep2.real.lat
-								var lng3 = connectedControlPointStep2.real.lng
-								var lat4 = connectedControlPointStep3.real.lat
-								var lng4 = connectedControlPointStep3.real.lng
-
-
-								if (tg.util.intersects(lat1, lng1, lat2, lng2, lat3, lng3, lat4, lng4)) {
-
-									console.log('[' + i + ', ' 
-										+ connectedControlPointStep1.index + ']');
-									console.log('<' + connectedControlPointStep2.index + ', ' 
-										+ connectedControlPointStep3.index + '>');
-
-									//console.log('intersect! i = ' + i + ' j = ' + j + ' k = ' + k)
-									intersected = true;
-								}
-								//console.log('step 3 = ' + connectedControlPointStep3.index)
-							}
-						} 
+						point.done = true;
+						break;
 					}
 				}
-
-				if (intersected) {
-					//ctlPt[i].real.lat 
-					//	= ctlPt[i].original.lat * (1 - pct + dt) + ctlPt[i].target.lat * (pct - dt)
-					//ctlPt[i].real.lng
-				//		= ctlPt[i].original.lng * (1 - pct + dt) + ctlPt[i].target.lng * (pct - dt)
-
-					ctlPt[i].intersected = true;
-				}
 			}
 		}
-		const e = (new Date()).getTime();
-		console.log('### time: ' + (e - s) + ' ms.');
-	}*/
+	}
+	*/
 
-
-	//
-	//
-	//
-	/*splitGrid_old() {
-		var threshold = this.tg_.opt.constant.splitThreshold
-		var latM, lngM, idx
-		var idxBM, idxRM, idxTM, idxLM, idxMM
-		var newGrids = []
-		
-		this.controlPoints = this.tg_.map.controlPoints
-		this.splitLevel++
-
-		for(var i = 0; i < this.grids.length; i++) {
-			if (isOverThreshold(this.grids[i].BL, this.grids[i].BR, threshold)
-				||isOverThreshold(this.grids[i].BR, this.grids[i].TR, threshold)
-				||isOverThreshold(this.grids[i].TR, this.grids[i].TL, threshold)
-				||isOverThreshold(this.grids[i].TL, this.grids[i].BL, threshold)) {
-
-				// add control points or get the indexes of existed points
-				latM = (this.grids[i].BL.original.lat + this.grids[i].TL.original.lat) / 2
-				lngM = (this.grids[i].BL.original.lng + this.grids[i].BR.original.lng) / 2
-
-				idxBM = getIndexOfControlPoint(this.controlPoints, this.splitLevel, this.grids[i].BL.original.lat, lngM) // BM
-				idxRM = getIndexOfControlPoint(this.controlPoints, this.splitLevel, latM, this.grids[i].BR.original.lng) // RM
-				idxTM = getIndexOfControlPoint(this.controlPoints, this.splitLevel, this.grids[i].TL.original.lat, lngM) // TM
-				idxLM = getIndexOfControlPoint(this.controlPoints, this.splitLevel, latM, this.grids[i].BL.original.lng) // LM
-				idxMM = getIndexOfControlPoint(this.controlPoints, this.splitLevel, latM, lngM) // MM
-
-				// assign travel time (temp)
-				//this.controlPoints[idxBM].travelTime = (this.grids[i].BL.travelTime + this.grids[i].BR.travelTime) / 2
-				//this.controlPoints[idxRM].travelTime = (this.grids[i].BR.travelTime + this.grids[i].TR.travelTime) / 2
-				//this.controlPoints[idxTM].travelTime = (this.grids[i].TL.travelTime + this.grids[i].TR.travelTime) / 2
-				//this.controlPoints[idxLM].travelTime = (this.grids[i].TL.travelTime + this.grids[i].BL.travelTime) / 2
-				//this.controlPoints[idxMM].travelTime = (this.controlPoints[idxBM].travelTime + this.controlPoints[idxTM].travelTime) / 2
-
-
-				// split the grid
-
-				this.grids[i].splitted = true
-
-				newGrids.push({BL:this.grids[i].BL, BR:this.controlPoints[idxBM], 
-					TR:this.controlPoints[idxMM], TL:this.controlPoints[idxLM]})
-				newGrids.push({BL:this.controlPoints[idxBM], BR:this.grids[i].BR, 
-					TR:this.controlPoints[idxRM], TL:this.controlPoints[idxMM]})
-				newGrids.push({BL:this.controlPoints[idxMM], BR:this.controlPoints[idxRM], 
-					TR:this.grids[i].TR, TL:this.controlPoints[idxTM]})
-				newGrids.push({BL:this.controlPoints[idxLM], BR:this.controlPoints[idxMM], 
-					TR:this.controlPoints[idxTM], TL:this.grids[i].TL})	
-			}
-		}
-
-		// add new grids
-		for(var i = 0; i < newGrids.length; i++) {
-			this.grids.push(new Grid(newGrids[i].BL, newGrids[i].BR, newGrids[i].TR, newGrids[i].TL))
-		}
-
-		// delete original grids
-		this._grids = []
-		for(var i = 0; i < this.grids.length; i++) {
-			if (!this.grids[i].splitted) {
-				this._grids.push(this.grids[i])
-			}
-		}
-		this.grids = this._grids
-
-		// re-rendering the map
-		//this.tg_.map.updateLayers()
-
-		console.log(this.controlPoints)
-
-
-		// sub funcitons
-
-		function isOverThreshold(pt1, pt2, threshold) {
-			var t1 = pt1.travelTime
-			var t2 = pt2.travelTime
-			if ((t1 == null)||(t2 == null)) return false
-			return Math.abs(t1 - t2) >= threshold
-		}
-
-		function findControlPointByLatLng(ctlPts, lat, lng) {
-			for(var i = 0; i < ctlPts.length; i++) {
-				if ((ctlPts[i].original.lat == lat)&&(ctlPts[i].original.lng == lng)) {
-					return i
-				}
-			}
-			return -1
-		}	
-
-		function getIndexOfControlPoint(ctlPts, level, lat, lng) {
-			var idx = findControlPointByLatLng(ctlPts, lat, lng) 
-
-			if (idx < 0) {
-				// insert a new control point
-				var n = new Node(lat, lng)
-				n.level = level
-				ctlPts.push(n)
-				return ctlPts.length - 1
-			}
-			else {
-				// already existed control point
-				//console.log('existed')
-				return idx
-			}
-		}	
-	}*/
 
 
 }

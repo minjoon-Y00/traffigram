@@ -24,6 +24,10 @@ class LocationNode extends Node {
 		super(orgLat, orgLng);
 		this.dispAnchor = {lat: orgLat, lng:orgLng};
 		this.dispLoc = {lat: orgLat, lng:orgLng};
+		this.dispName = true;
+		this.nameOffsetX = 0;
+		this.nameOffsetY = 0;
+		this.nameAlign = 'center';
 	}
 }
 

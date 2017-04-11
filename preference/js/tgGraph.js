@@ -23,8 +23,8 @@ class TGGraph {
 	// calculate the degrees of all nodes.
 	//
 	calDegrees(nodes) {
-		var xLat = this.tg.map.centerPosition.lat
-		var xLng = this.tg.map.centerPosition.lng
+		var xLat = this.tg.map.origin.lat
+		var xLng = this.tg.map.origin.lng
 	  var yLat, yLng, deg
 
 	  for(var i = 0; i < nodes.length; i++) {
@@ -39,8 +39,8 @@ class TGGraph {
 	}
 
 	calFactor(nodes) {
-		const cLat = this.tg.map.centerPosition.lat;
-		const cLng = this.tg.map.centerPosition.lng;
+		const cLat = this.tg.map.origin.lat;
+		const cLng = this.tg.map.origin.lng;
 		const MAX_ITERATION = 20;
 		let start = 1000;
 		let end = 100000;
@@ -96,8 +96,8 @@ class TGGraph {
 
 	calTargetNodesOfCtlPts() {
 		var nodes = this.tg.map.tgControl.controlPoints
-		var xLat = this.tg.map.centerPosition.lat
-		var xLng = this.tg.map.centerPosition.lng
+		var xLat = this.tg.map.origin.lat
+		var xLng = this.tg.map.origin.lng
 
 	  for(var i = 0; i < nodes.length; i++) {
 			if (nodes[i].travelTime) {
@@ -212,8 +212,8 @@ class TGGraph {
 			return false
 		}
 
-		var lat = this.tg.map.centerPosition.lat
-		var lng = this.tg.map.centerPosition.lng
+		var lat = this.tg.map.origin.lat
+		var lng = this.tg.map.origin.lng
 		var trpt = this.tpsTarget.transform([lat, lng], false)
 		var d = this.tg.util.D2(lat, lng, trpt[0], trpt[1])
 

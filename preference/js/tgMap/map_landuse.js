@@ -12,6 +12,7 @@ class TGMapLanduse {
   	this.timerGetLanduseData = null;
   	this.dispLayers = [];
   	this.rdpThreshold = this.tg.opt.constant.rdpThreshold.landuse;
+  	this.simplify = false;
 	}
 
 	initLanduseArray() {
@@ -119,7 +120,7 @@ class TGMapLanduse {
 
 		if (geoType === 'Polygon') {
 
-			if (this.tg.map.simplify) {
+			if ((this.simplify)&&(this.tg.map.simplify)) {
 				coords = this.tg.util.RDPSimp2DLoop(coords, this.rdpThreshold);
 			}
 
