@@ -68,10 +68,10 @@
             <label><input type="radio" name="emdcRadio" id="emModeRB" checked>Equidistant Map</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="emdcRadio" id="dcGapModeRB">Distance Cartogram (GAP)</label>
+            <label><input type="radio" name="emdcRadio" id="dcSGapModeRB">Distance Cartogram (S-GAP)</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="emdcRadio" id="dcSGapModeRB">Distance Cartogram (S-GAP)</label>
+            <label><input type="radio" name="emdcRadio" id="dcGapModeRB">Distance Cartogram (GAP)</label>
           </div>
           <hr>
 
@@ -115,13 +115,21 @@
 
           <h4>Visual Element</h4>
           <label class='marginR'>
-            <input type="checkbox" id="dispWaterCB" checked/>
+            <input type="checkbox" id="dispWaterCB"/>
             <span class='marginL'>Water</span>
           </label>
           <label class='marginR'>
             <input type="checkbox" id="dispRoadsCB"/>
             <span class='marginL'>Road</span>
           </label>
+          <label class='marginR'>
+            <input type="checkbox" id="dispLanduseCB"/>
+            <span class='marginL'>Landuse</span>
+          </label>
+          <label class='marginR'>
+            <input type="checkbox" id="dispLocationCB" checked/>
+            <span class='marginL'>Location</span>
+          </label> 
           <label class='marginR'>
             <input type="checkbox" id="dispPlaceCB"/>
             <span class='marginL'>Place</span>
@@ -131,25 +139,18 @@
             <span class='marginL'>Origin</span>
           </label>
           <label class='marginR'>
+            <input type="checkbox" id="dispIsochroneCB" disabled/>
+            <span class='marginL'>Isochrone</span>
+          </label>
+          <label class='marginR'>
             <input type="checkbox" id="dispGridCB"/>
             <span class='marginL'>Grid</span>
           </label>
           <label class='marginR'>
             <input type="checkbox" id="dispControlPointsCB"/>
             <span class='marginL'>Control Point</span>
-          </label>
-          <label class='marginR'>
-            <input type="checkbox" id="dispIsochroneCB" disabled/>
-            <span class='marginL'>Isochrone</span>
           </label> 
-          <label class='marginR'>
-            <input type="checkbox" id="dispLocationCB" checked/>
-            <span class='marginL'>Location</span>
-          </label> 
-          <label class='marginR'>
-            <input type="checkbox" id="dispLocationNameCB" checked/>
-            <span class='marginL'>Location Name</span>
-          </label>   
+   
           
           <!-- <label class='marginR'>
             <input type="checkbox" id="dispWaterNodeCB"/>

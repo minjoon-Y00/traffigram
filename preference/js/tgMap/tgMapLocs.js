@@ -1,15 +1,41 @@
 class TGMapLocs {
-	constructor(tg, olMap, mapUtil) {
+	constructor(tg, mapUtil) {
 		this.tg = tg;
-		this.olMap = olMap;
 		this.mapUtil = mapUtil;
+		this.isDisabled = false;
+		this.display = false;
+		this.layer = null;
+
+		this.dispNameLayer = true;
+		this.nameLayer = null;
 
 		this.locationTypes = ['food', 'bar', 'park', 'museum'];
 		this.currentType = 'food';
 		this.locations = {};
-		this.locationLayer = null;
-		this.locationNameLayer = null;
 
+		this.initLocations();
+	}
+
+	turn(tf) {
+		this.display = tf;
+	}
+
+	disabled(tf) {
+		this.isDisabled = tf;
+	}
+
+	render() {
+		if (this.isDisabled||(!this.display)) {
+			this.removeLayer();
+			this.removeNameLayer();
+		}
+		else {
+			this.updateLayer();
+			if (this.dispNameLayer) this.updateNameLayer();
+		}
+	}
+
+	initLocations() {
 		for(let type of this.locationTypes) {
 			this.locations[type] = [];
 		}
@@ -30,6 +56,7 @@ class TGMapLocs {
 
 			this.tg.map.setTime('locationLoading', 'end', (new Date()).getTime());
 
+			//this.disabled(false);
 			this.tg.map.tgBB.cleanBB();
 
 			// save non-overlapped locations
@@ -54,14 +81,7 @@ class TGMapLocs {
 				this.updateNonOverlappedLocationNames();
 		  }
 
-		  if (this.tg.map.dispLocationLayer) {
-		  	this.drawLocationLayer();
-		  }
-
-		  if (this.tg.map.dispLocationNameLayer) {
-		  	this.drawLocationNameLayer();
-		  }
-
+		  this.render();
 		  this.tg.map.tgBB.render();
 		});
 	}
@@ -78,14 +98,7 @@ class TGMapLocs {
 			this.tg.map.tgBB.addBBOfLocations();
 			this.tg.map.tgLocs.updateNonOverlappedLocationNames();
 
-			if (this.tg.map.dispLocationLayer) {
-		  	this.drawLocationLayer();
-		  }
-
-		  if (this.tg.map.dispLocationNameLayer) {
-		  	this.drawLocationNameLayer();
-		  }
-
+			this.render();
 		  this.tg.map.tgBB.render();
 		}
 	}
@@ -95,7 +108,7 @@ class TGMapLocs {
 				this.tg.map.tgBB.getNonOverlappedLocationNames(this.locations[this.currentType]);
 	}
 
-	drawLocationLayer() {
+	updateLayer() {
 		var arr = [];
 		const anchorStyleFunc = 
 			this.mapUtil.nodeStyleFunc(this.tg.opt.color.anchor, this.tg.opt.radius.anchor);
@@ -107,8 +120,8 @@ class TGMapLocs {
 
 		for(let loc of this.locations[this.currentType]) {
 
-			if ((loc.node.target.lng != loc.node.dispAnchor.lng) 
-				|| (loc.node.target.lat != loc.node.dispAnchor.lat)) {
+			//if ((loc.node.target.lng != loc.node.dispAnchor.lng) 
+			//	|| (loc.node.target.lat != loc.node.dispAnchor.lat)) {
 
 				// lines
 				this.mapUtil.addFeatureInFeatures(arr, 
@@ -119,7 +132,7 @@ class TGMapLocs {
 				// anchor images
 				this.mapUtil.addFeatureInFeatures(arr,
 					new ol.geom.Point([loc.node.dispAnchor.lng, loc.node.dispAnchor.lat]), anchorStyleFunc);
-			}
+			//}
  
 			// circle images
 			this.mapUtil.addFeatureInFeatures(arr,
@@ -127,14 +140,14 @@ class TGMapLocs {
 		}
 
 		if (arr.length > 0) {
-			this.mapUtil.removeLayer(this.locationLayer);
-			this.locationLayer = this.mapUtil.olVectorFromFeatures(arr);
-			this.locationLayer.setZIndex(this.tg.opt.z.location);
-		  this.olMap.addLayer(this.locationLayer);
+			this.removeLayer();
+			this.layer = this.mapUtil.olVectorFromFeatures(arr);
+			this.layer.setZIndex(this.tg.opt.z.location);
+		  this.mapUtil.addLayer(this.layer);
 		}
 	}
 
-	drawLocationNameLayer() {
+	updateNameLayer() {
 		var arr = [];
 		
 		for(let loc of this.locations[this.currentType]) {
@@ -154,19 +167,19 @@ class TGMapLocs {
 		}
 
 		if (arr.length > 0) {
-			this.mapUtil.removeLayer(this.locationNameLayer);
-			this.locationNameLayer = this.mapUtil.olVectorFromFeatures(arr);
-			this.locationNameLayer.setZIndex(this.tg.opt.z.location);
-		  this.olMap.addLayer(this.locationNameLayer);
+			this.removeNameLayer();
+			this.nameLayer = this.mapUtil.olVectorFromFeatures(arr);
+			this.nameLayer.setZIndex(this.tg.opt.z.location);
+		  this.mapUtil.addLayer(this.nameLayer);
 		}
 	}
 
-	removeLocationLayer() {
-		this.mapUtil.removeLayer(this.locationLayer);
+	removeLayer() {
+		this.mapUtil.removeLayer(this.layer);
 	}
 
-	removeLocationNameLayer() {
-		this.mapUtil.removeLayer(this.locationNameLayer);
+	removeNameLayer() {
+		this.mapUtil.removeLayer(this.nameLayer);
 	}
 
 	calRealNodes() {
@@ -214,30 +227,6 @@ class TGMapLocs {
 				{lat: (1 - value) * loc.node.original.lat + value * loc.node.target.lat,
 				 lng: (1 - value) * loc.node.original.lng + value * loc.node.target.lng }
 		}
-
-
-		/*if (kind === 'intermediateReal') {
-			for(let loc of this.locations[this.currentType]) {
-				loc.node.disp.lat = 
-					(1 - value) * loc.node.original.lat + value * loc.node.real.lat;
-				loc.node.disp.lng = 
-					(1 - value) * loc.node.original.lng + value * loc.node.real.lng;
-			}
-		}
-		else if (kind === 'intermediateTarget') {
-			for(let loc of this.locations[this.currentType]) {
-				loc.node.disp.lat = 
-					(1 - value) * loc.node.original.lat + value * loc.node.target.lat;
-				loc.node.disp.lng = 
-					(1 - value) * loc.node.original.lng + value * loc.node.target.lng;
-			}
-		}
-		else {
-			for(let loc of this.locations[this.currentType]) {
-				loc.node.disp.lat = loc.node[kind].lat;
-				loc.node.disp.lng = loc.node[kind].lng;
-			}
-		}*/
 	}
 
 	showModal(lat, lng) {
@@ -258,8 +247,8 @@ class TGMapLocs {
 		};
 
 		for(let loc of this.locations[this.currentType]) {
-			if ((Math.abs(loc.node.disp.lat - lat) <= clickRange.lat)
-				&&(Math.abs(loc.node.disp.lng - lng) <= clickRange.lng)) {
+			if ((Math.abs(loc.node.dispLoc.lat - lat) <= clickRange.lat)
+				&&(Math.abs(loc.node.dispLoc.lng - lng) <= clickRange.lng)) {
 
 				this.updateModal(loc);
 				const modal = $('[data-remodal-id=modal]').remodal({});
@@ -268,7 +257,7 @@ class TGMapLocs {
 			}
 		}
 
-		console.log('no location.');
+		console.log('no infomation on this location.');
 	}
 
 	updateModal(loc) {
@@ -293,41 +282,5 @@ class TGMapLocs {
 			$('#modal-travel-time').text('-');
 		}
 	}
-
-	/*
-address
-"219 Broadway E, Seattle, WA 98102"
-categories
-:
-"[object Object], [object Object]"
-dist
-:
-4253.7202617719995
-imge_url
-:
-"https://s3-media2.fl.yelpcdn.com/bphoto/X4tDiDhO-Q4JhvFRUaN2-g/o.jpg"
-name
-:
-"Tacos Chukis"
-node
-:
-Node
-phone
-:
-"(206) 328-4447"
-price
-:
-"$"
-rating
-:
-4.5
-review_count
-:
-900
-url
-:
-"https://www.yelp.com/biz/tacos-chukis-seattle?adjust_creative=YbrQpXXmE1UKSUEMMm8ErQ&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=YbrQpXXmE1UKSUEMMm8ErQ"
-__p
-	*/
 }
 

@@ -150,12 +150,14 @@ class TGMapControl {
 		console.log('end.lng: ' + end.lng);*/
 		// 40.68, 40.70, 40.72, 40.74, 40.76, 40.78
 		// -74.04, -74.02, -74.0, -73.98, -73.96,
-		console.log('numLngInRow: ' + this.numLngInRow_);
+
+		/*console.log('numLngInRow: ' + this.numLngInRow_);
 		console.log('numLatInColumn: ' + this.numLatInColumn_);
 		console.log('# of controlPoints: ' + this.controlPoints.length);
 		console.log('# of gridLines: ' + this.gridLines_.length);
 		console.log(this.controlPoints);
 		console.log(this.gridLines_);
+		*/
 
 
 		// find connected nodes per each control point.
@@ -930,7 +932,7 @@ class TGMapControl {
 
 		// 0.1, ..., 0.7 (if margin = 0.3)
 		for(let pct = dt; pct + margin < 1 + eps; pct += dt) {
-			console.log('pct = ' + pct);
+			//console.log('pct = ' + pct);
 
 			// change the real position of all control points.
 			for(let point of this.controlPoints) {
@@ -1004,11 +1006,11 @@ class TGMapControl {
 			point.real.lat = point.original.lat * (1 - pct) + point.target.lat * pct;
 			point.real.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
 		}
-		
+
 		for(let point of this.controlPoints) point.done = false;
 
 		for(let pct = dt; pct < 1 + eps; pct += dt) {
-			console.log('pct = ' + pct);
+			//console.log('pct = ' + pct);
 
 			// change the real position of all control points.
 			for(let point of this.controlPoints) {

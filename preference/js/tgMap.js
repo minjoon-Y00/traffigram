@@ -1,5 +1,4 @@
 class TGMap {
-	
 	constructor(tg, map_id) {
 		this.tg = tg;
 		this.olMap = new ol.Map({
@@ -20,20 +19,18 @@ class TGMap {
 		  }
 		}, this);
 
-
-
-
 	  this.checkParameters();
 
 		// modules
 
-		this.mapUtil = new TGMapUtil(tg, this.olMap)
-	  this.tgWater = new TGMapWater(tg, this.olMap, this.mapUtil)
-	  this.tgRoads = new TGMapRoads(tg, this.mapUtil)
+		this.mapUtil = new TGMapUtil(tg, this.olMap);
+	  this.tgWater = new TGMapWater(tg, this.mapUtil);
+	  this.tgRoads = new TGMapRoads(tg, this.mapUtil);
+	  this.tgLanduse = new TGMapLanduse(tg, this.mapUtil);
+	  this.tgLocs = new TGMapLocs(tg, this.mapUtil)
+
 	  this.tgControl = new TGMapControl(tg, this.mapUtil)
-	  this.tgLocs = new TGMapLocs(tg, this.olMap, this.mapUtil)
 	  this.tgPlaces = new TGMapPlaces(tg, this.olMap, this.mapUtil);
-	  this.tgLanduse = new TGMapLanduse(tg, this.olMap, this.mapUtil);
 	  //this.tgAux = new TGMapAux(tg, this.olMap, this.mapUtil);
 	  this.tgBB = new TGMapBoundingBox(tg, this.olMap, this.mapUtil);
 	  this.tgOrigin = new TGMapOrigin(tg, this.mapUtil);
@@ -41,17 +38,23 @@ class TGMap {
 
 	  // initialization
 
-	  this.tgWater.start();
+	  this.tgWater.init();
 	  this.tgRoads.init();
+	  this.tgLanduse.init();
 	  this.tgPlaces.start();
-	  this.tgLanduse.start();
 
 	  // variables
 
 	  //this.tgBB.turn(true);
 
+	  this.tgWater.turn(true);
+	  $('#dispWaterCB').prop('checked', true);
 	  this.tgRoads.turn(true);
 	  $('#dispRoadsCB').prop('checked', true);
+	  this.tgLanduse.turn(true);
+	  $('#dispLanduseCB').prop('checked', true);
+	  this.tgLocs.turn(true);
+	  $('#dispLocationCB').prop('checked', true);
 
 	  this.tgOrigin.turn(true);
 	  $('#dispOriginCB').prop('checked', true);
@@ -221,9 +224,13 @@ class TGMap {
 		this.resetDataInfo();
 		this.calBoundaryBox();
 
-		//this.tgRoads.clearLayers();
 	  this.tgRoads.calDispRoads();
 		this.tgRoads.render();
+		this.tgWater.calDispWater();
+		this.tgWater.render();
+		this.tgLanduse.calDispLanduse();
+		this.tgLanduse.render();
+
 
 
 		if (this.originChanged) {
@@ -263,13 +270,8 @@ class TGMap {
 
 
 
-		this.tgWater.clearLayers();
-		this.tgWater.calDispWater();
-		this.tgWater.addWaterLayer();
 
-		this.tgLanduse.clearLayers();
-		this.tgLanduse.calDispLanduse();
-		this.tgLanduse.addLanduseLayer();
+
 
 		if (this.dispPlaceLayer) {
 			this.tgPlaces.clearLayers();
@@ -409,14 +411,14 @@ class TGMap {
 		}
 		else this.tgPlaces.clearLayers();
 
-		if (this.dispWaterNodeLayer) this.tgWater.addWaterNodeLayer();
-		else this.tgWater.removeWaterNodeLayer();
+		//if (this.dispWaterNodeLayer) this.tgWater.addWaterNodeLayer();
+		//else this.tgWater.removeWaterNodeLayer();
 
-		if (this.dispRoadNodeLayer) this.tgRoads.addNodeLayer();
-		else this.tgRoads.removeNodeLayer();
+		//if (this.dispRoadNodeLayer) this.tgRoads.addNodeLayer();
+		//else this.tgRoads.removeNodeLayer();
 
-		if (this.dispLanduseNodeLayer) this.tgLanduse.addLanduseNodeLayer();
-		else this.tgLanduse.removeLanduseNodeLayer();
+		//if (this.dispLanduseNodeLayer) this.tgLanduse.addLanduseNodeLayer();
+		//else this.tgLanduse.removeLanduseNodeLayer();
 
 	  if (this.dispGridLayer) this.tgControl.drawGridLayer()
 		else this.tgControl.removeGridLayer()
@@ -532,18 +534,14 @@ class TGMap {
 	moveElementsByValue(intermediate, value) {
 		const t1 = (new Date()).getTime();
 
-		this.tgWater.clearLayers();
 		this.tgWater.calDispNodes(intermediate, value);
-		this.tgWater.updateDispWater();
-		this.tgWater.addWaterLayer();
+		this.tgWater.render();
 
 		const t2 = (new Date()).getTime();
 		this.tempTimes.waterWarping.push(t2 - t1);
 		console.log('[1] water: ' + (t2 - t1) + 'ms');
 
-		//this.tgRoads.clearLayers();
 		this.tgRoads.calDispNodes(intermediate, value);
-  	//this.tgRoads.updateDispRoads();
   	this.tgRoads.render();
 
   	const t3 = (new Date()).getTime();
@@ -559,27 +557,25 @@ class TGMap {
 
   	const t4 = (new Date()).getTime();
 		this.tempTimes.placeWarping.push(t4 - t3);
-		console.log('[3] place: ' + (t4 - t3) + 'ms');
+		//console.log('[3] place: ' + (t4 - t3) + 'ms');
 
-		this.tgLanduse.clearLayers();
   	this.tgLanduse.calDispNodes(intermediate, value);
-  	this.tgLanduse.updateDispLanduse(true);
-  	this.tgLanduse.addLanduseLayer();
+  	this.tgLanduse.render();
 
   	const t5 = (new Date()).getTime();
 		this.tempTimes.landuseWarping.push(t5 - t4);
-		console.log('[4] landuse: ' + (t5 - t4) + 'ms');
+		//console.log('[4] landuse: ' + (t5 - t4) + 'ms');
 
 		if (this.dispLocationLayer) {
-			this.tgLocs.removeLocationLayer();
+			//this.tgLocs.removeLocationLayer();
 			this.tgLocs.calDispNodes(intermediate, value);
-			this.tgLocs.drawLocationLayer();
+			//this.tgLocs.render();
 		}
 
-		if (this.dispLocationNameLayer) {
-			this.tgLocs.removeLocationNameLayer();
-			this.tgLocs.drawLocationNameLayer();
-		}
+		//if (this.dispLocationNameLayer) {
+			//this.tgLocs.removeLocationNameLayer();
+			//this.tgLocs.drawLocationNameLayer();
+		//}
 
   	if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
   		this.tgControl.calDispNodes(intermediate, value);
@@ -592,7 +588,7 @@ class TGMap {
 
   	const t6 = (new Date()).getTime();
 		this.tempTimes.etcWarping.push(t6 - t5);
-		console.log('[5] etc: ' + (t6 - t5) + 'ms');
+		//console.log('[5] etc: ' + (t6 - t5) + 'ms');
 
 		this.tempTimes.totalWarping.push((new Date()).getTime() - t1);
 	}
@@ -615,37 +611,40 @@ class TGMap {
 			this.tgIsochrone.disabled(false);
 			this.tgIsochrone.render();
 			this.reachDCOrEM();
-
-			// ui
-			this.olMap.dragPan.setActive(false);
-			$('#dispIsochroneCB').prop('disabled', false);
-			$('#noIntersectedGridRB').prop('disabled', false);
-			$('#shapePreservingGridRB').prop('disabled', false);
+			this.resetUI();
 		}
 		else if ((direction === 'backward') && (this.frame <= 0)) {
 			// completely go to em mode
 			this.currentMode = 'EM';
 			this.reachDCOrEM();
-
-			// ui
-			this.olMap.dragPan.setActive(true);
-			$('#dispIsochroneCB').prop('disabled', true);
-			$('#noIntersectedGridRB').prop('disabled', true);
-			$('#shapePreservingGridRB').prop('disabled', true);
+			this.resetUI();
 		}
 		else {
 			// intermediate mode
 			this.tgIsochrone.disabled(true);
 			this.tgIsochrone.render();
+
+			this.tgLocs.dispNameLayer = false;
+			this.tgLocs.removeNameLayer();
+			this.tgLocs.render();
 		}
+	}
+
+	resetUI() {
+		const tf = (this.currentMode === 'EM');
+		this.olMap.dragPan.setActive(tf);
+		$('#dispIsochroneCB').prop('disabled', tf);
+		$('#noIntersectedGridRB').prop('disabled', tf);
+		$('#shapePreservingGridRB').prop('disabled', tf);
 	}
 
 	reachDCOrEM() {
 		clearInterval(this.timerFrame);
 		this.tgBB.cleanBB();
 		this.tgBB.addBBOfLocations();
+		this.tgLocs.dispNameLayer = true;
 		this.tgLocs.updateNonOverlappedLocationNames();
-		this.tgLocs.drawLocationNameLayer();
+		this.tgLocs.render();
 		this.tgBB.render();
 
 		//this.updateLayers();
@@ -666,25 +665,38 @@ class TGMap {
 		this.resetTempTime();
 	}
 
+	initMap() {
+		this.tgBB.cleanBB();
+		this.tgLocs.initLocations();
+		this.tgLocs.removeLayer();
+		this.tgLocs.removeNameLayer();
+		this.tgLocs.render();
+
+		console.log('init locs.');
+
+		if (this.currentMode === 'DC') {
+			this.currentMode = 'EM';
+			this.resetUI();
+			this.tgIsochrone.disabled(true);
+			this.tgIsochrone.render();
+			this.initElements();
+			this.frame = 0;
+
+		  $('#emModeRB').prop('checked', true);
+		  $('#dcSGapModeRB').prop('checked', false);
+		  $('#dcGapModeRB').prop('checked', false);
+		}
+	}
+
 	initElements() {
   	this.tgWater.calDispNodes('original');
-  	this.tgWater.updateDispWater();
-  	this.tgWater.addWaterLayer();
-
+  	//this.tgWater.render();
   	this.tgRoads.calDispNodes('original');
-  	//this.tgRoads.updateDispRoads();
-  	this.tgRoads.render();
-
-  	if (this.dispPlaceLayer) {
-	  	this.tgPlaces.calDispNodes('original');
-	  	this.tgPlaces.updateDispPlaces();
-	  	this.tgPlaces.addPlaceLayer();
-	  }
-
+  	//this.tgRoads.render();
   	this.tgLanduse.calDispNodes('original');
-  	this.tgLanduse.updateDispLanduse();
-  	this.tgLanduse.addLanduseLayer();
-
+  	//this.tgLanduse.render();
+	  this.tgPlaces.calDispNodes('original');
+  	//this.tgPlaces.render();
   	this.tgControl.calDispNodes('original');
 	}
 

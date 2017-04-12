@@ -70,31 +70,52 @@ function moveElements() {
 //
 //
 $("#centerDowntownSeattleRB").change(function(ev){
-  if (ev.target.checked) tg.map.setArea('seattleDowntown');
+  if (ev.target.checked) {
+  	tg.map.initMap();
+  	tg.map.setArea('seattleDowntown');
+  }
 });
 
 $("#centerUWSeattleRB").change(function(ev){
-  if (ev.target.checked) tg.map.setArea('seattleUw');
+  if (ev.target.checked) {
+  	tg.map.initMap();
+  	tg.map.setArea('seattleUw');
+  }
 });
 
 $("#centerLombardSFRB").change(function(ev){
-  if (ev.target.checked) tg.map.setArea('sfLombard');
+  if (ev.target.checked) {
+  	tg.map.initMap();
+  	tg.map.setArea('sfLombard');
+  }
 });
 
 $("#centerNYUNYRB").change(function(ev){
-  if (ev.target.checked) tg.map.setArea('nyNyu');
+  if (ev.target.checked) {
+  	tg.map.initMap();
+  	tg.map.setArea('nyNyu');
+  }
 });
 
 $("#centerStanfordPaloAltoRB").change(function(ev){
-  if (ev.target.checked) tg.map.setArea('paloAltoStanford');
+  if (ev.target.checked) {
+  	tg.map.initMap();
+  	tg.map.setArea('paloAltoStanford');
+  }
 });
 
 $("#centerCitadelleQuebecRB").change(function(ev){
-  if (ev.target.checked) tg.map.setArea('quebecCitadelle');
+  if (ev.target.checked) {
+  	tg.map.initMap();
+  	tg.map.setArea('quebecCitadelle');
+  }
 });
 
 $("#centerYourPositionRB").change(function(ev){
-  if (ev.target.checked) tg.map.setCenterUserPosition();
+  if (ev.target.checked) {
+  	tg.map.initMap();
+  	tg.map.setCenterUserPosition();
+  }
 });
 
 //
@@ -189,13 +210,23 @@ $("#locationNoRB").change(function(ev){
 //
 //
 $("#dispWaterCB").change(function(ev){ 
-	tg.map.dispWaterLayer = ev.target.checked
-	tg.map.updateLayers()
+	tg.map.tgWater.turn(ev.target.checked);
+	tg.map.tgWater.render();
 });
 
 $("#dispRoadsCB").change(function(ev){ 
 	tg.map.tgRoads.turn(ev.target.checked);
 	tg.map.tgRoads.render();
+});
+
+$("#dispLanduseCB").change(function(ev){ 
+	tg.map.tgLanduse.turn(ev.target.checked);
+	tg.map.tgLanduse.render();
+});
+
+$("#dispLocationCB").change(function(ev){
+	tg.map.tgLocs.turn(ev.target.checked);
+	tg.map.tgLocs.render();
 });
 
 $("#dispPlaceCB").change(function(ev){ 
@@ -226,16 +257,6 @@ $("#dispGridCB").change(function(ev){
 $("#dispIsochroneCB").change(function(ev){
 	tg.map.tgIsochrone.turn(ev.target.checked);
 	tg.map.tgIsochrone.render();
-});
-
-$("#dispLocationCB").change(function(ev){
-	tg.map.dispLocationLayer = ev.target.checked;
-	tg.map.updateLayers();
-});
-
-$("#dispLocationNameCB").change(function(ev){
-	tg.map.dispLocationNameLayer = ev.target.checked;
-	tg.map.updateLayers();
 });
 
 $("#dispWaterNodeCB").change(function(ev){ 

@@ -2,6 +2,13 @@ class TGMapRoads {
 	constructor(tg, mapUtil) {
 		this.tg = tg;
 		this.mapUtil = mapUtil;
+		this.isDisabled = false;
+		this.display = false;
+		this.layer = {};
+
+		this.simplify = true;
+  	this.dispNodeLayer = false;
+		this.nodeLayer = null;
 
 	  this.roadTypes = 
 	  		['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'residential'];
@@ -9,12 +16,9 @@ class TGMapRoads {
 	  this.newRoadObjects = {};
 	  this.dispRoads = {};
 	  this.dispRoadTypes = [];
-		this.layer = {};
-		this.nodeLayer = null;
   	this.timerGetRoadData = null;
   	this.dispLayers = [];
   	this.rdpThreshold = this.tg.opt.constant.rdpThreshold.road;
-  	this.simplify = true;
 
 	  for(let type of this.roadTypes) {
 	  	this.roadObjects[type] = [];
@@ -144,7 +148,6 @@ class TGMapRoads {
 				this.dispRoadTypes.push(type);
 			}
 		}
-		console.log(this.dispRoadTypes);
 	}
 
 	calDispRoads() {

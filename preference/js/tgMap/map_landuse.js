@@ -1,18 +1,34 @@
 class TGMapLanduse {
-	constructor(tg, olMap, mapUtil) {
+	constructor(tg, mapUtil) {
 		this.tg = tg;
-		this.olMap = olMap;
 		this.mapUtil = mapUtil;
+		this.isDisabled = false;
+		this.display = false;
+		this.layer = null;
+
+		this.simplify = false;
+  	this.dispNodeLayer = false;
+		this.nodeLayer = null;
 
 		this.landuseObjects = this.initLanduseArray(); 
 		this.newLanduseObjects = this.initLanduseArray(); 
 		this.dispLanduseObjects = this.initLanduseArray(); 
-		this.landuseLayer = null;
-		this.landuseNodeLayer = null;
   	this.timerGetLanduseData = null;
   	this.dispLayers = [];
   	this.rdpThreshold = this.tg.opt.constant.rdpThreshold.landuse;
-  	this.simplify = false;
+	}
+
+	turn(tf) {
+		this.display = tf;
+	}
+
+	disabled(tf) {
+		this.isDisabled = tf;
+	}
+	
+	render() {
+		if (this.isDisabled||(!this.display)) this.clearLayers();
+		else this.updateLayer();
 	}
 
 	initLanduseArray() {
@@ -25,7 +41,7 @@ class TGMapLanduse {
 		return outArray;
 	}
 
-	start() {
+	init() {
 		const source = new ol.source.VectorTile({
 		  format: new ol.format.TopoJSON(),
 		  projection: 'EPSG:3857',
@@ -34,7 +50,7 @@ class TGMapLanduse {
 		    + 'api_key=vector-tiles-c1X4vZE',
 		});
 
-		this.olMap.addLayer(new ol.layer.VectorTile({
+		this.mapUtil.addLayer(new ol.layer.VectorTile({
 		  source: source,
 		  style: this.addToLanduseObject.bind(this),
 		}));
@@ -84,30 +100,17 @@ class TGMapLanduse {
 		// console.log('kind: ' + kind + ' type: ' + geoType + ' name: ' + name);
 		// console.log('kind: ' + kind + ' minZoom: ' + minZoom);
 
-
-		// class 0
-		//if (kind !== 'recreation_ground') return null; // green
-		//if (kind !== 'park') return null;
-		//if (kind !== 'garden') return null;
-
-		// 1
-		//if (kind !== 'cemetery') return null; // 214, 233, 185
-		//if (kind !== 'golf_course') return null;
-		//if (kind !== 'zoo') return null;
-
-		// 2
-		//if (kind !== 'university') return null; -> 228, 228, 223
-		//if (kind !== 'college') return null;
-		//if (kind !== 'school') return null; 
-
-		// 3
-		//if (kind !== 'stadium') return null; // 236,239,234
-
-		// 4
-		//if (kind !== 'hospital') return null; // 249, 237, 241
-
-		// 5
-		//if (kind !== 'retail') return null; // 240 224 200
+		// class 0: recreation_ground, park, garden
+		// class 1: cemetery, golf_course, zoo
+		// class 2: university, college, school
+		// class 3: stadium
+		// class 4: hospital
+		// class 5: retail
+		// ignore: library, fuel, theatre, residential, recreation_track, footway, 
+		//   commercial, industrial, railway, enclosure, military, hedge, pier
+	  //   caravan_site, picnic_site, dog_park, bridge, wetland, scrub, grass
+		//   natural_wood, nature_reserve, meadow, forest, sports_centre, attraction
+		//	 water_park, city_wall, prison, apron, grave_yard
 
 
 		feature.getGeometry().transform('EPSG:3857', 'EPSG:4326');
@@ -141,14 +144,9 @@ class TGMapLanduse {
 		this.tg.map.setDataInfo('numLanduseLoading', 'increase');
 		this.tg.map.setTime('landuseLoading', 'end', (new Date()).getTime());
 
-		this.addNewLanduseLayer();
+		this.addNewLayer();
 		this.newLanduseObjects = this.initLanduseArray();
 	}
-
-	/*createDispLanduse() {
-		this.updateDispLanduse();
-		this.addLanduseLayer();
-	}*/
 
 	calDispLanduse() {
 		const currentZoom = this.tg.map.currentZoom;
@@ -207,7 +205,7 @@ class TGMapLanduse {
 		}
 	}
 
-	addNewLanduseLayer() {
+	addNewLayer() {
 		let arr = [];
 		const numClass = this.tg.opt.constant.numLanduseClasses;
 
@@ -224,18 +222,19 @@ class TGMapLanduse {
 
 		const layer = this.mapUtil.olVectorFromFeatures(arr);
 		layer.setZIndex(this.tg.opt.z.landuse);
-		this.olMap.addLayer(layer);
+		this.mapUtil.addLayer(layer);
 		this.dispLayers.push(layer);
 		
 		console.log('+ new landuse layer: ' + arr.length);
-		if (this.tg.map.dispLanduseNodeLayer) this.addNewLanduseNodeLayer();
+		if (this.dispNodeLayer) this.addNewNodeLayer();
 	}
 
-	addLanduseLayer() {
+	updateLayer() {
+		this.clearLayers();
+		this.updateDispLanduse();
+
 		let arr = [];
 		const numClass = this.tg.opt.constant.numLanduseClasses;
-
-		this.mapUtil.removeLayer(this.landuseLayer);
 
 		for(let cl = 0; cl < numClass; cl++) {
 			const styleFunc = this.mapUtil.polygonStyleFunc(this.tg.opt.color.landuse[cl]);
@@ -248,16 +247,12 @@ class TGMapLanduse {
 			}
 		}
 
-		this.landuseLayer = this.mapUtil.olVectorFromFeatures(arr);
-		this.landuseLayer.setZIndex(this.tg.opt.z.landuse);
-		this.olMap.addLayer(this.landuseLayer);
-		this.dispLayers.push(this.landuseLayer);
+		this.layer = this.mapUtil.olVectorFromFeatures(arr);
+		this.layer.setZIndex(this.tg.opt.z.landuse);
+		this.mapUtil.addLayer(this.layer);
+		this.dispLayers.push(this.layer);
 
-		if (this.tg.map.dispLanduseNodeLayer) this.addLanduseNodeLayer();
-	}
-
-	removeWaterLayer() {
-		this.mapUtil.removeLayer(this.landuseLayer);
+		if (this.dispNodeLayer) this.addNodeLayer();
 	}
 
 	clearLayers() {
@@ -266,8 +261,8 @@ class TGMapLanduse {
 		}
 	}
 
-	removeLanduseLayer() {
-		this.mapUtil.removeLayer(this.landuseLayer);
+	removeLayer() {
+		this.mapUtil.removeLayer(this.layer);
 	}
 
 	calRealNodes() {
@@ -371,7 +366,7 @@ class TGMapLanduse {
 	}
 
 
-	addNewLanduseNodeLayer() {
+	addNewNodeLayer() {
 		let arr = [];
 		const edgeStyleFunc = 
 			this.mapUtil.lineStyleFunc(this.tg.opt.color.edge, this.tg.opt.width.edge);
@@ -399,12 +394,12 @@ class TGMapLanduse {
 		
 		const layer = this.mapUtil.olVectorFromFeatures(arr);
 		layer.setZIndex(this.tg.opt.z.roadNode);
-		this.olMap.addLayer(layer);
+		this.mapUtil.addLayer(layer);
 		this.dispLayers.push(layer);
 	}
 
-	addLanduseNodeLayer() {
-		this.mapUtil.removeLayer(this.landuseNodeLayer);
+	addNodeLayer() {
+		this.mapUtil.removeLayer(this.nodeLayer);
 
 		let arr = [];
 		const edgeStyleFunc = 
@@ -431,14 +426,14 @@ class TGMapLanduse {
 			}
 		}
 		
-		this.landuseNodeLayer = this.mapUtil.olVectorFromFeatures(arr);
-		this.landuseNodeLayer.setZIndex(this.tg.opt.z.roadNode);
-		this.olMap.addLayer(this.landuseNodeLayer);
-		this.dispLayers.push(this.landuseNodeLayer);
+		this.nodeLayer = this.mapUtil.olVectorFromFeatures(arr);
+		this.nodeLayer.setZIndex(this.tg.opt.z.roadNode);
+		this.mapUtil.addLayer(this.nodeLayer);
+		this.dispLayers.push(this.nodeLayer);
 	}
 
-	removeLanduseNodeLayer() {
-		this.mapUtil.removeLayer(this.landuseNodeLayer);
+	removeNodeLayer() {
+		this.mapUtil.removeLayer(this.nodeLayer);
 	}
 
 }
