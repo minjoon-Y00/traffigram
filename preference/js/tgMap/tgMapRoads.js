@@ -73,7 +73,14 @@ class TGMapRoads {
 		//const minZoom = feature.get('min_zoom');
 		//coords.minZoom = feature.get('min_zoom');
 
+		const minZoom = feature.get('min_zoom');
+		//console.log(minZoom);
+		//const id = feature.get('id');
+		//console.log(id);
+		//if (!id) return null;
+
 		// TODO: test lenCoords vs coords.length
+
 
 		if (geoType === 'LineString') {
 

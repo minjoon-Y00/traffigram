@@ -16,8 +16,12 @@ class TGMapIsochrone {
 	}
 
 	render() {
-		if (this.isDisabled||(!this.display)) this.removeLayer();
+		if (this.isDisabled||(!this.display)) this.discard();
 		else this.updateLayer();
+	}
+
+	discard() {
+		this.removeLayer();
 	}
 
 	removeLayer() {

@@ -12,6 +12,7 @@ class TGMapLocs {
 		this.locationTypes = ['food', 'bar', 'park', 'museum'];
 		this.currentType = 'food';
 		this.locations = {};
+		this.readyLocs = false;
 
 		this.initLocations();
 	}
@@ -26,13 +27,17 @@ class TGMapLocs {
 
 	render() {
 		if (this.isDisabled||(!this.display)) {
-			this.removeLayer();
-			this.removeNameLayer();
+			this.discard();
 		}
 		else {
 			this.updateLayer();
 			if (this.dispNameLayer) this.updateNameLayer();
 		}
+	}
+
+	discard() {
+		this.removeLayer();
+		this.removeNameLayer();
 	}
 
 	initLocations() {
@@ -42,6 +47,8 @@ class TGMapLocs {
 	}
 
 	request() {
+		this.readyLocs = false;
+
 		this.tg.map.setTime('locationLoading', 'start', (new Date()).getTime());
 		
 		const options = {
@@ -55,6 +62,8 @@ class TGMapLocs {
 		.done((locations) => {
 
 			this.tg.map.setTime('locationLoading', 'end', (new Date()).getTime());
+
+			this.readyLocs = true;
 
 			//this.disabled(false);
 			this.tg.map.tgBB.cleanBB();
@@ -72,13 +81,16 @@ class TGMapLocs {
 		  this.locations[this.currentType] = locations;
 
 		  if (this.tg.map.currentMode === 'DC') {
-				this.calTargetNodes();
+				/*this.calTargetNodes();
 	  		this.calRealNodes();
 	  		this.calDispNodes(null, 1);
 
 	  		this.tg.map.tgBB.cleanBB();
 				this.tg.map.tgBB.addBBOfLocations();
 				this.updateNonOverlappedLocationNames();
+				*/
+
+		  	if (this.tg.map.readyControlPoints) this.tg.map.goToDcAgain();
 		  }
 
 		  this.render();
@@ -96,7 +108,7 @@ class TGMapLocs {
 		else {
 			this.tg.map.tgBB.cleanBB();
 			this.tg.map.tgBB.addBBOfLocations();
-			this.tg.map.tgLocs.updateNonOverlappedLocationNames();
+			this.updateNonOverlappedLocationNames();
 
 			this.render();
 		  this.tg.map.tgBB.render();
@@ -154,7 +166,7 @@ class TGMapLocs {
 			if (!loc.dispName) continue;
 
 			// only in final EM/DC map
-			if ((this.tg.map.frame === 0)||(this.tg.map.frame >= 10)) {
+			if (this.tg.map.currentMode !== 'INTERMEDIATE') {
 				const nameStyleFunc = 
 					this.mapUtil.textStyle(
 					loc.name, this.tg.opt.color.textLocation, 
