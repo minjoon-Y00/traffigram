@@ -209,9 +209,9 @@ class TGMap {
 	    this.requestLocations = true;
 	    console.log('zoomEnd');
 
-	  	for(let type of this.tgRoads.roadTypes) {
-	    	this.tgRoads.roadObjects[type] = [];
-	  	}
+	  	//for(let type of this.tgRoads.roadTypes) {
+	    //	this.tgRoads.roadObjects[type] = [];
+	  	//}
 
 	  }
 	  else {

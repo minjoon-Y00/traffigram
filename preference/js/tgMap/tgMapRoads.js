@@ -20,8 +20,12 @@ class TGMapRoads {
   	this.dispLayers = [];
   	this.rdpThreshold = this.tg.opt.constant.rdpThreshold.road;
 
+  	for(let zoom = this.tg.opt.minZoom; zoom <= this.tg.opt.maxZoom; zoom++) {
+  		this.roadObjects[zoom] = {};
+	  	for(let type of this.roadTypes) this.roadObjects[zoom][type] = [];
+  	}
+
 	  for(let type of this.roadTypes) {
-	  	this.roadObjects[type] = [];
 	  	this.layer[type] = null;
 	  	this.newRoadObjects[type] = [];
 		}
@@ -81,6 +85,9 @@ class TGMapRoads {
 
 		// TODO: test lenCoords vs coords.length
 
+		const zoom = this.tg.map.currentZoom;
+
+
 
 		if (geoType === 'LineString') {
 
@@ -94,7 +101,7 @@ class TGMapRoads {
 			for(let i = 0; i < coords.length; i++) {
 				coords[i].node = new Node(coords[i][1], coords[i][0]);
 			}
-			this.roadObjects[kind_detail].push(coords);
+			this.roadObjects[zoom][kind_detail].push(coords);
 			this.newRoadObjects[kind_detail].push(coords);
 
 			if (this.dispRoadTypes.indexOf(kind_detail) >= 0) {
@@ -115,7 +122,7 @@ class TGMapRoads {
 					coords[i][j].node = new Node(coords[i][j][1], coords[i][j][0]);
 				}
 			}
-			this.roadObjects[kind_detail].push(coords);
+			this.roadObjects[zoom][kind_detail].push(coords);
 			this.newRoadObjects[kind_detail].push(coords);
 
 			if (this.dispRoadTypes.indexOf(kind_detail) >= 0) {
@@ -127,6 +134,7 @@ class TGMapRoads {
 	}
 
 	processNewRoadObjects() {
+		/*
 		this.tg.map.setDataInfo(
 			'numHighwayLoading', 'set', 
 			this.roadObjects.motorway.length + this.roadObjects.trunk.length);
@@ -140,6 +148,7 @@ class TGMapRoads {
 			'numResidentialLoading', 'set', this.roadObjects.residential.length);
 		this.tg.map.setDataInfo('numRoadLoading', 'increase');
 		this.tg.map.setTime('roadLoading', 'end', (new Date()).getTime());
+		*/
 
 	  this.addNewLayer();
 
@@ -170,7 +179,7 @@ class TGMapRoads {
 		}
 
 		for(let type of this.dispRoadTypes) {
-			for(let road of this.roadObjects[type]) {
+			for(let road of this.roadObjects[currentZoom][type]) {
 				if (currentZoom < road.minZoom) {
 					continue;
 				}
