@@ -209,6 +209,8 @@ class TGMap {
 	    this.requestLocations = true;
 	    console.log('zoomEnd');
 
+	    this.tgLocs.initLocations();
+
 	  	//for(let type of this.tgRoads.roadTypes) {
 	    //	this.tgRoads.roadObjects[type] = [];
 	  	//}
@@ -268,7 +270,8 @@ class TGMap {
 
 		  if (this.currentMode === 'DC') {
 
-		  	if (this.tgLocs.readyLocs) this.goToDcAgain();
+		  	//if (this.tgLocs.readyLocs) this.goToDcAgain();
+		  	this.goToDcAgain();
 		  	
 		  }
 		  else if (this.currentMode === 'EM') {
@@ -556,7 +559,7 @@ class TGMap {
 
 		if (this.dispLocationLayer) {
 			this.tgLocs.calDispNodes(intermediate, value);
-			//this.tgLocs.render();
+			this.tgLocs.render();
 		}
 
   	if ((this.dispGridLayer)||(this.dispControlPointLayer)) {

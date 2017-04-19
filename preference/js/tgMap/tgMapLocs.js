@@ -80,21 +80,32 @@ class TGMapLocs {
 		  locations = this.tg.map.tgBB.getNonOverlappedLocationNames(locations);
 		  this.locations[this.currentType] = locations;
 
-		  if (this.tg.map.currentMode === 'DC') {
-				/*this.calTargetNodes();
+		  console.log('@ get locations.');
+
+		  if (this.tg.map.currentMode !== 'EM') {
+		  	if (!this.tg.map.tpsReady) console.log('@@@ not ready...');
+		  	console.log('@ get locations in dc.');
+
+				this.calTargetNodes();
 	  		this.calRealNodes();
 	  		this.calDispNodes(null, 1);
 
 	  		this.tg.map.tgBB.cleanBB();
 				this.tg.map.tgBB.addBBOfLocations();
 				this.updateNonOverlappedLocationNames();
-				*/
 
-		  	if (this.tg.map.readyControlPoints) this.tg.map.goToDcAgain();
+				this.render();
+		  	this.tg.map.tgBB.render();
+				
+
+		  	//if (this.tg.map.readyControlPoints) this.tg.map.goToDcAgain();
+		  }
+		  else {
+		  	this.render();
+		  	this.tg.map.tgBB.render();
 		  }
 
-		  this.render();
-		  this.tg.map.tgBB.render();
+
 		});
 	}
 

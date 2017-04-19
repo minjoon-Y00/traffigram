@@ -10,7 +10,7 @@ class TGMapWater {
   	this.dispNodeLayer = false;
 		this.nodeLayer = null;
 
-		this.waterObjects = [];
+		this.waterObjects = {};
 		this.newWaterObjects = [];
 		this.dispWaterObjects = [];
   	this.timerGetWaterData = null;
@@ -19,6 +19,10 @@ class TGMapWater {
   	this.rdpThreshold = this.tg.opt.constant.rdpThreshold.water;
   	this.timeInterval = 0;
   	this.timeIntervalArray = [];
+
+  	for(let zoom = this.tg.opt.minZoom; zoom <= this.tg.opt.maxZoom; zoom++) {
+  		this.waterObjects[zoom] = [];
+  	}
 	}
 
 	turn(tf) {
@@ -61,6 +65,7 @@ class TGMapWater {
 		}
 
 		const geoType = feature.getGeometry().getType();
+		const zoom = this.tg.map.currentZoom;
 
 		// ignores LineString, Point, ...
 		if ((geoType == 'Polygon')||(geoType == 'MultiPolygon')) {
@@ -93,7 +98,7 @@ class TGMapWater {
 					}
 				}
 				
-				this.waterObjects.push(coords);
+				this.waterObjects[zoom].push(coords);
 				this.newWaterObjects.push(coords);
 				this.dispWaterObjects.push(coords);
 			}
@@ -111,7 +116,7 @@ class TGMapWater {
 					}
 				}
 
-				this.waterObjects.push(coords);
+				this.waterObjects[zoom].push(coords);
 				this.newWaterObjects.push(coords);
 				this.dispWaterObjects.push(coords);
 			}			
@@ -154,7 +159,7 @@ class TGMapWater {
 
 		this.dispWaterObjects = [];
 
-		for(let water of this.waterObjects) {
+		for(let water of this.waterObjects[currentZoom]) {
 			if (currentZoom < water.minZoom) {
 				continue;
 			}
@@ -196,8 +201,8 @@ class TGMapWater {
 			}
 		}
 
-		console.log('/# of water : ' + this.waterObjects.length);
-		console.log('/# of disp water: ' + this.dispWaterObjects.length);
+		//console.log('/# of water : ' + this.waterObjects.length);
+		//console.log('/# of disp water: ' + this.dispWaterObjects.length);
 	}
 
 	updateDispWater() {
