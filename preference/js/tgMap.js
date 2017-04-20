@@ -508,6 +508,8 @@ class TGMap {
 		if (this.tg.graph.TPSTest()) {
 			console.log('TPS complete.');
 			this.tpsReady = true;
+
+			// TODO: if locations are not ready...
 		}
 		else {
 			//console.log('TPS failed...');
@@ -693,7 +695,7 @@ class TGMap {
 			this.resetUI();
 			this.tgIsochrone.disabled(true);
 			this.tgIsochrone.render();
-			this.initElements();
+			this.dispNodesOfallElementsAreOriginal();
 			this.frame = 0;
 
 		  $('#emModeRB').prop('checked', true);
