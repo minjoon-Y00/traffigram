@@ -80,11 +80,9 @@ class TGMapLocs {
 		  locations = this.tg.map.tgBB.getNonOverlappedLocationNames(locations);
 		  this.locations[this.currentType] = locations;
 
-		  console.log('@ get locations.');
-
 		  if (this.tg.map.currentMode !== 'EM') {
 		  	if (!this.tg.map.tpsReady) console.log('@@@ not ready...');
-		  	console.log(this.tg.map.tpsReady);
+		  	else console.log('@ tps ready');
 		  	console.log('@ get locations in dc.');
 
 				this.calTargetNodes();

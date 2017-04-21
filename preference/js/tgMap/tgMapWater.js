@@ -157,9 +157,6 @@ class TGMapWater {
 		const right = opt.box.right + opt.variable.lngMargin;
 		const left = opt.box.left - opt.variable.lngMargin;
 
-		console.log('latMargin: ' + opt.variable.latMargin);
-		console.log('lngMargin: ' + opt.variable.lngMargin);
-
 		this.dispWaterObjects = [];
 
 		for(let water of this.waterObjects[currentZoom]) {
@@ -260,7 +257,7 @@ class TGMapWater {
 		this.mapUtil.addLayer(layer);
 		this.dispLayers.push(layer);
 		
-		console.log('+ new water layer: ' + arr.length);
+		//console.log('+ new water layer: ' + arr.length);
 		if (this.dispNodeLayer) this.addNewNodeLayer();
 	}
 

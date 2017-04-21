@@ -417,8 +417,6 @@ class TGMap {
   			(opt.box.top - opt.box.bottom) * (opt.constant.marginPercent * 0.01);
 		opt.variable.lngMargin = 
   			(opt.box.right - opt.box.left) * (opt.constant.marginPercent * 0.01);
-  	console.log(opt.variable.latMargin);
-  	console.log(opt.variable.lngMargin);
 	}
 
 

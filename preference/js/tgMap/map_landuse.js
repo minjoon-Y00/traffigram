@@ -184,8 +184,8 @@ class TGMapLanduse {
 			}
 		}
 
-		console.log('/# of landuse : ' + this.landuseObjects.length);
-		console.log('/# of disp landuse: ' + this.dispLanduseObjects.length);
+		//console.log('/# of landuse : ' + this.landuseObjects.length);
+		//console.log('/# of disp landuse: ' + this.dispLanduseObjects.length);
 	}
 
 	updateDispLanduse() {
@@ -225,7 +225,7 @@ class TGMapLanduse {
 		this.mapUtil.addLayer(layer);
 		this.dispLayers.push(layer);
 		
-		console.log('+ new landuse layer: ' + arr.length);
+		//console.log('+ new landuse layer: ' + arr.length);
 		if (this.dispNodeLayer) this.addNewNodeLayer();
 	}
 
