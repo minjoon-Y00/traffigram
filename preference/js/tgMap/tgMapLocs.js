@@ -84,6 +84,7 @@ class TGMapLocs {
 
 		  if (this.tg.map.currentMode !== 'EM') {
 		  	if (!this.tg.map.tpsReady) console.log('@@@ not ready...');
+		  	console.log(this.tg.map.tpsReady);
 		  	console.log('@ get locations in dc.');
 
 				this.calTargetNodes();

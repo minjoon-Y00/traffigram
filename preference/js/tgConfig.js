@@ -200,6 +200,8 @@ const options = {
 	variable: {
 		latPerPx: 0,
 		lngPerPx: 0,	
+		latMargin: 0,
+		lngMargin: 0,
 	},
 
 	constant: {
@@ -218,6 +220,7 @@ const options = {
 		numLanduseClasses: 6,
 		shapePreservingDegree: 1.0,
 		maxSplitLevel: 0,
+		marginPercent: 30,
 	},
 
 }

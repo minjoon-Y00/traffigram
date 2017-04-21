@@ -309,7 +309,7 @@ class TGMap {
 		this.tgLocs.render();
 		this.tgBB.render();
 		*/
-		this.goToDc();
+		this.goToDc(false);
 	}
 
 	calSplittedGrid() {
@@ -398,26 +398,27 @@ class TGMap {
 	}
 
 	calBoundaryBox() {
+	  const opt = this.tg.opt;
 		const extent = this.olMap.getView().calculateExtent(this.olMap.getSize());
 	  const bottomLeft = 
 	  		ol.proj.transform(ol.extent.getBottomLeft(extent), 'EPSG:3857', 'EPSG:4326');
 	  const topRight = 
 	  		ol.proj.transform(ol.extent.getTopRight(extent), 'EPSG:3857', 'EPSG:4326');
 
-	  this.tg.opt.box.left = bottomLeft[0];
-	  this.tg.opt.box.bottom = bottomLeft[1];
-	  this.tg.opt.box.right = topRight[0];
-	  this.tg.opt.box.top = topRight[1];
+	  opt.box.left = bottomLeft[0];
+	  opt.box.bottom = bottomLeft[1];
+	  opt.box.right = topRight[0];
+	  opt.box.top = topRight[1];
 
-  	this.tg.opt.variable.latPerPx = 
-  			(this.tg.opt.box.top - this.tg.opt.box.bottom) / this.olMapHeightPX;
-  	this.tg.opt.variable.lngPerPx = 
-  			(this.tg.opt.box.right - this.tg.opt.box.left) / this.olMapWidthPX;
+  	opt.variable.latPerPx = (opt.box.top - opt.box.bottom) / this.olMapHeightPX;
+  	opt.variable.lngPerPx = (opt.box.right - opt.box.left) / this.olMapWidthPX;
 
-  	/*this.clickRange = {
-  		lat: height * this.tg.opt.constant.clickSensibility, 
-  		lng: width * this.tg.opt.constant.clickSensibility
-  	}*/
+  	opt.variable.latMargin = 
+  			(opt.box.top - opt.box.bottom) * (opt.constant.marginPercent * 0.01);
+		opt.variable.lngMargin = 
+  			(opt.box.right - opt.box.left) * (opt.constant.marginPercent * 0.01);
+  	console.log(opt.variable.latMargin);
+  	console.log(opt.variable.lngMargin);
 	}
 
 
