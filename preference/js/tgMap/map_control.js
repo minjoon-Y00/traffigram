@@ -284,9 +284,16 @@ class TGMapControl {
 	}*/
 
 	checkGridSplit() {
+		if (this.currentSplitLevel >= this.tg_.opt.constant.maxSplitLevel) {
+			console.log('complete: grid checking and control points.');
+			this.tg_.map.readyControlPoints = true;
 
-		if (this.currentSplitLevel >= this.tg_.opt.constant.maxSplitLevel) return;
-		
+			if (this.tg_.map.currentMode === 'DC') {
+				this.tg_.map.goToDcAgain();
+			}
+			return;
+		}
+
 		console.log(this.grids_);
 
 		/* let sumTimes = [];

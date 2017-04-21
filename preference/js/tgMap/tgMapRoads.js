@@ -169,10 +169,10 @@ class TGMapRoads {
 	calDispRoads() {
 		const currentZoom = this.tg.map.currentZoom;
 		const opt = this.tg.opt;
-		const top = opt.box.top;
-		const bottom = opt.box.bottom;
-		const right = opt.box.right;
-		const left = opt.box.left;
+		const top = opt.box.top + opt.variable.latMargin;
+		const bottom = opt.box.bottom - opt.variable.latMargin;
+		const right = opt.box.right + opt.variable.lngMargin;
+		const left = opt.box.left - opt.variable.lngMargin;
 
 		for(let type of this.roadTypes) {
 	  	this.dispRoads[type] = [];

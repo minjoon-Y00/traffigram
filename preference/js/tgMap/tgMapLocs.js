@@ -61,6 +61,8 @@ class TGMapLocs {
 		$.post("http://citygram.smusic.nyu.edu:2999/yelpSearch", options)
 		.done((locations) => {
 
+			console.log('received: locations');
+
 			this.tg.map.setTime('locationLoading', 'end', (new Date()).getTime());
 
 			this.readyLocs = true;

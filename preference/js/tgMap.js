@@ -210,11 +210,6 @@ class TGMap {
 	    console.log('zoomEnd');
 
 	    this.tgLocs.initLocations();
-
-	  	//for(let type of this.tgRoads.roadTypes) {
-	    //	this.tgRoads.roadObjects[type] = [];
-	  	//}
-
 	  }
 	  else {
 	    console.log('centerEnd');
@@ -266,13 +261,11 @@ class TGMap {
 						this.tg.opt.constant.timeToWaitForFinishGettingWaterData);
 
 
-			this.readyControlPoints = true;
+			
 
 		  if (this.currentMode === 'DC') {
-
 		  	//if (this.tgLocs.readyLocs) this.goToDcAgain();
-		  	this.goToDcAgain();
-		  	
+		  	//this.goToDcAgain();
 		  }
 		  else if (this.currentMode === 'EM') {
 		  	this.tgControl.calDispNodes('original');
@@ -505,14 +498,14 @@ class TGMap {
 		this.tg.graph.TPSSolve();
 
 		if (this.tg.graph.TPSTest()) {
-			console.log('TPS complete.');
+			console.log('complete: TPS(' + parseInt(this.tg.graph.factor) + ')');
 			this.tpsReady = true;
 
 			// TODO: if locations are not ready...
 		}
 		else {
-			//console.log('TPS failed...');
-			alert('TPS failed...');
+			//console.log('fail: TPS...');
+			alert('fail: TPS...');
 		}
 		//this.needToCalWarping = false;
 

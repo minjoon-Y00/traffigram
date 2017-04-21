@@ -15,8 +15,7 @@ class TGGraph {
 		this.calTargetNodesOfCtlPts();
 
 		this.tg.map.setTime('controlPointWarping', 'end', (new Date()).getTime());
-
-		console.log('factor = ' + this.factor);
+		//console.log('factor = ' + this.factor);
 	}
 
 	//

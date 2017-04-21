@@ -429,15 +429,12 @@ class TGMapWater {
 	}
 
 	checkPointsInWater(points) {
-		//const s = (new Date()).getTime();
-
 		const origin = this.tg.map.origin;
 		for(let point of points) {
 			this.isPointInWater(origin, point);
 		}
-
-		//const e = (new Date()).getTime();
-		//console.log('checkPointsInWater: ' + (e - s) + ' ms');
+		
+		console.log('complete: points in water');
 	}
 
 	isPointInWater(origin, point) {
@@ -511,8 +508,10 @@ class TGMapWater {
 
 		let sum = 0;
 		for(let time of this.timeIntervalArray) sum += time;
-		console.log('################ FIN.');
-		console.log('AVG: ' + (sum / this.timeIntervalArray.length));
+		//console.log('################ FIN.');
+		//console.log('AVG: ' + ());
+		const t = parseInt(sum / this.timeIntervalArray.length);
+		console.log('complete: getting water(' + t + ' ms)');
 		this.timeInterval = 0;
 		this.timeIntervalArray = [];
 
