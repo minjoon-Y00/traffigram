@@ -38,10 +38,15 @@ class TGMapWater {
 		else this.updateLayer();
 	}
 
+	discard() {
+		this.clearLayers();
+	}
+
 	init() {
 		const waterSource = new ol.source.VectorTile({
 		  format: new ol.format.TopoJSON(),
 		  projection: 'EPSG:3857',
+		  //preload: 1,
 		  tileGrid: new ol.tilegrid.createXYZ({maxZoom: 22}),
 		  url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
 		    + 'api_key=vector-tiles-c1X4vZE'
@@ -125,6 +130,9 @@ class TGMapWater {
 	}
 
 	processNewWaterObjects() {
+		
+		console.log('.');
+
 		if (this.timerFinishGettingWaterData) {
 			clearTimeout(this.timerFinishGettingWaterData);
 		}
@@ -136,7 +144,9 @@ class TGMapWater {
 		this.tg.map.setDataInfo('numWaterLoading', 'increase');
 		this.tg.map.setTime('waterLoading', 'end', (new Date()).getTime());
 
-		this.addNewLayer();
+		if (tg.map.currentMode === 'EM') {
+			this.addNewLayer();
+		}
 		this.newWaterObjects = [];
 
 		const cur = (new Date()).getTime();
@@ -429,15 +439,15 @@ class TGMapWater {
 	}
 
 	checkPointsInWater(points) {
-		const origin = this.tg.map.origin;
+		const original = this.tg.map.tgOrigin.origin.original;
 		for(let point of points) {
-			this.isPointInWater(origin, point);
+			this.isPointInWater(original, point);
 		}
 		
 		console.log('complete: points in water');
 	}
 
-	isPointInWater(origin, point) {
+	isPointInWater(original, point) {
 		let countIntersection = 0;
 		for(let water of this.dispWaterObjects) {
 			
@@ -448,7 +458,7 @@ class TGMapWater {
 					for(let j = 0; j < water[i].length - 1; j++) {
 
 						if (this.tg.util.intersects(
-							origin.lat, origin.lng, 
+							original.lat, original.lng, 
 							point.original.lat, point.original.lng, 
 		        	water[i][j][1], water[i][j][0], 
 		        	water[i][j + 1][1], water[i][j + 1][0])) {
@@ -463,7 +473,7 @@ class TGMapWater {
 						for(let k = 0; k < water[i][j].length - 1; k++) {
 
 							if (this.tg.util.intersects(
-								origin.lat, origin.lng, 
+								original.lat, original.lng, 
 								point.original.lat, point.original.lng, 
 			        	water[i][j][k][1], water[i][j][k][0], 
 			        	water[i][j][k + 1][1], water[i][j][k + 1][0])) {

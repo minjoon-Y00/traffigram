@@ -211,7 +211,7 @@ const options = {
 		timeToWaitForGettingWaterData: 0, // ms
 		timeToWaitForGettingRoadData: 50, // ms
 		timeToWaitForGettingData: 20, // ms
-		timeToWaitForFinishGettingWaterData: 1000, // ms
+		timeToWaitForFinishGettingWaterData: 500, // ms
 		rdpThreshold: {
 			road: 0.001, //0.0001 (about 10 meter)
 			water: 0.0005,

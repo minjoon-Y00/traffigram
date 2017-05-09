@@ -31,6 +31,10 @@ class TGMapLanduse {
 		else this.updateLayer();
 	}
 
+	discard() {
+		this.clearLayers();
+	}
+
 	initLanduseArray() {
 		// 6 classes of landuse
 		const numClass = this.tg.opt.constant.numLanduseClasses;
@@ -144,7 +148,9 @@ class TGMapLanduse {
 		this.tg.map.setDataInfo('numLanduseLoading', 'increase');
 		this.tg.map.setTime('landuseLoading', 'end', (new Date()).getTime());
 
-		this.addNewLayer();
+		if (tg.map.currentMode === 'EM') {
+			this.addNewLayer();
+		}
 		this.newLanduseObjects = this.initLanduseArray();
 	}
 

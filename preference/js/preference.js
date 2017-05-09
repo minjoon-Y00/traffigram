@@ -150,25 +150,6 @@ $("#dcSGapModeRB").change(function(ev){
 
 //
 //
-// Warping Mode
-//
-//
-/*$("#originalGridRB").change(function(ev){
-  if (ev.target.checked) tg.map.adjustGrid = 'none';
-})
-
-$("#noIntersectedGridRB").change(function(ev){
-  if (ev.target.checked) tg.map.adjustGrid = 'noIntersection';
-  tg.map.needToCalWarping = true;
-})
-
-$("#shapePreservingGridRB").change(function(ev){
-  if (ev.target.checked) tg.map.adjustGrid = 'shapePreserving';
-  tg.map.needToCalWarping = true;
-})*/
-
-//
-//
 // Locations
 //
 //

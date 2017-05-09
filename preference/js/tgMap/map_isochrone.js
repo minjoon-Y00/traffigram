@@ -31,10 +31,12 @@ class TGMapIsochrone {
 	updateLayer() {
 		if (!this.tg.graph.factor) return;
 
+		console.log('@ isochrone updateLayer');
+
 		const opt = this.tg.opt;
 		let features = [];
-		const originLat = this.tg.map.origin.lat;
-  	const originLng = this.tg.map.origin.lng;
+		const originLat = this.tg.map.tgOrigin.origin.real.lat;
+  	const originLng = this.tg.map.tgOrigin.origin.real.lng;
 
   	const heightLat = opt.box.top - opt.box.bottom; // 0.11
   	const maxTime = 

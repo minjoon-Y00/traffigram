@@ -41,11 +41,12 @@ class TGMapBoundingBox {
 		const iconLngPx = 50;
 		const dLat = (iconLatPx * this.tg.opt.variable.latPerPx) / 2;
 		const dLng = (iconLngPx * this.tg.opt.variable.lngPerPx) / 2;
+		const dispOrigin = this.tg.map.tgOrigin.origin.disp;
 		const bb = {
-			left: this.tg.map.origin.lng - dLng, 
-			right: this.tg.map.origin.lng + dLng,
-			top: this.tg.map.origin.lat - dLat,
-			bottom: this.tg.map.origin.lat + dLat,
+			left: dispOrigin.lng - dLng, 
+			right: dispOrigin.lng + dLng,
+			top: dispOrigin.lat - dLat,
+			bottom: dispOrigin.lat + dLat,
 			type: 'origin',
 		};
 

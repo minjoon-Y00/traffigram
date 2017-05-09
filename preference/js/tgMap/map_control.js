@@ -287,6 +287,7 @@ class TGMapControl {
 		if (this.currentSplitLevel >= this.tg_.opt.constant.maxSplitLevel) {
 			console.log('complete: grid checking and control points.');
 			this.tg_.map.readyControlPoints = true;
+			this.tg_.map.disableSGapAndGapButtons(false);
 
 			if (this.tg_.map.currentMode === 'DC') {
 				this.tg_.map.goToDcAgain();
@@ -768,8 +769,11 @@ class TGMapControl {
 		var dist
 
 		for(var i = 0; i < this.controlPoints.length; i++) {
-			dist = this.tg_.util.D2(this.controlPoints[i].original.lat, this.controlPoints[i].original.lng,
-				this.tg_.map.origin.lat, this.tg_.map.origin.lng)
+			dist = this.tg_.util.D2(
+				this.controlPoints[i].original.lat, 
+				this.controlPoints[i].original.lng,
+				this.tg_.map.tgOrigin.origin.original.lat, 
+				this.tg_.map.tgOrigin.origin.original.lng)
 			if (dist < threshold) return i
 		}
 

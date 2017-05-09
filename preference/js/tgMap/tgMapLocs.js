@@ -13,6 +13,7 @@ class TGMapLocs {
 		this.currentType = 'food';
 		this.locations = {};
 		this.readyLocs = false;
+	  this.needToDisplayLocs = false;
 
 		this.initLocations();
 	}
@@ -53,8 +54,8 @@ class TGMapLocs {
 		
 		const options = {
 			term: this.currentType,
-			lat: this.tg.map.origin.lat,
-			lng: this.tg.map.origin.lng,
+			lat: this.tg.map.tgOrigin.origin.original.lat,
+			lng: this.tg.map.tgOrigin.origin.original.lng,
 			radius: parseInt(this.tg.map.calMaxDistance('lat') * 1000),
 		}
 
@@ -83,23 +84,13 @@ class TGMapLocs {
 		  this.locations[this.currentType] = locations;
 
 		  if (this.tg.map.currentMode !== 'EM') {
-		  	if (!this.tg.map.tpsReady) console.log('@@@ not ready...');
-		  	else console.log('@ tps ready');
-		  	console.log('@ get locations in dc.');
-
-				this.calTargetNodes();
-	  		this.calRealNodes();
-	  		this.calDispNodes(null, 1);
-
-	  		this.tg.map.tgBB.cleanBB();
-				this.tg.map.tgBB.addBBOfLocations();
-				this.updateNonOverlappedLocationNames();
-
-				this.render();
-		  	this.tg.map.tgBB.render();
-				
-
-		  	//if (this.tg.map.readyControlPoints) this.tg.map.goToDcAgain();
+		  	if (!this.tg.map.tpsReady) {
+		  		console.log('@ Not ready so wait.');
+		  		this.needToDisplayLocs = true;
+		  	}
+		  	else {
+					this.displayLocsInDc();
+				}
 		  }
 		  else {
 		  	this.render();
@@ -108,6 +99,20 @@ class TGMapLocs {
 
 
 		});
+	}
+
+	displayLocsInDc() {
+		console.log('@ displayLocsInDc');
+		this.calTargetNodes();
+		this.calRealNodes();
+		this.calDispNodes(null, 1);
+
+		this.tg.map.tgBB.cleanBB();
+		this.tg.map.tgBB.addBBOfLocations();
+		this.updateNonOverlappedLocationNames();
+
+		this.render();
+  	this.tg.map.tgBB.render();
 	}
 
 	changeType(type) {
@@ -217,8 +222,8 @@ class TGMapLocs {
 	}
 
 	calTargetNodes() {
-		const originLat = this.tg.map.origin.lat;
-  	const originLng = this.tg.map.origin.lng;
+		const originLat = this.tg.map.tgOrigin.origin.original.lat;
+  	const originLng = this.tg.map.tgOrigin.origin.original.lng;
 		const transformTarget = this.tg.graph.transformTarget.bind(this.tg.graph);
 		const transformReal = this.tg.graph.transformReal.bind(this.tg.graph);
 

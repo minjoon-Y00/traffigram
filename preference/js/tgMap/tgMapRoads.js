@@ -44,6 +44,10 @@ class TGMapRoads {
 		else this.updateLayer();
 	}
 
+	discard() {
+		this.clearLayers();
+	}
+
 	init() {
 		const roadSource = new ol.source.VectorTile({
 	    format: new ol.format.TopoJSON(),
@@ -150,7 +154,9 @@ class TGMapRoads {
 		this.tg.map.setTime('roadLoading', 'end', (new Date()).getTime());
 		*/
 
-	  this.addNewLayer();
+		if (tg.map.currentMode === 'EM') {
+	  	this.addNewLayer();
+		}
 
 	  for(let type of this.roadTypes) {
 	  	this.newRoadObjects[type] = [];
