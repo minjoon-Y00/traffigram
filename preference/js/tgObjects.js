@@ -96,6 +96,9 @@ class TravelTimeApi {
 		locations.unshift(this.centerLocation);
 
 		const json = {locations:locations, costing:'auto'};
+		//const json = {locations:locations, costing:'bicycle'};
+		//const json = {locations:locations, costing:'pedestrian'};
+
 		let str = 'https://matrix.mapzen.com/one_to_many?json=';
 		str += JSON.stringify(json);
 		str += '&api_key=matrix-qUpjg6W';

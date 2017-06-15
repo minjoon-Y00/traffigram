@@ -302,7 +302,8 @@ class TGMapLocs {
 		$('#modal-distance').text('appr. ' + parseInt(loc.dist / 1000) + ' km');
 
 		const time = this.tg.map.calTimeFromLatLng(
-				loc.node.original.lat, loc.node.original.lng);
+				loc.node.target.lat, loc.node.target.lng);
+				//loc.node.original.lat, loc.node.original.lng);
 
 		if (time > 0) {
 			$('#modal-travel-time').text('appr. ' + parseInt(time / 60) + ' min.');

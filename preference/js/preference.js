@@ -1,5 +1,4 @@
 var tg = new TGPreference('ol_map');
-//tg.map.updateLayers();
 
 //if ($("#waterCB").is(':checked')) tg.map.dispWaterLayer = true;
 
@@ -23,45 +22,6 @@ function debug2() {
 }
 
 
-
-
-/*$("#noIntersectionCB").change(function(ev){ 
-	tg.map.noIntersection = ev.target.checked
-});
-
-function getTravelTime() {
-	tg.map.tgGrid.getTravelTime()
-}
-
-function saveTravelTime() {
-	tg.map.tgGrid.saveTravelTimeToFile()
-}
-
-function splitGrid() {
-	tg.data.splitGrid()
-}
-
-function calWarping() {
-	tg.graph.calWarping()
-
-	if (tg.map.noIntersection) {
-		tg.map.tgControl.makeNonIntersectedGrid();
-	}
-
-	tg.map.updateLayers()
-}
-
-function calTPS() {
-	tg.graph.TPSSolve()
-
-	if (tg.graph.TPSTest()) console.log('TPS complete.')
-	else console.log('TPS failed...')
-}
-
-function moveElements() {
-	tg.map.moveElements()
-	tg.map.updateLayers()
-}*/
 
 
 //
@@ -183,6 +143,23 @@ $("#locationNoRB").change(function(ev){
 	} 
 });
 
+/*
+ * Radio Buttons for the mode of transportation
+ */
+$("#transportAutoRB").change(function(ev){
+	if (ev.target.checked) {
+	} 
+});
+
+$("#transportBicycleRB").change(function(ev){
+	if (ev.target.checked) {
+	} 
+});
+
+$("#transportWalkRB").change(function(ev){
+	if (ev.target.checked) {
+	} 
+});
 
 
 //

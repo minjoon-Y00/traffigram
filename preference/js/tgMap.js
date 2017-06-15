@@ -235,9 +235,9 @@ class TGMap {
 
 		if (this.currentMode === 'DC') {
 			this.dispNodesOfallElementsAreOriginal();
-			this.tgRoads.discard();
-			this.tgWater.discard();
-			this.tgLanduse.discard();
+			//this.tgRoads.discard();
+			//this.tgWater.discard();
+			//this.tgLanduse.discard();
 
 			this.tgLocs.discard();
 			this.tgOrigin.discard();
@@ -265,6 +265,8 @@ class TGMap {
 		this.disableSGapAndGapButtons(true);
 
 	  this.tgControl.calculateControlPoints(() => {
+
+	  	console.log('received: control points.');
 
 	  	this.timerCheckGridSplitInTgMap = 
 				setTimeout(
@@ -334,14 +336,9 @@ class TGMap {
 	// When mouse button is clicked
 	//
 	onClicked(e) {
-		var pt = ol.proj.transform([e.coordinate[0], e.coordinate[1]], 'EPSG:3857', 'EPSG:4326');
-		var clickedLat = pt[1];
-		var clickedLng = pt[0];
-
-		this.tgLocs.showModal(clickedLat, clickedLng);
-
-		//console.log(pt[1]);
-		//console.log(pt[0]);
+		const pt = 
+				ol.proj.transform([e.coordinate[0], e.coordinate[1]], 'EPSG:3857', 'EPSG:4326');
+		this.tgLocs.showModal(pt[1], pt[0]); // lat, lng
 	}
 
   dispMapInfo() {
@@ -389,8 +386,6 @@ class TGMap {
 		this.requestLocations = true;
 		this.olMap.getView().setCenter(ol.proj.fromLonLat([lng, lat]));
 		this.tgOrigin.setOrigin(lat, lng);
-		//this.origin.lng = lng
-		//this.origin.lat = lat
 		this.tgControl.setOrigin(lat, lng);
 		this.tgOrigin.render();
 	}
@@ -815,8 +810,11 @@ class TGMap {
 		if (!this.tg.graph.factor) return 0;
 		
 		const centerLat = this.tgOrigin.origin.original.lat;
-  	const centerLng = this.tgOrigin.origin.original.lng;
-  	return this.tg.util.D2(centerLat, centerLng, lat, lng) * this.tg.graph.factor;
+  	const centerLng = this.tgOrigin.origin.original.lng;// / this.tg.graph.toLat();
+  	const inLat = lat;
+  	const inLng = lng; // / this.tg.graph.toLat();
+  	//return this.tg.util.D2(centerLat, centerLng, lat, lng) * this.tg.graph.factor;
+  	return this.tg.util.D2(centerLat, centerLng, inLat, inLng) * this.tg.graph.factor;
 	}
 
 	calDistanceFromLatLng(lat, lng) {
