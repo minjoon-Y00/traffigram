@@ -45,6 +45,9 @@ class TGMapControl {
 		 */
 		this.grids_ = [];
 
+		this.transportTypes = ['auto', 'bicycle', 'pedestrian'];
+		this.currentTransport = 'auto';
+
 		/** 
 		 * api object for getting travel time.
 		 * @private @type {!TravelTimeApi>} 
@@ -55,7 +58,10 @@ class TGMapControl {
 		 * Map object to cache travel time.
 		 * @private @type {!Map>} 
 		 */
-		this.travelTimeCache_ = new Map();
+		this.travelTimeCache_ = {};
+		for(let type of this.transportTypes) {
+			this.travelTimeCache_[type] = new Map();
+		}
 
 		/** 
 		 * Current Split Level.
@@ -63,16 +69,13 @@ class TGMapControl {
 		 */
 		this.currentSplitLevel = 0;
 
+		
+
 	}
 
-	/**
-	 * Calculate the control points.
-	 */
-	calculateControlPoints(cb) {
-		// make a control point array.
+	calUniformControlPoints() {
 		const latFactor = 0.02 / 1; //0.01;
 		const lngFactor = 0.026 / 1; //0.013;
-
 		const box = this.tg_.opt.box;
 		const eps = 0.000001;
 		const zoomFactor = Math.pow(2, (13 - this.tg_.map.currentZoom));
@@ -93,7 +96,6 @@ class TGMapControl {
 				{lat: step.lat / 2, 
 				lng: step.lng / 2};
 
-
 		// 12 -> 0.04 
 		// 13 -> 0.02 100 / 2
 		// 14 -> 0.01 100 / 1
@@ -101,6 +103,7 @@ class TGMapControl {
 		this.controlPoints = [];
 		this.numLatInColumn_ = 0;
 		let indexOfControlPoint = 0;
+
 		for(let lat = end.lat; 
 				lat > start.lat - halfStep.lat - eps; 
 				lat -= step.lat) {
@@ -119,6 +122,25 @@ class TGMapControl {
 			this.numLatInColumn_++;
 		}
 
+		/*console.log('box.top: ' + box.top); // 40.7914382000846
+		console.log('box.bottom): ' + box.bottom); // 40.66742401978021
+		console.log('box.right): ' + box.right); // -73.947356711586
+		console.log('box.left): ' + box.left); // -74.04405928841399
+		console.log('start.lat: ' + start.lat);
+		console.log('end.lat: ' + end.lat);
+		console.log('start.lng: ' + start.lng);
+		console.log('end.lng: ' + end.lng);*/
+		// 40.68, 40.70, 40.72, 40.74, 40.76, 40.78
+		// -74.04, -74.02, -74.0, -73.98, -73.96,
+
+		/*console.log('numLngInRow: ' + this.numLngInRow_);
+		console.log('numLatInColumn: ' + this.numLatInColumn_);
+		console.log('# of controlPoints: ' + this.controlPoints.length);
+		console.log(this.controlPoints);
+		*/
+	}
+
+	calGridLines() {
 		// make an array for grid lines
 		this.gridLines_ = [];
 
@@ -140,26 +162,11 @@ class TGMapControl {
 			}
 		}
 
-		/*console.log('box.top: ' + box.top); // 40.7914382000846
-		console.log('box.bottom): ' + box.bottom); // 40.66742401978021
-		console.log('box.right): ' + box.right); // -73.947356711586
-		console.log('box.left): ' + box.left); // -74.04405928841399
-		console.log('start.lat: ' + start.lat);
-		console.log('end.lat: ' + end.lat);
-		console.log('start.lng: ' + start.lng);
-		console.log('end.lng: ' + end.lng);*/
-		// 40.68, 40.70, 40.72, 40.74, 40.76, 40.78
-		// -74.04, -74.02, -74.0, -73.98, -73.96,
+		// console.log('# of gridLines: ' + this.gridLines_.length);
+		// console.log(this.gridLines_);
+	}
 
-		/*console.log('numLngInRow: ' + this.numLngInRow_);
-		console.log('numLatInColumn: ' + this.numLatInColumn_);
-		console.log('# of controlPoints: ' + this.controlPoints.length);
-		console.log('# of gridLines: ' + this.gridLines_.length);
-		console.log(this.controlPoints);
-		console.log(this.gridLines_);
-		*/
-
-
+	calConnectedNodes() {
 		// find connected nodes per each control point.
 		for(let indexLat = 0; indexLat < this.numLatInColumn_; indexLat++) {
 			for(let indexLng = 0; indexLng < this.numLngInRow_; indexLng++) {
@@ -180,7 +187,9 @@ class TGMapControl {
 					this.getControlPoint2D_(indexLat, indexLng).connectedNodes.push(candidate);
 			}
 		}
+	}
 
+	calGrids() {
 		// make grids object
 		// 0 - 1 - 6 - 5
 		//1 - 2 - 7 - 6
@@ -204,10 +213,11 @@ class TGMapControl {
 				this.makeGridObjectByPointIndexes(pointIndexes);
 			}
 		}
-
 		//console.log(this.grids_);
+	}
 
-		// check location of which we have to get a travel time by looking for in cache.
+	getTravelTimeOfControlPoints(cb) {
+		// check locations that need a travel time by looking in cache.
 		let newPointsArray = [];
 		this.travelTimeApi_.clearEndLocations();
 
@@ -215,13 +225,13 @@ class TGMapControl {
 			const key = point.original.lat.toFixed(3) + ' ' + point.original.lng.toFixed(3);
 			
 			// if a point is not in the cache, add it to travelTimeApi.
-			if (!this.travelTimeCache_.has(key)) {
+			if (!this.travelTimeCache_[this.currentTransport].has(key)) {
 				this.travelTimeApi_.addEndLocation(point.original.lat, point.original.lng);
 				newPointsArray.push(point);
 			}
 			// if a point is in the cache, assign traveltime to it.
 			else {
-				point.travelTime = this.travelTimeCache_.get(key);
+				point.travelTime = this.travelTimeCache_[this.currentTransport].get(key);
 			}
 		}
 
@@ -232,7 +242,7 @@ class TGMapControl {
 		if (newPointsArray.length > 0) {
 			this.tg_.map.setTime('travelTimeLoading', 'start', (new Date()).getTime());
 
-			this.travelTimeApi_.getTravelTime(times => {
+			this.travelTimeApi_.getTravelTime(this.currentTransport, (times) => {
 
 				if (times.length !== newPointsArray.length) {
 					console.log('ERROR: times.length !== newPointsArray.length');
@@ -245,7 +255,7 @@ class TGMapControl {
 					const point = newPointsArray[index];
 					const key = point.original.lat.toFixed(3) + ' ' + point.original.lng.toFixed(3);
 					point.travelTime = times[index];
-					this.travelTimeCache_.set(key, point.travelTime);
+					this.travelTimeCache_[this.currentTransport].set(key, point.travelTime);
 				}
 
 				this.tg_.map.setDataInfo('numNewTravelTime', 'set', newPointsArray.length);
@@ -259,7 +269,17 @@ class TGMapControl {
 		else {
 			if (cb) cb();
 		}
+	}
 
+	/**
+	 * Calculate the control points.
+	 */
+	calculateControlPoints(cb) {
+		this.calUniformControlPoints();
+		this.calGridLines();
+		this.calConnectedNodes();
+		this.calGrids();
+		this.getTravelTimeOfControlPoints(cb);
 	}
 
 	/*calculateAnglesOfControlPoints() {
@@ -427,7 +447,7 @@ class TGMapControl {
 			for(let point of newControlPoints) {
 				const key = point.original.lat.toFixed(3) + ' ' + point.original.lng.toFixed(3);
 				point.travelTime = times[index];
-				this.travelTimeCache_.set(key, times[index]);
+				this.travelTimeCache_[this.currentTransport].set(key, times[index]);
 				index++;
 			}
 
@@ -707,7 +727,9 @@ class TGMapControl {
 	setOrigin(lat, lng) {
 		this.travelTimeApi_.setStartLocation(lat, lng);
 		this.travelTimeApi_.clearEndLocations();
-		this.travelTimeCache_.clear();
+		for(let type of this.transportTypes) {
+			this.travelTimeCache_[type].clear();
+		}
 	}
 
 	/*getTravelTime() {

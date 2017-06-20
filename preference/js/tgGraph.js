@@ -6,12 +6,12 @@ class TGGraph {
 		this.tpsReal = null;
 	}
 
-	calWarping() {
+	calWarping(noNeedToCalFactor) {
 		this.tg.map.setTime('controlPointWarping', 'start', (new Date()).getTime());
 
 		var ctlPts = this.tg.map.tgControl.controlPoints;
 		this.calDegrees(ctlPts);
-		this.factor = this.calFactor(ctlPts);
+		if (!noNeedToCalFactor) this.factor = this.calFactor(ctlPts);
 		this.calTargetNodesOfCtlPts();
 
 		this.tg.map.setTime('controlPointWarping', 'end', (new Date()).getTime());

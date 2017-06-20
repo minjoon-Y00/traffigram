@@ -148,16 +148,19 @@ $("#locationNoRB").change(function(ev){
  */
 $("#transportAutoRB").change(function(ev){
 	if (ev.target.checked) {
+		tg.map.changeTransportType('auto');
 	} 
 });
 
 $("#transportBicycleRB").change(function(ev){
 	if (ev.target.checked) {
+		tg.map.changeTransportType('bicycle');
 	} 
 });
 
 $("#transportWalkRB").change(function(ev){
 	if (ev.target.checked) {
+		tg.map.changeTransportType('pedestrian');
 	} 
 });
 

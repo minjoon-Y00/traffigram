@@ -303,7 +303,35 @@ class TGMap {
 
 	}
 
-	goToDcAgain() {
+	changeTransportType(type) {
+		if (this.tgControl.currentTransport === type) return;
+
+		this.disableSGapAndGapButtons(true);
+
+		this.tgControl.currentTransport = type;
+		this.tgControl.getTravelTimeOfControlPoints(() => {
+
+			this.disableSGapAndGapButtons(false);
+
+			if (this.currentMode === 'DC') {
+				this.goToDcAgain(false);
+				//this.goToDcAgain(true);
+			}
+
+
+			/*
+			if (this.currentMode === 'EM') {
+		  	this.tgControl.calDispNodes('original');
+		  }
+
+		  this.updateLayers();
+			this.dispMapInfo();
+			*/
+
+		});
+	}
+
+	goToDcAgain(noNeedToCalFactor = false) {
 		this.frame = 0;
 		this.moveElementsByValue('intermediateReal', 0.0, false);
 		this.currentMode = 'EM';
@@ -315,7 +343,7 @@ class TGMap {
 		this.tgLocs.render();
 		this.tgBB.render();
 		*/
-		this.goToDc(false);
+		this.goToDc(false, noNeedToCalFactor);
 
 		if (this.tgLocs.needToDisplayLocs) {
 			this.tgLocs.displayLocsInDc();
@@ -492,12 +520,12 @@ class TGMap {
 		}
 	}
 
-	goToDc(animation = true) {
+	goToDc(animation = true, noNeedToCalFactor = false) {
 		//if (this.currentMode === 'DC') return;
 
 		//if ((this.needToCalWarping)||(!this.tpsReady)) {
 		// cal warping
-		this.tg.graph.calWarping();
+		this.tg.graph.calWarping(noNeedToCalFactor);
 
 		if (this.warpingMode === 'noIntersection') {
 			this.tgControl.makeNonIntersectedGrid();

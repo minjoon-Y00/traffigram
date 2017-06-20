@@ -60,7 +60,7 @@ class TravelTimeApi {
 		this.locations = [];
 	}
 
-	getTravelTime(cb) {
+	getTravelTime(mode, cb) {
 		//console.log('***');
 		//console.log(this.locations);
 
@@ -73,14 +73,16 @@ class TravelTimeApi {
 		this.callbackFunction = cb;
 		this.queuedLocations = this.deepClone(this.locations);
 
-		this.requestTravelTime();
+		this.requestTravelTime(mode);
 	}
 
 	deepClone(input) {
 		return JSON.parse(JSON.stringify(input));
 	}
 
-	requestTravelTime() {
+	// mode: 'auto', 'bicycle' or 'pedestrian'
+	requestTravelTime(mode) {
+
 		let locations;
 
 		// if locations.length > max (e.g. 49, 50, ...)
@@ -95,7 +97,8 @@ class TravelTimeApi {
 
 		locations.unshift(this.centerLocation);
 
-		const json = {locations:locations, costing:'auto'};
+		const json = {locations: locations, costing: mode};
+		//const json = {locations:locations, costing:'auto'};
 		//const json = {locations:locations, costing:'bicycle'};
 		//const json = {locations:locations, costing:'pedestrian'};
 
