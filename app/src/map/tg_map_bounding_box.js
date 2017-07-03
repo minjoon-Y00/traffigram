@@ -549,9 +549,14 @@ class TgMapBoundingBox {
 		
 		for(let loc of this.locs) {
 				const nameStyleFunc = 
-					this.mapUtil.textStyle(
-					loc.name, viz.color.textLocation, 
-					viz.font.text, loc.offsetX, loc.offsetY, loc.align);
+					this.mapUtil.textStyle({
+						text: loc.name, 
+						color: viz.color.textLocation, 
+						font: viz.font.text, 
+						offsetX: loc.offsetX, 
+						offsetY: loc.offsetY, 
+						align: loc.align
+					});
 
 				this.mapUtil.addFeatureInFeatures(arr,
 					new ol.geom.Point(
@@ -613,8 +618,11 @@ class TgMapBoundingBox {
 
 		for(let name in this.nonOverlappedPlaces) {
 			const place = this.nonOverlappedPlaces[name];
-			const styleFunc = this.mapUtil.textStyleFunc(
-					name, viz.color.textPlace, viz.font.places);
+			const styleFunc = this.mapUtil.textStyle({
+					text: name, 
+					color: viz.color.textPlace, 
+					font: viz.font.places,
+				});
 
 			this.mapUtil.addFeatureInFeatures(
 				arr, new ol.geom.Point(place), styleFunc);

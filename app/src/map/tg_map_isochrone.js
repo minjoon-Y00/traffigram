@@ -92,7 +92,11 @@ class TgMapIsochrone {
 			this.mapUtil.addFeatureInFeatures(
 					features, new ol.geom.Point(
 							[originLng + offsetLng, originLat]),
-							this.mapUtil.textStyle(text, viz.color.isochroneText, viz.font.isochroneText));
+							this.mapUtil.textStyle({
+									text: text, 
+									color: viz.color.isochroneText, 
+									font: viz.font.isochroneText,
+								}));
 		}
 
 		this.removeLayer();

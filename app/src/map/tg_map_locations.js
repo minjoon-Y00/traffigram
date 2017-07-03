@@ -78,7 +78,7 @@ class TgMapLocations {
 			this.map.tgBB.cleanBB();
 
 			// save non-overlapped locations
-			locations = this.map.tgBB.getNonOverlappedLocations(locations);
+			//locations = this.map.tgBB.getNonOverlappedLocations(locations);
 
 			for(let element of locations) {
 				element.node = new TgLocationNode(element.lat, element.lng);
@@ -192,9 +192,14 @@ class TgMapLocations {
 			// only in final EM/DC map
 			if (this.map.currentMode !== 'INTERMEDIATE') {
 				const nameStyleFunc = 
-					this.mapUtil.textStyle(
-					loc.name, viz.color.textLocation, 
-					viz.font.text, loc.nameOffsetX, loc.nameOffsetY, loc.nameAlign);
+					this.mapUtil.textStyle({
+						text: loc.name, 
+						color: viz.color.textLocation, 
+						font: viz.font.text, 
+						offsetX: loc.nameOffsetX, 
+						offsetY: loc.nameOffsetY, 
+						align: loc.nameAlign
+					});
 
 				this.mapUtil.addFeatureInFeatures(arr,
 					new ol.geom.Point(

@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -482,8 +482,7 @@ var TgNode = function TgNode(orgLat, orgLng) {
 module.exports = TgNode;
 
 /***/ }),
-/* 2 */,
-/* 3 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -491,9 +490,9 @@ module.exports = TgNode;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var TgData = __webpack_require__(18);
-var TgMap = __webpack_require__(20);
-var TgGraph = __webpack_require__(19);
+var TgData = __webpack_require__(17);
+var TgMap = __webpack_require__(19);
+var TgGraph = __webpack_require__(18);
 
 var TgApp = function TgApp(map_id) {
 	_classCallCheck(this, TgApp);
@@ -513,7 +512,7 @@ var TgApp = function TgApp(map_id) {
 module.exports = TgApp;
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -649,13 +648,13 @@ var TgTavelTimeApi = function () {
 module.exports = TgTavelTimeApi;
 
 /***/ }),
-/* 5 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var TgApp = __webpack_require__(3);
+var TgApp = __webpack_require__(2);
 
 var tg = new TgApp('ol_map');
 
@@ -928,7 +927,7 @@ $("#randomSlider").on("slideStop", function(evt) {
 });*/
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1669,7 +1668,14 @@ var TgMapBoundingBox = function () {
 				for (var _iterator9 = this.locs[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
 					var loc = _step9.value;
 
-					var nameStyleFunc = this.mapUtil.textStyle(loc.name, viz.color.textLocation, viz.font.text, loc.offsetX, loc.offsetY, loc.align);
+					var nameStyleFunc = this.mapUtil.textStyle({
+						text: loc.name,
+						color: viz.color.textLocation,
+						font: viz.font.text,
+						offsetX: loc.offsetX,
+						offsetY: loc.offsetY,
+						align: loc.align
+					});
 
 					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([loc.lng, loc.lat]), nameStyleFunc);
 				}
@@ -1757,7 +1763,11 @@ var TgMapBoundingBox = function () {
 
 			for (var name in this.nonOverlappedPlaces) {
 				var place = this.nonOverlappedPlaces[name];
-				var styleFunc = this.mapUtil.textStyleFunc(name, viz.color.textPlace, viz.font.places);
+				var styleFunc = this.mapUtil.textStyle({
+					text: name,
+					color: viz.color.textPlace,
+					font: viz.font.places
+				});
 
 				this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point(place), styleFunc);
 			}
@@ -1774,7 +1784,7 @@ var TgMapBoundingBox = function () {
 module.exports = TgMapBoundingBox;
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1788,8 +1798,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * Class for control points.
  */
 var tgUtil = __webpack_require__(0);
-var TgTravelTimeApi = __webpack_require__(4);
-var TgControlPoint = __webpack_require__(16);
+var TgTravelTimeApi = __webpack_require__(3);
+var TgControlPoint = __webpack_require__(15);
 
 var TgMapControl = function () {
 	function TgMapControl(map, data, graph) {
@@ -2924,7 +2934,9 @@ var TgMapControl = function () {
 					// add text
 					var text = point.travelTime != null ? point.travelTime.toString() : '-';
 					text += ',' + point.index;
-					this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([point.disp.lng, point.disp.lat]), this.mapUtil.textStyle(text, viz.color.text, viz.font.text));
+					this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([point.disp.lng, point.disp.lat]), this.mapUtil.textStyle({
+						text: text, color: viz.color.text, font: viz.font.text
+					}));
 				}
 			} catch (err) {
 				_didIteratorError15 = true;
@@ -3442,7 +3454,7 @@ var TgMapControl = function () {
 module.exports = TgMapControl;
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3543,7 +3555,11 @@ var TgMapIsochrone = function () {
 				// text
 				offsetLng = (radiusPx - 13) * lngPerPx;
 				var text = _time / 60 + '';
-				this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng + offsetLng, originLat]), this.mapUtil.textStyle(text, viz.color.isochroneText, viz.font.isochroneText));
+				this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng + offsetLng, originLat]), this.mapUtil.textStyle({
+					text: text,
+					color: viz.color.isochroneText,
+					font: viz.font.isochroneText
+				}));
 			}
 
 			this.removeLayer();
@@ -3559,7 +3575,7 @@ var TgMapIsochrone = function () {
 module.exports = TgMapIsochrone;
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4346,7 +4362,7 @@ var TgMapLanduse = function () {
 module.exports = TgMapLanduse;
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4357,7 +4373,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var tgUtil = __webpack_require__(0);
-var TgLocationNode = __webpack_require__(17);
+var TgLocationNode = __webpack_require__(16);
 
 var TgMapLocations = function () {
 	function TgMapLocations(map, data, graph) {
@@ -4466,7 +4482,7 @@ var TgMapLocations = function () {
 				_this.map.tgBB.cleanBB();
 
 				// save non-overlapped locations
-				locations = _this.map.tgBB.getNonOverlappedLocations(locations);
+				//locations = this.map.tgBB.getNonOverlappedLocations(locations);
 
 				var _iteratorNormalCompletion2 = true;
 				var _didIteratorError2 = false;
@@ -4619,7 +4635,14 @@ var TgMapLocations = function () {
 
 					// only in final EM/DC map
 					if (this.map.currentMode !== 'INTERMEDIATE') {
-						var nameStyleFunc = this.mapUtil.textStyle(loc.name, viz.color.textLocation, viz.font.text, loc.nameOffsetX, loc.nameOffsetY, loc.nameAlign);
+						var nameStyleFunc = this.mapUtil.textStyle({
+							text: loc.name,
+							color: viz.color.textLocation,
+							font: viz.font.text,
+							offsetX: loc.nameOffsetX,
+							offsetY: loc.nameOffsetY,
+							align: loc.nameAlign
+						});
 
 						this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), nameStyleFunc);
 					}
@@ -4849,7 +4872,7 @@ var TgMapLocations = function () {
 module.exports = TgMapLocations;
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4962,7 +4985,7 @@ var TgMapOrigin = function () {
 module.exports = TgMapOrigin;
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5110,7 +5133,13 @@ var TgMapPlaces = function () {
 
 			for (var name in this.newPlaceObjects) {
 				var place = this.newPlaceObjects[name];
-				var styleFunc = this.mapUtil.textStyleFunc(name, viz.color.textPlace, viz.font.places);
+				var styleFunc = this.mapUtil.textStyle({
+					text: name,
+					color: viz.color.textPlace,
+					strokeColor: viz.color.textPlaceStroke,
+					strokeWidth: viz.width.textPlaceStroke,
+					font: viz.font.places
+				});
 
 				this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point(place), styleFunc);
 			}
@@ -5132,7 +5161,13 @@ var TgMapPlaces = function () {
 
 			for (var name in this.dispPlaceObjects) {
 				var place = this.dispPlaceObjects[name];
-				var styleFunc = this.mapUtil.textStyleFunc(name, viz.color.textPlace, viz.font.places);
+				var styleFunc = this.mapUtil.textStyle({
+					text: name,
+					color: viz.color.textPlace,
+					strokeColor: viz.color.textPlaceStroke,
+					strokeWidth: viz.width.textPlaceStroke,
+					font: viz.font.places
+				});
 
 				this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point(place), styleFunc);
 			}
@@ -5266,7 +5301,7 @@ var TgMapPlaces = function () {
 module.exports = TgMapPlaces;
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6466,7 +6501,7 @@ var TgMapRoads = function () {
 module.exports = TgMapRoads;
 
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6592,20 +6627,25 @@ var TgMapUtil = function () {
 		}
 	}, {
 		key: 'textStyleFunc',
-		value: function textStyleFunc(text, color, font) {
-			var offsetX = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
-			var offsetY = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0;
-			var align = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 'center';
+		value: function textStyleFunc(param) {
+			var textOptions = {};
+			var color = param.color || '#F00';
+			var strokeColor = null;
+			var strokeWidth = 2;
+
+			textOptions.fill = new ol.style.Fill({ color: color });
+			textOptions.font = param.font || '16pt Source Sans Pro';
+			textOptions.text = param.text || 'unknown';
+			textOptions.textAlign = param.align || 'center';
+
+			if (param.offsetX) textOptions.offsetX = param.offsetX;
+			if (param.offsetY) textOptions.offsetY = param.offsetY;
+			if (param.strokeColor) strokeColor = param.strokeColor;
+			if (param.strokeWidth) strokeWidth = param.strokeWidth;
+			if (strokeColor) textOptions.stroke = new ol.style.Stroke({ color: strokeColor, width: strokeWidth });
 
 			return new ol.style.Style({
-				text: new ol.style.Text({
-					textAlign: align,
-					font: font,
-					text: text,
-					fill: new ol.style.Fill({ color: color }),
-					offsetX: offsetX,
-					offsetY: offsetY
-				})
+				text: new ol.style.Text(textOptions)
 			});
 		}
 	}, {
@@ -6629,7 +6669,7 @@ var TgMapUtil = function () {
 module.exports = TgMapUtil;
 
 /***/ }),
-/* 15 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7809,7 +7849,7 @@ var TgMapWater = function () {
 module.exports = TgMapWater;
 
 /***/ }),
-/* 16 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7844,7 +7884,7 @@ var TgControlPoint = function (_TgNode) {
 module.exports = TgControlPoint;
 
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7881,7 +7921,7 @@ var TgLocationNode = function (_TgNode) {
 module.exports = TgLocationNode;
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7950,9 +7990,10 @@ module.exports = {
 				residential: '#FFF'
 			},
 			roadNode: '#E00B62',
-			text: '#686453',
-			textPlace: 'rgb(150, 122, 89)',
-			textLocation: 'rgb(122, 62, 44)',
+			text: '#000', // '#686453',
+			textPlace: '#000', //'rgb(150, 122, 89)',
+			textPlaceStroke: '#FFF',
+			textLocation: '#000', //'rgb(122, 62, 44)', 
 			water: 'rgb(163, 204, 255)',
 			waterNode: '#0071BC'
 		},
@@ -7970,7 +8011,8 @@ module.exports = {
 				secondary: 2,
 				tertiary: 2,
 				residential: 1
-			}
+			},
+			textPlaceStroke: 2
 		},
 
 		radius: {
@@ -7994,8 +8036,8 @@ module.exports = {
 
 		font: {
 			isochroneText: '24px Source Sans Pro',
-			places: '14px Source Sans Pro',
-			text: '14px Source Sans Pro'
+			places: '20pt Source Sans Pro Regular',
+			text: '16pt Source Sans Pro Regular'
 		}
 	},
 
@@ -8064,7 +8106,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8326,7 +8368,7 @@ var TgGraph = function () {
 module.exports = TgGraph;
 
 /***/ }),
-/* 20 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8336,17 +8378,17 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var TgControl = __webpack_require__(7);
-var TgRoads = __webpack_require__(13);
-var TgWater = __webpack_require__(15);
-var TgLanduse = __webpack_require__(9);
-var TgPlaces = __webpack_require__(12);
-var TgLocations = __webpack_require__(10);
-var TgIsochrone = __webpack_require__(8);
-var TgBoundingBox = __webpack_require__(6);
-var TgOrigin = __webpack_require__(11);
+var TgControl = __webpack_require__(6);
+var TgRoads = __webpack_require__(12);
+var TgWater = __webpack_require__(14);
+var TgLanduse = __webpack_require__(8);
+var TgPlaces = __webpack_require__(11);
+var TgLocations = __webpack_require__(9);
+var TgIsochrone = __webpack_require__(7);
+var TgBoundingBox = __webpack_require__(5);
+var TgOrigin = __webpack_require__(10);
 var tgUtil = __webpack_require__(0);
-var TgMapUtil = __webpack_require__(14);
+var TgMapUtil = __webpack_require__(13);
 
 var TgMap = function () {
 	function TgMap(tg, map_id) {
@@ -8397,7 +8439,7 @@ var TgMap = function () {
 
 		// variables
 
-		//this.tgBB.turn(true);
+		this.tgBB.turn(true);
 
 		this.tgWater.turn(true);
 		$('#dispWaterCB').prop('checked', true);

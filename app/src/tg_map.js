@@ -55,7 +55,7 @@ class TgMap {
 
 	  // variables
 
-	  //this.tgBB.turn(true);
+	  this.tgBB.turn(true);
 
 	  this.tgWater.turn(true);
 	  $('#dispWaterCB').prop('checked', true);

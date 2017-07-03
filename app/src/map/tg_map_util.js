@@ -102,16 +102,26 @@ class TgMapUtil {
 		})
 	}
 
-	textStyleFunc(text, color, font, offsetX = 0, offsetY = 0, align = 'center') {
+	textStyleFunc(param) {
+		let textOptions = {};
+		const color = param.color || '#F00';
+		let strokeColor = null;
+		let strokeWidth = 2;
+
+		textOptions.fill = new ol.style.Fill({color: color});
+		textOptions.font = param.font || '16pt Source Sans Pro';
+		textOptions.text = param.text || 'unknown';
+		textOptions.textAlign = param.align || 'center';
+
+		if (param.offsetX) textOptions.offsetX = param.offsetX;
+		if (param.offsetY) textOptions.offsetY = param.offsetY;
+		if (param.strokeColor) strokeColor = param.strokeColor;
+		if (param.strokeWidth) strokeWidth = param.strokeWidth;
+		if (strokeColor) textOptions.stroke = 
+				new ol.style.Stroke({color: strokeColor, width: strokeWidth});
+
 	  return new ol.style.Style({
-	  	text: new ol.style.Text({
-	    	textAlign: align,
-	    	font: font,
-	    	text: text,
-	    	fill: new ol.style.Fill({color: color}),
-	    	offsetX: offsetX,
-	    	offsetY: offsetY,
-	    })
+	  	text: new ol.style.Text(textOptions)
 	  });
 	}
 

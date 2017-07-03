@@ -133,8 +133,13 @@ class TgMapPlaces {
 
 		for(let name in this.newPlaceObjects) {
 			const place = this.newPlaceObjects[name];
-			const styleFunc = this.mapUtil.textStyleFunc(
-					name, viz.color.textPlace, viz.font.places);
+			const styleFunc = this.mapUtil.textStyle({
+					text: name, 
+					color: viz.color.textPlace, 
+					strokeColor: viz.color.textPlaceStroke,
+					strokeWidth: viz.width.textPlaceStroke,
+					font: viz.font.places,
+				});
 
 			this.mapUtil.addFeatureInFeatures(
 				arr, new ol.geom.Point(place), styleFunc);
@@ -156,8 +161,13 @@ class TgMapPlaces {
 
 		for(let name in this.dispPlaceObjects) {
 			const place = this.dispPlaceObjects[name];
-			const styleFunc = this.mapUtil.textStyleFunc(
-					name, viz.color.textPlace, viz.font.places);
+			const styleFunc = this.mapUtil.textStyle({
+					text: name, 
+					color: viz.color.textPlace, 
+					strokeColor: viz.color.textPlaceStroke,
+					strokeWidth: viz.width.textPlaceStroke,
+					font: viz.font.places,
+				});
 
 			this.mapUtil.addFeatureInFeatures(
 				arr, new ol.geom.Point(place), styleFunc);

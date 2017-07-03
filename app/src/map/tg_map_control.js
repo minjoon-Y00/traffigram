@@ -868,7 +868,9 @@ class TgMapControl {
 					features,
 					new ol.geom.Point(
 							[point.disp.lng, point.disp.lat]), 
-							this.mapUtil.textStyle(text, viz.color.text, viz.font.text));
+							this.mapUtil.textStyle({
+									text: text, color: viz.color.text, font: viz.font.text
+								}));
 		}
 
 		this.removeControlPointLayer();

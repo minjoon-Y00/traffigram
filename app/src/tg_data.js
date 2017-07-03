@@ -63,9 +63,10 @@ module.exports = {
 				residential: '#FFF',
 			},
 			roadNode: '#E00B62',
-			text: '#686453',
-			textPlace: 'rgb(150, 122, 89)',
-			textLocation: 'rgb(122, 62, 44)', 
+			text: '#000', // '#686453',
+			textPlace: '#000', //'rgb(150, 122, 89)',
+			textPlaceStroke: '#FFF',
+			textLocation: '#000', //'rgb(122, 62, 44)', 
 			water: 'rgb(163, 204, 255)',
 			waterNode: '#0071BC',
 		},
@@ -84,6 +85,7 @@ module.exports = {
 				tertiary: 2,
 				residential: 1,
 			},
+			textPlaceStroke: 2,
 		},
 
 		radius: {
@@ -107,8 +109,8 @@ module.exports = {
 
 		font: {
 			isochroneText: '24px Source Sans Pro',
-			places: '14px Source Sans Pro',
-			text: '14px Source Sans Pro',
+			places: '20pt Source Sans Pro Regular',
+			text: '16pt Source Sans Pro Regular',
 		},
 	},
 
