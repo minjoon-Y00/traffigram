@@ -1,8 +1,76 @@
 const TgApp = require('./tg_app');
 
+// create the main app object
 const tg = new TgApp('ol_map');
 
-//if ($("#waterCB").is(':checked')) tg.map.dispWaterLayer = true;
+// set origin
+const myHome = {
+	address: '4225 24th Ave. NE, Seattle, WA',
+	lat: 47.6631772,
+	lng: -122.3104933,
+};
+
+/* 
+followings are also possible:
+
+const myHome = {
+	address: '4225 24th Ave. NE Seattle',
+	// if lat and lng are omitted, the app search them automatically.
+};
+
+const myHome = {
+	lat: 47.706846,
+	lng: -122.302471,
+	// providing lat and lng make the app faster.
+};*/
+
+const myOffice = {
+	address: '3960 Benton Lane NE, Seattle, WA',
+}
+
+const otherPlace = {
+	address: '1000 4th Ave, Seattle, WA 98104',
+}
+
+// default: myHome
+tg.setOriginAndGo(myHome);
+//tg.setOriginAndGo(myOffice);
+
+// ui for origin setting
+$("#yourHomeInput").val(myHome.address);
+$("#yourOfficeInput").val(myOffice.address);
+$("#otherPlaceInput").val(otherPlace.address);
+
+$("#originYourLocationRB").change(function(ev){
+  if (ev.target.checked) {
+  	tg.initMap();
+  	tg.setCurrentLocationToOrigin();
+  }
+});
+
+$("#originYourHomeRB").change(function(ev){
+  if (ev.target.checked) {
+  	tg.initMap();
+  	tg.setOriginAndGo(myHome);
+  }
+});
+
+$("#originYourOfficeRB").change(function(ev){
+  if (ev.target.checked) {
+  	tg.initMap();
+  	tg.setOriginAndGo(myOffice);
+  }
+});
+
+$("#originOtherPlaceRB").change(function(ev){
+  if (ev.target.checked) {
+  	tg.initMap();
+  	otherPlace.address = $("#otherPlaceInput").val();
+  	tg.setOriginAndGo(otherPlace);
+  }
+});
+
+
 
 
 
@@ -148,19 +216,19 @@ $("#locationNoRB").change(function(ev){
 /*
  * Radio Buttons for the mode of transportation
  */
-$("#transportAutoRB").change(function(ev){
+$("#transportVehiclesRB").change(function(ev){
 	if (ev.target.checked) {
 		tg.map.changeTransportType('auto');
 	} 
 });
 
-$("#transportBicycleRB").change(function(ev){
+$("#transportBicyclesRB").change(function(ev){
 	if (ev.target.checked) {
 		tg.map.changeTransportType('bicycle');
 	} 
 });
 
-$("#transportWalkRB").change(function(ev){
+$("#transportOnFootRB").change(function(ev){
 	if (ev.target.checked) {
 		tg.map.changeTransportType('pedestrian');
 	} 

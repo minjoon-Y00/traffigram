@@ -31,7 +31,26 @@
           <!-- Origin -->
 
           <h4>Origin</h4>
+
           <div class="radio">
+            <label><input type="radio" name="originRadio" id="originYourLocationRB" >Your current GPS location</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="originYourHomeRB" checked>Your home</label>
+          </div>
+          <input type="text" id="yourHomeInput" style="width:200px">
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="originYourOfficeRB">Your office</label>
+          </div>
+          <input type="text" id="yourOfficeInput" style="width:200px">
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="originOtherPlaceRB">Other place</label>
+          </div>
+          <input type="text" id="otherPlaceInput" style="width:200px" placeholder="Enter Here">
+
+
+
+          <!--<div class="radio">
             <label><input type="radio" name="centerRadio" id="centerDowntownSeattleRB"checked>Downtown, Seattle</label>
           </div>
           <div class="radio">
@@ -51,11 +70,9 @@
 
           <div class="radio">
             <label><input type="radio" name="centerRadio" id="centerCitadelleQuebecRB">La Citadelle de Québec, Québec</label>
-          </div>
+          </div>-->
 
-          <div class="radio">
-            <label><input type="radio" name="centerRadio" id="centerYourPositionRB">Your Position</label>
-          </div>
+          
           <hr>
 
            <!-- EM <-> DC -->
@@ -113,13 +130,13 @@
           <h4>Mode of Transportation</h4>
 
           <div class="radio">
-            <label><input type="radio" name="transportRadio" id="transportAutoRB" checked>Auto</label>
+            <label><input type="radio" name="transportRadio" id="transportVehiclesRB" checked>Vehicles</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="transportRadio" id="transportBicycleRB">Bicycle</label>
+            <label><input type="radio" name="transportRadio" id="transportBicyclesRB">Bicycles</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="transportRadio" id="transportWalkRB">Pedestrian</label>
+            <label><input type="radio" name="transportRadio" id="transportOnFootRB">On Foot</label>
           </div>
 
           <hr>

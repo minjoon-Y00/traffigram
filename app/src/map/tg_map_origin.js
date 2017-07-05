@@ -38,13 +38,17 @@ class TgMapOrigin {
 		this.origin = new TgNode(lat, lng);
 	}
 
+	getOrigin() {
+		return this.origin;
+	}
+
 	updateLayer() {
 		const viz = this.data.viz;
 		let arr = [];
 
 		this.mapUtil.addFeatureInFeatures(arr,
 			new ol.geom.Point([this.origin.disp.lng, this.origin.disp.lat]), 
-			this.mapUtil.imageStyleFunc(viz.image.origin));
+			this.mapUtil.imageStyleFunc(viz.image.origin[this.map.tgControl.currentTransport]));
 
 		this.removeLayer();
 		this.layer = this.mapUtil.olVectorFromFeatures(arr);
@@ -89,6 +93,47 @@ class TgMapOrigin {
 			this.origin.disp.lat = this.origin[kind].lat;
 			this.origin.disp.lng = this.origin[kind].lng;
 		}
+	}
+
+	searchLatLngByAddress(address) {
+		return new Promise((resolve, reject) => {
+			const key = 'vector-tiles-c1X4vZE';
+			const url = 'https://search.mapzen.com/v1/search?api_key=' + key + '&text=' + address;
+			$.get(url)
+			.done((data) => {
+				resolve({
+					lat: (data.bbox[1] + data.bbox[3]) / 2,
+					lng: (data.bbox[0] + data.bbox[2]) / 2,
+				});
+			})
+			.fail(function(error) {
+		    reject(error);
+		  });
+		});
+	}
+
+	getCurrentLocation() {
+		return new Promise((resolve, reject) => {
+			const timeOutForGettingLocation = 5000; // 5 sec
+			let timeOutTimer;
+
+			if (!navigator.geolocation) {
+		    reject('Geolocation is not supported by this browser.');
+		  }
+		  else {
+		  	navigator.geolocation.getCurrentPosition((pos) => {
+		  		clearTimeout(timeOutTimer);
+		  		resolve({
+		  			lat: pos.coords.latitude,
+		  			lng: pos.coords.longitude,
+		  		});
+		  	});
+
+		  	timeOutTimer = setTimeout(() => {
+		  		reject('Time out for getting geolocation');
+		  	}, timeOutForGettingLocation);
+		  }
+		});
 	}
 }
 

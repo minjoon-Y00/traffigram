@@ -488,26 +488,47 @@ module.exports = TgNode;
 "use strict";
 
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var TgData = __webpack_require__(17);
 var TgMap = __webpack_require__(19);
 var TgGraph = __webpack_require__(18);
 
-var TgApp = function TgApp(map_id) {
-	_classCallCheck(this, TgApp);
+var TgApp = function () {
+	function TgApp(map_id) {
+		_classCallCheck(this, TgApp);
 
-	//this.opt = options
-	//this.util = new TGUtil()
-	this.graph = new TgGraph(this);
-	this.data = TgData;
-	this.map = new TgMap(this, map_id);
+		this.graph = new TgGraph(this);
+		this.data = TgData;
+		this.map = new TgMap(this, map_id);
 
-	this.map.setArea('seattleDowntown');
-	//this.map.setArea('seattleUw');
-	//this.map.setArea('nyNyu');
-	//this.map.setArea('sfLombard');
-};
+		//this.map.setArea('seattleDowntown');
+		//this.map.setArea('seattleUw');
+		//this.map.setArea('nyNyu');
+		//this.map.setArea('sfLombard');
+	}
+
+	_createClass(TgApp, [{
+		key: 'setCurrentLocationToOrigin',
+		value: function setCurrentLocationToOrigin() {
+			this.map.setOriginByCurrentLocation();
+		}
+	}, {
+		key: 'setOriginAndGo',
+		value: function setOriginAndGo(param) {
+			this.map.setOrigin(param);
+		}
+	}, {
+		key: 'initMap',
+		value: function initMap() {
+			this.map.initMap();
+		}
+	}]);
+
+	return TgApp;
+}();
 
 module.exports = TgApp;
 
@@ -656,10 +677,74 @@ module.exports = TgTavelTimeApi;
 
 var TgApp = __webpack_require__(2);
 
+// create the main app object
 var tg = new TgApp('ol_map');
 
-//if ($("#waterCB").is(':checked')) tg.map.dispWaterLayer = true;
+// set origin
+var myHome = {
+	address: '4225 24th Ave. NE, Seattle, WA',
+	lat: 47.6631772,
+	lng: -122.3104933
+};
 
+/* 
+followings are also possible:
+
+const myHome = {
+	address: '4225 24th Ave. NE Seattle',
+	// if lat and lng are omitted, the app search them automatically.
+};
+
+const myHome = {
+	lat: 47.706846,
+	lng: -122.302471,
+	// providing lat and lng make the app faster.
+};*/
+
+var myOffice = {
+	address: '3960 Benton Lane NE, Seattle, WA'
+};
+
+var otherPlace = {
+	address: '1000 4th Ave, Seattle, WA 98104'
+
+	// default: myHome
+};tg.setOriginAndGo(myHome);
+//tg.setOriginAndGo(myOffice);
+
+// ui for origin setting
+$("#yourHomeInput").val(myHome.address);
+$("#yourOfficeInput").val(myOffice.address);
+$("#otherPlaceInput").val(otherPlace.address);
+
+$("#originYourLocationRB").change(function (ev) {
+	if (ev.target.checked) {
+		tg.initMap();
+		tg.setCurrentLocationToOrigin();
+	}
+});
+
+$("#originYourHomeRB").change(function (ev) {
+	if (ev.target.checked) {
+		tg.initMap();
+		tg.setOriginAndGo(myHome);
+	}
+});
+
+$("#originYourOfficeRB").change(function (ev) {
+	if (ev.target.checked) {
+		tg.initMap();
+		tg.setOriginAndGo(myOffice);
+	}
+});
+
+$("#originOtherPlaceRB").change(function (ev) {
+	if (ev.target.checked) {
+		tg.initMap();
+		otherPlace.address = $("#otherPlaceInput").val();
+		tg.setOriginAndGo(otherPlace);
+	}
+});
 
 function zoomIn() {
 	tg.map.zoomIn();
@@ -795,19 +880,19 @@ $("#locationNoRB").change(function (ev) {
 /*
  * Radio Buttons for the mode of transportation
  */
-$("#transportAutoRB").change(function (ev) {
+$("#transportVehiclesRB").change(function (ev) {
 	if (ev.target.checked) {
 		tg.map.changeTransportType('auto');
 	}
 });
 
-$("#transportBicycleRB").change(function (ev) {
+$("#transportBicyclesRB").change(function (ev) {
 	if (ev.target.checked) {
 		tg.map.changeTransportType('bicycle');
 	}
 });
 
-$("#transportWalkRB").change(function (ev) {
+$("#transportOnFootRB").change(function (ev) {
 	if (ev.target.checked) {
 		tg.map.changeTransportType('pedestrian');
 	}
@@ -3212,7 +3297,7 @@ var TgMapControl = function () {
 								//if ((line1.start.intersected)||(line1.end.intersected)||
 								//(line2.start.intersected)||(line2.end.intersected)) continue;
 
-								if (tg.util.intersects(line1.start.real.lat, line1.start.real.lng, line1.end.real.lat, line1.end.real.lng, line2.start.real.lat, line2.start.real.lng, line2.end.real.lat, line2.end.real.lng)) {
+								if (tgUtil.intersects(line1.start.real.lat, line1.start.real.lng, line1.end.real.lat, line1.end.real.lng, line2.start.real.lat, line2.start.real.lng, line2.end.real.lat, line2.end.real.lng)) {
 
 									if (line1.end.index !== line2.start.index && line1.start.index !== line2.end.index) {
 
@@ -4930,12 +5015,17 @@ var TgMapOrigin = function () {
 			this.origin = new TgNode(lat, lng);
 		}
 	}, {
+		key: 'getOrigin',
+		value: function getOrigin() {
+			return this.origin;
+		}
+	}, {
 		key: 'updateLayer',
 		value: function updateLayer() {
 			var viz = this.data.viz;
 			var arr = [];
 
-			this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([this.origin.disp.lng, this.origin.disp.lat]), this.mapUtil.imageStyleFunc(viz.image.origin));
+			this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([this.origin.disp.lng, this.origin.disp.lat]), this.mapUtil.imageStyleFunc(viz.image.origin[this.map.tgControl.currentTransport]));
 
 			this.removeLayer();
 			this.layer = this.mapUtil.olVectorFromFeatures(arr);
@@ -4976,6 +5066,46 @@ var TgMapOrigin = function () {
 				this.origin.disp.lat = this.origin[kind].lat;
 				this.origin.disp.lng = this.origin[kind].lng;
 			}
+		}
+	}, {
+		key: 'searchLatLngByAddress',
+		value: function searchLatLngByAddress(address) {
+			return new Promise(function (resolve, reject) {
+				var key = 'vector-tiles-c1X4vZE';
+				var url = 'https://search.mapzen.com/v1/search?api_key=' + key + '&text=' + address;
+				$.get(url).done(function (data) {
+					resolve({
+						lat: (data.bbox[1] + data.bbox[3]) / 2,
+						lng: (data.bbox[0] + data.bbox[2]) / 2
+					});
+				}).fail(function (error) {
+					reject(error);
+				});
+			});
+		}
+	}, {
+		key: 'getCurrentLocation',
+		value: function getCurrentLocation() {
+			return new Promise(function (resolve, reject) {
+				var timeOutForGettingLocation = 5000; // 5 sec
+				var timeOutTimer = void 0;
+
+				if (!navigator.geolocation) {
+					reject('Geolocation is not supported by this browser.');
+				} else {
+					navigator.geolocation.getCurrentPosition(function (pos) {
+						clearTimeout(timeOutTimer);
+						resolve({
+							lat: pos.coords.latitude,
+							lng: pos.coords.longitude
+						});
+					});
+
+					timeOutTimer = setTimeout(function () {
+						reject('Time out for getting geolocation');
+					}, timeOutForGettingLocation);
+				}
+			});
 		}
 	}]);
 
@@ -7931,7 +8061,7 @@ module.exports = {
 	zoom: {
 		max: 18,
 		min: 10,
-		init: 14,
+		init: 13,
 		current: 0,
 		disp: {
 			motorway: { min: 1, max: 20 },
@@ -8024,18 +8154,22 @@ module.exports = {
 		image: {
 			anchor: 'img/anchor.png',
 			location: {
-				'food': 'img/location_food.png',
-				'bar': 'img/location_bar.png',
-				'park': 'img/location_park.png',
-				'museum': 'img/location_museum.png'
+				food: 'img/location_food.png',
+				bar: 'img/location_bar.png',
+				park: 'img/location_park.png',
+				museum: 'img/location_museum.png'
 			},
-			origin: 'img/map_origin.png',
+			origin: {
+				auto: 'img/origin_car.png',
+				bicycle: 'img/origin_bicycles.png',
+				pedestrian: 'img/origin_foot.png'
+			},
 			red10min: 'img/10min.png'
 			//red100min: 'img/100min.png',
 		},
 
 		font: {
-			isochroneText: '24px Source Sans Pro',
+			isochroneText: '24px PT Sans Narrow',
 			places: '20pt Source Sans Pro Regular',
 			text: '16pt Source Sans Pro Regular'
 		}
@@ -8492,7 +8626,7 @@ var TgMap = function () {
 		this.timerFrame = null;
 		this.animationSpeed = 50; // ms
 		this.tpsReady = false;
-		this.requestLocations = true;
+		this.requestLocations = false;
 		this.timerCheckGridSplitInTgMap = null;
 
 		this.readyControlPoints = false;
@@ -8589,6 +8723,8 @@ var TgMap = function () {
 		value: function recalculateAndDraw() {
 			var _this2 = this;
 
+			console.log('recalculateAndDraw');
+
 			this.tpsReady = false;
 			this.resetTime();
 			this.resetDataInfo();
@@ -8623,25 +8759,27 @@ var TgMap = function () {
 				this.requestLocations = false;
 			}
 
-			this.readyControlPoints = false;
-			this.disableSGapAndGapButtons(true);
+			if (this.tgOrigin.getOrigin()) {
+				this.readyControlPoints = false;
+				this.disableSGapAndGapButtons(true);
 
-			this.tgControl.calculateControlPoints(function () {
+				this.tgControl.calculateControlPoints(function () {
 
-				console.log('received: control points.');
+					console.log('received: control points.');
 
-				_this2.timerCheckGridSplitInTgMap = setTimeout(_this2.calSplittedGrid.bind(_this2), _this2.data.time.waitForFinishGettingWaterData);
+					_this2.timerCheckGridSplitInTgMap = setTimeout(_this2.calSplittedGrid.bind(_this2), _this2.data.time.waitForFinishGettingWaterData);
 
-				if (_this2.currentMode === 'DC') {
-					//if (this.tgLocs.readyLocs) this.goToDcAgain();
-					//this.goToDcAgain();
-				} else if (_this2.currentMode === 'EM') {
-					_this2.tgControl.calDispNodes('original');
-				}
+					if (_this2.currentMode === 'DC') {
+						//if (this.tgLocs.readyLocs) this.goToDcAgain();
+						//this.goToDcAgain();
+					} else if (_this2.currentMode === 'EM') {
+						_this2.tgControl.calDispNodes('original');
+					}
 
-				_this2.updateLayers();
-				_this2.dispMapInfo();
-			});
+					_this2.updateLayers();
+					_this2.dispMapInfo();
+				});
+			}
 
 			if (this.dispPlaceLayer) {
 				this.tgPlaces.clearLayers();
@@ -8666,6 +8804,8 @@ var TgMap = function () {
 				if (_this3.currentMode === 'DC') {
 					_this3.goToDcAgain(false);
 					//this.goToDcAgain(true);
+				} else {
+					_this3.tgOrigin.render();
 				}
 
 				/*
@@ -8742,32 +8882,57 @@ var TgMap = function () {
    */
 		}
 	}, {
-		key: 'setCenterUserPosition',
-		value: function setCenterUserPosition() {
-			if (!navigator.geolocation) {
-				alert('Geolocation is not supported by this browser.');
-				return;
-			}
-			navigator.geolocation.getCurrentPosition(saveCurrentLatLng.bind(this));
+		key: 'setOriginByCurrentLocation',
+		value: function setOriginByCurrentLocation() {
+			var _this4 = this;
 
-			function saveCurrentLatLng(position) {
-				this.setCenter(position.coords.latitude, position.coords.longitude);
-			}
+			this.tgOrigin.getCurrentLocation().then(function (data) {
+				console.log('got lat & lng from geolocation.');
+				_this4.setCenter(data.lat, data.lng);
+			}).catch(function (error) {
+				console.error(error);
+				if (!_this4.tgOrigin.getOrigin()) setDefaultOrigin();
+			});
 		}
 	}, {
 		key: 'setArea',
 		value: function setArea(area) {
-			this.originChanged = true;
 			this.setCenter(this.data.center[area].lat, this.data.center[area].lng);
+		}
+	}, {
+		key: 'setOrigin',
+		value: function setOrigin(param) {
+			var _this5 = this;
+
+			if (param.lat && param.lng) {
+				this.setCenter(param.lat, param.lng);
+			} else if (param.address) {
+				this.tgOrigin.searchLatLngByAddress(param.address).then(function (data) {
+					console.log('got lat & lng from search api.');
+					_this5.setCenter(data.lat, data.lng);
+				}).catch(function (error) {
+					console.error(error);
+					if (!_this5.tgOrigin.getOrigin()) setDefaultOrigin();
+				});
+			} else {
+				console.error('invalid param in setOrigin()');
+				if (!this.tgOrigin.getOrigin()) setDefaultOrigin();
+			}
+
+			function setDefaultOrigin() {
+				console.log('use default lat & lng.');
+				this.setCenter(this.data.origin.default.lat, this.data.origin.default.lng);
+			}
 		}
 	}, {
 		key: 'setCenter',
 		value: function setCenter(lat, lng) {
-			this.requestLocations = true;
 			this.olMap.getView().setCenter(ol.proj.fromLonLat([lng, lat]));
 			this.tgOrigin.setOrigin(lat, lng);
 			this.tgControl.setOrigin(lat, lng);
 			this.tgOrigin.render();
+			this.originChanged = true;
+			this.requestLocations = true;
 		}
 	}, {
 		key: 'setZoom',
@@ -8926,6 +9091,14 @@ var TgMap = function () {
 				this.reachDc();
 			}
 		}
+
+		/*
+   * move elements by value 0 - 1
+   * intermediate: 'intermediateReal' or 'intermediateTarget'
+   * value: 0.0 - 1.0
+   * render: t/f
+   */
+
 	}, {
 		key: 'moveElementsByValue',
 		value: function moveElementsByValue(intermediate, value) {

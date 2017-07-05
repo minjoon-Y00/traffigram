@@ -2,7 +2,7 @@ module.exports = {
 	zoom: {
 		max: 18,
 		min: 10,
-		init: 14,
+		init: 13,
 		current: 0,
 		disp: {
 			motorway: {min: 1, max: 20},
@@ -97,18 +97,22 @@ module.exports = {
 		image: {
 			anchor: 'img/anchor.png',
 			location: {
-				'food': 'img/location_food.png',
-				'bar': 'img/location_bar.png',
-				'park': 'img/location_park.png',
-				'museum': 'img/location_museum.png',
+				food: 'img/location_food.png',
+				bar: 'img/location_bar.png',
+				park: 'img/location_park.png',
+				museum: 'img/location_museum.png',
 			},
-			origin: 'img/map_origin.png',
+			origin: {
+				auto: 'img/origin_car.png',
+				bicycle: 'img/origin_bicycles.png',
+				pedestrian: 'img/origin_foot.png',
+			}, 
 			red10min: 'img/10min.png',
 			//red100min: 'img/100min.png',
 		},
 
 		font: {
-			isochroneText: '24px Source Sans Pro',
+			isochroneText: '24px PT Sans Narrow',
 			places: '20pt Source Sans Pro Regular',
 			text: '16pt Source Sans Pro Regular',
 		},

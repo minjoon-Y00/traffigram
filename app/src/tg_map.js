@@ -110,7 +110,7 @@ class TgMap {
 		this.timerFrame = null;
 		this.animationSpeed = 50; // ms
 		this.tpsReady = false;
-		this.requestLocations = true;
+		this.requestLocations = false;
 		this.timerCheckGridSplitInTgMap = null;
 
 		this.readyControlPoints = false;
@@ -202,6 +202,8 @@ class TgMap {
 	//
 	recalculateAndDraw() {
 
+		console.log('recalculateAndDraw');
+
 		this.tpsReady = false;
 		this.resetTime();
 		this.resetDataInfo();
@@ -242,38 +244,31 @@ class TgMap {
 			this.requestLocations = false;
 		}
 
-		this.readyControlPoints = false;
-		this.disableSGapAndGapButtons(true);
+		if (this.tgOrigin.getOrigin()) {
+			this.readyControlPoints = false;
+			this.disableSGapAndGapButtons(true);
 
-	  this.tgControl.calculateControlPoints(() => {
+		  this.tgControl.calculateControlPoints(() => {
 
-	  	console.log('received: control points.');
+		  	console.log('received: control points.');
 
-	  	this.timerCheckGridSplitInTgMap = 
-				setTimeout(
-						this.calSplittedGrid.bind(this), 
-						this.data.time.waitForFinishGettingWaterData);
+		  	this.timerCheckGridSplitInTgMap = 
+					setTimeout(
+							this.calSplittedGrid.bind(this), 
+							this.data.time.waitForFinishGettingWaterData);
 
+			  if (this.currentMode === 'DC') {
+			  	//if (this.tgLocs.readyLocs) this.goToDcAgain();
+			  	//this.goToDcAgain();
+			  }
+			  else if (this.currentMode === 'EM') {
+			  	this.tgControl.calDispNodes('original');
+			  }
 
-			
-
-		  if (this.currentMode === 'DC') {
-		  	//if (this.tgLocs.readyLocs) this.goToDcAgain();
-		  	//this.goToDcAgain();
-		  }
-		  else if (this.currentMode === 'EM') {
-		  	this.tgControl.calDispNodes('original');
-		  }
-
-		  this.updateLayers();
-			this.dispMapInfo();
-
-	  });	
-
-
-
-
-
+			  this.updateLayers();
+				this.dispMapInfo();
+		  });	
+		}
 
 		if (this.dispPlaceLayer) {
 			this.tgPlaces.clearLayers();
@@ -297,6 +292,9 @@ class TgMap {
 			if (this.currentMode === 'DC') {
 				this.goToDcAgain(false);
 				//this.goToDcAgain(true);
+			}
+			else {
+				this.tgOrigin.render();
 			}
 
 
@@ -374,29 +372,55 @@ class TgMap {
 		*/
   }
 
-  setCenterUserPosition() {
-		if (!navigator.geolocation) {
-	    alert('Geolocation is not supported by this browser.');
-	    return;
-	  }
-	  navigator.geolocation.getCurrentPosition(saveCurrentLatLng.bind(this));
-
-	  function saveCurrentLatLng(position) {
-	  	this.setCenter(position.coords.latitude, position.coords.longitude);
-	  }
+  setOriginByCurrentLocation() {
+  	this.tgOrigin.getCurrentLocation()
+  	.then((data) => {
+  		console.log('got lat & lng from geolocation.');
+			this.setCenter(data.lat, data.lng);
+  	})
+  	.catch((error) => {
+			console.error(error);
+			if (!this.tgOrigin.getOrigin()) setDefaultOrigin();
+		});
   }
 
   setArea(area) {
-  	this.originChanged = true;
 		this.setCenter(this.data.center[area].lat, this.data.center[area].lng);
 	}
 
+	setOrigin(param) {
+		if (param.lat && param.lng) {
+			this.setCenter(param.lat, param.lng);
+		}
+		else if (param.address) {
+			this.tgOrigin.searchLatLngByAddress(param.address)
+			.then((data) => {
+				console.log('got lat & lng from search api.');
+				this.setCenter(data.lat, data.lng);
+			})
+			.catch((error) => {
+				console.error(error);
+				if (!this.tgOrigin.getOrigin()) setDefaultOrigin();
+			});
+		}
+		else {
+			console.error('invalid param in setOrigin()');
+			if (!this.tgOrigin.getOrigin()) setDefaultOrigin();
+		}
+
+		function setDefaultOrigin() {
+			console.log('use default lat & lng.')
+			this.setCenter(this.data.origin.default.lat, this.data.origin.default.lng);
+		}
+	}
+
 	setCenter(lat, lng) {
-		this.requestLocations = true;
 		this.olMap.getView().setCenter(ol.proj.fromLonLat([lng, lat]));
 		this.tgOrigin.setOrigin(lat, lng);
 		this.tgControl.setOrigin(lat, lng);
 		this.tgOrigin.render();
+		this.originChanged = true;
+		this.requestLocations = true;
 	}
 
 	setZoom(zoom) {
@@ -557,6 +581,12 @@ class TgMap {
 		}
 	}
 
+	/*
+	 * move elements by value 0 - 1
+	 * intermediate: 'intermediateReal' or 'intermediateTarget'
+	 * value: 0.0 - 1.0
+	 * render: t/f
+	 */
 	moveElementsByValue(intermediate, value, render = true) {
 		this.tgWater.calDispNodes(intermediate, value);
 		this.tgRoads.calDispNodes(intermediate, value);

@@ -993,7 +993,7 @@ class TgMapControl {
 					//if ((line1.start.intersected)||(line1.end.intersected)||
 						//(line2.start.intersected)||(line2.end.intersected)) continue;
 
-					if (tg.util.intersects(
+					if (tgUtil.intersects(
 							line1.start.real.lat, line1.start.real.lng, 
 							line1.end.real.lat, line1.end.real.lng, 
 							line2.start.real.lat, line2.start.real.lng, 
