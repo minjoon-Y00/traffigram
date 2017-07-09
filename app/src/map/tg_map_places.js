@@ -7,6 +7,10 @@ class TgMapPlaces {
 		this.graph = graph;
 		this.mapUtil = map.mapUtil;
 
+		this.isDisabled = false;
+		this.display = false;
+		this.layer = null;
+
 	  this.placeObjects = {};
 	  this.newPlaceObjects = {};
 	  this.dispPlaceObjects = {};
@@ -15,7 +19,24 @@ class TgMapPlaces {
   	this.dispLayers = [];
 	}
 
-	start() {
+	turn(tf) {
+		this.display = tf;
+	}
+
+	disabled(tf) {
+		this.isDisabled = tf;
+	}
+	
+	render() {
+		if (this.isDisabled||(!this.display)) this.clearLayers();
+		else this.updateLayer();
+	}
+
+	discard() {
+		this.clearLayers();
+	}
+
+	init() {
 		const source = new ol.source.VectorTile({
 		  format: new ol.format.TopoJSON(),
 		  projection: 'EPSG:3857',
@@ -83,11 +104,14 @@ class TgMapPlaces {
 	}
 
 	processNewPlaceObjects() {
+
+		console.log('p');
+
 		this.map.setDataInfo('numPlaceLoading', 'increase');
 		this.map.setTime('placeLoading', 'end', (new Date()).getTime());
 
-		if (this.map.dispPlaceLayer) {
-			this.addNewPlaceLayer();
+		if (this.map.currentMode === 'EM') {
+			this.addNewLayer();
 		}
 		this.newPlaceObjects = [];
 	}
@@ -127,7 +151,7 @@ class TgMapPlaces {
 		}
 	}
 
-	addNewPlaceLayer() {
+	addNewLayer() {
 		const viz = this.data.viz;
 		let arr = [];
 
@@ -153,11 +177,12 @@ class TgMapPlaces {
 		console.log('+ new place layer: ' + arr.length);
 	}
 
-	addPlaceLayer() {
+	updateLayer() {
 		const viz = this.data.viz;
 		let arr = [];
 
-		this.mapUtil.removeLayer(this.placeLayer);
+		this.clearLayers();
+		this.updateDispPlaces();
 
 		for(let name in this.dispPlaceObjects) {
 			const place = this.dispPlaceObjects[name];
@@ -179,17 +204,19 @@ class TgMapPlaces {
 		this.dispLayers.push(this.placeLayer);
 	}
 
+	removeLayer() {
+		for(let zoom of this.placesZooms) {
+			this.mapUtil.removeLayer(this.placeLayer[zoom]);
+		}
+	}
+
 	clearLayers() {
 		for(let layer of this.dispLayers) {
 			this.mapUtil.removeLayer(layer);
 		}
 	}
 
-	removePlaceLayer() {
-		for(let zoom of this.placesZooms) {
-			this.mapUtil.removeLayer(this.placeLayer[zoom]);
-		}
-	}
+
 
 	/*setVisibleByCurrentZoom(currentZoom) {
 		for(let zoom of this.placesZooms) {

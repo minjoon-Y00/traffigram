@@ -958,6 +958,23 @@ class TgMapControl {
 		}
 	}
 
+	makeNoWarpedGrid() {
+		for(let point of this.controlPoints) {
+			point.real.lat = point.original.lat;
+			point.real.lng = point.original.lng;
+		}
+		console.log('makeNoWarpedGrid');
+	}
+
+	makeOriginalDCGrid() {
+		for(let point of this.controlPoints) {
+			point.real.lat = point.target.lat;
+			point.real.lng = point.target.lng;
+		}
+		console.log('makeOriginalDCGrid');
+		
+	}
+
 	makeNonIntersectedGrid() {
 		//const s = (new Date()).getTime();
 

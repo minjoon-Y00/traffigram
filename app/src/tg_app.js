@@ -25,6 +25,28 @@ class TgApp {
 	initMap() {
 		this.map.initMap();
 	}
+
+	goToEm() {
+		this.map.goToEm();
+	}
+
+	goToDc(dcMode) {
+		this.map.warpingMode = dcMode;
+  	if (this.map.currentMode !== 'DC') this.map.goToDc(true); // animation
+  	else this.map.goToDc(false); // no animation
+	}
+
+	setTransportTypeAndGo(type) {
+		this.map.changeTransportType(type);
+	}
+
+	zoomIn() {
+		this.map.zoomIn();
+	}
+
+	zoomOut() {
+		this.map.zoomOut();
+	}
 }
 
 module.exports = TgApp;

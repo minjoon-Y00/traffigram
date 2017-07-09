@@ -17,7 +17,7 @@
 
         <!-- Map -->
 
-        <div class="col-sm-9" style="width:600px; height:900px">
+        <div class="col-sm-8" style="width:600px; height:900px">
           <div id="ol_map" class="ol_map"></div>
           <div id='mapInfo1'></div>
           <div id='mapInfo2'></div>
@@ -26,7 +26,7 @@
         </div>
 
         <!-- Right Options Panel -->
-        <div class="col-sm-3" style="width:250px">
+        <div class="col-sm-2" style="width:250px">
 
           <!-- Origin -->
 
@@ -38,11 +38,11 @@
           <div class="radio">
             <label><input type="radio" name="originRadio" id="originYourHomeRB" checked>Your home</label>
           </div>
-          <input type="text" id="yourHomeInput" style="width:200px">
+          <input type="text" id="yourHomeInput" style="width:200px" readonly="true">
           <div class="radio">
             <label><input type="radio" name="originRadio" id="originYourOfficeRB">Your office</label>
           </div>
-          <input type="text" id="yourOfficeInput" style="width:200px">
+          <input type="text" id="yourOfficeInput" style="width:200px" readonly="true">
           <div class="radio">
             <label><input type="radio" name="originRadio" id="originOtherPlaceRB">Other place</label>
           </div>
@@ -87,42 +87,12 @@
           <div class="radio">
             <label><input type="radio" name="emdcRadio" id="dcGapModeRB">Distance Cartogram (GAP)</label>
           </div>
-          <hr>
-
-          <!-- Distortion mode -->
-
-          <!--<h4>Distortion mode</h4>
           <div class="radio">
-            <label><input type="radio" name="gridWarpingRadio" id="originalGridRB" >Original</label>
+            <label><input type="radio" name="emdcRadio" id="dcOriginalModeRB">Distance Cartogram (Original)</label>
           </div>
           <div class="radio">
-            <label><input type="radio" name="gridWarpingRadio" id="noIntersectedGridRB" disabled>GAP</label>
+            <label><input type="radio" name="emdcRadio" id="dcNoWarpModeRB">No Warped Map</label>
           </div>
-          <div class="radio">
-            <label><input type="radio" name="gridWarpingRadio" id="shapePreservingGridRB" checked disabled>S-GAP</label>
-          </div>
-          <hr>-->
-
-          <!-- Locations -->
-
-          <h4>Type of Destination</h4>
-
-          <div class="radio">
-            <label><input type="radio" name="locationRadio" id="locationRestaurantRB" checked>Restaurants</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="locationRadio" id="locatioBarRB">Bars</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="locationRadio" id="locationParkRB">Parks / Arboretum</label>
-          </div>
-          <div class="radio">
-            <label><input type="radio" name="locationRadio" id="locationMuseumRB">Art Museums</label>
-          </div>
-          <!--<div class="radio">
-            <label><input type="radio" name="locationRadio" id="locationNoRB">No destination type</label>
-          </div>-->
-
           <hr>
 
           <!-- Transportation -->
@@ -138,9 +108,7 @@
           <div class="radio">
             <label><input type="radio" name="transportRadio" id="transportOnFootRB">On Foot</label>
           </div>
-
           <hr>
-
 
           <!-- Visual Elements representation -->
 
@@ -181,6 +149,10 @@
             <input type="checkbox" id="dispControlPointsCB"/>
             <span class='marginL'>Control Point</span>
           </label> 
+          <label class='marginR'>
+            <input type="checkbox" id="dispBoundingBoxCB"/>
+            <span class='marginL'>Bounding Box</span>
+          </label>
    
           
           <!-- <label class='marginR'>
@@ -201,6 +173,31 @@
             <input type="checkbox" id="dispNodesCB"/>
             <span class='marginL'>Nodes</span>
           </label>-->
+
+          <hr>
+        </div>
+
+        <div class="col-sm-2" style="width:250px">
+
+          <!-- Locations -->
+
+          <h4>Type of Destination</h4>
+
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="locationRestaurantRB" checked>Restaurants</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="locatioBarRB">Bars</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="locationParkRB">Parks / Arboretum</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="locationRadio" id="locationMuseumRB">Art Museums</label>
+          </div>
+          <!--<div class="radio">
+            <label><input type="radio" name="locationRadio" id="locationNoRB">No destination type</label>
+          </div>-->
 
           <hr>
         </div>

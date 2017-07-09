@@ -18,6 +18,7 @@ class TgMapLocations {
 		this.locationTypes = ['food', 'bar', 'park', 'museum'];
 		this.currentType = 'food';
 		this.locations = {};
+		this.locationClusters = {};
 		this.readyLocs = false;
 	  this.needToDisplayLocs = false;
 
@@ -50,13 +51,12 @@ class TgMapLocations {
 	initLocations() {
 		for(let type of this.locationTypes) {
 			this.locations[type] = [];
+			this.locationClusters[type] = [];
 		}
 	}
 
 	request() {
 		this.readyLocs = false;
-
-		this.map.setTime('locationLoading', 'start', (new Date()).getTime());
 		
 		const options = {
 			term: this.currentType,
@@ -65,28 +65,35 @@ class TgMapLocations {
 			radius: parseInt(this.map.calMaxDistance('lat') * 1000),
 		}
 
+		const s = (new Date()).getTime();
+
 		$.post("http://citygram.smusic.nyu.edu:2999/yelpSearch", options)
 		.done((locations) => {
 
-			console.log('received: locations');
-
-			this.map.setTime('locationLoading', 'end', (new Date()).getTime());
+			const elapsed = (new Date()).getTime() - s;
+			console.log('received: locations (' + elapsed + ' ms)');
 
 			this.readyLocs = true;
 
 			//this.disabled(false);
-			this.map.tgBB.cleanBB();
+			//this.map.tgBB.cleanBB();
+			this.map.tgBB.deleteBBByType('location');
+			this.map.tgBB.deleteBBByType('locationName');
 
 			// save non-overlapped locations
 			//locations = this.map.tgBB.getNonOverlappedLocations(locations);
 
-			for(let element of locations) {
-				element.node = new TgLocationNode(element.lat, element.lng);
-				delete element.lat;
-				delete element.lng;
+			const locationClusters = this.map.tgBB.calClusteredLocations(locations);
+			this.locationClusters[this.currentType] = locationClusters;
+
+			for(let loc of locations) {
+				loc.node = new TgLocationNode(loc.lat, loc.lng);
+				delete loc.lat;
+				delete loc.lng;
 			}
 
-		  locations = this.map.tgBB.getNonOverlappedLocationNames(locations);
+
+		  this.map.tgBB.calNonOverlappedLocationNames(locationClusters);
 		  this.locations[this.currentType] = locations;
 
 		  if (this.map.currentMode !== 'EM') {
@@ -150,29 +157,77 @@ class TgMapLocations {
 			this.mapUtil.nodeStyleFunc(viz.color.anchor, viz.radius.anchor);
 		const locationStyleFunc = 
 			this.mapUtil.imageStyleFunc(viz.image.location[this.currentType]);
+		const locationClusterStyleFunc = 
+			this.mapUtil.imageStyleFunc(viz.image.location.cluster);
 		const lineStyleFunc = 
 			this.mapUtil.lineStyleFunc(viz.color.locationLine, viz.width.locationLine);
 
+		for(let cLocs of this.locationClusters[this.currentType]) {
+			let dispLoc = {lat: 0, lng: 0};
+			let dispAnchor = {lat: 0, lng: 0};
+			let styleFunc = null;
+
+			if (cLocs.length === 1) {
+				dispLoc.lat = cLocs[0].node.dispLoc.lat;
+				dispLoc.lng = cLocs[0].node.dispLoc.lng;
+				dispAnchor.lat = cLocs[0].node.dispAnchor.lat;
+				dispAnchor.lng = cLocs[0].node.dispAnchor.lng;
+				styleFunc = locationStyleFunc;
+			}
+			else {
+				const len = cLocs.length;
+				for(let cLoc of cLocs) {
+					dispLoc.lat += cLoc.node.dispLoc.lat;
+					dispLoc.lng += cLoc.node.dispLoc.lng;
+					dispAnchor.lat += cLoc.node.dispAnchor.lat;
+					dispAnchor.lng += cLoc.node.dispAnchor.lng;
+				}
+				dispLoc.lat /= len;
+				dispLoc.lng /= len;
+				dispAnchor.lat /= len;
+				dispAnchor.lng /= len;
+				styleFunc = locationClusterStyleFunc;
+			}
+
+			// lines
+			this.mapUtil.addFeatureInFeatures(
+				arr, new ol.geom.LineString(
+					[[dispAnchor.lng, dispAnchor.lat], [dispLoc.lng, dispLoc.lat]]), 
+				lineStyleFunc);
+
+			// anchor images
+			this.mapUtil.addFeatureInFeatures(
+				arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), 
+				anchorStyleFunc);
+ 
+
+			// circle images
+			this.mapUtil.addFeatureInFeatures(
+				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), styleFunc);
+		}
+
+		/*
 		for(let loc of this.locations[this.currentType]) {
+			// lines
+			this.mapUtil.addFeatureInFeatures(
+				arr, 
+				new ol.geom.LineString(
+					[[loc.node.dispAnchor.lng, loc.node.dispAnchor.lat], 
+					[loc.node.dispLoc.lng, loc.node.dispLoc.lat]]), 
+				lineStyleFunc);
 
-			//if ((loc.node.target.lng != loc.node.dispAnchor.lng) 
-			//	|| (loc.node.target.lat != loc.node.dispAnchor.lat)) {
-
-				// lines
-				this.mapUtil.addFeatureInFeatures(arr, 
-					new ol.geom.LineString(
-						[[loc.node.dispAnchor.lng, loc.node.dispAnchor.lat], 
-						[loc.node.dispLoc.lng, loc.node.dispLoc.lat]]), lineStyleFunc);
-
-				// anchor images
-				this.mapUtil.addFeatureInFeatures(arr,
-					new ol.geom.Point([loc.node.dispAnchor.lng, loc.node.dispAnchor.lat]), anchorStyleFunc);
-			//}
+			// anchor images
+			this.mapUtil.addFeatureInFeatures(
+				arr, new ol.geom.Point([loc.node.dispAnchor.lng, loc.node.dispAnchor.lat]), 
+				anchorStyleFunc);
  
 			// circle images
-			this.mapUtil.addFeatureInFeatures(arr,
-				new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), locationStyleFunc);
+			this.mapUtil.addFeatureInFeatures(
+				arr,
+				new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), 
+				locationStyleFunc);
 		}
+		*/
 
 		if (arr.length > 0) {
 			this.removeLayer();

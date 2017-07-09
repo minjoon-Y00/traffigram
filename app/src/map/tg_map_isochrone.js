@@ -63,7 +63,7 @@ class TgMapIsochrone {
 		let numIsochrone = 0;
 		for(let time = 0; time < maxTime; time += minUnitTime) numIsochrone++;
 
-		if (numIsochrone > 8) {
+		while(numIsochrone > 8) {
 			minUnitTime *= 2;
 			numIsochrone /= 2;
 		}

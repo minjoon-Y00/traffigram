@@ -2,7 +2,7 @@ module.exports = {
 	zoom: {
 		max: 18,
 		min: 10,
-		init: 13,
+		init: 14,
 		current: 0,
 		disp: {
 			motorway: {min: 1, max: 20},
@@ -101,6 +101,7 @@ module.exports = {
 				bar: 'img/location_bar.png',
 				park: 'img/location_park.png',
 				museum: 'img/location_museum.png',
+				cluster: 'img/dest_group.png',
 			},
 			origin: {
 				auto: 'img/origin_car.png',
@@ -116,6 +117,13 @@ module.exports = {
 			places: '20pt Source Sans Pro Regular',
 			text: '16pt Source Sans Pro Regular',
 		},
+	},
+
+	origin: {
+		default: {
+			lat: 47.6631772,
+			lng: -122.3104933,
+		}
 	},
 
 	center: {

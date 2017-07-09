@@ -3,7 +3,9 @@ const TgApp = require('./tg_app');
 // create the main app object
 const tg = new TgApp('ol_map');
 
-// set origin
+/*
+ * For the origin setting
+ */
 const myHome = {
 	address: '4225 24th Ave. NE, Seattle, WA',
 	lat: 47.6631772,
@@ -33,8 +35,9 @@ const otherPlace = {
 }
 
 // default: myHome
-tg.setOriginAndGo(myHome);
+//tg.setOriginAndGo(myHome);
 //tg.setOriginAndGo(myOffice);
+tg.setOriginAndGo(otherPlace);
 
 // ui for origin setting
 $("#yourHomeInput").val(myHome.address);
@@ -70,35 +73,185 @@ $("#originOtherPlaceRB").change(function(ev){
   }
 });
 
+/*
+ * For the mode of the map (EM <-> DC)
+ */
+
+$("#emModeRB").change(function(ev){
+  if (ev.target.checked) {
+  	tg.goToEm();
+  }
+});
+
+$("#dcSGapModeRB").change(function(ev){
+  if (ev.target.checked) {
+  	tg.goToDc('shapePreserving');
+  }
+});
+
+$("#dcGapModeRB").change(function(ev){
+  if (ev.target.checked) {
+  	tg.goToDc('noIntersection');
+  }
+});
+
+$("#dcOriginalModeRB").change(function(ev){
+  if (ev.target.checked) {
+  	tg.goToDc('originalDC');
+  }
+});
+
+$("#dcNoWarpModeRB").change(function(ev){
+  if (ev.target.checked) {
+  	tg.goToDc('noWarping');
+  }
+});
+
+/*
+ * For the mode of the transportation
+ */
+$("#transportVehiclesRB").change(function(ev){
+	if (ev.target.checked) {
+		tg.setTransportTypeAndGo('auto');
+	} 
+});
+
+$("#transportBicyclesRB").change(function(ev){
+	if (ev.target.checked) {
+		tg.setTransportTypeAndGo('bicycle');
+	} 
+});
+
+$("#transportOnFootRB").change(function(ev){
+	if (ev.target.checked) {
+		tg.setTransportTypeAndGo('pedestrian');
+	} 
+});
+
+/*
+ * For the type of the destination
+ */
+$("#locationRestaurantRB").change(function(ev){
+	if (ev.target.checked) {
+		tg.map.tgLocs.changeType('food');
+	} 
+});
+
+$("#locatioBarRB").change(function(ev){
+	if (ev.target.checked) {
+		tg.map.tgLocs.changeType('bar');
+	} 
+});
+
+$("#locationParkRB").change(function(ev){
+	if (ev.target.checked) {
+		tg.map.tgLocs.changeType('park');
+	} 
+});
+
+$("#locationMuseumRB").change(function(ev){
+	if (ev.target.checked) {
+		tg.map.tgLocs.changeType('museum');
+	} 
+});
 
 
 
-
+/*
+ * For general ui
+ */
 
 function zoomIn() {
-	tg.map.zoomIn();
+	tg.zoomIn();
 }
 
 function zoomOut() {
-	tg.map.zoomOut();
+	tg.zoomOut();
 }
+
+
+
+
+// Visual Elements Representation Options (For debugging)
+
+$("#dispWaterCB").change(function(ev){ 
+	tg.map.tgWater.turn(ev.target.checked);
+	tg.map.tgWater.render();
+});
+
+$("#dispRoadsCB").change(function(ev){ 
+	tg.map.tgRoads.turn(ev.target.checked);
+	tg.map.tgRoads.render();
+});
+
+$("#dispLanduseCB").change(function(ev){ 
+	tg.map.tgLanduse.turn(ev.target.checked);
+	tg.map.tgLanduse.render();
+});
+
+$("#dispLocationCB").change(function(ev){
+	tg.map.tgLocs.turn(ev.target.checked);
+	tg.map.tgLocs.render();
+});
+
+$("#dispPlaceCB").change(function(ev){ 
+	tg.map.tgPlaces.turn(ev.target.checked);
+	tg.map.tgPlaces.render();
+});
+
+$("#dispNodesCB").change(function(ev){ 
+	tg.map.dispNodeLayer = ev.target.checked
+	tg.map.updateLayers()
+});
+
+$("#dispOriginCB").change(function(ev){ 
+	tg.map.tgOrigin.turn(ev.target.checked);
+	tg.map.tgOrigin.render();
+});
+
+$("#dispBoundingBoxCB").change(function(ev){ 
+	tg.map.tgBB.turn(ev.target.checked);
+	tg.map.tgBB.render();
+});
+
+$("#dispControlPointsCB").change(function(ev){
+	tg.map.dispControlPointLayer = ev.target.checked
+	tg.map.updateLayers()
+});
+
+$("#dispGridCB").change(function(ev){
+	tg.map.dispGridLayer = ev.target.checked
+	tg.map.updateLayers()
+});
+
+$("#dispIsochroneCB").change(function(ev){
+	tg.map.tgIsochrone.turn(ev.target.checked);
+	tg.map.tgIsochrone.render();
+});
+
+$("#dispWaterNodeCB").change(function(ev){ 
+	tg.map.dispWaterNodeLayer = ev.target.checked;
+	tg.map.updateLayers();
+});
+
+$("#dispRoadNodeCB").change(function(ev){ 
+	tg.map.dispRoadNodeLayer = ev.target.checked;
+	tg.map.updateLayers();
+});
+
+$("#dispLanduseNodeCB").change(function(ev){ 
+	tg.map.dispLanduseNodeLayer = ev.target.checked;
+	tg.map.updateLayers();
+});
+
 
 function debug() {
 	tg.map.debug()
 }
 
-function debug2() {
-	tg.map.debug2()
-}
 
-
-
-
-//
-//
+/*
 // Center Options
-//
-//
 $("#centerDowntownSeattleRB").change(function(ev){
   if (ev.target.checked) {
   	tg.map.initMap();
@@ -146,173 +299,12 @@ $("#centerYourPositionRB").change(function(ev){
   	tg.map.initMap();
   	tg.map.setCenterUserPosition();
   }
-});
-
-//
-//
-// EM -> DC
-//
-//
-
-$("#emModeRB").change(function(ev){
-  if (ev.target.checked) tg.map.goToEm();
-});
-
-$("#dcGapModeRB").change(function(ev){
-  if (ev.target.checked) {
-  	tg.map.warpingMode = 'noIntersection';
-
-  	if (tg.map.currentMode !== 'DC') tg.map.goToDc(true); // animation
-  	else tg.map.goToDc(false); // no animation
-  	
-  }
-});
-
-$("#dcSGapModeRB").change(function(ev){
-  if (ev.target.checked) {
-  	tg.map.warpingMode = 'shapePreserving';
-
-  	if (tg.map.currentMode !== 'DC') tg.map.goToDc(true); // animation
-  	else tg.map.goToDc(false); // no animation
-  }
-});
+});*/
 
 
-//
-//
-// Locations
-//
-//
-$("#locationRestaurantRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.tgLocs.changeType('food');
-	} 
-});
-
-$("#locatioBarRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.tgLocs.changeType('bar');
-	} 
-});
-
-$("#locationParkRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.tgLocs.changeType('park');
-	} 
-});
-
-$("#locationMuseumRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.tgLocs.changeType('museum');
-	} 
-});
-
-$("#locationNoRB").change(function(ev){
-	if (ev.target.checked) {
-		
-	} 
-});
 
 /*
- * Radio Buttons for the mode of transportation
- */
-$("#transportVehiclesRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.changeTransportType('auto');
-	} 
-});
-
-$("#transportBicyclesRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.changeTransportType('bicycle');
-	} 
-});
-
-$("#transportOnFootRB").change(function(ev){
-	if (ev.target.checked) {
-		tg.map.changeTransportType('pedestrian');
-	} 
-});
-
-
-//
-//
-// Visual Elements Representation Options
-//
-//
-$("#dispWaterCB").change(function(ev){ 
-	tg.map.tgWater.turn(ev.target.checked);
-	tg.map.tgWater.render();
-});
-
-$("#dispRoadsCB").change(function(ev){ 
-	tg.map.tgRoads.turn(ev.target.checked);
-	tg.map.tgRoads.render();
-});
-
-$("#dispLanduseCB").change(function(ev){ 
-	tg.map.tgLanduse.turn(ev.target.checked);
-	tg.map.tgLanduse.render();
-});
-
-$("#dispLocationCB").change(function(ev){
-	tg.map.tgLocs.turn(ev.target.checked);
-	tg.map.tgLocs.render();
-});
-
-$("#dispPlaceCB").change(function(ev){ 
-	tg.map.dispPlaceLayer = ev.target.checked
-	tg.map.updateLayers()
-});
-
-$("#dispNodesCB").change(function(ev){ 
-	tg.map.dispNodeLayer = ev.target.checked
-	tg.map.updateLayers()
-});
-
-$("#dispOriginCB").change(function(ev){ 
-	tg.map.tgOrigin.turn(ev.target.checked);
-	tg.map.tgOrigin.render();
-});
-
-$("#dispControlPointsCB").change(function(ev){
-	tg.map.dispControlPointLayer = ev.target.checked
-	tg.map.updateLayers()
-});
-
-$("#dispGridCB").change(function(ev){
-	tg.map.dispGridLayer = ev.target.checked
-	tg.map.updateLayers()
-});
-
-$("#dispIsochroneCB").change(function(ev){
-	tg.map.tgIsochrone.turn(ev.target.checked);
-	tg.map.tgIsochrone.render();
-});
-
-$("#dispWaterNodeCB").change(function(ev){ 
-	tg.map.dispWaterNodeLayer = ev.target.checked;
-	tg.map.updateLayers();
-});
-
-$("#dispRoadNodeCB").change(function(ev){ 
-	tg.map.dispRoadNodeLayer = ev.target.checked;
-	tg.map.updateLayers();
-});
-
-$("#dispLanduseNodeCB").change(function(ev){ 
-	tg.map.dispLanduseNodeLayer = ev.target.checked;
-	tg.map.updateLayers();
-});
-
-
-
-
-//
-//
 // Roads Options
-//
-//
 $("#roadTypeHighwayCB").change(function(ev){
 	if (ev.target.checked) tg.map.addRoadType('highway');
 	else tg.map.removeRoadType('highway');
@@ -347,7 +339,7 @@ $("#roadTypeLinksCB").change(function(ev){
 	if (ev.target.checked) tg.map.addRoadType('links');
 	else tg.map.removeRoadType('links');
 	tg.map.updateLayers();  
-})
+})*/
 
 /*var randomSlider = new Slider("#randomSlider");
 //$("#randomSlider").on("change", function(evt) {

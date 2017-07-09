@@ -5727,4 +5727,4 @@ if (typeof importScripts === 'function') {
   };
 }
 
-module.exports = ThinPlateSpline;
+//module.exports = ThinPlateSpline;
