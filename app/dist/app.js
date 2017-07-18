@@ -1569,6 +1569,49 @@ var TgMapBoundingBox = function () {
 
 			return true;
 		}
+	}, {
+		key: 'getNonOverlappedPlaces',
+		value: function getNonOverlappedPlaces(placesByZoom) {
+			var locations = this.map.tgLocs.getCurrentLocations();
+			var locationClusters = this.map.tgLocs.getCurrentLocationClusters();
+			var minZoom = this.map.tgPlaces.minZoomOfPlaces;
+			var maxZoom = this.map.tgPlaces.maxZoomOfPlaces;
+			var currentZoom = this.data.zoom.current;
+			var latPerPx = this.data.var.latPerPx;
+			var lngPerPx = this.data.var.lngPerPx;
+			var dispPlaces = {};
+
+			//console.log(places);
+			//console.log('minZoomOfPlaces: ' + minZoom);
+			//console.log('maxZoomOfPlaces: ' + maxZoom);
+			//console.log('current zoom: ' + currentZoom);
+
+			for (var zoom = minZoom; zoom <= currentZoom; zoom++) {
+				for (var name in placesByZoom[zoom]) {
+					var place = placesByZoom[zoom][name];
+
+					if (!place.bb) {
+						var widthPx = name.length * 9;
+						var heightPx = 14;
+						var lng = place.node.disp.lng;
+						var lat = place.node.disp.lat;
+						var bb = {
+							left: lng - widthPx * lngPerPx,
+							right: place.node.disp.lng + widthPx * lngPerPx,
+							top: place.node.disp.lat - heightPx * latPerPx,
+							bottom: place.node.disp.lat + heightPx * latPerPx
+						};
+						place.bb = bb;
+					}
+
+					if (this.isItNotOverlappedByLocs(locations, locationClusters, place.bb)) {
+						dispPlaces[name] = place;
+						console.log('z: ' + zoom + ' n: ' + name);
+					}
+				}
+			}
+			return dispPlaces;
+		}
 
 		/*calClusteredLocations2(locations) {
   	const iconLatPx = 30;
@@ -1668,45 +1711,10 @@ var TgMapBoundingBox = function () {
   }*/
 
 	}, {
-		key: 'getNonOverlappedPlaces',
-		value: function getNonOverlappedPlaces(places) {
-			var minZoom = this.map.tgPlaces.minZoomOfPlaces;
-			var maxZoom = this.map.tgPlaces.maxZoomOfPlaces;
-			var latPerPx = this.data.var.latPerPx;
-			var lngPerPx = this.data.var.lngPerPx;
-
-			//console.log(places);
-			//console.log('minZoomOfPlaces: ' + minZoom);
-			//console.log('maxZoomOfPlaces: ' + maxZoom);
-
-			for (var zoom = minZoom; zoom <= maxZoom; zoom++) {
-				for (var name in places) {
-					var place = places[name];
-
-					if (place.minZoom === zoom) {
-						var widthPx = name.length * 9;
-						var heightPx = 14;
-						var lng = place.node.disp.lng;
-						var lat = place.node.disp.lat;
-						var bb = {
-							left: lng - widthPx * lngPerPx,
-							right: place.node.disp.lng + widthPx * lngPerPx,
-							top: place.node.disp.lat - heightPx * latPerPx,
-							bottom: place.node.disp.lat + heightPx * latPerPx,
-							type: 'place'
-						};
-
-						//console.log(bb);
-
-						this.BBs.push(bb);
-					}
-				}
-			}
-		}
-	}, {
 		key: 'addBBOfLocations',
 		value: function addBBOfLocations() {
 			var locations = this.map.tgLocs.locations[this.map.tgLocs.currentType];
+
 			var iconLatPx = 30;
 			var iconLngPx = 30;
 			var dLat = iconLatPx * this.data.var.latPerPx / 2;
@@ -5837,6 +5845,7 @@ var TgMapPlaces = function () {
 		this.layer = null;
 
 		this.placeObjects = {};
+		this.placeObjectsByZoom = null;
 		this.newPlaceObjects = {};
 		this.dispPlaceObjects = {};
 		this.placeLayer = {};
@@ -5881,6 +5890,11 @@ var TgMapPlaces = function () {
 				source: source,
 				style: this.addToPlacesObject.bind(this)
 			}));
+
+			this.placeObjectsByZoom = new Array(this.data.zoom.max);
+			for (var i = 0; i < this.data.zoom.max; i++) {
+				this.placeObjectsByZoom[i] = {};
+			}
 		}
 	}, {
 		key: 'addToPlacesObject',
@@ -5893,9 +5907,8 @@ var TgMapPlaces = function () {
 			// if there is the same place, skip it.
 			if (this.placeObjects[name]) return null;
 
-			var kind = feature.get('kind');
-
 			feature.getGeometry().transform('EPSG:3857', 'EPSG:4326');
+
 			var coords = feature.getGeometry().getCoordinates();
 			coords.minZoom = feature.get('min_zoom');
 			coords.maxZoom = feature.get('max_zoom');
@@ -5916,6 +5929,8 @@ var TgMapPlaces = function () {
    coords.node = new TgNode(coords[1], coords[0]);
     	this.placeObjects[zoom][name] = coords;
    }*/
+
+			//const kind = feature.get('kind');
 
 			//this.placeObjects[zoom][name] = 
 			//{kind: kind, minZoom: minZoom, maxZoom: maxZoom,
@@ -5938,21 +5953,28 @@ var TgMapPlaces = function () {
 		key: 'processNewPlaceObjects',
 		value: function processNewPlaceObjects() {
 
-			console.log('p');
+			//console.log('p');
 
 			if (this.map.currentMode === 'EM') {
 
 				if (this.data.var.readyLocation) {
+					console.log('processNewPlaceObjects: loc ready so process places');
 
-					this.map.tgBB.getNonOverlappedPlaces(this.newPlaceObjects);
+					for (var name in this.newPlaceObjects) {
+						var place = this.newPlaceObjects[name];
+						var z = place.minZoom || 0;
+						this.placeObjectsByZoom[z][name] = place;
+					}
 
-					this.addNewLayer();
+					this.dispPlaceObjects = this.map.tgBB.getNonOverlappedPlaces(this.placeObjectsByZoom);
+					console.log('dispPlaces: ');
+					console.log(dispPlaces);
+
+					this.addNewLayer(dispPlaces);
 					this.newPlaceObjects = [];
 					this.data.var.placeProcessed = true;
-
-					console.log('o loc ready and add new layer');
 				} else {
-					console.log('x loc is not ready so wait');
+					console.log('processNewPlaceObjects: loc is not ready so wait');
 				}
 			}
 		}
@@ -5995,12 +6017,12 @@ var TgMapPlaces = function () {
 		}
 	}, {
 		key: 'addNewLayer',
-		value: function addNewLayer() {
+		value: function addNewLayer(dispPlaces) {
 			var viz = this.data.viz;
 			var arr = [];
 
-			for (var name in this.newPlaceObjects) {
-				var place = this.newPlaceObjects[name];
+			for (var name in dispPlaces) {
+				var place = dispPlaces[name];
 				var styleFunc = this.mapUtil.textStyle({
 					text: name,
 					color: viz.color.textPlace,

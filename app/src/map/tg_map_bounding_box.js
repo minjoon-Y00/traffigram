@@ -211,7 +211,47 @@ class TgMapBoundingBox {
 		return true;
 	}
 
+	getNonOverlappedPlaces(placesByZoom) {
+		const locations = this.map.tgLocs.getCurrentLocations();
+		const locationClusters = this.map.tgLocs.getCurrentLocationClusters();
+		const minZoom = this.map.tgPlaces.minZoomOfPlaces;
+		const maxZoom = this.map.tgPlaces.maxZoomOfPlaces;
+		const currentZoom = this.data.zoom.current;
+		const latPerPx = this.data.var.latPerPx;
+		const lngPerPx = this.data.var.lngPerPx;
+		let dispPlaces = {};
 
+		//console.log(places);
+		//console.log('minZoomOfPlaces: ' + minZoom);
+		//console.log('maxZoomOfPlaces: ' + maxZoom);
+		//console.log('current zoom: ' + currentZoom);
+
+		for(let zoom = minZoom; zoom <= currentZoom; zoom++) {
+			for(let name in placesByZoom[zoom]) {
+				const place = placesByZoom[zoom][name];
+
+				if (!place.bb) {
+					const widthPx = name.length * 9;
+					const heightPx = 14;
+					const lng = place.node.disp.lng;
+					const lat = place.node.disp.lat;
+					const bb = {
+						left: lng - (widthPx * lngPerPx), 
+						right: place.node.disp.lng + (widthPx * lngPerPx),
+						top: place.node.disp.lat - (heightPx * latPerPx),
+						bottom: place.node.disp.lat + (heightPx * latPerPx),
+					};
+					place.bb = bb;
+				}
+
+				if (this.isItNotOverlappedByLocs(locations, locationClusters, place.bb)) {
+					dispPlaces[name] = place;
+					console.log('z: ' + zoom + ' n: ' + name);
+				}
+			}
+		}	
+		return dispPlaces;
+	}
 
 	/*calClusteredLocations2(locations) {
 		const iconLatPx = 30;
@@ -323,50 +363,11 @@ class TgMapBoundingBox {
 		return nonOverlappedLocations;
 	}*/
 
-	getNonOverlappedPlaces(places) {
-		const minZoom = this.map.tgPlaces.minZoomOfPlaces;
-		const maxZoom = this.map.tgPlaces.maxZoomOfPlaces;
-		const latPerPx = this.data.var.latPerPx;
-		const lngPerPx = this.data.var.lngPerPx;
 
-		//console.log(places);
-		//console.log('minZoomOfPlaces: ' + minZoom);
-		//console.log('maxZoomOfPlaces: ' + maxZoom);
-
-		for(let zoom = minZoom; zoom <= maxZoom; zoom++) {
-			for(let name in places) {
-				const place = places[name];
-
-				if (place.minZoom === zoom) {
-					const widthPx = name.length * 9;
-					const heightPx = 14;
-					const lng = place.node.disp.lng;
-					const lat = place.node.disp.lat;
-					const bb = {
-						left: lng - (widthPx * lngPerPx), 
-						right: place.node.disp.lng + (widthPx * lngPerPx),
-						top: place.node.disp.lat - (heightPx * latPerPx),
-						bottom: place.node.disp.lat + (heightPx * latPerPx),
-						type: 'place',
-					};
-
-					//console.log(bb);
-
-					this.BBs.push(bb);
-
-
-				}
-			}
-
-		}
-
-
-
-		
-	}
 
 	addBBOfLocations() {
 		const locations = this.map.tgLocs.locations[this.map.tgLocs.currentType];
+
 		const iconLatPx = 30;
 		const iconLngPx = 30;
 		const dLat = (iconLatPx * this.data.var.latPerPx) / 2;
