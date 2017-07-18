@@ -1,4 +1,5 @@
 const tgUtil = require('../tg_util');
+const TgLocationNode = require('../node/tg_location_node');
 
 class TgMapBoundingBox {
 	constructor(map, data, graph) {
@@ -12,15 +13,6 @@ class TgMapBoundingBox {
 
 		this.BBs = [];
 		this.locs = [];
-
-		/*const lat = 47.658316;
-		const lng = -122.312035;
-		const d = 0.01;
-		this.BBs.push(
-			[[lng, lat],[lng + d, lat],[lng + d, lat + d],[lng, lat + d],[lng, lat]]);
-		this.BBs.push(
-			[[lng, lat],[lng - d, lat],[lng - d, lat - d],[lng, lat - d],[lng, lat]]);
-			*/
 	}
 
 	turn(tf) {
@@ -32,38 +24,196 @@ class TgMapBoundingBox {
 		else this.removeLayer();
 	}
 
-	isItNotOverlapped(inBB) {
-		for(let bb of this.BBs) {
-			if (tgUtil.intersectRect(inBB, bb)) return false;
-		}
-		return true;
-	}
-
-	getOverlappedBB(inBB) {
+	/*getOverlappedBB(inBB) {
 		for(let bb of this.BBs) {
 			if (tgUtil.intersectRect(inBB, bb)) return bb;
 		}
 		return null;
-	}
+	}*/
 
-	addOriginToBB() {
+	calBBOfOrigin() {
 		const iconLatPx = 50;
 		const iconLngPx = 55;
 		const dLat = (iconLatPx * this.data.var.latPerPx) / 2;
 		const dLng = (iconLngPx * this.data.var.lngPerPx) / 2;
 		const dispOrigin = this.map.tgOrigin.origin.disp;
-		const bb = {
+
+		return {
 			left: dispOrigin.lng - dLng, 
 			right: dispOrigin.lng + dLng,
 			top: dispOrigin.lat - dLat,
 			bottom: dispOrigin.lat + dLat,
-			type: 'origin',
 		};
+	}
 
-		this.BBs.push(bb);
+	calBBOfLocations(locations) {
+		const iconLatPx = 30;
+		const iconLngPx = 30;
+		const dLat = (iconLatPx * this.data.var.latPerPx) / 2;
+		const dLng = (iconLngPx * this.data.var.lngPerPx) / 2;
+
+		for(let loc of locations) {
+			const disp = loc.node.dispLoc;
+			loc.bb = {
+				left: disp.lng - dLng, 
+				right: disp.lng + dLng,
+				top: disp.lat - dLat,
+				bottom: disp.lat + dLat,
+			};
+		}
 	}
 
 	calClusteredLocations(locations) {
+		let clusteredLocations = [];
+
+		for(let i = 0; i < locations.length; i++) {
+			const targetLoc = locations[i];
+
+			// check overlapped bb
+			let overlappedLoc = null;
+			for(let j = i + 1; j < locations.length; j++) {
+				const loc = locations[j];
+
+				if (tgUtil.intersectRect(targetLoc.bb, loc.bb)) {
+					overlappedLoc = loc;
+					break;
+				}
+			}
+
+			if (overlappedLoc) {
+				// if there is any overlapped location
+
+				// if the overlapped loc already exists in the cluster
+				let found = false;
+				for(let cLocs of clusteredLocations) {
+					for(let cLoc of cLocs.locs) {
+						if (cLoc === targetLoc) {
+							cLocs.locs.push(overlappedLoc);
+							found = true;
+							break;
+						}
+					}
+					if (found) break;
+				}
+
+				// if the overlapped loc doesn't exist in the cluster
+				if (!found) {
+					clusteredLocations.push({
+						locs: [targetLoc, overlappedLoc]
+					});
+				}
+			}
+		}
+
+		// set isInCluster property
+		for(let loc of locations) {
+			loc.isInCluster = false;
+		}
+
+		for(let cLocs of clusteredLocations) {
+			for(let cLoc of cLocs.locs) {
+				cLoc.isInCluster = true;
+			}
+		}
+
+		return clusteredLocations;
+	}
+
+	updateNodeOfClusteredLocations(locationClusters) {
+		for(let cLocs of locationClusters) {
+			let dispLoc = {lat: 0, lng: 0};
+			let dispAnchor = {lat: 0, lng: 0};
+
+			for(let cLoc of cLocs.locs) {
+				dispLoc.lat += cLoc.node.dispLoc.lat;
+				dispLoc.lng += cLoc.node.dispLoc.lng;
+				dispAnchor.lat += cLoc.node.dispAnchor.lat;
+				dispAnchor.lng += cLoc.node.dispAnchor.lng;
+			}
+
+			const len = cLocs.locs.length;
+			dispLoc.lat /= len;
+			dispLoc.lng /= len;
+			dispAnchor.lat /= len;
+			dispAnchor.lng /= len;
+
+			cLocs.node = new TgLocationNode(dispLoc.lat, dispLoc.lng);
+			cLocs.node.dispAnchor = dispAnchor;
+		}
+	}
+
+	calBBOfClusterLocations(locationClusters) {
+		const clusterLatPx = 45;
+		const clusterLngPx = 45;
+		const cLat = (clusterLatPx * this.data.var.latPerPx) / 2;
+		const cLng = (clusterLngPx * this.data.var.lngPerPx) / 2;
+
+		for(let cLocs of locationClusters) {
+			const disp = cLocs.node.dispLoc;
+			cLocs.bb = {
+				left: disp.lng - cLng, 
+				right: disp.lng + cLng,
+				top: disp.lat - cLat,
+				bottom: disp.lat + cLat,
+			};
+		}
+	}
+
+	calNonOverlappedLocationNames(locations, locationClusters) {
+		// location names in the cluster are not displayed
+		for(let cLoc of locationClusters) {
+			for(let loc of cLoc.locs) loc.dispName = false;
+		}
+
+		// calculate non-overlapped location names
+		for(let loc of locations) {
+			
+			if (loc.isInCluster) continue;
+
+
+
+			for(let i = 0; i < 8; i++) {
+
+				console.log('i: ' + i);
+
+				const ret = 
+					this.getCandidatePosition(
+						i, loc.node.dispLoc.lat, loc.node.dispLoc.lng, loc.name);
+
+				if (this.isItNotOverlappedByLocs(locations, locationClusters, ret.bb)) {
+					loc.dispName = true;
+					loc.nameOffsetX = ret.offset.x;
+					loc.nameOffsetY = ret.offset.y;
+					loc.nameAlign = ret.offset.align;
+					loc.nameBB = ret.bb;
+					break;
+				}
+
+
+				// if not possible
+				if (i === 7) {
+					loc.dispName = false;
+					console.log('fail to put a loc.');
+				}
+			}
+		}
+	}
+
+	isItNotOverlappedByLocs(locations, locationClusters, inBB) {
+		for(let loc of locations) {
+			if ((loc.bb) && (tgUtil.intersectRect(inBB, loc.bb))) return false;
+			if ((loc.nameBB) && (tgUtil.intersectRect(inBB, loc.nameBB))) return false;
+		}
+
+		for(let cLoc of locationClusters) {
+			if ((cLoc.bb) && (tgUtil.intersectRect(inBB, cLoc.bb))) return false;
+		}
+		return true;
+	}
+
+
+
+	/*calClusteredLocations2(locations) {
 		const iconLatPx = 30;
 		const iconLngPx = 30;
 		const dLat = (iconLatPx * this.data.var.latPerPx) / 2;
@@ -102,51 +252,54 @@ class TgMapBoundingBox {
 			this.BBs.push(bb);
 		}
 
+		// update bbs
+		const clusterLatPx = 45;
+		const clusterLngPx = 45;
+		const cLat = (clusterLatPx * this.data.var.latPerPx) / 2;
+		const cLng = (clusterLngPx * this.data.var.lngPerPx) / 2;
 
-
-		// make bb
-		/*for(let cLocs of clusteredLocations) {
-			if (cLocs.length === 1) {
-				const bb = {
-					left: cLocs[0].lng - dLng, 
-					right: cLocs[0].lng + dLng,
-					top: cLocs[0].lat - dLat,
-					bottom: cLocs[0].lat + dLat,
-					type: 'location',
-					source: cLocs[0],
-				};
-				this.BBs.push(bb);
-			}
-			else {
-				const len = cLocs.length;
+		for(let cLocs of clusteredLocations) {
+			if (cLocs.length !== 1) {
 				let avgLng = 0;
 				let avgLat = 0;
+
 				for(let cLoc of cLocs) {
 					avgLng += cLoc.lng;
 					avgLat += cLoc.lat;
+
+					for(let bb of this.BBs) {
+						if (bb.source === cLoc) {
+							bb.deleted = true;
+							break;
+						}
+					}
 				}
-				avgLng /= len;
-				avgLat /= len;
+
+				avgLng /= cLocs.length;
+				avgLat /= cLocs.length;
 
 				const bb = {
-					left: avgLng - dLng, 
-					right: avgLng + dLng,
-					top: avgLat - dLat,
-					bottom: avgLat + dLat,
+					left: avgLng - cLng, 
+					right: avgLng + cLng,
+					top: avgLat - cLat,
+					bottom: avgLat + cLat,
 					type: 'locationCluster',
 					source: cLocs,
 				};
 				this.BBs.push(bb);
 			}
-		}*/
+		}
 
-		//console.log(clusteredLocations);
-		//console.log(this.BBs);
-		//return nonOverlappedLocations;
+		let newBBs = [];
+		for(let bb of this.BBs) {
+			if (!bb.deleted) newBBs.push(bb);
+		}
+		this.BBs = newBBs;
+
 		return clusteredLocations;	
-	}
+	}*/
 
-	getNonOverlappedLocations(locations) {
+	/*getNonOverlappedLocations(locations) {
 		const iconLatPx = 30;
 		const iconLngPx = 30;
 		const dLat = (iconLatPx * this.data.var.latPerPx) / 2;
@@ -168,6 +321,48 @@ class TgMapBoundingBox {
 			}
 		}
 		return nonOverlappedLocations;
+	}*/
+
+	getNonOverlappedPlaces(places) {
+		const minZoom = this.map.tgPlaces.minZoomOfPlaces;
+		const maxZoom = this.map.tgPlaces.maxZoomOfPlaces;
+		const latPerPx = this.data.var.latPerPx;
+		const lngPerPx = this.data.var.lngPerPx;
+
+		//console.log(places);
+		//console.log('minZoomOfPlaces: ' + minZoom);
+		//console.log('maxZoomOfPlaces: ' + maxZoom);
+
+		for(let zoom = minZoom; zoom <= maxZoom; zoom++) {
+			for(let name in places) {
+				const place = places[name];
+
+				if (place.minZoom === zoom) {
+					const widthPx = name.length * 9;
+					const heightPx = 14;
+					const lng = place.node.disp.lng;
+					const lat = place.node.disp.lat;
+					const bb = {
+						left: lng - (widthPx * lngPerPx), 
+						right: place.node.disp.lng + (widthPx * lngPerPx),
+						top: place.node.disp.lat - (heightPx * latPerPx),
+						bottom: place.node.disp.lat + (heightPx * latPerPx),
+						type: 'place',
+					};
+
+					//console.log(bb);
+
+					this.BBs.push(bb);
+
+
+				}
+			}
+
+		}
+
+
+
+		
 	}
 
 	addBBOfLocations() {
@@ -192,7 +387,7 @@ class TgMapBoundingBox {
 		const latPerPx = this.data.var.latPerPx;
 		const lngPerPx = this.data.var.lngPerPx;
 
-		const widthPx = name.length * 9;
+		const widthPx = name.length * 8;
 		const heightPx = 14;
 
 		const lngMarginPx = 20; // left/right margin
@@ -210,7 +405,6 @@ class TgMapBoundingBox {
 						right: lng + (lngMarginPx * lngPerPx) + (2 * dLng), 
 						top: lat - dLat,
 						bottom: lat + dLat,
-						type: 'locationName',
 					},
 					offset: {
 						x: lngMarginPx, y: 0, align:'left',
@@ -223,7 +417,6 @@ class TgMapBoundingBox {
 						right: lng + dLng,
 						top: lat + (latMarginPx * latPerPx) - dLat,
 						bottom: lat + (latMarginPx * latPerPx) + dLat,
-						type: 'locationName',
 					},
 					offset: {
 						x: 0, y: -latMarginPx, align:'center',
@@ -236,7 +429,6 @@ class TgMapBoundingBox {
 						right: lng - (lngMarginPx * lngPerPx),
 						top: lat - dLat,
 						bottom: lat + dLat,
-						type: 'locationName',
 					},
 					offset: {
 						x: -lngMarginPx, y: 0, align:'right',
@@ -249,7 +441,6 @@ class TgMapBoundingBox {
 						right: lng + dLng,
 						top: lat - (latMarginPx * latPerPx) - dLat,
 						bottom: lat - (latMarginPx * latPerPx) + dLat,
-						type: 'locationName',
 					},
 					offset: {
 						x: 0, y: latMarginPx, align:'center',
@@ -262,7 +453,6 @@ class TgMapBoundingBox {
 						right: lng + (lngMarginPx * lngPerPx) + (2 * dLng),
 						top: lat + (extraLatMarginPx * latPerPx) - dLat,
 						bottom: lat + (extraLatMarginPx * latPerPx) + dLat,
-						type: 'locationName',
 					},
 					offset: {
 						x: lngMarginPx, y: -extraLatMarginPx, align:'left',
@@ -275,7 +465,6 @@ class TgMapBoundingBox {
 						right: lng - (lngMarginPx * lngPerPx),
 						top: lat + (extraLatMarginPx * latPerPx) - dLat,
 						bottom: lat + (extraLatMarginPx * latPerPx) + dLat,
-						type: 'locationName',
 					},
 					offset: {
 						x: -lngMarginPx, y: -extraLatMarginPx, align:'right',
@@ -288,7 +477,6 @@ class TgMapBoundingBox {
 						right: lng - (lngMarginPx * lngPerPx),
 						top: lat - (extraLatMarginPx * latPerPx) - dLat,
 						bottom: lat - (extraLatMarginPx * latPerPx) + dLat,
-						type: 'locationName',
 					},
 					offset: {
 						x: -lngMarginPx, y: extraLatMarginPx, align:'right',
@@ -301,7 +489,6 @@ class TgMapBoundingBox {
 						right: lng + (lngMarginPx * lngPerPx) + (2 * dLng),
 						top: lat - (extraLatMarginPx * latPerPx) - dLat,
 						bottom: lat - (extraLatMarginPx * latPerPx) + dLat,
-						type: 'locationName',
 					},
 					offset: {
 						x: lngMarginPx, y: extraLatMarginPx, align:'left',
@@ -310,45 +497,10 @@ class TgMapBoundingBox {
 		}
 	}
 
-	calNonOverlappedLocationNames(locationClusters) {
 
-		this.deleteBBByType('locationName');
-
-		//for(let loc of locations) {
-		for(let locs of locationClusters) {
-			if (locs.length !== 1) {
-				for(let loc of locs) loc.dispName = false;
-			}
-			else {
-				const loc = locs[0];
-				for(let i = 0; i < 8; i++) {
-					const ret = 
-							this.getCandidatePosition(
-									i, loc.node.dispLoc.lat, loc.node.dispLoc.lng, loc.name);
-
-					if (this.isItNotOverlapped(ret.bb)) {
-						loc.dispName = true;
-						loc.nameOffsetX = ret.offset.x;
-						loc.nameOffsetY = ret.offset.y;
-						loc.nameAlign = ret.offset.align;
-						this.BBs.push(ret.bb);
-						break;
-					}
-
-					// if not possible
-					if (i === 7) {
-						loc.dispName = false;
-						console.log('fail to put a loc.');
-					}
-				}
-			}
-		}
-		return locationClusters;
-	}
 
 	cleanBB() {
 		this.BBs = [];
-		//this.addOriginToBB();
 	}
 
 	deleteBBByType(type) {
@@ -398,7 +550,7 @@ class TgMapBoundingBox {
 				type: 'place',
 			};
 
-			if (this.isItNotOverlapped(bb)) {
+			if (this.isItNotOverlappedByLocs(bb)) {
 				this.BBs.push(bb);
 				nonOverlappedPlaces[name] = place;
 			}
@@ -436,7 +588,7 @@ class TgMapBoundingBox {
 		if (!noCheck) {
 
 			// try original (right) position
-			ok = this.isItNotOverlapped(bb);
+			ok = this.isItNotOverlappedByLocs(bb);
 
 			// try upper position
 			if (!ok) {
@@ -446,7 +598,7 @@ class TgMapBoundingBox {
 					top: (25 * latPerPx) + lat - dLat,
 					bottom: (25 * latPerPx) + lat + dLat,
 				}
-				ok = this.isItNotOverlapped(bb);
+				ok = this.isItNotOverlappedByLocs(bb);
 				//ok = false;
 
 				if (ok) {
@@ -465,7 +617,7 @@ class TgMapBoundingBox {
 					top: lat - dLat,
 					bottom: lat + dLat,
 				}
-				ok = this.isItNotOverlapped(bb);
+				ok = this.isItNotOverlappedByLocs(bb);
 				//ok = false;
 
 				if (ok) {
@@ -484,7 +636,7 @@ class TgMapBoundingBox {
 					top: -(25 * latPerPx) + lat - dLat,
 					bottom: -(25 * latPerPx) + lat + dLat,
 				}
-				ok = this.isItNotOverlapped(bb);
+				ok = this.isItNotOverlappedByLocs(bb);
 				//ok = false;
 
 				if (ok) {
@@ -503,7 +655,7 @@ class TgMapBoundingBox {
 					top: (5 * latPerPx) + offsetLat + lat,
 					bottom: (5 * latPerPx) + offsetLat + lat + heightLat,
 				}
-				ok = this.isItNotOverlapped(bb);
+				ok = this.isItNotOverlappedByLocs(bb);
 				//ok = false;
 
 				if (ok) {
@@ -522,7 +674,7 @@ class TgMapBoundingBox {
 					top: (5 * latPerPx) + offsetLat + lat,
 					bottom: (5 * latPerPx) + offsetLat + lat + heightLat,
 				}
-				ok = this.isItNotOverlapped(bb);
+				ok = this.isItNotOverlappedByLocs(bb);
 				//ok = true;
 
 				if (ok) {
@@ -584,15 +736,40 @@ class TgMapBoundingBox {
 	}
 
 	updateLayer() {
-		if (this.BBs.length === 0) return;
 
 		const BBPolygons = [];
-		for(let bb of this.BBs) {
-			BBPolygons.push([
-				[bb.right, bb.top], [bb.right, bb.bottom],
-				[bb.left, bb.bottom], [bb.left, bb.top],
-				[bb.right, bb.top]
-			]);
+
+		const locs = this.map.tgLocs.getCurrentLocations();
+		for(let loc of locs) {
+			let bb = loc.bb;
+			if (bb) {
+				BBPolygons.push([
+					[bb.right, bb.top], [bb.right, bb.bottom],
+					[bb.left, bb.bottom], [bb.left, bb.top],
+					[bb.right, bb.top]
+				]);
+			}
+
+			bb = loc.nameBB;
+			if (bb) {
+				BBPolygons.push([
+					[bb.right, bb.top], [bb.right, bb.bottom],
+					[bb.left, bb.bottom], [bb.left, bb.top],
+					[bb.right, bb.top]
+				]);
+			}
+		}
+
+		const cLocs = this.map.tgLocs.getCurrentLocationClusters();
+		for(let cLoc of cLocs) {
+			let bb = cLoc.bb;
+			if (bb) {
+				BBPolygons.push([
+					[bb.right, bb.top], [bb.right, bb.bottom],
+					[bb.left, bb.bottom], [bb.left, bb.top],
+					[bb.right, bb.top]
+				]);
+			}
 		}
 
 		const viz = this.data.viz;

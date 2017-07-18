@@ -738,9 +738,9 @@ var otherPlace = {
 	address: '1000 4th Ave, Seattle, WA 98104'
 
 	// default: myHome
-	//tg.setOriginAndGo(myHome);
-	//tg.setOriginAndGo(myOffice);
-};tg.setOriginAndGo(otherPlace);
+};tg.setOriginAndGo(myHome);
+//tg.setOriginAndGo(myOffice);
+//tg.setOriginAndGo(otherPlace);
 
 // ui for origin setting
 $("#yourHomeInput").val(myHome.address);
@@ -1055,6 +1055,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var tgUtil = __webpack_require__(0);
+var TgLocationNode = __webpack_require__(16);
 
 var TgMapBoundingBox = function () {
 	function TgMapBoundingBox(map, data, graph) {
@@ -1070,15 +1071,6 @@ var TgMapBoundingBox = function () {
 
 		this.BBs = [];
 		this.locs = [];
-
-		/*const lat = 47.658316;
-  const lng = -122.312035;
-  const d = 0.01;
-  this.BBs.push(
-  	[[lng, lat],[lng + d, lat],[lng + d, lat + d],[lng, lat + d],[lng, lat]]);
-  this.BBs.push(
-  	[[lng, lat],[lng - d, lat],[lng - d, lat - d],[lng, lat - d],[lng, lat]]);
-  	*/
 	}
 
 	_createClass(TgMapBoundingBox, [{
@@ -1091,18 +1083,53 @@ var TgMapBoundingBox = function () {
 		value: function render() {
 			if (this.display) this.updateLayer();else this.removeLayer();
 		}
+
+		/*getOverlappedBB(inBB) {
+  	for(let bb of this.BBs) {
+  		if (tgUtil.intersectRect(inBB, bb)) return bb;
+  	}
+  	return null;
+  }*/
+
 	}, {
-		key: 'isItNotOverlapped',
-		value: function isItNotOverlapped(inBB) {
+		key: 'calBBOfOrigin',
+		value: function calBBOfOrigin() {
+			var iconLatPx = 50;
+			var iconLngPx = 55;
+			var dLat = iconLatPx * this.data.var.latPerPx / 2;
+			var dLng = iconLngPx * this.data.var.lngPerPx / 2;
+			var dispOrigin = this.map.tgOrigin.origin.disp;
+
+			return {
+				left: dispOrigin.lng - dLng,
+				right: dispOrigin.lng + dLng,
+				top: dispOrigin.lat - dLat,
+				bottom: dispOrigin.lat + dLat
+			};
+		}
+	}, {
+		key: 'calBBOfLocations',
+		value: function calBBOfLocations(locations) {
+			var iconLatPx = 30;
+			var iconLngPx = 30;
+			var dLat = iconLatPx * this.data.var.latPerPx / 2;
+			var dLng = iconLngPx * this.data.var.lngPerPx / 2;
+
 			var _iteratorNormalCompletion = true;
 			var _didIteratorError = false;
 			var _iteratorError = undefined;
 
 			try {
-				for (var _iterator = this.BBs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-					var bb = _step.value;
+				for (var _iterator = locations[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+					var loc = _step.value;
 
-					if (tgUtil.intersectRect(inBB, bb)) return false;
+					var disp = loc.node.dispLoc;
+					loc.bb = {
+						left: disp.lng - dLng,
+						right: disp.lng + dLng,
+						top: disp.lat - dLat,
+						bottom: disp.lat + dLat
+					};
 				}
 			} catch (err) {
 				_didIteratorError = true;
@@ -1118,194 +1145,163 @@ var TgMapBoundingBox = function () {
 					}
 				}
 			}
-
-			return true;
-		}
-	}, {
-		key: 'getOverlappedBB',
-		value: function getOverlappedBB(inBB) {
-			var _iteratorNormalCompletion2 = true;
-			var _didIteratorError2 = false;
-			var _iteratorError2 = undefined;
-
-			try {
-				for (var _iterator2 = this.BBs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-					var bb = _step2.value;
-
-					if (tgUtil.intersectRect(inBB, bb)) return bb;
-				}
-			} catch (err) {
-				_didIteratorError2 = true;
-				_iteratorError2 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion2 && _iterator2.return) {
-						_iterator2.return();
-					}
-				} finally {
-					if (_didIteratorError2) {
-						throw _iteratorError2;
-					}
-				}
-			}
-
-			return null;
-		}
-	}, {
-		key: 'addOriginToBB',
-		value: function addOriginToBB() {
-			var iconLatPx = 50;
-			var iconLngPx = 55;
-			var dLat = iconLatPx * this.data.var.latPerPx / 2;
-			var dLng = iconLngPx * this.data.var.lngPerPx / 2;
-			var dispOrigin = this.map.tgOrigin.origin.disp;
-			var bb = {
-				left: dispOrigin.lng - dLng,
-				right: dispOrigin.lng + dLng,
-				top: dispOrigin.lat - dLat,
-				bottom: dispOrigin.lat + dLat,
-				type: 'origin'
-			};
-
-			this.BBs.push(bb);
 		}
 	}, {
 		key: 'calClusteredLocations',
 		value: function calClusteredLocations(locations) {
-			var iconLatPx = 30;
-			var iconLngPx = 30;
-			var dLat = iconLatPx * this.data.var.latPerPx / 2;
-			var dLng = iconLngPx * this.data.var.lngPerPx / 2;
 			var clusteredLocations = [];
 
-			// make clusterdLocations array
-			var _iteratorNormalCompletion3 = true;
-			var _didIteratorError3 = false;
-			var _iteratorError3 = undefined;
+			for (var i = 0; i < locations.length; i++) {
+				var targetLoc = locations[i];
 
-			try {
-				for (var _iterator3 = locations[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-					var loc = _step3.value;
+				// check overlapped bb
+				var overlappedLoc = null;
+				for (var j = i + 1; j < locations.length; j++) {
+					var loc = locations[j];
 
-					var bb = {
-						left: loc.lng - dLng,
-						right: loc.lng + dLng,
-						top: loc.lat - dLat,
-						bottom: loc.lat + dLat,
-						type: 'location',
-						source: loc
-					};
-
-					// check overlapping
-					var overlappedBB = this.getOverlappedBB(bb);
-
-					if (overlappedBB) {
-						// if any bb is overlaped by loc
-						var _iteratorNormalCompletion4 = true;
-						var _didIteratorError4 = false;
-						var _iteratorError4 = undefined;
-
-						try {
-							for (var _iterator4 = clusteredLocations[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-								var cLocs = _step4.value;
-								var _iteratorNormalCompletion5 = true;
-								var _didIteratorError5 = false;
-								var _iteratorError5 = undefined;
-
-								try {
-									for (var _iterator5 = cLocs[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-										var cLoc = _step5.value;
-
-										if (cLoc === overlappedBB.source) {
-											cLocs.push(loc);
-											break;
-										}
-									}
-								} catch (err) {
-									_didIteratorError5 = true;
-									_iteratorError5 = err;
-								} finally {
-									try {
-										if (!_iteratorNormalCompletion5 && _iterator5.return) {
-											_iterator5.return();
-										}
-									} finally {
-										if (_didIteratorError5) {
-											throw _iteratorError5;
-										}
-									}
-								}
-							}
-						} catch (err) {
-							_didIteratorError4 = true;
-							_iteratorError4 = err;
-						} finally {
-							try {
-								if (!_iteratorNormalCompletion4 && _iterator4.return) {
-									_iterator4.return();
-								}
-							} finally {
-								if (_didIteratorError4) {
-									throw _iteratorError4;
-								}
-							}
-						}
-					} else {
-						// not overlapped
-						clusteredLocations.push([loc]);
+					if (tgUtil.intersectRect(targetLoc.bb, loc.bb)) {
+						overlappedLoc = loc;
+						break;
 					}
-					this.BBs.push(bb);
 				}
 
-				// make bb
-				/*for(let cLocs of clusteredLocations) {
-    	if (cLocs.length === 1) {
-    		const bb = {
-    			left: cLocs[0].lng - dLng, 
-    			right: cLocs[0].lng + dLng,
-    			top: cLocs[0].lat - dLat,
-    			bottom: cLocs[0].lat + dLat,
-    			type: 'location',
-    			source: cLocs[0],
-    		};
-    		this.BBs.push(bb);
-    	}
-    	else {
-    		const len = cLocs.length;
-    		let avgLng = 0;
-    		let avgLat = 0;
-    		for(let cLoc of cLocs) {
-    			avgLng += cLoc.lng;
-    			avgLat += cLoc.lat;
-    		}
-    		avgLng /= len;
-    		avgLat /= len;
-    			const bb = {
-    			left: avgLng - dLng, 
-    			right: avgLng + dLng,
-    			top: avgLat - dLat,
-    			bottom: avgLat + dLat,
-    			type: 'locationCluster',
-    			source: cLocs,
-    		};
-    		this.BBs.push(bb);
-    	}
-    }*/
+				if (overlappedLoc) {
+					// if there is any overlapped location
 
-				//console.log(clusteredLocations);
-				//console.log(this.BBs);
-				//return nonOverlappedLocations;
+					// if the overlapped loc already exists in the cluster
+					var found = false;
+					var _iteratorNormalCompletion2 = true;
+					var _didIteratorError2 = false;
+					var _iteratorError2 = undefined;
+
+					try {
+						for (var _iterator2 = clusteredLocations[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+							var cLocs = _step2.value;
+							var _iteratorNormalCompletion3 = true;
+							var _didIteratorError3 = false;
+							var _iteratorError3 = undefined;
+
+							try {
+								for (var _iterator3 = cLocs.locs[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+									var cLoc = _step3.value;
+
+									if (cLoc === targetLoc) {
+										cLocs.locs.push(overlappedLoc);
+										found = true;
+										break;
+									}
+								}
+							} catch (err) {
+								_didIteratorError3 = true;
+								_iteratorError3 = err;
+							} finally {
+								try {
+									if (!_iteratorNormalCompletion3 && _iterator3.return) {
+										_iterator3.return();
+									}
+								} finally {
+									if (_didIteratorError3) {
+										throw _iteratorError3;
+									}
+								}
+							}
+
+							if (found) break;
+						}
+
+						// if the overlapped loc doesn't exist in the cluster
+					} catch (err) {
+						_didIteratorError2 = true;
+						_iteratorError2 = err;
+					} finally {
+						try {
+							if (!_iteratorNormalCompletion2 && _iterator2.return) {
+								_iterator2.return();
+							}
+						} finally {
+							if (_didIteratorError2) {
+								throw _iteratorError2;
+							}
+						}
+					}
+
+					if (!found) {
+						clusteredLocations.push({
+							locs: [targetLoc, overlappedLoc]
+						});
+					}
+				}
+			}
+
+			// set isInCluster property
+			var _iteratorNormalCompletion4 = true;
+			var _didIteratorError4 = false;
+			var _iteratorError4 = undefined;
+
+			try {
+				for (var _iterator4 = locations[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+					var _loc = _step4.value;
+
+					_loc.isInCluster = false;
+				}
 			} catch (err) {
-				_didIteratorError3 = true;
-				_iteratorError3 = err;
+				_didIteratorError4 = true;
+				_iteratorError4 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion3 && _iterator3.return) {
-						_iterator3.return();
+					if (!_iteratorNormalCompletion4 && _iterator4.return) {
+						_iterator4.return();
 					}
 				} finally {
-					if (_didIteratorError3) {
-						throw _iteratorError3;
+					if (_didIteratorError4) {
+						throw _iteratorError4;
+					}
+				}
+			}
+
+			var _iteratorNormalCompletion5 = true;
+			var _didIteratorError5 = false;
+			var _iteratorError5 = undefined;
+
+			try {
+				for (var _iterator5 = clusteredLocations[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+					var _cLocs = _step5.value;
+					var _iteratorNormalCompletion6 = true;
+					var _didIteratorError6 = false;
+					var _iteratorError6 = undefined;
+
+					try {
+						for (var _iterator6 = _cLocs.locs[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+							var _cLoc = _step6.value;
+
+							_cLoc.isInCluster = true;
+						}
+					} catch (err) {
+						_didIteratorError6 = true;
+						_iteratorError6 = err;
+					} finally {
+						try {
+							if (!_iteratorNormalCompletion6 && _iterator6.return) {
+								_iterator6.return();
+							}
+						} finally {
+							if (_didIteratorError6) {
+								throw _iteratorError6;
+							}
+						}
+					}
+				}
+			} catch (err) {
+				_didIteratorError5 = true;
+				_iteratorError5 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion5 && _iterator5.return) {
+						_iterator5.return();
+					}
+				} finally {
+					if (_didIteratorError5) {
+						throw _iteratorError5;
 					}
 				}
 			}
@@ -1313,76 +1309,55 @@ var TgMapBoundingBox = function () {
 			return clusteredLocations;
 		}
 	}, {
-		key: 'getNonOverlappedLocations',
-		value: function getNonOverlappedLocations(locations) {
-			var iconLatPx = 30;
-			var iconLngPx = 30;
-			var dLat = iconLatPx * this.data.var.latPerPx / 2;
-			var dLng = iconLngPx * this.data.var.lngPerPx / 2;
-			var nonOverlappedLocations = [];
-
-			var _iteratorNormalCompletion6 = true;
-			var _didIteratorError6 = false;
-			var _iteratorError6 = undefined;
-
-			try {
-				for (var _iterator6 = locations[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-					var loc = _step6.value;
-
-					var bb = {
-						left: loc.lng - dLng,
-						right: loc.lng + dLng,
-						top: loc.lat - dLat,
-						bottom: loc.lat + dLat,
-						type: 'location'
-					};
-
-					if (this.isItNotOverlapped(bb)) {
-						nonOverlappedLocations.push(loc);
-						this.BBs.push(bb);
-					}
-				}
-			} catch (err) {
-				_didIteratorError6 = true;
-				_iteratorError6 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion6 && _iterator6.return) {
-						_iterator6.return();
-					}
-				} finally {
-					if (_didIteratorError6) {
-						throw _iteratorError6;
-					}
-				}
-			}
-
-			return nonOverlappedLocations;
-		}
-	}, {
-		key: 'addBBOfLocations',
-		value: function addBBOfLocations() {
-			var locations = this.map.tgLocs.locations[this.map.tgLocs.currentType];
-			var iconLatPx = 30;
-			var iconLngPx = 30;
-			var dLat = iconLatPx * this.data.var.latPerPx / 2;
-			var dLng = iconLngPx * this.data.var.lngPerPx / 2;
-
+		key: 'updateNodeOfClusteredLocations',
+		value: function updateNodeOfClusteredLocations(locationClusters) {
 			var _iteratorNormalCompletion7 = true;
 			var _didIteratorError7 = false;
 			var _iteratorError7 = undefined;
 
 			try {
-				for (var _iterator7 = locations[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-					var loc = _step7.value;
+				for (var _iterator7 = locationClusters[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+					var cLocs = _step7.value;
 
-					this.BBs.push({
-						left: loc.node.dispLoc.lng - dLng,
-						right: loc.node.dispLoc.lng + dLng,
-						top: loc.node.dispLoc.lat - dLat,
-						bottom: loc.node.dispLoc.lat + dLat,
-						type: 'location'
-					});
+					var dispLoc = { lat: 0, lng: 0 };
+					var dispAnchor = { lat: 0, lng: 0 };
+
+					var _iteratorNormalCompletion8 = true;
+					var _didIteratorError8 = false;
+					var _iteratorError8 = undefined;
+
+					try {
+						for (var _iterator8 = cLocs.locs[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+							var cLoc = _step8.value;
+
+							dispLoc.lat += cLoc.node.dispLoc.lat;
+							dispLoc.lng += cLoc.node.dispLoc.lng;
+							dispAnchor.lat += cLoc.node.dispAnchor.lat;
+							dispAnchor.lng += cLoc.node.dispAnchor.lng;
+						}
+					} catch (err) {
+						_didIteratorError8 = true;
+						_iteratorError8 = err;
+					} finally {
+						try {
+							if (!_iteratorNormalCompletion8 && _iterator8.return) {
+								_iterator8.return();
+							}
+						} finally {
+							if (_didIteratorError8) {
+								throw _iteratorError8;
+							}
+						}
+					}
+
+					var len = cLocs.locs.length;
+					dispLoc.lat /= len;
+					dispLoc.lng /= len;
+					dispAnchor.lat /= len;
+					dispAnchor.lng /= len;
+
+					cLocs.node = new TgLocationNode(dispLoc.lat, dispLoc.lng);
+					cLocs.node.dispAnchor = dispAnchor;
 				}
 			} catch (err) {
 				_didIteratorError7 = true;
@@ -1400,12 +1375,381 @@ var TgMapBoundingBox = function () {
 			}
 		}
 	}, {
+		key: 'calBBOfClusterLocations',
+		value: function calBBOfClusterLocations(locationClusters) {
+			var clusterLatPx = 45;
+			var clusterLngPx = 45;
+			var cLat = clusterLatPx * this.data.var.latPerPx / 2;
+			var cLng = clusterLngPx * this.data.var.lngPerPx / 2;
+
+			var _iteratorNormalCompletion9 = true;
+			var _didIteratorError9 = false;
+			var _iteratorError9 = undefined;
+
+			try {
+				for (var _iterator9 = locationClusters[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+					var cLocs = _step9.value;
+
+					var disp = cLocs.node.dispLoc;
+					cLocs.bb = {
+						left: disp.lng - cLng,
+						right: disp.lng + cLng,
+						top: disp.lat - cLat,
+						bottom: disp.lat + cLat
+					};
+				}
+			} catch (err) {
+				_didIteratorError9 = true;
+				_iteratorError9 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion9 && _iterator9.return) {
+						_iterator9.return();
+					}
+				} finally {
+					if (_didIteratorError9) {
+						throw _iteratorError9;
+					}
+				}
+			}
+		}
+	}, {
+		key: 'calNonOverlappedLocationNames',
+		value: function calNonOverlappedLocationNames(locations, locationClusters) {
+			// location names in the cluster are not displayed
+			var _iteratorNormalCompletion10 = true;
+			var _didIteratorError10 = false;
+			var _iteratorError10 = undefined;
+
+			try {
+				for (var _iterator10 = locationClusters[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+					var cLoc = _step10.value;
+					var _iteratorNormalCompletion12 = true;
+					var _didIteratorError12 = false;
+					var _iteratorError12 = undefined;
+
+					try {
+						for (var _iterator12 = cLoc.locs[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+							var loc = _step12.value;
+							loc.dispName = false;
+						}
+					} catch (err) {
+						_didIteratorError12 = true;
+						_iteratorError12 = err;
+					} finally {
+						try {
+							if (!_iteratorNormalCompletion12 && _iterator12.return) {
+								_iterator12.return();
+							}
+						} finally {
+							if (_didIteratorError12) {
+								throw _iteratorError12;
+							}
+						}
+					}
+				}
+
+				// calculate non-overlapped location names
+			} catch (err) {
+				_didIteratorError10 = true;
+				_iteratorError10 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion10 && _iterator10.return) {
+						_iterator10.return();
+					}
+				} finally {
+					if (_didIteratorError10) {
+						throw _iteratorError10;
+					}
+				}
+			}
+
+			var _iteratorNormalCompletion11 = true;
+			var _didIteratorError11 = false;
+			var _iteratorError11 = undefined;
+
+			try {
+				for (var _iterator11 = locations[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+					var _loc2 = _step11.value;
+
+
+					if (_loc2.isInCluster) continue;
+
+					for (var i = 0; i < 8; i++) {
+
+						console.log('i: ' + i);
+
+						var ret = this.getCandidatePosition(i, _loc2.node.dispLoc.lat, _loc2.node.dispLoc.lng, _loc2.name);
+
+						if (this.isItNotOverlappedByLocs(locations, locationClusters, ret.bb)) {
+							_loc2.dispName = true;
+							_loc2.nameOffsetX = ret.offset.x;
+							_loc2.nameOffsetY = ret.offset.y;
+							_loc2.nameAlign = ret.offset.align;
+							_loc2.nameBB = ret.bb;
+							break;
+						}
+
+						// if not possible
+						if (i === 7) {
+							_loc2.dispName = false;
+							console.log('fail to put a loc.');
+						}
+					}
+				}
+			} catch (err) {
+				_didIteratorError11 = true;
+				_iteratorError11 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion11 && _iterator11.return) {
+						_iterator11.return();
+					}
+				} finally {
+					if (_didIteratorError11) {
+						throw _iteratorError11;
+					}
+				}
+			}
+		}
+	}, {
+		key: 'isItNotOverlappedByLocs',
+		value: function isItNotOverlappedByLocs(locations, locationClusters, inBB) {
+			var _iteratorNormalCompletion13 = true;
+			var _didIteratorError13 = false;
+			var _iteratorError13 = undefined;
+
+			try {
+				for (var _iterator13 = locations[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+					var loc = _step13.value;
+
+					if (loc.bb && tgUtil.intersectRect(inBB, loc.bb)) return false;
+					if (loc.nameBB && tgUtil.intersectRect(inBB, loc.nameBB)) return false;
+				}
+			} catch (err) {
+				_didIteratorError13 = true;
+				_iteratorError13 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion13 && _iterator13.return) {
+						_iterator13.return();
+					}
+				} finally {
+					if (_didIteratorError13) {
+						throw _iteratorError13;
+					}
+				}
+			}
+
+			var _iteratorNormalCompletion14 = true;
+			var _didIteratorError14 = false;
+			var _iteratorError14 = undefined;
+
+			try {
+				for (var _iterator14 = locationClusters[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+					var cLoc = _step14.value;
+
+					if (cLoc.bb && tgUtil.intersectRect(inBB, cLoc.bb)) return false;
+				}
+			} catch (err) {
+				_didIteratorError14 = true;
+				_iteratorError14 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion14 && _iterator14.return) {
+						_iterator14.return();
+					}
+				} finally {
+					if (_didIteratorError14) {
+						throw _iteratorError14;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		/*calClusteredLocations2(locations) {
+  	const iconLatPx = 30;
+  	const iconLngPx = 30;
+  	const dLat = (iconLatPx * this.data.var.latPerPx) / 2;
+  	const dLng = (iconLngPx * this.data.var.lngPerPx) / 2;
+  	let clusteredLocations = [];
+  		// make clusterdLocations array
+  	for(let loc of locations) {
+  		const bb = {
+  			left: loc.lng - dLng, 
+  			right: loc.lng + dLng,
+  			top: loc.lat - dLat,
+  			bottom: loc.lat + dLat,
+  			type: 'location',
+  			source: loc,
+  		};
+  			// check overlapping
+  		const overlappedBB = this.getOverlappedBB(bb);
+  			if (overlappedBB) {
+  			// if any bb is overlaped by loc
+  			for(let cLocs of clusteredLocations) {
+  				for(let cLoc of cLocs) {
+  					if (cLoc === overlappedBB.source) {
+  						cLocs.push(loc);
+  						break;
+  					}
+  				}
+  			}
+  		}
+  		else {
+  			// not overlapped
+  			clusteredLocations.push([loc]);
+  		}
+  		this.BBs.push(bb);
+  	}
+  		// update bbs
+  	const clusterLatPx = 45;
+  	const clusterLngPx = 45;
+  	const cLat = (clusterLatPx * this.data.var.latPerPx) / 2;
+  	const cLng = (clusterLngPx * this.data.var.lngPerPx) / 2;
+  		for(let cLocs of clusteredLocations) {
+  		if (cLocs.length !== 1) {
+  			let avgLng = 0;
+  			let avgLat = 0;
+  				for(let cLoc of cLocs) {
+  				avgLng += cLoc.lng;
+  				avgLat += cLoc.lat;
+  					for(let bb of this.BBs) {
+  					if (bb.source === cLoc) {
+  						bb.deleted = true;
+  						break;
+  					}
+  				}
+  			}
+  				avgLng /= cLocs.length;
+  			avgLat /= cLocs.length;
+  				const bb = {
+  				left: avgLng - cLng, 
+  				right: avgLng + cLng,
+  				top: avgLat - cLat,
+  				bottom: avgLat + cLat,
+  				type: 'locationCluster',
+  				source: cLocs,
+  			};
+  			this.BBs.push(bb);
+  		}
+  	}
+  		let newBBs = [];
+  	for(let bb of this.BBs) {
+  		if (!bb.deleted) newBBs.push(bb);
+  	}
+  	this.BBs = newBBs;
+  		return clusteredLocations;	
+  }*/
+
+		/*getNonOverlappedLocations(locations) {
+  	const iconLatPx = 30;
+  	const iconLngPx = 30;
+  	const dLat = (iconLatPx * this.data.var.latPerPx) / 2;
+  	const dLng = (iconLngPx * this.data.var.lngPerPx) / 2;
+  	let nonOverlappedLocations = [];
+  		for(let loc of locations) {
+  		const bb = {
+  			left: loc.lng - dLng, 
+  			right: loc.lng + dLng,
+  			top: loc.lat - dLat,
+  			bottom: loc.lat + dLat,
+  			type: 'location',
+  		};
+  			if (this.isItNotOverlapped(bb)) {
+  			nonOverlappedLocations.push(loc);
+  			this.BBs.push(bb);
+  		}
+  	}
+  	return nonOverlappedLocations;
+  }*/
+
+	}, {
+		key: 'getNonOverlappedPlaces',
+		value: function getNonOverlappedPlaces(places) {
+			var minZoom = this.map.tgPlaces.minZoomOfPlaces;
+			var maxZoom = this.map.tgPlaces.maxZoomOfPlaces;
+			var latPerPx = this.data.var.latPerPx;
+			var lngPerPx = this.data.var.lngPerPx;
+
+			//console.log(places);
+			//console.log('minZoomOfPlaces: ' + minZoom);
+			//console.log('maxZoomOfPlaces: ' + maxZoom);
+
+			for (var zoom = minZoom; zoom <= maxZoom; zoom++) {
+				for (var name in places) {
+					var place = places[name];
+
+					if (place.minZoom === zoom) {
+						var widthPx = name.length * 9;
+						var heightPx = 14;
+						var lng = place.node.disp.lng;
+						var lat = place.node.disp.lat;
+						var bb = {
+							left: lng - widthPx * lngPerPx,
+							right: place.node.disp.lng + widthPx * lngPerPx,
+							top: place.node.disp.lat - heightPx * latPerPx,
+							bottom: place.node.disp.lat + heightPx * latPerPx,
+							type: 'place'
+						};
+
+						//console.log(bb);
+
+						this.BBs.push(bb);
+					}
+				}
+			}
+		}
+	}, {
+		key: 'addBBOfLocations',
+		value: function addBBOfLocations() {
+			var locations = this.map.tgLocs.locations[this.map.tgLocs.currentType];
+			var iconLatPx = 30;
+			var iconLngPx = 30;
+			var dLat = iconLatPx * this.data.var.latPerPx / 2;
+			var dLng = iconLngPx * this.data.var.lngPerPx / 2;
+
+			var _iteratorNormalCompletion15 = true;
+			var _didIteratorError15 = false;
+			var _iteratorError15 = undefined;
+
+			try {
+				for (var _iterator15 = locations[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+					var loc = _step15.value;
+
+					this.BBs.push({
+						left: loc.node.dispLoc.lng - dLng,
+						right: loc.node.dispLoc.lng + dLng,
+						top: loc.node.dispLoc.lat - dLat,
+						bottom: loc.node.dispLoc.lat + dLat,
+						type: 'location'
+					});
+				}
+			} catch (err) {
+				_didIteratorError15 = true;
+				_iteratorError15 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion15 && _iterator15.return) {
+						_iterator15.return();
+					}
+				} finally {
+					if (_didIteratorError15) {
+						throw _iteratorError15;
+					}
+				}
+			}
+		}
+	}, {
 		key: 'getCandidatePosition',
 		value: function getCandidatePosition(index, lat, lng, name) {
 			var latPerPx = this.data.var.latPerPx;
 			var lngPerPx = this.data.var.lngPerPx;
 
-			var widthPx = name.length * 9;
+			var widthPx = name.length * 8;
 			var heightPx = 14;
 
 			var lngMarginPx = 20; // left/right margin
@@ -1423,8 +1767,7 @@ var TgMapBoundingBox = function () {
 							left: lng + lngMarginPx * lngPerPx,
 							right: lng + lngMarginPx * lngPerPx + 2 * dLng,
 							top: lat - dLat,
-							bottom: lat + dLat,
-							type: 'locationName'
+							bottom: lat + dLat
 						},
 						offset: {
 							x: lngMarginPx, y: 0, align: 'left'
@@ -1437,8 +1780,7 @@ var TgMapBoundingBox = function () {
 							left: lng - dLng,
 							right: lng + dLng,
 							top: lat + latMarginPx * latPerPx - dLat,
-							bottom: lat + latMarginPx * latPerPx + dLat,
-							type: 'locationName'
+							bottom: lat + latMarginPx * latPerPx + dLat
 						},
 						offset: {
 							x: 0, y: -latMarginPx, align: 'center'
@@ -1451,8 +1793,7 @@ var TgMapBoundingBox = function () {
 							left: lng - lngMarginPx * lngPerPx - 2 * dLng,
 							right: lng - lngMarginPx * lngPerPx,
 							top: lat - dLat,
-							bottom: lat + dLat,
-							type: 'locationName'
+							bottom: lat + dLat
 						},
 						offset: {
 							x: -lngMarginPx, y: 0, align: 'right'
@@ -1465,8 +1806,7 @@ var TgMapBoundingBox = function () {
 							left: lng - dLng,
 							right: lng + dLng,
 							top: lat - latMarginPx * latPerPx - dLat,
-							bottom: lat - latMarginPx * latPerPx + dLat,
-							type: 'locationName'
+							bottom: lat - latMarginPx * latPerPx + dLat
 						},
 						offset: {
 							x: 0, y: latMarginPx, align: 'center'
@@ -1479,8 +1819,7 @@ var TgMapBoundingBox = function () {
 							left: lng + lngMarginPx * lngPerPx,
 							right: lng + lngMarginPx * lngPerPx + 2 * dLng,
 							top: lat + extraLatMarginPx * latPerPx - dLat,
-							bottom: lat + extraLatMarginPx * latPerPx + dLat,
-							type: 'locationName'
+							bottom: lat + extraLatMarginPx * latPerPx + dLat
 						},
 						offset: {
 							x: lngMarginPx, y: -extraLatMarginPx, align: 'left'
@@ -1493,8 +1832,7 @@ var TgMapBoundingBox = function () {
 							left: lng - lngMarginPx * lngPerPx - 2 * dLng,
 							right: lng - lngMarginPx * lngPerPx,
 							top: lat + extraLatMarginPx * latPerPx - dLat,
-							bottom: lat + extraLatMarginPx * latPerPx + dLat,
-							type: 'locationName'
+							bottom: lat + extraLatMarginPx * latPerPx + dLat
 						},
 						offset: {
 							x: -lngMarginPx, y: -extraLatMarginPx, align: 'right'
@@ -1507,8 +1845,7 @@ var TgMapBoundingBox = function () {
 							left: lng - lngMarginPx * lngPerPx - 2 * dLng,
 							right: lng - lngMarginPx * lngPerPx,
 							top: lat - extraLatMarginPx * latPerPx - dLat,
-							bottom: lat - extraLatMarginPx * latPerPx + dLat,
-							type: 'locationName'
+							bottom: lat - extraLatMarginPx * latPerPx + dLat
 						},
 						offset: {
 							x: -lngMarginPx, y: extraLatMarginPx, align: 'right'
@@ -1521,8 +1858,7 @@ var TgMapBoundingBox = function () {
 							left: lng + lngMarginPx * lngPerPx,
 							right: lng + lngMarginPx * lngPerPx + 2 * dLng,
 							top: lat - extraLatMarginPx * latPerPx - dLat,
-							bottom: lat - extraLatMarginPx * latPerPx + dLat,
-							type: 'locationName'
+							bottom: lat - extraLatMarginPx * latPerPx + dLat
 						},
 						offset: {
 							x: lngMarginPx, y: extraLatMarginPx, align: 'left'
@@ -1531,88 +1867,9 @@ var TgMapBoundingBox = function () {
 			}
 		}
 	}, {
-		key: 'calNonOverlappedLocationNames',
-		value: function calNonOverlappedLocationNames(locationClusters) {
-
-			this.deleteBBByType('locationName');
-
-			//for(let loc of locations) {
-			var _iteratorNormalCompletion8 = true;
-			var _didIteratorError8 = false;
-			var _iteratorError8 = undefined;
-
-			try {
-				for (var _iterator8 = locationClusters[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-					var locs = _step8.value;
-
-					if (locs.length !== 1) {
-						var _iteratorNormalCompletion9 = true;
-						var _didIteratorError9 = false;
-						var _iteratorError9 = undefined;
-
-						try {
-							for (var _iterator9 = locs[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-								var loc = _step9.value;
-								loc.dispName = false;
-							}
-						} catch (err) {
-							_didIteratorError9 = true;
-							_iteratorError9 = err;
-						} finally {
-							try {
-								if (!_iteratorNormalCompletion9 && _iterator9.return) {
-									_iterator9.return();
-								}
-							} finally {
-								if (_didIteratorError9) {
-									throw _iteratorError9;
-								}
-							}
-						}
-					} else {
-						var _loc = locs[0];
-						for (var i = 0; i < 8; i++) {
-							var ret = this.getCandidatePosition(i, _loc.node.dispLoc.lat, _loc.node.dispLoc.lng, _loc.name);
-
-							if (this.isItNotOverlapped(ret.bb)) {
-								_loc.dispName = true;
-								_loc.nameOffsetX = ret.offset.x;
-								_loc.nameOffsetY = ret.offset.y;
-								_loc.nameAlign = ret.offset.align;
-								this.BBs.push(ret.bb);
-								break;
-							}
-
-							// if not possible
-							if (i === 7) {
-								_loc.dispName = false;
-								console.log('fail to put a loc.');
-							}
-						}
-					}
-				}
-			} catch (err) {
-				_didIteratorError8 = true;
-				_iteratorError8 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion8 && _iterator8.return) {
-						_iterator8.return();
-					}
-				} finally {
-					if (_didIteratorError8) {
-						throw _iteratorError8;
-					}
-				}
-			}
-
-			return locationClusters;
-		}
-	}, {
 		key: 'cleanBB',
 		value: function cleanBB() {
 			this.BBs = [];
-			//this.addOriginToBB();
 		}
 	}, {
 		key: 'deleteBBByType',
@@ -1664,7 +1921,7 @@ var TgMapBoundingBox = function () {
 					type: 'place'
 				};
 
-				if (this.isItNotOverlapped(bb)) {
+				if (this.isItNotOverlappedByLocs(bb)) {
 					this.BBs.push(bb);
 					nonOverlappedPlaces[name] = place;
 				}
@@ -1705,7 +1962,7 @@ var TgMapBoundingBox = function () {
 			if (!noCheck) {
 
 				// try original (right) position
-				ok = this.isItNotOverlapped(bb);
+				ok = this.isItNotOverlappedByLocs(bb);
 
 				// try upper position
 				if (!ok) {
@@ -1715,7 +1972,7 @@ var TgMapBoundingBox = function () {
 						top: 25 * latPerPx + lat - dLat,
 						bottom: 25 * latPerPx + lat + dLat
 					};
-					ok = this.isItNotOverlapped(bb);
+					ok = this.isItNotOverlappedByLocs(bb);
 					//ok = false;
 
 					if (ok) {
@@ -1734,7 +1991,7 @@ var TgMapBoundingBox = function () {
 						top: lat - dLat,
 						bottom: lat + dLat
 					};
-					ok = this.isItNotOverlapped(bb);
+					ok = this.isItNotOverlappedByLocs(bb);
 					//ok = false;
 
 					if (ok) {
@@ -1753,7 +2010,7 @@ var TgMapBoundingBox = function () {
 						top: -(25 * latPerPx) + lat - dLat,
 						bottom: -(25 * latPerPx) + lat + dLat
 					};
-					ok = this.isItNotOverlapped(bb);
+					ok = this.isItNotOverlappedByLocs(bb);
 					//ok = false;
 
 					if (ok) {
@@ -1772,7 +2029,7 @@ var TgMapBoundingBox = function () {
 						top: 5 * latPerPx + offsetLat + lat,
 						bottom: 5 * latPerPx + offsetLat + lat + heightLat
 					};
-					ok = this.isItNotOverlapped(bb);
+					ok = this.isItNotOverlappedByLocs(bb);
 					//ok = false;
 
 					if (ok) {
@@ -1791,7 +2048,7 @@ var TgMapBoundingBox = function () {
 						top: 5 * latPerPx + offsetLat + lat,
 						bottom: 5 * latPerPx + offsetLat + lat + heightLat
 					};
-					ok = this.isItNotOverlapped(bb);
+					ok = this.isItNotOverlappedByLocs(bb);
 					//ok = true;
 
 					if (ok) {
@@ -1828,28 +2085,28 @@ var TgMapBoundingBox = function () {
 	}, {
 		key: 'addLocationsToBB',
 		value: function addLocationsToBB() {
-			var _iteratorNormalCompletion10 = true;
-			var _didIteratorError10 = false;
-			var _iteratorError10 = undefined;
+			var _iteratorNormalCompletion16 = true;
+			var _didIteratorError16 = false;
+			var _iteratorError16 = undefined;
 
 			try {
-				for (var _iterator10 = this.map.tgLocs.locations[this.map.tgLocs.currentType][Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+				for (var _iterator16 = this.map.tgLocs.locations[this.map.tgLocs.currentType][Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
 					//console.log(loc);
 					//this.addBB(loc.node.original.lat, loc.node.original.lng)
 
-					var loc = _step10.value;
+					var loc = _step16.value;
 				}
 			} catch (err) {
-				_didIteratorError10 = true;
-				_iteratorError10 = err;
+				_didIteratorError16 = true;
+				_iteratorError16 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion10 && _iterator10.return) {
-						_iterator10.return();
+					if (!_iteratorNormalCompletion16 && _iterator16.return) {
+						_iterator16.return();
 					}
 				} finally {
-					if (_didIteratorError10) {
-						throw _iteratorError10;
+					if (_didIteratorError16) {
+						throw _iteratorError16;
 					}
 				}
 			}
@@ -1857,30 +2114,68 @@ var TgMapBoundingBox = function () {
 	}, {
 		key: 'updateLayer',
 		value: function updateLayer() {
-			if (this.BBs.length === 0) return;
 
 			var BBPolygons = [];
-			var _iteratorNormalCompletion11 = true;
-			var _didIteratorError11 = false;
-			var _iteratorError11 = undefined;
+
+			var locs = this.map.tgLocs.getCurrentLocations();
+			var _iteratorNormalCompletion17 = true;
+			var _didIteratorError17 = false;
+			var _iteratorError17 = undefined;
 
 			try {
-				for (var _iterator11 = this.BBs[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-					var bb = _step11.value;
+				for (var _iterator17 = locs[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+					var loc = _step17.value;
 
-					BBPolygons.push([[bb.right, bb.top], [bb.right, bb.bottom], [bb.left, bb.bottom], [bb.left, bb.top], [bb.right, bb.top]]);
+					var bb = loc.bb;
+					if (bb) {
+						BBPolygons.push([[bb.right, bb.top], [bb.right, bb.bottom], [bb.left, bb.bottom], [bb.left, bb.top], [bb.right, bb.top]]);
+					}
+
+					bb = loc.nameBB;
+					if (bb) {
+						BBPolygons.push([[bb.right, bb.top], [bb.right, bb.bottom], [bb.left, bb.bottom], [bb.left, bb.top], [bb.right, bb.top]]);
+					}
 				}
 			} catch (err) {
-				_didIteratorError11 = true;
-				_iteratorError11 = err;
+				_didIteratorError17 = true;
+				_iteratorError17 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion11 && _iterator11.return) {
-						_iterator11.return();
+					if (!_iteratorNormalCompletion17 && _iterator17.return) {
+						_iterator17.return();
 					}
 				} finally {
-					if (_didIteratorError11) {
-						throw _iteratorError11;
+					if (_didIteratorError17) {
+						throw _iteratorError17;
+					}
+				}
+			}
+
+			var cLocs = this.map.tgLocs.getCurrentLocationClusters();
+			var _iteratorNormalCompletion18 = true;
+			var _didIteratorError18 = false;
+			var _iteratorError18 = undefined;
+
+			try {
+				for (var _iterator18 = cLocs[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+					var cLoc = _step18.value;
+
+					var _bb = cLoc.bb;
+					if (_bb) {
+						BBPolygons.push([[_bb.right, _bb.top], [_bb.right, _bb.bottom], [_bb.left, _bb.bottom], [_bb.left, _bb.top], [_bb.right, _bb.top]]);
+					}
+				}
+			} catch (err) {
+				_didIteratorError18 = true;
+				_iteratorError18 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion18 && _iterator18.return) {
+						_iterator18.return();
+					}
+				} finally {
+					if (_didIteratorError18) {
+						throw _iteratorError18;
 					}
 				}
 			}
@@ -1889,27 +2184,27 @@ var TgMapBoundingBox = function () {
 			var arr = [];
 			var styleFunc = this.mapUtil.polygonStyleFunc(viz.color.boundingBox);
 
-			var _iteratorNormalCompletion12 = true;
-			var _didIteratorError12 = false;
-			var _iteratorError12 = undefined;
+			var _iteratorNormalCompletion19 = true;
+			var _didIteratorError19 = false;
+			var _iteratorError19 = undefined;
 
 			try {
-				for (var _iterator12 = BBPolygons[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-					var _bb = _step12.value;
+				for (var _iterator19 = BBPolygons[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+					var _bb2 = _step19.value;
 
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Polygon([_bb]), styleFunc);
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Polygon([_bb2]), styleFunc);
 				}
 			} catch (err) {
-				_didIteratorError12 = true;
-				_iteratorError12 = err;
+				_didIteratorError19 = true;
+				_iteratorError19 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion12 && _iterator12.return) {
-						_iterator12.return();
+					if (!_iteratorNormalCompletion19 && _iterator19.return) {
+						_iterator19.return();
 					}
 				} finally {
-					if (_didIteratorError12) {
-						throw _iteratorError12;
+					if (_didIteratorError19) {
+						throw _iteratorError19;
 					}
 				}
 			}
@@ -1936,29 +2231,29 @@ var TgMapBoundingBox = function () {
 			this.drawLocationLayer();
 
 			// name
-			var _iteratorNormalCompletion13 = true;
-			var _didIteratorError13 = false;
-			var _iteratorError13 = undefined;
+			var _iteratorNormalCompletion20 = true;
+			var _didIteratorError20 = false;
+			var _iteratorError20 = undefined;
 
 			try {
-				for (var _iterator13 = this.nonOverlappedLocations[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-					var loc = _step13.value;
+				for (var _iterator20 = this.nonOverlappedLocations[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+					var loc = _step20.value;
 
 					this.addBB(loc.node.dispLoc.lat, loc.node.dispLoc.lng, 14, loc.name.length * 9, 0, 17, 'left', loc);
 				}
 
 				//this.addLayer();
 			} catch (err) {
-				_didIteratorError13 = true;
-				_iteratorError13 = err;
+				_didIteratorError20 = true;
+				_iteratorError20 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion13 && _iterator13.return) {
-						_iterator13.return();
+					if (!_iteratorNormalCompletion20 && _iterator20.return) {
+						_iterator20.return();
 					}
 				} finally {
-					if (_didIteratorError13) {
-						throw _iteratorError13;
+					if (_didIteratorError20) {
+						throw _iteratorError20;
 					}
 				}
 			}
@@ -1978,13 +2273,13 @@ var TgMapBoundingBox = function () {
 			var viz = this.data.viz;
 			var arr = [];
 
-			var _iteratorNormalCompletion14 = true;
-			var _didIteratorError14 = false;
-			var _iteratorError14 = undefined;
+			var _iteratorNormalCompletion21 = true;
+			var _didIteratorError21 = false;
+			var _iteratorError21 = undefined;
 
 			try {
-				for (var _iterator14 = this.locs[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-					var loc = _step14.value;
+				for (var _iterator21 = this.locs[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+					var loc = _step21.value;
 
 					var nameStyleFunc = this.mapUtil.textStyle({
 						text: loc.name,
@@ -1998,16 +2293,16 @@ var TgMapBoundingBox = function () {
 					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([loc.lng, loc.lat]), nameStyleFunc);
 				}
 			} catch (err) {
-				_didIteratorError14 = true;
-				_iteratorError14 = err;
+				_didIteratorError21 = true;
+				_iteratorError21 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion14 && _iterator14.return) {
-						_iterator14.return();
+					if (!_iteratorNormalCompletion21 && _iterator21.return) {
+						_iterator21.return();
 					}
 				} finally {
-					if (_didIteratorError14) {
-						throw _iteratorError14;
+					if (_didIteratorError21) {
+						throw _iteratorError21;
 					}
 				}
 			}
@@ -2028,13 +2323,13 @@ var TgMapBoundingBox = function () {
 			var locationStyleFunc = this.mapUtil.imageStyleFunc(viz.image.location);
 			var lineStyleFunc = this.mapUtil.lineStyleFunc(viz.color.locationLine, viz.width.locationLine);
 
-			var _iteratorNormalCompletion15 = true;
-			var _didIteratorError15 = false;
-			var _iteratorError15 = undefined;
+			var _iteratorNormalCompletion22 = true;
+			var _didIteratorError22 = false;
+			var _iteratorError22 = undefined;
 
 			try {
-				for (var _iterator15 = this.nonOverlappedLocations[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-					var loc = _step15.value;
+				for (var _iterator22 = this.nonOverlappedLocations[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+					var loc = _step22.value;
 
 
 					if (loc.node.target.lng != loc.node.dispAnchor.lng || loc.node.target.lat != loc.node.dispAnchor.lat) {
@@ -2050,16 +2345,16 @@ var TgMapBoundingBox = function () {
 					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), locationStyleFunc);
 				}
 			} catch (err) {
-				_didIteratorError15 = true;
-				_iteratorError15 = err;
+				_didIteratorError22 = true;
+				_iteratorError22 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion15 && _iterator15.return) {
-						_iterator15.return();
+					if (!_iteratorNormalCompletion22 && _iterator22.return) {
+						_iterator22.return();
 					}
 				} finally {
-					if (_didIteratorError15) {
-						throw _iteratorError15;
+					if (_didIteratorError22) {
+						throw _iteratorError22;
 					}
 				}
 			}
@@ -4775,7 +5070,6 @@ var TgMapLocations = function () {
 		this.currentType = 'food';
 		this.locations = {};
 		this.locationClusters = {};
-		this.readyLocs = false;
 		this.needToDisplayLocs = false;
 
 		this.initLocations();
@@ -4842,12 +5136,13 @@ var TgMapLocations = function () {
 			var _this = this;
 
 			this.readyLocs = false;
+			this.data.var.readyLocation = false;
 
 			var options = {
 				term: this.currentType,
 				lat: this.map.tgOrigin.origin.original.lat,
 				lng: this.map.tgOrigin.origin.original.lng,
-				radius: parseInt(this.map.calMaxDistance('lat') * 1000)
+				radius: parseInt(this.map.calMaxDistance('lat') * 1000) // 1000
 			};
 
 			var s = new Date().getTime();
@@ -4857,19 +5152,7 @@ var TgMapLocations = function () {
 				var elapsed = new Date().getTime() - s;
 				console.log('received: locations (' + elapsed + ' ms)');
 
-				_this.readyLocs = true;
-
-				//this.disabled(false);
-				//this.map.tgBB.cleanBB();
-				_this.map.tgBB.deleteBBByType('location');
-				_this.map.tgBB.deleteBBByType('locationName');
-
-				// save non-overlapped locations
-				//locations = this.map.tgBB.getNonOverlappedLocations(locations);
-
-				var locationClusters = _this.map.tgBB.calClusteredLocations(locations);
-				_this.locationClusters[_this.currentType] = locationClusters;
-
+				// calculate tgLocationNode of locations
 				var _iteratorNormalCompletion2 = true;
 				var _didIteratorError2 = false;
 				var _iteratorError2 = undefined;
@@ -4882,6 +5165,8 @@ var TgMapLocations = function () {
 						delete loc.lat;
 						delete loc.lng;
 					}
+
+					// calculate BB of locations
 				} catch (err) {
 					_didIteratorError2 = true;
 					_iteratorError2 = err;
@@ -4897,8 +5182,43 @@ var TgMapLocations = function () {
 					}
 				}
 
-				_this.map.tgBB.calNonOverlappedLocationNames(locationClusters);
+				_this.map.tgBB.calBBOfLocations(locations);
+
+				// calculate clusters of locations
+				var locationClusters = _this.map.tgBB.calClusteredLocations(locations);
+
+				// calculate average node in clusterLocations
+				_this.map.tgBB.updateNodeOfClusteredLocations(locationClusters);
+
+				// calculate BB for clusterLocations
+				_this.map.tgBB.calBBOfClusterLocations(locationClusters);
+
+				// calculate non-overlapped location names
+				_this.map.tgBB.calNonOverlappedLocationNames(locations, locationClusters);
+
+				// assign locations and locationClusters
 				_this.locations[_this.currentType] = locations;
+				_this.locationClusters[_this.currentType] = locationClusters;
+
+				console.log('clusteredLocations: ');
+				console.log(locationClusters);
+
+				// 
+
+				//this.disabled(false);
+				//this.map.tgBB.cleanBB();
+				//this.map.tgBB.deleteBBByType('location');
+				//this.map.tgBB.deleteBBByType('locationluster');
+				//this.map.tgBB.deleteBBByType('locationName');
+
+				// save non-overlapped locations
+				//locations = this.map.tgBB.getNonOverlappedLocations(locations);
+
+				//const locationClusters = this.map.tgBB.calClusteredLocations2(locations);
+				//this.locationClusters[this.currentType] = locationClusters;
+
+
+				//this.map.tgBB.calNonOverlappedLocationNames(locationClusters);
 
 				if (_this.map.currentMode !== 'EM') {
 					if (!_this.map.tpsReady) {
@@ -4910,6 +5230,12 @@ var TgMapLocations = function () {
 				} else {
 					_this.render();
 					_this.map.tgBB.render();
+				}
+
+				_this.data.var.readyLocation = true;
+
+				if (!_this.data.var.placeProcessed) {
+					_this.map.tgPlaces.processNewPlaceObjects();
 				}
 			});
 		}
@@ -4946,6 +5272,16 @@ var TgMapLocations = function () {
 			}
 		}
 	}, {
+		key: 'getCurrentLocations',
+		value: function getCurrentLocations() {
+			return this.locations[this.currentType];
+		}
+	}, {
+		key: 'getCurrentLocationClusters',
+		value: function getCurrentLocationClusters() {
+			return this.locationClusters[this.currentType];
+		}
+	}, {
 		key: 'updateNonOverlappedLocationNames',
 		value: function updateNonOverlappedLocationNames() {
 			this.locations[this.currentType] = this.map.tgBB.getNonOverlappedLocationNames(this.locations[this.currentType]);
@@ -4960,6 +5296,7 @@ var TgMapLocations = function () {
 			var locationClusterStyleFunc = this.mapUtil.imageStyleFunc(viz.image.location.cluster);
 			var lineStyleFunc = this.mapUtil.lineStyleFunc(viz.color.locationLine, viz.width.locationLine);
 
+			// display locationClusters
 			var _iteratorNormalCompletion3 = true;
 			var _didIteratorError3 = false;
 			var _iteratorError3 = undefined;
@@ -4968,52 +5305,8 @@ var TgMapLocations = function () {
 				for (var _iterator3 = this.locationClusters[this.currentType][Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 					var cLocs = _step3.value;
 
-					var dispLoc = { lat: 0, lng: 0 };
-					var dispAnchor = { lat: 0, lng: 0 };
-					var styleFunc = null;
-
-					if (cLocs.length === 1) {
-						dispLoc.lat = cLocs[0].node.dispLoc.lat;
-						dispLoc.lng = cLocs[0].node.dispLoc.lng;
-						dispAnchor.lat = cLocs[0].node.dispAnchor.lat;
-						dispAnchor.lng = cLocs[0].node.dispAnchor.lng;
-						styleFunc = locationStyleFunc;
-					} else {
-						var len = cLocs.length;
-						var _iteratorNormalCompletion4 = true;
-						var _didIteratorError4 = false;
-						var _iteratorError4 = undefined;
-
-						try {
-							for (var _iterator4 = cLocs[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-								var cLoc = _step4.value;
-
-								dispLoc.lat += cLoc.node.dispLoc.lat;
-								dispLoc.lng += cLoc.node.dispLoc.lng;
-								dispAnchor.lat += cLoc.node.dispAnchor.lat;
-								dispAnchor.lng += cLoc.node.dispAnchor.lng;
-							}
-						} catch (err) {
-							_didIteratorError4 = true;
-							_iteratorError4 = err;
-						} finally {
-							try {
-								if (!_iteratorNormalCompletion4 && _iterator4.return) {
-									_iterator4.return();
-								}
-							} finally {
-								if (_didIteratorError4) {
-									throw _iteratorError4;
-								}
-							}
-						}
-
-						dispLoc.lat /= len;
-						dispLoc.lng /= len;
-						dispAnchor.lat /= len;
-						dispAnchor.lng /= len;
-						styleFunc = locationClusterStyleFunc;
-					}
+					var dispLoc = cLocs.node.dispLoc;
+					var dispAnchor = cLocs.node.dispAnchor;
 
 					// lines
 					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[dispAnchor.lng, dispAnchor.lat], [dispLoc.lng, dispLoc.lat]]), lineStyleFunc);
@@ -5022,29 +5315,10 @@ var TgMapLocations = function () {
 					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), anchorStyleFunc);
 
 					// circle images
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), styleFunc);
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationClusterStyleFunc);
 				}
 
-				/*
-    for(let loc of this.locations[this.currentType]) {
-    	// lines
-    	this.mapUtil.addFeatureInFeatures(
-    		arr, 
-    		new ol.geom.LineString(
-    			[[loc.node.dispAnchor.lng, loc.node.dispAnchor.lat], 
-    			[loc.node.dispLoc.lng, loc.node.dispLoc.lat]]), 
-    		lineStyleFunc);
-    		// anchor images
-    	this.mapUtil.addFeatureInFeatures(
-    		arr, new ol.geom.Point([loc.node.dispAnchor.lng, loc.node.dispAnchor.lat]), 
-    		anchorStyleFunc);
-    			// circle images
-    	this.mapUtil.addFeatureInFeatures(
-    		arr,
-    		new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), 
-    		locationStyleFunc);
-    }
-    */
+				// display locations
 			} catch (err) {
 				_didIteratorError3 = true;
 				_iteratorError3 = err;
@@ -5056,6 +5330,45 @@ var TgMapLocations = function () {
 				} finally {
 					if (_didIteratorError3) {
 						throw _iteratorError3;
+					}
+				}
+			}
+
+			var _iteratorNormalCompletion4 = true;
+			var _didIteratorError4 = false;
+			var _iteratorError4 = undefined;
+
+			try {
+				for (var _iterator4 = this.locations[this.currentType][Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+					var loc = _step4.value;
+
+
+					// pass though if the location in the cluster
+					if (loc.isInCluster) continue;
+
+					var _dispLoc = loc.node.dispLoc;
+					var _dispAnchor = loc.node.dispAnchor;
+
+					// lines
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[_dispAnchor.lng, _dispAnchor.lat], [_dispLoc.lng, _dispLoc.lat]]), lineStyleFunc);
+
+					// anchor images
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([_dispAnchor.lng, _dispAnchor.lat]), anchorStyleFunc);
+
+					// circle images
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([_dispLoc.lng, _dispLoc.lat]), locationStyleFunc);
+				}
+			} catch (err) {
+				_didIteratorError4 = true;
+				_iteratorError4 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion4 && _iterator4.return) {
+						_iterator4.return();
+					}
+				} finally {
+					if (_didIteratorError4) {
+						throw _iteratorError4;
 					}
 				}
 			}
@@ -5314,6 +5627,22 @@ var TgMapLocations = function () {
 				$('#modal-travel-time').text('-');
 			}
 		}
+	}, {
+		key: 'addBBToLocations',
+		value: function addBBToLocations() {
+			var iconLatPx = 50;
+			var iconLngPx = 55;
+			var dLat = iconLatPx * this.data.var.latPerPx / 2;
+			var dLng = iconLngPx * this.data.var.lngPerPx / 2;
+			var disp = this.origin.disp;
+
+			this.bb = {
+				left: disp.lng - dLng,
+				right: disp.lng + dLng,
+				top: disp.lat - dLat,
+				bottom: disp.lat + dLat
+			};
+		}
 	}]);
 
 	return TgMapLocations;
@@ -5347,6 +5676,7 @@ var TgMapOrigin = function () {
 		this.display = false;
 		this.layer = null;
 		this.origin = null;
+		this.bb = null;
 	}
 
 	_createClass(TgMapOrigin, [{
@@ -5378,6 +5708,7 @@ var TgMapOrigin = function () {
 		key: 'setOrigin',
 		value: function setOrigin(lat, lng) {
 			this.origin = new TgNode(lat, lng);
+			this.BB = this.map.tgBB.calBBOfOrigin();
 		}
 	}, {
 		key: 'getOrigin',
@@ -5511,6 +5842,9 @@ var TgMapPlaces = function () {
 		this.placeLayer = {};
 		this.timerGetPlacesData = null;
 		this.dispLayers = [];
+
+		this.minZoomOfPlaces = 100;
+		this.maxZoomOfPlaces = 0;
 	}
 
 	_createClass(TgMapPlaces, [{
@@ -5556,6 +5890,7 @@ var TgMapPlaces = function () {
 
 			var name = feature.get('name').toUpperCase();
 
+			// if there is the same place, skip it.
 			if (this.placeObjects[name]) return null;
 
 			var kind = feature.get('kind');
@@ -5566,9 +5901,12 @@ var TgMapPlaces = function () {
 			coords.maxZoom = feature.get('max_zoom');
 			coords.node = new TgNode(coords[1], coords[0]);
 
+			if (coords.minZoom < this.minZoomOfPlaces) this.minZoomOfPlaces = coords.minZoom;
+			if (coords.maxZoom > this.maxZoomOfPlaces) this.maxZoomOfPlaces = coords.maxZoom;
+
 			this.placeObjects[name] = coords;
 			this.newPlaceObjects[name] = coords;
-			this.dispPlaceObjects[name] = coords;
+			//this.dispPlaceObjects[name] = coords;
 
 			/*for(let zoom = minZoom; zoom <= maxZoom; zoom++) {
    	if (this.placeObjects[zoom][name]) return null;
@@ -5602,13 +5940,21 @@ var TgMapPlaces = function () {
 
 			console.log('p');
 
-			this.map.setDataInfo('numPlaceLoading', 'increase');
-			this.map.setTime('placeLoading', 'end', new Date().getTime());
-
 			if (this.map.currentMode === 'EM') {
-				this.addNewLayer();
+
+				if (this.data.var.readyLocation) {
+
+					this.map.tgBB.getNonOverlappedPlaces(this.newPlaceObjects);
+
+					this.addNewLayer();
+					this.newPlaceObjects = [];
+					this.data.var.placeProcessed = true;
+
+					console.log('o loc ready and add new layer');
+				} else {
+					console.log('x loc is not ready so wait');
+				}
 			}
-			this.newPlaceObjects = [];
 		}
 	}, {
 		key: 'calDispPlace',
@@ -5756,18 +6102,6 @@ var TgMapPlaces = function () {
 				}
 			}
 		}
-
-		/*setVisibleByCurrentZoom(currentZoom) {
-  	for(let zoom of this.placesZooms) {
-  		if (Object.keys(this.placeLayer[zoom]).length > 0) {
-  			this.placeLayer[zoom].setVisible(false);
-  		}
-  	}
-  	if (Object.keys(this.placeLayer[currentZoom]).length > 0) {
-  		this.placeLayer[currentZoom].setVisible(true);
-  	}
-  }*/
-
 	}, {
 		key: 'calRealNodes',
 		value: function calRealNodes() {
@@ -7276,6 +7610,7 @@ var TgMapWater = function () {
 	}, {
 		key: 'addToWaterObject',
 		value: function addToWaterObject(feature, resolution) {
+
 			if (this.timerGetWaterData) clearTimeout(this.timerGetWaterData);
 			this.timerGetWaterData = setTimeout(this.processNewWaterObjects.bind(this), this.data.time.waitForGettingWaterData);
 
@@ -7551,12 +7886,11 @@ var TgMapWater = function () {
 		key: 'updateLayer',
 		value: function updateLayer() {
 			var viz = this.data.viz;
+			var arr = [];
+			var styleFunc = this.mapUtil.polygonStyleFunc(viz.color.water);
 
 			this.clearLayers();
 			this.updateDispWater();
-
-			var arr = [];
-			var styleFunc = this.mapUtil.polygonStyleFunc(viz.color.water);
 
 			var _iteratorNormalCompletion4 = true;
 			var _didIteratorError4 = false;
@@ -8564,8 +8898,8 @@ module.exports = {
 
 		font: {
 			isochroneText: '24px PT Sans Narrow',
-			places: '20pt Source Sans Pro Regular',
-			text: '16pt Source Sans Pro Regular'
+			places: '14pt Source Sans Pro Regular',
+			text: '12pt Source Sans Pro Regular'
 		}
 	},
 
@@ -8619,7 +8953,9 @@ module.exports = {
 		numLanduseClasses: 6,
 		marginPercent: 30,
 		maxSplitLevel: 0,
+		placeProcessed: false,
 		shapePreservingDegree: 1.0,
+		readyLocation: false,
 		resolution: {
 			gridLng: 4, // horiozontal resolution. even number is recommended
 			gridLat: 8 // vertical resolution. even number is recommended
@@ -9150,7 +9486,7 @@ var TgMap = function () {
 			this.tgOrigin.setOrigin(lat, lng);
 			this.tgControl.setOrigin(lat, lng);
 			this.tgOrigin.render();
-			//this.tgBB.addOriginToBB();
+			this.calBoundaryBox();
 			this.tgLocs.request();
 		}
 
@@ -9172,6 +9508,8 @@ var TgMap = function () {
 		key: 'onZoomEnd',
 		value: function onZoomEnd() {
 			console.log('onZoomEnd');
+
+			this.tgWater.tempCount = 0;
 
 			this.tgRoads.updateDisplayedRoadType(this.data.zoom.current);
 			this.tgLocs.request();
@@ -9244,8 +9582,6 @@ var TgMap = function () {
 				_this4.updateLayers();
 				_this4.dispMapInfo();
 			});
-
-			if (this.dispPlaceLayer) {}
 		}
 	}, {
 		key: 'changeTransportType',

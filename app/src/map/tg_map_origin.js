@@ -11,6 +11,7 @@ class TgMapOrigin {
 		this.display = false;
 		this.layer = null;
 		this.origin = null;
+		this.bb = null;
 	}
 
 	turn(tf) {
@@ -36,6 +37,7 @@ class TgMapOrigin {
 
 	setOrigin(lat, lng) {
 		this.origin = new TgNode(lat, lng);
+		this.BB = this.map.tgBB.calBBOfOrigin();
 	}
 
 	getOrigin() {

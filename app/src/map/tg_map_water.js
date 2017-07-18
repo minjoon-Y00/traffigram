@@ -65,6 +65,7 @@ class TgMapWater {
 	}
 
 	addToWaterObject(feature, resolution) {
+
 		if (this.timerGetWaterData) clearTimeout(this.timerGetWaterData);
 		this.timerGetWaterData = 
 				setTimeout(
@@ -280,12 +281,11 @@ class TgMapWater {
 	//
 	updateLayer() {
 		const viz = this.data.viz;
+		let arr = [];
+		const styleFunc = this.mapUtil.polygonStyleFunc(viz.color.water);
 
 		this.clearLayers();
 		this.updateDispWater();
-
-		let arr = [];
-		const styleFunc = this.mapUtil.polygonStyleFunc(viz.color.water);
 
 		for(let water of this.dispWaterObjects) {
 			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;

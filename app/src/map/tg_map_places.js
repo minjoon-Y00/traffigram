@@ -17,6 +17,9 @@ class TgMapPlaces {
 		this.placeLayer = {};
   	this.timerGetPlacesData = null;
   	this.dispLayers = [];
+
+  	this.minZoomOfPlaces = 100;
+  	this.maxZoomOfPlaces = 0;
 	}
 
 	turn(tf) {
@@ -60,6 +63,7 @@ class TgMapPlaces {
 
 		const name = feature.get('name').toUpperCase();
 
+		// if there is the same place, skip it.
 		if (this.placeObjects[name]) return null;
 
 		const kind = feature.get('kind');
@@ -70,9 +74,13 @@ class TgMapPlaces {
 		coords.maxZoom = feature.get('max_zoom');
 		coords.node = new TgNode(coords[1], coords[0]);
 
+		if (coords.minZoom < this.minZoomOfPlaces) this.minZoomOfPlaces = coords.minZoom;
+		if (coords.maxZoom > this.maxZoomOfPlaces) this.maxZoomOfPlaces = coords.maxZoom;
+
+
 	  this.placeObjects[name] = coords;
 	  this.newPlaceObjects[name] = coords;
-	  this.dispPlaceObjects[name] = coords;
+	  //this.dispPlaceObjects[name] = coords;
 
   	/*for(let zoom = minZoom; zoom <= maxZoom; zoom++) {
   		if (this.placeObjects[zoom][name]) return null;
@@ -107,13 +115,23 @@ class TgMapPlaces {
 
 		console.log('p');
 
-		this.map.setDataInfo('numPlaceLoading', 'increase');
-		this.map.setTime('placeLoading', 'end', (new Date()).getTime());
-
 		if (this.map.currentMode === 'EM') {
-			this.addNewLayer();
+
+			if (this.data.var.readyLocation) {
+
+				this.map.tgBB.getNonOverlappedPlaces(this.newPlaceObjects);
+
+
+
+				this.addNewLayer();
+				this.newPlaceObjects = [];
+				this.data.var.placeProcessed = true;
+
+				console.log('o loc ready and add new layer');
+			} else {
+				console.log('x loc is not ready so wait');
+			}
 		}
-		this.newPlaceObjects = [];
 	}
 
 	calDispPlace() {
@@ -215,19 +233,6 @@ class TgMapPlaces {
 			this.mapUtil.removeLayer(layer);
 		}
 	}
-
-
-
-	/*setVisibleByCurrentZoom(currentZoom) {
-		for(let zoom of this.placesZooms) {
-			if (Object.keys(this.placeLayer[zoom]).length > 0) {
-				this.placeLayer[zoom].setVisible(false);
-			}
-		}
-		if (Object.keys(this.placeLayer[currentZoom]).length > 0) {
-			this.placeLayer[currentZoom].setVisible(true);
-		}
-	}*/
 
 	calRealNodes() {
 		this.calModifiedNodes('real');

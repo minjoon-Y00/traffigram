@@ -231,7 +231,7 @@ class TgMap {
 		this.tgOrigin.setOrigin(lat, lng);
 		this.tgControl.setOrigin(lat, lng);
 		this.tgOrigin.render();
-		//this.tgBB.addOriginToBB();
+		this.calBoundaryBox();
 		this.tgLocs.request();
 	}
 
@@ -252,6 +252,8 @@ class TgMap {
 
 	onZoomEnd() {
     console.log('onZoomEnd');
+
+    this.tgWater.tempCount = 0;
 
 		this.tgRoads.updateDisplayedRoadType(this.data.zoom.current);
     this.tgLocs.request();
@@ -331,11 +333,6 @@ class TgMap {
 		  this.updateLayers();
 			this.dispMapInfo();
 	  });	
-
-		if (this.dispPlaceLayer) {
-			
-		}
-
 
 	}
 

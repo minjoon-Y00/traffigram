@@ -114,8 +114,8 @@ module.exports = {
 
 		font: {
 			isochroneText: '24px PT Sans Narrow',
-			places: '20pt Source Sans Pro Regular',
-			text: '16pt Source Sans Pro Regular',
+			places: '14pt Source Sans Pro Regular',
+			text: '12pt Source Sans Pro Regular',
 		},
 	},
 
@@ -169,7 +169,9 @@ module.exports = {
 		numLanduseClasses: 6,
 		marginPercent: 30, 
 		maxSplitLevel: 0, 
+		placeProcessed: false,
 		shapePreservingDegree: 1.0, 
+		readyLocation: false,
 		resolution: {
 			gridLng: 4, // horiozontal resolution. even number is recommended
 			gridLat: 8, // vertical resolution. even number is recommended

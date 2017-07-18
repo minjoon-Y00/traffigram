@@ -35,9 +35,9 @@ const otherPlace = {
 }
 
 // default: myHome
-//tg.setOriginAndGo(myHome);
+tg.setOriginAndGo(myHome);
 //tg.setOriginAndGo(myOffice);
-tg.setOriginAndGo(otherPlace);
+//tg.setOriginAndGo(otherPlace);
 
 // ui for origin setting
 $("#yourHomeInput").val(myHome.address);
