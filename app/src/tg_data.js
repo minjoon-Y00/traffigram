@@ -64,9 +64,10 @@ module.exports = {
 			},
 			roadNode: '#E00B62',
 			text: '#000', // '#686453',
-			textPlace: '#000', //'rgb(150, 122, 89)',
-			textPlaceStroke: '#FFF',
+			textPlace: 'rgba(0, 0, 0, 0.5)', //'#000'
+			textPlaceStroke: 'rgba(255, 255, 255, 0.5)', //'#FFF',
 			textLocation: '#000', //'rgb(122, 62, 44)', 
+			textNumberOfLocations: '#FFF',
 			water: 'rgb(163, 204, 255)',
 			waterNode: '#0071BC',
 		},

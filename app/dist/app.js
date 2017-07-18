@@ -1477,9 +1477,6 @@ var TgMapBoundingBox = function () {
 					if (_loc2.isInCluster) continue;
 
 					for (var i = 0; i < 8; i++) {
-
-						console.log('i: ' + i);
-
 						var ret = this.getCandidatePosition(i, _loc2.node.dispLoc.lat, _loc2.node.dispLoc.lng, _loc2.name);
 
 						if (this.isItNotOverlappedByLocs(locations, locationClusters, ret.bb)) {
@@ -1570,6 +1567,15 @@ var TgMapBoundingBox = function () {
 			return true;
 		}
 	}, {
+		key: 'isItNotOverlappedPlaces',
+		value: function isItNotOverlappedPlaces(places, inBB) {
+			for (var name in places) {
+				var bb = places[name].bb;
+				if (bb && tgUtil.intersectRect(inBB, bb)) return false;
+			}
+			return true;
+		}
+	}, {
 		key: 'getNonOverlappedPlaces',
 		value: function getNonOverlappedPlaces(placesByZoom) {
 			var locations = this.map.tgLocs.getCurrentLocations();
@@ -1579,34 +1585,42 @@ var TgMapBoundingBox = function () {
 			var currentZoom = this.data.zoom.current;
 			var latPerPx = this.data.var.latPerPx;
 			var lngPerPx = this.data.var.lngPerPx;
-			var dispPlaces = {};
 
-			//console.log(places);
-			//console.log('minZoomOfPlaces: ' + minZoom);
-			//console.log('maxZoomOfPlaces: ' + maxZoom);
-			//console.log('current zoom: ' + currentZoom);
+			//const top = this.data.box.top + this.data.var.latMargin;
+			//const bottom = this.data.box.bottom - this.data.var.latMargin;
+			//const right = this.data.box.right + this.data.var.lngMargin;
+			//const left = this.data.box.left - this.data.var.lngMargin;
+			var top = this.data.box.top;
+			var bottom = this.data.box.bottom;
+			var right = this.data.box.right;
+			var left = this.data.box.left;
+
+			var dispPlaces = {};
 
 			for (var zoom = minZoom; zoom <= currentZoom; zoom++) {
 				for (var name in placesByZoom[zoom]) {
 					var place = placesByZoom[zoom][name];
+					var lng = place.node.disp.lng;
+					var lat = place.node.disp.lat;
 
-					if (!place.bb) {
-						var widthPx = name.length * 9;
-						var heightPx = 14;
-						var lng = place.node.disp.lng;
-						var lat = place.node.disp.lat;
-						var bb = {
-							left: lng - widthPx * lngPerPx,
-							right: place.node.disp.lng + widthPx * lngPerPx,
-							top: place.node.disp.lat - heightPx * latPerPx,
-							bottom: place.node.disp.lat + heightPx * latPerPx
-						};
-						place.bb = bb;
-					}
+					if (!(lat < top && lat > bottom && lng < right && lng > left)) continue;
 
-					if (this.isItNotOverlappedByLocs(locations, locationClusters, place.bb)) {
+					//if (!place.bb) {
+					var widthPx = name.length * 8;
+					var heightPx = 14;
+
+					var bb = {
+						left: lng - widthPx * lngPerPx,
+						right: place.node.disp.lng + widthPx * lngPerPx,
+						top: place.node.disp.lat - heightPx * latPerPx,
+						bottom: place.node.disp.lat + heightPx * latPerPx
+					};
+					place.bb = bb;
+					//}
+
+					if (this.isItNotOverlappedByLocs(locations, locationClusters, place.bb) && this.isItNotOverlappedPlaces(dispPlaces, place.bb)) {
 						dispPlaces[name] = place;
-						console.log('z: ' + zoom + ' n: ' + name);
+						//console.log('z: ' + zoom + ' n: ' + name);
 					}
 				}
 			}
@@ -2122,9 +2136,9 @@ var TgMapBoundingBox = function () {
 	}, {
 		key: 'updateLayer',
 		value: function updateLayer() {
-
 			var BBPolygons = [];
 
+			// for locations
 			var locs = this.map.tgLocs.getCurrentLocations();
 			var _iteratorNormalCompletion17 = true;
 			var _didIteratorError17 = false;
@@ -2134,14 +2148,14 @@ var TgMapBoundingBox = function () {
 				for (var _iterator17 = locs[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
 					var loc = _step17.value;
 
-					var bb = loc.bb;
-					if (bb) {
-						BBPolygons.push([[bb.right, bb.top], [bb.right, bb.bottom], [bb.left, bb.bottom], [bb.left, bb.top], [bb.right, bb.top]]);
+					var _bb = loc.bb;
+					if (_bb) {
+						BBPolygons.push([[_bb.right, _bb.top], [_bb.right, _bb.bottom], [_bb.left, _bb.bottom], [_bb.left, _bb.top], [_bb.right, _bb.top]]);
 					}
 
-					bb = loc.nameBB;
-					if (bb) {
-						BBPolygons.push([[bb.right, bb.top], [bb.right, bb.bottom], [bb.left, bb.bottom], [bb.left, bb.top], [bb.right, bb.top]]);
+					_bb = loc.nameBB;
+					if (_bb) {
+						BBPolygons.push([[_bb.right, _bb.top], [_bb.right, _bb.bottom], [_bb.left, _bb.bottom], [_bb.left, _bb.top], [_bb.right, _bb.top]]);
 					}
 				}
 			} catch (err) {
@@ -2168,11 +2182,13 @@ var TgMapBoundingBox = function () {
 				for (var _iterator18 = cLocs[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
 					var cLoc = _step18.value;
 
-					var _bb = cLoc.bb;
-					if (_bb) {
-						BBPolygons.push([[_bb.right, _bb.top], [_bb.right, _bb.bottom], [_bb.left, _bb.bottom], [_bb.left, _bb.top], [_bb.right, _bb.top]]);
+					var _bb2 = cLoc.bb;
+					if (_bb2) {
+						BBPolygons.push([[_bb2.right, _bb2.top], [_bb2.right, _bb2.bottom], [_bb2.left, _bb2.bottom], [_bb2.left, _bb2.top], [_bb2.right, _bb2.top]]);
 					}
 				}
+
+				// for places
 			} catch (err) {
 				_didIteratorError18 = true;
 				_iteratorError18 = err;
@@ -2188,6 +2204,14 @@ var TgMapBoundingBox = function () {
 				}
 			}
 
+			var places = this.map.tgPlaces.dispPlaceObjects;
+			for (var name in places) {
+				var bb = places[name].bb;
+				if (bb) {
+					BBPolygons.push([[bb.right, bb.top], [bb.right, bb.bottom], [bb.left, bb.bottom], [bb.left, bb.top], [bb.right, bb.top]]);
+				}
+			}
+
 			var viz = this.data.viz;
 			var arr = [];
 			var styleFunc = this.mapUtil.polygonStyleFunc(viz.color.boundingBox);
@@ -2198,9 +2222,9 @@ var TgMapBoundingBox = function () {
 
 			try {
 				for (var _iterator19 = BBPolygons[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-					var _bb2 = _step19.value;
+					var _bb3 = _step19.value;
 
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Polygon([_bb2]), styleFunc);
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Polygon([_bb3]), styleFunc);
 				}
 			} catch (err) {
 				_didIteratorError19 = true;
@@ -5150,7 +5174,7 @@ var TgMapLocations = function () {
 				term: this.currentType,
 				lat: this.map.tgOrigin.origin.original.lat,
 				lng: this.map.tgOrigin.origin.original.lng,
-				radius: parseInt(this.map.calMaxDistance('lat') * 1000) // 1000
+				radius: parseInt(this.map.calMaxDistance('lat') * 1000)
 			};
 
 			var s = new Date().getTime();
@@ -5208,8 +5232,10 @@ var TgMapLocations = function () {
 				_this.locations[_this.currentType] = locations;
 				_this.locationClusters[_this.currentType] = locationClusters;
 
-				console.log('clusteredLocations: ');
-				console.log(locationClusters);
+				/*console.log('locations: ');
+    console.log(locations);
+    console.log('clusteredLocations: ');
+    console.log(locationClusters);*/
 
 				// 
 
@@ -5243,7 +5269,7 @@ var TgMapLocations = function () {
 				_this.data.var.readyLocation = true;
 
 				if (!_this.data.var.placeProcessed) {
-					_this.map.tgPlaces.processNewPlaceObjects();
+					_this.map.tgPlaces.processPlaceObjects();
 				}
 			});
 		}
@@ -5324,6 +5350,14 @@ var TgMapLocations = function () {
 
 					// circle images
 					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationClusterStyleFunc);
+
+					// number of locations
+					var numberStyleFunc = this.mapUtil.textStyle({
+						text: cLocs.locs.length + '',
+						color: viz.color.textNumberOfLocations,
+						font: viz.font.text
+					});
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), numberStyleFunc);
 				}
 
 				// display locations
@@ -5386,6 +5420,7 @@ var TgMapLocations = function () {
 				this.layer = this.mapUtil.olVectorFromFeatures(arr);
 				this.layer.setZIndex(viz.z.location);
 				this.mapUtil.addLayer(this.layer);
+				console.log('tgLocs.updateLayer():' + arr.length);
 			}
 		}
 	}, {
@@ -5844,9 +5879,9 @@ var TgMapPlaces = function () {
 		this.display = false;
 		this.layer = null;
 
-		this.placeObjects = {};
+		this.placeObjectNames = [];
 		this.placeObjectsByZoom = null;
-		this.newPlaceObjects = {};
+		//this.newPlaceObjects = {};
 		this.dispPlaceObjects = {};
 		this.placeLayer = {};
 		this.timerGetPlacesData = null;
@@ -5900,25 +5935,28 @@ var TgMapPlaces = function () {
 		key: 'addToPlacesObject',
 		value: function addToPlacesObject(feature, resolution) {
 			if (this.timerGetPlacesData) clearTimeout(this.timerGetPlacesData);
-			this.timerGetPlacesData = setTimeout(this.processNewPlaceObjects.bind(this), this.data.time.waitForGettingData);
+			this.timerGetPlacesData = setTimeout(this.processPlaceObjects.bind(this), this.data.time.waitForGettingData);
 
 			var name = feature.get('name').toUpperCase();
 
 			// if there is the same place, skip it.
-			if (this.placeObjects[name]) return null;
+			if (this.placeObjectNames.indexOf(name) >= 0) return null;
+
+			this.placeObjectNames.push(name);
 
 			feature.getGeometry().transform('EPSG:3857', 'EPSG:4326');
-
 			var coords = feature.getGeometry().getCoordinates();
-			coords.minZoom = feature.get('min_zoom');
-			coords.maxZoom = feature.get('max_zoom');
+			coords.minZoom = feature.get('min_zoom') || 0;
+			coords.maxZoom = feature.get('max_zoom') || this.data.zoom.max;
 			coords.node = new TgNode(coords[1], coords[0]);
 
 			if (coords.minZoom < this.minZoomOfPlaces) this.minZoomOfPlaces = coords.minZoom;
 			if (coords.maxZoom > this.maxZoomOfPlaces) this.maxZoomOfPlaces = coords.maxZoom;
 
-			this.placeObjects[name] = coords;
-			this.newPlaceObjects[name] = coords;
+			this.placeObjectsByZoom[coords.minZoom][name] = coords;
+
+			//this.newPlaceObjects[name] = coords;
+			//this.placeObjects[name] = coords;
 			//this.dispPlaceObjects[name] = coords;
 
 			/*for(let zoom = minZoom; zoom <= maxZoom; zoom++) {
@@ -5950,62 +5988,57 @@ var TgMapPlaces = function () {
 			return null;
 		}
 	}, {
-		key: 'processNewPlaceObjects',
-		value: function processNewPlaceObjects() {
+		key: 'processPlaceObjects',
+		value: function processPlaceObjects() {
 
 			//console.log('p');
 
 			if (this.map.currentMode === 'EM') {
 
 				if (this.data.var.readyLocation) {
-					console.log('processNewPlaceObjects: loc ready so process places');
-
-					for (var name in this.newPlaceObjects) {
-						var place = this.newPlaceObjects[name];
-						var z = place.minZoom || 0;
-						this.placeObjectsByZoom[z][name] = place;
-					}
+					console.log('processPlaceObjects: loc ready so process places');
 
 					this.dispPlaceObjects = this.map.tgBB.getNonOverlappedPlaces(this.placeObjectsByZoom);
-					console.log('dispPlaces: ');
-					console.log(dispPlaces);
 
-					this.addNewLayer(dispPlaces);
-					this.newPlaceObjects = [];
+					//console.log('dispPlaces: ');
+					//console.log(this.dispPlaceObjects);
+
+					this.updateLayer();
 					this.data.var.placeProcessed = true;
 				} else {
-					console.log('processNewPlaceObjects: loc is not ready so wait');
+					console.log('processPlaceObjects: loc is not ready so wait');
 				}
 			}
 		}
 	}, {
-		key: 'calDispPlace',
-		value: function calDispPlace() {
-			var currentZoom = this.data.zoom.current;
-			var top = this.data.box.top;
-			var bottom = this.data.box.bottom;
-			var right = this.data.box.right;
-			var left = this.data.box.left;
-
-			this.dispPlaceObjects = {};
-
-			for (var name in this.placeObjects) {
-				if (currentZoom < this.placeObjects[name].minZoom) {
-					continue;
-				}
-
-				if (currentZoom > this.placeObjects[name].maxZoom) {
-					continue;
-				}
-
-				var lat = this.placeObjects[name].node.original.lat;
-				var lng = this.placeObjects[name].node.original.lng;
-
-				if (lat < top && lat > bottom && lng < right && lng > left) {
-					this.dispPlaceObjects[name] = this.placeObjects[name];
-				}
-			}
+		key: 'needToBeRedrawn',
+		value: function needToBeRedrawn() {
+			this.clearLayers();
+			this.data.var.placeProcessed = false;
 		}
+
+		/*calDispPlace() {
+  	const currentZoom = this.data.zoom.current;
+  	const top = this.data.box.top;
+  	const bottom = this.data.box.bottom;
+  	const right = this.data.box.right;
+  	const left = this.data.box.left;
+  		this.dispPlaceObjects = {};
+  		for(let name in this.placeObjects) {
+  		if (currentZoom < this.placeObjects[name].minZoom) {
+  			continue;
+  		}
+  			if (currentZoom > this.placeObjects[name].maxZoom) {
+  			continue;
+  		}
+  			const lat = this.placeObjects[name].node.original.lat;
+  		const lng = this.placeObjects[name].node.original.lng;
+  			if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
+  			this.dispPlaceObjects[name] = this.placeObjects[name];
+  		}
+  	}
+  }*/
+
 	}, {
 		key: 'updateDispPlaces',
 		value: function updateDispPlaces() {
@@ -6015,32 +6048,29 @@ var TgMapPlaces = function () {
 				place[1] = place.node.disp.lat;
 			}
 		}
-	}, {
-		key: 'addNewLayer',
-		value: function addNewLayer(dispPlaces) {
-			var viz = this.data.viz;
-			var arr = [];
 
-			for (var name in dispPlaces) {
-				var place = dispPlaces[name];
-				var styleFunc = this.mapUtil.textStyle({
-					text: name,
-					color: viz.color.textPlace,
-					strokeColor: viz.color.textPlaceStroke,
-					strokeWidth: viz.width.textPlaceStroke,
-					font: viz.font.places
-				});
+		/*addNewLayer() {
+  	const viz = this.data.viz;
+  	let arr = [];
+  		for(let name in this.dispPlaceObjects) {
+  		const place = this.dispPlaceObjects[name];
+  		const styleFunc = this.mapUtil.textStyle({
+  				text: name, 
+  				color: viz.color.textPlace, 
+  				strokeColor: viz.color.textPlaceStroke,
+  				strokeWidth: viz.width.textPlaceStroke,
+  				font: viz.font.places,
+  			});
+  			this.mapUtil.addFeatureInFeatures(
+  			arr, new ol.geom.Point(place), styleFunc);
+  	}
+  		const layer = this.mapUtil.olVectorFromFeatures(arr);
+  	layer.setZIndex(viz.z.places);
+  	this.mapUtil.addLayer(layer);
+  	this.dispLayers.push(layer);
+  		console.log('+ new place layer: ' + arr.length);
+  }*/
 
-				this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point(place), styleFunc);
-			}
-
-			var layer = this.mapUtil.olVectorFromFeatures(arr);
-			layer.setZIndex(viz.z.places);
-			this.mapUtil.addLayer(layer);
-			this.dispLayers.push(layer);
-
-			console.log('+ new place layer: ' + arr.length);
-		}
 	}, {
 		key: 'updateLayer',
 		value: function updateLayer() {
@@ -6063,10 +6093,13 @@ var TgMapPlaces = function () {
 				this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point(place), styleFunc);
 			}
 
-			this.placeLayer = this.mapUtil.olVectorFromFeatures(arr);
-			this.placeLayer.setZIndex(viz.z.places);
-			this.mapUtil.addLayer(this.placeLayer);
-			this.dispLayers.push(this.placeLayer);
+			if (arr.length > 0) {
+				this.placeLayer = this.mapUtil.olVectorFromFeatures(arr);
+				this.placeLayer.setZIndex(viz.z.places);
+				this.mapUtil.addLayer(this.placeLayer);
+				this.dispLayers.push(this.placeLayer);
+				console.log('tgPlaces.updateLayer():' + arr.length);
+			}
 		}
 	}, {
 		key: 'removeLayer',
@@ -7701,7 +7734,7 @@ var TgMapWater = function () {
 		key: 'processNewWaterObjects',
 		value: function processNewWaterObjects() {
 
-			console.log('w');
+			//console.log('w');
 
 			if (this.timerFinishGettingWaterData) {
 				clearTimeout(this.timerFinishGettingWaterData);
@@ -8870,9 +8903,10 @@ module.exports = {
 			},
 			roadNode: '#E00B62',
 			text: '#000', // '#686453',
-			textPlace: '#000', //'rgb(150, 122, 89)',
-			textPlaceStroke: '#FFF',
+			textPlace: 'rgba(0, 0, 0, 0.5)', //'#000'
+			textPlaceStroke: 'rgba(255, 255, 255, 0.5)', //'#FFF',
 			textLocation: '#000', //'rgb(122, 62, 44)', 
+			textNumberOfLocations: '#FFF',
 			water: 'rgb(163, 204, 255)',
 			waterNode: '#0071BC'
 		},
@@ -9332,8 +9366,8 @@ var TgMap = function () {
 
 		// variables
 
-		this.tgBB.turn(true);
-		$('#dispBoundingBoxCB').prop('checked', true);
+		//this.tgBB.turn(true);
+		//$('#dispBoundingBoxCB').prop('checked', true);
 
 		this.tgWater.turn(true);
 		$('#dispWaterCB').prop('checked', true);
@@ -9509,6 +9543,7 @@ var TgMap = function () {
 			this.tgControl.setOrigin(lat, lng);
 			this.tgOrigin.render();
 			this.calBoundaryBox();
+			this.tgPlaces.needToBeRedrawn();
 			this.tgLocs.request();
 		}
 
@@ -9534,6 +9569,8 @@ var TgMap = function () {
 			this.tgWater.tempCount = 0;
 
 			this.tgRoads.updateDisplayedRoadType(this.data.zoom.current);
+			this.calBoundaryBox();
+			this.tgPlaces.needToBeRedrawn();
 			this.tgLocs.request();
 
 			this.tgLocs.initLocations();
@@ -9543,6 +9580,7 @@ var TgMap = function () {
 		key: 'onPanEnd',
 		value: function onPanEnd() {
 			console.log('onPanEnd.');
+			this.calBoundaryBox();
 			this.recalculateAndDraw();
 		}
 
@@ -9562,12 +9600,12 @@ var TgMap = function () {
 			//this.tpsReady = false;
 			this.resetTime();
 			this.resetDataInfo();
-			this.calBoundaryBox();
 
 			this.tgRoads.calDispRoads();
 			this.tgWater.calDispWater();
 			this.tgLanduse.calDispLanduse();
-			this.tgPlaces.calDispPlace();
+			//this.tgPlaces.calDispPlace();
+
 
 			if (this.currentMode === 'DC') {
 				this.calAllDispNodeAsOriginal();
@@ -9582,7 +9620,7 @@ var TgMap = function () {
 				this.tgRoads.render();
 				this.tgWater.render();
 				this.tgLanduse.render();
-				this.tgPlaces.render();
+				//this.tgPlaces.render();
 			}
 
 			this.readyControlPoints = false;

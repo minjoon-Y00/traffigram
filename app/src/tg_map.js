@@ -55,8 +55,8 @@ class TgMap {
 
 	  // variables
 
-	 	this.tgBB.turn(true);
-	  $('#dispBoundingBoxCB').prop('checked', true);
+	 	//this.tgBB.turn(true);
+	  //$('#dispBoundingBoxCB').prop('checked', true);
 
 	  this.tgWater.turn(true);
 	  $('#dispWaterCB').prop('checked', true);
@@ -232,6 +232,7 @@ class TgMap {
 		this.tgControl.setOrigin(lat, lng);
 		this.tgOrigin.render();
 		this.calBoundaryBox();
+		this.tgPlaces.needToBeRedrawn();
 		this.tgLocs.request();
 	}
 
@@ -256,6 +257,8 @@ class TgMap {
     this.tgWater.tempCount = 0;
 
 		this.tgRoads.updateDisplayedRoadType(this.data.zoom.current);
+		this.calBoundaryBox();
+		this.tgPlaces.needToBeRedrawn();
     this.tgLocs.request();
 
     this.tgLocs.initLocations();
@@ -266,6 +269,7 @@ class TgMap {
 
 	onPanEnd() {
 		console.log('onPanEnd.');
+		this.calBoundaryBox();
 		this.recalculateAndDraw();
 
 
@@ -283,12 +287,11 @@ class TgMap {
 		//this.tpsReady = false;
 		this.resetTime();
 		this.resetDataInfo();
-		this.calBoundaryBox();
 
 	  this.tgRoads.calDispRoads();
 		this.tgWater.calDispWater();
 		this.tgLanduse.calDispLanduse();
-		this.tgPlaces.calDispPlace();
+		//this.tgPlaces.calDispPlace();
 		
 
 		if (this.currentMode === 'DC') {
@@ -305,7 +308,7 @@ class TgMap {
 			this.tgRoads.render();
 			this.tgWater.render();
 			this.tgLanduse.render();
-			this.tgPlaces.render();
+			//this.tgPlaces.render();
 
 		}
 

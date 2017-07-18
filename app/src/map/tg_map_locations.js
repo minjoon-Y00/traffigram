@@ -57,12 +57,12 @@ class TgMapLocations {
 	request() {
 		this.readyLocs = false;
 		this.data.var.readyLocation = false;
-		
+
 		const options = {
 			term: this.currentType,
 			lat: this.map.tgOrigin.origin.original.lat,
 			lng: this.map.tgOrigin.origin.original.lng,
-			radius: parseInt(this.map.calMaxDistance('lat') * 1000), // 1000
+			radius: parseInt(this.map.calMaxDistance('lat') * 1000),
 		}
 
 		const s = (new Date()).getTime();
@@ -100,9 +100,10 @@ class TgMapLocations {
 		  this.locations[this.currentType] = locations;
 			this.locationClusters[this.currentType] = locationClusters;
 
-
+			/*console.log('locations: ');
+			console.log(locations);
 			console.log('clusteredLocations: ');
-			console.log(locationClusters);
+			console.log(locationClusters);*/
 
 
 			// 
@@ -140,7 +141,7 @@ class TgMapLocations {
 			this.data.var.readyLocation = true;
 
 			if (!this.data.var.placeProcessed) {
-				this.map.tgPlaces.processNewPlaceObjects();
+				this.map.tgPlaces.processPlaceObjects();
 			}
 
 		});
@@ -221,6 +222,16 @@ class TgMapLocations {
 			// circle images
 			this.mapUtil.addFeatureInFeatures(
 				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationClusterStyleFunc);
+
+			// number of locations
+			const numberStyleFunc = 
+				this.mapUtil.textStyle({
+					text: cLocs.locs.length + '', 
+					color: viz.color.textNumberOfLocations, 
+					font: viz.font.text, 
+				});
+			this.mapUtil.addFeatureInFeatures(
+				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), numberStyleFunc);
 		}
 
 		// display locations
@@ -253,6 +264,7 @@ class TgMapLocations {
 			this.layer = this.mapUtil.olVectorFromFeatures(arr);
 			this.layer.setZIndex(viz.z.location);
 		  this.mapUtil.addLayer(this.layer);
+			console.log('tgLocs.updateLayer():' + arr.length);
 		}
 	}
 

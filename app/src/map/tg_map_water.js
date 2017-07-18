@@ -138,7 +138,7 @@ class TgMapWater {
 
 	processNewWaterObjects() {
 		
-		console.log('w');
+		//console.log('w');
 
 		if (this.timerFinishGettingWaterData) {
 			clearTimeout(this.timerFinishGettingWaterData);

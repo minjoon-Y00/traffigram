@@ -11,9 +11,9 @@ class TgMapPlaces {
 		this.display = false;
 		this.layer = null;
 
-	  this.placeObjects = {};
+	  this.placeObjectNames = [];
 	  this.placeObjectsByZoom = null;
-	  this.newPlaceObjects = {};
+	  //this.newPlaceObjects = {};
 	  this.dispPlaceObjects = {};
 		this.placeLayer = {};
   	this.timerGetPlacesData = null;
@@ -60,28 +60,30 @@ class TgMapPlaces {
 
 	addToPlacesObject(feature, resolution) {
 		if (this.timerGetPlacesData) clearTimeout(this.timerGetPlacesData);
-		this.timerGetPlacesData = 
-				setTimeout(
-						this.processNewPlaceObjects.bind(this), 
-						this.data.time.waitForGettingData);
+		this.timerGetPlacesData = setTimeout(
+				this.processPlaceObjects.bind(this), 
+				this.data.time.waitForGettingData);
 
 		const name = feature.get('name').toUpperCase();
 
 		// if there is the same place, skip it.
-		if (this.placeObjects[name]) return null;
+		if (this.placeObjectNames.indexOf(name) >= 0) return null;
+
+		this.placeObjectNames.push(name);
 
 		feature.getGeometry().transform('EPSG:3857', 'EPSG:4326');
-
 		const coords = feature.getGeometry().getCoordinates();
-		coords.minZoom = feature.get('min_zoom');
-		coords.maxZoom = feature.get('max_zoom');
+		coords.minZoom = feature.get('min_zoom') || 0;
+		coords.maxZoom = feature.get('max_zoom') || this.data.zoom.max;
 		coords.node = new TgNode(coords[1], coords[0]);
 
 		if (coords.minZoom < this.minZoomOfPlaces) this.minZoomOfPlaces = coords.minZoom;
 		if (coords.maxZoom > this.maxZoomOfPlaces) this.maxZoomOfPlaces = coords.maxZoom;
 
-	  this.placeObjects[name] = coords;
-	  this.newPlaceObjects[name] = coords;
+		this.placeObjectsByZoom[coords.minZoom][name] = coords;
+
+	  //this.newPlaceObjects[name] = coords;
+	  //this.placeObjects[name] = coords;
 	  //this.dispPlaceObjects[name] = coords;
 
   	/*for(let zoom = minZoom; zoom <= maxZoom; zoom++) {
@@ -115,37 +117,36 @@ class TgMapPlaces {
 		return null;
 	}
 
-	processNewPlaceObjects() {
+	processPlaceObjects() {
 
 		//console.log('p');
 
 		if (this.map.currentMode === 'EM') {
 
 			if (this.data.var.readyLocation) {
-				console.log('processNewPlaceObjects: loc ready so process places');
-
-				for(let name in this.newPlaceObjects) {
-					const place = this.newPlaceObjects[name];
-					const z = place.minZoom || 0;
-					this.placeObjectsByZoom[z][name] = place;
-				}
+				console.log('processPlaceObjects: loc ready so process places');
 
 				this.dispPlaceObjects = 
 						this.map.tgBB.getNonOverlappedPlaces(this.placeObjectsByZoom);
-				console.log('dispPlaces: ');
-				console.log(dispPlaces);
 
-				this.addNewLayer(dispPlaces);
-				this.newPlaceObjects = [];
+				//console.log('dispPlaces: ');
+				//console.log(this.dispPlaceObjects);
+
+				this.updateLayer();
 				this.data.var.placeProcessed = true;
 
 			} else {
-				console.log('processNewPlaceObjects: loc is not ready so wait');
+				console.log('processPlaceObjects: loc is not ready so wait');
 			}
 		}
 	}
 
-	calDispPlace() {
+	needToBeRedrawn() {
+		this.clearLayers();
+		this.data.var.placeProcessed = false;
+	}
+
+	/*calDispPlace() {
 		const currentZoom = this.data.zoom.current;
 		const top = this.data.box.top;
 		const bottom = this.data.box.bottom;
@@ -170,7 +171,7 @@ class TgMapPlaces {
 				this.dispPlaceObjects[name] = this.placeObjects[name];
 			}
 		}
-	}
+	}*/
 
 	updateDispPlaces() {
 		for(let name in this.dispPlaceObjects) {
@@ -180,12 +181,12 @@ class TgMapPlaces {
 		}
 	}
 
-	addNewLayer(dispPlaces) {
+	/*addNewLayer() {
 		const viz = this.data.viz;
 		let arr = [];
 
-		for(let name in dispPlaces) {
-			const place = dispPlaces[name];
+		for(let name in this.dispPlaceObjects) {
+			const place = this.dispPlaceObjects[name];
 			const styleFunc = this.mapUtil.textStyle({
 					text: name, 
 					color: viz.color.textPlace, 
@@ -204,7 +205,7 @@ class TgMapPlaces {
 		this.dispLayers.push(layer);
 
 		console.log('+ new place layer: ' + arr.length);
-	}
+	}*/
 
 	updateLayer() {
 		const viz = this.data.viz;
@@ -227,10 +228,13 @@ class TgMapPlaces {
 				arr, new ol.geom.Point(place), styleFunc);
 		}
 
-		this.placeLayer = this.mapUtil.olVectorFromFeatures(arr);
-		this.placeLayer.setZIndex(viz.z.places);
-		this.mapUtil.addLayer(this.placeLayer);
-		this.dispLayers.push(this.placeLayer);
+		if (arr.length > 0) {
+			this.placeLayer = this.mapUtil.olVectorFromFeatures(arr);
+			this.placeLayer.setZIndex(viz.z.places);
+			this.mapUtil.addLayer(this.placeLayer);
+			this.dispLayers.push(this.placeLayer);
+			console.log('tgPlaces.updateLayer():' + arr.length);
+		}
 	}
 
 	removeLayer() {
