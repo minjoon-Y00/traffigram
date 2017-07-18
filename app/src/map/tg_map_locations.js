@@ -106,24 +106,6 @@ class TgMapLocations {
 			console.log(locationClusters);*/
 
 
-			// 
-
-			//this.disabled(false);
-			//this.map.tgBB.cleanBB();
-			//this.map.tgBB.deleteBBByType('location');
-			//this.map.tgBB.deleteBBByType('locationluster');
-			//this.map.tgBB.deleteBBByType('locationName');
-
-			// save non-overlapped locations
-			//locations = this.map.tgBB.getNonOverlappedLocations(locations);
-
-			//const locationClusters = this.map.tgBB.calClusteredLocations2(locations);
-			//this.locationClusters[this.currentType] = locationClusters;
-
-
-
-		  //this.map.tgBB.calNonOverlappedLocationNames(locationClusters);
-
 		  if (this.map.currentMode !== 'EM') {
 		  	if (!this.map.tpsReady) {
 		  		console.log('@ Not ready so wait.');
@@ -346,6 +328,7 @@ class TgMapLocations {
 	}
 
 	calDispNodes(kind, value) {
+		// update disp for locations
 		for(let loc of this.locations[this.currentType]) {
 			loc.node.dispAnchor = 
 				{lat: (1 - value) * loc.node.original.lat + value * loc.node.real.lat,
@@ -353,6 +336,29 @@ class TgMapLocations {
 			loc.node.dispLoc = 
 				{lat: (1 - value) * loc.node.original.lat + value * loc.node.target.lat,
 				 lng: (1 - value) * loc.node.original.lng + value * loc.node.target.lng }
+		}
+
+		// update disp for location clusters
+		for(let cLocs of this.locationClusters[this.currentType]) {
+			const dispLoc = cLocs.node.dispLoc;
+			const dispAnchor = cLocs.node.dispAnchor;
+			dispLoc.lat = 0;
+			dispLoc.lng = 0;
+			dispAnchor.lat = 0;
+			dispAnchor.lng = 0;
+
+			for(let cLoc of cLocs.locs) {
+				dispLoc.lat += cLoc.node.dispLoc.lat;
+				dispLoc.lng += cLoc.node.dispLoc.lng;
+				dispAnchor.lat += cLoc.node.dispAnchor.lat;
+				dispAnchor.lng += cLoc.node.dispAnchor.lng;
+			}
+
+			const len = cLocs.locs.length;
+			dispLoc.lat /= len;
+			dispLoc.lng /= len;
+			dispAnchor.lat /= len;
+			dispAnchor.lng /= len;
 		}
 	}
 
@@ -409,21 +415,6 @@ class TgMapLocations {
 		else {
 			$('#modal-travel-time').text('-');
 		}
-	}
-
-	addBBToLocations() {
-		const iconLatPx = 50;
-		const iconLngPx = 55;
-		const dLat = (iconLatPx * this.data.var.latPerPx) / 2;
-		const dLng = (iconLngPx * this.data.var.lngPerPx) / 2;
-		const disp = this.origin.disp;
-
-		this.bb = {
-			left: disp.lng - dLng, 
-			right: disp.lng + dLng,
-			top: disp.lat - dLat,
-			bottom: disp.lat + dLat,
-		};
 	}
 }
 

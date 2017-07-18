@@ -612,6 +612,7 @@ class TgMap {
   	this.tgLanduse.calDispNodes(intermediate, value);
   	this.tgOrigin.calDispNodes(intermediate, value);
 		this.tgLocs.calDispNodes(intermediate, value);
+		this.tgPlaces.calDispNodes(intermediate, value);
 
 		if (render) {
 			this.tgWater.render();
@@ -619,14 +620,15 @@ class TgMap {
   		this.tgLanduse.render();
   		this.tgOrigin.render();
 			this.tgLocs.render();
+			this.tgPlaces.render();
 		}
 
-		if (this.dispPlaceLayer) {
+		/*if (this.dispPlaceLayer) {
 			this.tgPlaces.clearLayers();
 	  	this.tgPlaces.calDispNodes(intermediate, value);
 	  	this.tgPlaces.updateDispPlaces(true);
 	  	this.tgPlaces.addPlaceLayer();
-	  }
+	  }*/
 
 
 		
@@ -699,7 +701,7 @@ class TgMap {
 		this.tgBB.cleanBB();
 		this.tgBB.addBBOfLocations();
 		this.tgLocs.dispNameLayer = true;
-		this.tgLocs.updateNonOverlappedLocationNames();
+		//this.tgLocs.updateNonOverlappedLocationNames();
 		this.tgLocs.render();
 		this.tgBB.render();
 

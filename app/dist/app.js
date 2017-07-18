@@ -5237,23 +5237,6 @@ var TgMapLocations = function () {
     console.log('clusteredLocations: ');
     console.log(locationClusters);*/
 
-				// 
-
-				//this.disabled(false);
-				//this.map.tgBB.cleanBB();
-				//this.map.tgBB.deleteBBByType('location');
-				//this.map.tgBB.deleteBBByType('locationluster');
-				//this.map.tgBB.deleteBBByType('locationName');
-
-				// save non-overlapped locations
-				//locations = this.map.tgBB.getNonOverlappedLocations(locations);
-
-				//const locationClusters = this.map.tgBB.calClusteredLocations2(locations);
-				//this.locationClusters[this.currentType] = locationClusters;
-
-
-				//this.map.tgBB.calNonOverlappedLocationNames(locationClusters);
-
 				if (_this.map.currentMode !== 'EM') {
 					if (!_this.map.tpsReady) {
 						console.log('@ Not ready so wait.');
@@ -5567,6 +5550,7 @@ var TgMapLocations = function () {
 	}, {
 		key: 'calDispNodes',
 		value: function calDispNodes(kind, value) {
+			// update disp for locations
 			var _iteratorNormalCompletion8 = true;
 			var _didIteratorError8 = false;
 			var _iteratorError8 = undefined;
@@ -5580,6 +5564,8 @@ var TgMapLocations = function () {
 					loc.node.dispLoc = { lat: (1 - value) * loc.node.original.lat + value * loc.node.target.lat,
 						lng: (1 - value) * loc.node.original.lng + value * loc.node.target.lng };
 				}
+
+				// update disp for location clusters
 			} catch (err) {
 				_didIteratorError8 = true;
 				_iteratorError8 = err;
@@ -5591,6 +5577,70 @@ var TgMapLocations = function () {
 				} finally {
 					if (_didIteratorError8) {
 						throw _iteratorError8;
+					}
+				}
+			}
+
+			var _iteratorNormalCompletion9 = true;
+			var _didIteratorError9 = false;
+			var _iteratorError9 = undefined;
+
+			try {
+				for (var _iterator9 = this.locationClusters[this.currentType][Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+					var cLocs = _step9.value;
+
+					var dispLoc = cLocs.node.dispLoc;
+					var dispAnchor = cLocs.node.dispAnchor;
+					dispLoc.lat = 0;
+					dispLoc.lng = 0;
+					dispAnchor.lat = 0;
+					dispAnchor.lng = 0;
+
+					var _iteratorNormalCompletion10 = true;
+					var _didIteratorError10 = false;
+					var _iteratorError10 = undefined;
+
+					try {
+						for (var _iterator10 = cLocs.locs[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+							var cLoc = _step10.value;
+
+							dispLoc.lat += cLoc.node.dispLoc.lat;
+							dispLoc.lng += cLoc.node.dispLoc.lng;
+							dispAnchor.lat += cLoc.node.dispAnchor.lat;
+							dispAnchor.lng += cLoc.node.dispAnchor.lng;
+						}
+					} catch (err) {
+						_didIteratorError10 = true;
+						_iteratorError10 = err;
+					} finally {
+						try {
+							if (!_iteratorNormalCompletion10 && _iterator10.return) {
+								_iterator10.return();
+							}
+						} finally {
+							if (_didIteratorError10) {
+								throw _iteratorError10;
+							}
+						}
+					}
+
+					var len = cLocs.locs.length;
+					dispLoc.lat /= len;
+					dispLoc.lng /= len;
+					dispAnchor.lat /= len;
+					dispAnchor.lng /= len;
+				}
+			} catch (err) {
+				_didIteratorError9 = true;
+				_iteratorError9 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion9 && _iterator9.return) {
+						_iterator9.return();
+					}
+				} finally {
+					if (_didIteratorError9) {
+						throw _iteratorError9;
 					}
 				}
 			}
@@ -5614,13 +5664,13 @@ var TgMapLocations = function () {
 				lng: this.data.var.clickRangePX * lngPerPx
 			};
 
-			var _iteratorNormalCompletion9 = true;
-			var _didIteratorError9 = false;
-			var _iteratorError9 = undefined;
+			var _iteratorNormalCompletion11 = true;
+			var _didIteratorError11 = false;
+			var _iteratorError11 = undefined;
 
 			try {
-				for (var _iterator9 = this.locations[this.currentType][Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-					var loc = _step9.value;
+				for (var _iterator11 = this.locations[this.currentType][Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+					var loc = _step11.value;
 
 					if (Math.abs(loc.node.dispLoc.lat - lat) <= clickRange.lat && Math.abs(loc.node.dispLoc.lng - lng) <= clickRange.lng) {
 
@@ -5631,16 +5681,16 @@ var TgMapLocations = function () {
 					}
 				}
 			} catch (err) {
-				_didIteratorError9 = true;
-				_iteratorError9 = err;
+				_didIteratorError11 = true;
+				_iteratorError11 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion9 && _iterator9.return) {
-						_iterator9.return();
+					if (!_iteratorNormalCompletion11 && _iterator11.return) {
+						_iterator11.return();
 					}
 				} finally {
-					if (_didIteratorError9) {
-						throw _iteratorError9;
+					if (_didIteratorError11) {
+						throw _iteratorError11;
 					}
 				}
 			}
@@ -5669,22 +5719,6 @@ var TgMapLocations = function () {
 			} else {
 				$('#modal-travel-time').text('-');
 			}
-		}
-	}, {
-		key: 'addBBToLocations',
-		value: function addBBToLocations() {
-			var iconLatPx = 50;
-			var iconLngPx = 55;
-			var dLat = iconLatPx * this.data.var.latPerPx / 2;
-			var dLng = iconLngPx * this.data.var.lngPerPx / 2;
-			var disp = this.origin.disp;
-
-			this.bb = {
-				left: disp.lng - dLng,
-				right: disp.lng + dLng,
-				top: disp.lat - dLat,
-				bottom: disp.lat + dLat
-			};
 		}
 	}]);
 
@@ -9923,6 +9957,7 @@ var TgMap = function () {
 			this.tgLanduse.calDispNodes(intermediate, value);
 			this.tgOrigin.calDispNodes(intermediate, value);
 			this.tgLocs.calDispNodes(intermediate, value);
+			this.tgPlaces.calDispNodes(intermediate, value);
 
 			if (render) {
 				this.tgWater.render();
@@ -9930,14 +9965,15 @@ var TgMap = function () {
 				this.tgLanduse.render();
 				this.tgOrigin.render();
 				this.tgLocs.render();
+				this.tgPlaces.render();
 			}
 
-			if (this.dispPlaceLayer) {
-				this.tgPlaces.clearLayers();
-				this.tgPlaces.calDispNodes(intermediate, value);
-				this.tgPlaces.updateDispPlaces(true);
-				this.tgPlaces.addPlaceLayer();
-			}
+			/*if (this.dispPlaceLayer) {
+   	this.tgPlaces.clearLayers();
+    	this.tgPlaces.calDispNodes(intermediate, value);
+    	this.tgPlaces.updateDispPlaces(true);
+    	this.tgPlaces.addPlaceLayer();
+    }*/
 
 			if (this.dispGridLayer || this.dispControlPointLayer) {
 				this.tgControl.calDispNodes(intermediate, value);
@@ -10011,7 +10047,7 @@ var TgMap = function () {
 			this.tgBB.cleanBB();
 			this.tgBB.addBBOfLocations();
 			this.tgLocs.dispNameLayer = true;
-			this.tgLocs.updateNonOverlappedLocationNames();
+			//this.tgLocs.updateNonOverlappedLocationNames();
 			this.tgLocs.render();
 			this.tgBB.render();
 		}
