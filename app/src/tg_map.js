@@ -7,6 +7,7 @@ const TgLocations = require('./map/tg_map_locations');
 const TgIsochrone = require('./map/tg_map_isochrone');
 const TgBoundingBox = require('./map/tg_map_bounding_box');
 const TgOrigin = require('./map/tg_map_origin');
+const TgGrid = require('./map/tg_map_grid');
 const tgUtil = require('./tg_util');
 const TgMapUtil = require('./map/tg_map_util');
 
@@ -41,6 +42,7 @@ class TgMap {
 	  this.tgLanduse = new TgLanduse(this, this.data, this.graph);
 	  this.tgLocs = new TgLocations(this, this.data, this.graph);
 	  this.tgControl = new TgControl(this, this.data, this.graph);
+	  this.tgGrids = new TgGrid(this, this.data, this.graph);
 	  this.tgPlaces = new TgPlaces(this, this.data, this.graph);
 	  this.tgBB = new TgBoundingBox(this, this.data, this.graph);
 	  this.tgOrigin = new TgOrigin(this, this.data, this.graph);
@@ -79,10 +81,13 @@ class TgMap {
 	  this.tgIsochrone.turn(true);
 	  $('#dispIsochroneCB').prop('checked', true);
 
-	  this.dispGridLayer = false;
+	  this.tgGrids.turn(true);
+	  $('#dispGridCB').prop('checked', true);
+
+	  //this.dispGridLayer = false;
 	  //this.dispCenterPositionLayer = true;
-	  this.dispControlPointLayer = false;
-	  this.dispIsochroneLayer = true;
+	  //this.dispControlPointLayer = false;
+	  //this.dispIsochroneLayer = true;
 	  this.warpingMode = 'shapePreserving'; 
 	  this.needToCalWarping = false;
 	  this.dispWaterNodeLayer = false;
@@ -330,7 +335,7 @@ class TgMap {
 		  	//this.goToDcAgain();
 		  }
 		  else if (this.currentMode === 'EM') {
-		  	this.tgControl.calDispNodes('original');
+		  	//this.tgControl.calDispNodes('original');
 		  }
 
 		  this.updateLayers();
@@ -472,13 +477,13 @@ class TgMap {
 	updateLayers() {
 		var s = (new Date()).getTime();
 
-		if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
+		/*if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
 			if (this.currentMode === 'EM') this.tgControl.calDispNodes('original');
 			else if (this.currentMode === 'DC') {
 				if (this.warpingMode === 'none') this.tgControl.calDispNodes('target');
 				else this.tgControl.calDispNodes('real');
 			}
-		}
+		}*/
 
 		/*if (this.dispPlaceLayer) {
 			this.tgPlaces.calDispPlace();
@@ -496,11 +501,11 @@ class TgMap {
 		//if (this.dispLanduseNodeLayer) this.tgLanduse.addLanduseNodeLayer();
 		//else this.tgLanduse.removeLanduseNodeLayer();
 
-	  if (this.dispGridLayer) this.tgControl.drawGridLayer()
+	  /*if (this.dispGridLayer) this.tgControl.drawGridLayer()
 		else this.tgControl.removeGridLayer()
 
 		if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer()
-		else this.tgControl.removeControlPointLayer()
+		else this.tgControl.removeControlPointLayer()*/
 
 		//if (this.dispCenterPositionLayer) this.tgAux.drawCenterPositionLayer()
 		//else this.tgAux.removeCenterPositionLayer();
@@ -613,6 +618,7 @@ class TgMap {
   	this.tgOrigin.calDispNodes(intermediate, value);
 		this.tgLocs.calDispNodes(intermediate, value);
 		this.tgPlaces.calDispNodes(intermediate, value);
+		this.tgGrids.calDispNodes(intermediate, value);
 
 		if (render) {
 			this.tgWater.render();
@@ -621,6 +627,7 @@ class TgMap {
   		this.tgOrigin.render();
 			this.tgLocs.render();
 			this.tgPlaces.render();
+			this.tgGrids.render();
 		}
 
 		/*if (this.dispPlaceLayer) {
@@ -633,12 +640,12 @@ class TgMap {
 
 		
 
-  	if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
+  	/*if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
   		this.tgControl.calDispNodes(intermediate, value);
 
   		if (this.dispGridLayer) this.tgControl.drawGridLayer();
   		if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer();
-  	}
+  	}*/
 	}
 
 	goToDcByFrame() {

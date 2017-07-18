@@ -26,13 +26,13 @@ module.exports = {
 			trunk: 6,
 			motorway: 7,
 			roadNode: 8,
-			grid: 10,
-			controlPoint: 15,
 			places: 19,
 			location: 20,
 			isochrone: 25,
 			origin: 30,
-			boundingBox: 50,
+			boundingBox: 40,
+			grid: 50,
+			controlPoint: 51,
 		},
 
 		color: {
@@ -91,7 +91,7 @@ module.exports = {
 
 		radius: {
 			anchor: 5,
-			controlPoint: 5,
+			controlPoint: 13,
 			node: 3,
 		},
 

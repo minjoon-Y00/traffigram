@@ -918,8 +918,8 @@ $("#dispControlPointsCB").change(function (ev) {
 });
 
 $("#dispGridCB").change(function (ev) {
-	tg.map.dispGridLayer = ev.target.checked;
-	tg.map.updateLayers();
+	tg.map.tgGrids.turn(ev.target.checked);
+	tg.map.tgGrids.render();
 });
 
 $("#dispIsochroneCB").change(function (ev) {
@@ -927,20 +927,20 @@ $("#dispIsochroneCB").change(function (ev) {
 	tg.map.tgIsochrone.render();
 });
 
-$("#dispWaterNodeCB").change(function (ev) {
+/*$("#dispWaterNodeCB").change(function(ev){ 
 	tg.map.dispWaterNodeLayer = ev.target.checked;
 	tg.map.updateLayers();
 });
 
-$("#dispRoadNodeCB").change(function (ev) {
+$("#dispRoadNodeCB").change(function(ev){ 
 	tg.map.dispRoadNodeLayer = ev.target.checked;
 	tg.map.updateLayers();
 });
 
-$("#dispLanduseNodeCB").change(function (ev) {
+$("#dispLanduseNodeCB").change(function(ev){ 
 	tg.map.dispLanduseNodeLayer = ev.target.checked;
 	tg.map.updateLayers();
-});
+});*/
 
 function debug() {
 	tg.map.debug();
@@ -2793,6 +2793,7 @@ var TgMapControl = function () {
 				console.log('complete: grid checking and control points.');
 				this.map.readyControlPoints = true;
 				this.map.disableSGapAndGapButtons(false);
+				this.map.tgGrids.render();
 
 				if (this.map.currentMode === 'DC') {
 					this.map.goToDcAgain();
@@ -3552,13 +3553,111 @@ var TgMapControl = function () {
 		/** 
    * create a control point layer and add to olMap.
    */
+		/*drawControlPointLayer() {
+  	let features = [];
+  	const viz = this.data.viz;
+  		for(let point of this.controlPoints) {
+  		// draw control points
+  		this.mapUtil.addFeatureInFeatures(
+  				features,
+  				new ol.geom.Point(
+  						[point.disp.lng, point.disp.lat]), 
+  						this.mapUtil.nodeStyle(
+  								viz.color.controlPoint, 
+  								viz.radius.controlPoint));
+  			// draw additional lines if there is a difference between target and real.
+  		if ((point.target.lng != point.disp.lng) 
+  			|| (point.target.lat != point.disp.lat)) {
+  				this.mapUtil.addFeatureInFeatures(
+  					features, 
+  					new ol.geom.LineString(
+  							[[point.disp.lng, point.disp.lat], [point.target.lng, point.target.lat]]), 
+  							this.mapUtil.lineStyle(
+  								viz.color.controlPointLine, viz.width.controlPointLine));
+  		}
+  			// add text
+  		let text = (point.travelTime != null) ? point.travelTime.toString() : '-';
+  		text += ',' + point.index;
+  		this.mapUtil.addFeatureInFeatures(
+  				features,
+  				new ol.geom.Point(
+  						[point.disp.lng, point.disp.lat]), 
+  						this.mapUtil.textStyle({
+  								text: text, color: viz.color.text, font: viz.font.text
+  							}));
+  	}
+  		this.removeControlPointLayer();
+  	this.controlPointLayer = this.mapUtil.olVectorFromFeatures(features);
+  	this.controlPointLayer.setZIndex(viz.z.controlPoint);
+    this.mapUtil.addLayer(this.controlPointLayer);
+  }*/
+
+		/** 
+   * remove a control point layer if exists.
+   */
+		/*removeControlPointLayer() {
+  	this.mapUtil.removeLayer(this.controlPointLayer);
+  }*/
+
+		/** 
+   * create a grid layer and add to olMap.
+   */
+		/*drawGridLayer() {
+  	let features = [];
+  	const viz = this.data.viz;
+  		for(let line of this.gridLines) {
+  		this.mapUtil.addFeatureInFeatures(
+  				features, 
+  				new ol.geom.LineString(
+  						[[line.start.disp.lng, line.start.disp.lat], 
+  						[line.end.disp.lng, line.end.disp.lat]]), 
+  						this.mapUtil.lineStyle(viz.color.grid, viz.width.grid));
+  	}
+  		this.removeGridLayer();
+  	this.gridLayer = this.mapUtil.olVectorFromFeatures(features);
+  	this.gridLayer.setZIndex(viz.z.grid);
+  	this.mapUtil.addLayer(this.gridLayer);
+  }*/
+
+		/** 
+   * remove a control point layer if exists.
+   */
+		/*removeGridLayer() {
+  	this.mapUtil.removeLayer(this.gridLayer)
+  }*/
+
+		/*calDispNodes(type, value) {
+  	if (type === 'intermediateReal') {
+  		for(let point of this.controlPoints) {
+  			point.disp.lat = (1 - value) * point.original.lat + value * point.real.lat;
+  			point.disp.lng = (1 - value) * point.original.lng + value * point.real.lng;
+  		}
+  	}
+  	else if (type === 'intermediateTarget') {
+  		for(let point of this.controlPoints) {
+  			point.disp.lat = (1 - value) * point.original.lat + value * point.target.lat;
+  			point.disp.lng = (1 - value) * point.original.lng + value * point.target.lng;
+  		}
+  	}
+  	else {
+  		for(let point of this.controlPoints) {
+  			point.disp.lat = point[type].lat;
+  			point.disp.lng = point[type].lng;
+  		}
+  	}
+  }*/
 
 	}, {
-		key: 'drawControlPointLayer',
-		value: function drawControlPointLayer() {
-			var features = [];
-			var viz = this.data.viz;
-
+		key: 'getIJ',
+		value: function getIJ(idx) {
+			return {
+				i: parseInt(idx / (this.data.var.resolution.gridLng + 1)),
+				j: idx % (this.data.var.resolution.gridLng + 1)
+			};
+		}
+	}, {
+		key: 'makeNoWarpedGrid',
+		value: function makeNoWarpedGrid() {
 			var _iteratorNormalCompletion15 = true;
 			var _didIteratorError15 = false;
 			var _iteratorError15 = undefined;
@@ -3567,21 +3666,8 @@ var TgMapControl = function () {
 				for (var _iterator15 = this.controlPoints[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
 					var point = _step15.value;
 
-					// draw control points
-					this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([point.disp.lng, point.disp.lat]), this.mapUtil.nodeStyle(viz.color.controlPoint, viz.radius.controlPoint));
-
-					// draw additional lines if there is a difference between target and real.
-					if (point.target.lng != point.disp.lng || point.target.lat != point.disp.lat) {
-
-						this.mapUtil.addFeatureInFeatures(features, new ol.geom.LineString([[point.disp.lng, point.disp.lat], [point.target.lng, point.target.lat]]), this.mapUtil.lineStyle(viz.color.controlPointLine, viz.width.controlPointLine));
-					}
-
-					// add text
-					var text = point.travelTime != null ? point.travelTime.toString() : '-';
-					text += ',' + point.index;
-					this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([point.disp.lng, point.disp.lat]), this.mapUtil.textStyle({
-						text: text, color: viz.color.text, font: viz.font.text
-					}));
+					point.real.lat = point.original.lat;
+					point.real.lng = point.original.lng;
 				}
 			} catch (err) {
 				_didIteratorError15 = true;
@@ -3598,52 +3684,22 @@ var TgMapControl = function () {
 				}
 			}
 
-			this.removeControlPointLayer();
-			this.controlPointLayer = this.mapUtil.olVectorFromFeatures(features);
-			this.controlPointLayer.setZIndex(viz.z.controlPoint);
-			this.mapUtil.addLayer(this.controlPointLayer);
+			console.log('makeNoWarpedGrid');
 		}
-
-		/** 
-   * remove a control point layer if exists.
-   */
-
 	}, {
-		key: 'removeControlPointLayer',
-		value: function removeControlPointLayer() {
-			this.mapUtil.removeLayer(this.controlPointLayer);
-		}
-
-		/** 
-   * create a grid layer and add to olMap.
-   */
-
-	}, {
-		key: 'drawGridLayer',
-		value: function drawGridLayer() {
-			var features = [];
-			var viz = this.data.viz;
-
+		key: 'makeOriginalDCGrid',
+		value: function makeOriginalDCGrid() {
 			var _iteratorNormalCompletion16 = true;
 			var _didIteratorError16 = false;
 			var _iteratorError16 = undefined;
 
 			try {
-				for (var _iterator16 = this.gridLines[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-					var line = _step16.value;
+				for (var _iterator16 = this.controlPoints[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+					var point = _step16.value;
 
-					this.mapUtil.addFeatureInFeatures(features, new ol.geom.LineString([[line.start.disp.lng, line.start.disp.lat], [line.end.disp.lng, line.end.disp.lat]]), this.mapUtil.lineStyle(viz.color.grid, viz.width.grid));
+					point.real.lat = point.target.lat;
+					point.real.lng = point.target.lng;
 				}
-
-				/*for(let point of this.controlPoints) {
-    	for(let neighbor of point.connectedNodes) {
-    		this.mapUtil.addFeatureInFeatures(
-    				features, 
-    				new ol.geom.LineString(
-    						[[point.disp.lng, point.disp.lat], [neighbor.disp.lng, neighbor.disp.lat]]), 
-    						this.mapUtil.lineStyle(viz.color.grid, viz.width.grid));
-    	}			
-    }*/
 			} catch (err) {
 				_didIteratorError16 = true;
 				_iteratorError16 = err;
@@ -3655,172 +3711,6 @@ var TgMapControl = function () {
 				} finally {
 					if (_didIteratorError16) {
 						throw _iteratorError16;
-					}
-				}
-			}
-
-			this.removeGridLayer();
-			this.gridLayer = this.mapUtil.olVectorFromFeatures(features);
-			this.gridLayer.setZIndex(viz.z.grid);
-			this.mapUtil.addLayer(this.gridLayer);
-		}
-
-		/** 
-   * remove a control point layer if exists.
-   */
-
-	}, {
-		key: 'removeGridLayer',
-		value: function removeGridLayer() {
-			this.mapUtil.removeLayer(this.gridLayer);
-		}
-	}, {
-		key: 'calDispNodes',
-		value: function calDispNodes(type, value) {
-			if (type === 'intermediateReal') {
-				var _iteratorNormalCompletion17 = true;
-				var _didIteratorError17 = false;
-				var _iteratorError17 = undefined;
-
-				try {
-					for (var _iterator17 = this.controlPoints[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
-						var point = _step17.value;
-
-						point.disp.lat = (1 - value) * point.original.lat + value * point.real.lat;
-						point.disp.lng = (1 - value) * point.original.lng + value * point.real.lng;
-					}
-				} catch (err) {
-					_didIteratorError17 = true;
-					_iteratorError17 = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion17 && _iterator17.return) {
-							_iterator17.return();
-						}
-					} finally {
-						if (_didIteratorError17) {
-							throw _iteratorError17;
-						}
-					}
-				}
-			} else if (type === 'intermediateTarget') {
-				var _iteratorNormalCompletion18 = true;
-				var _didIteratorError18 = false;
-				var _iteratorError18 = undefined;
-
-				try {
-					for (var _iterator18 = this.controlPoints[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-						var _point = _step18.value;
-
-						_point.disp.lat = (1 - value) * _point.original.lat + value * _point.target.lat;
-						_point.disp.lng = (1 - value) * _point.original.lng + value * _point.target.lng;
-					}
-				} catch (err) {
-					_didIteratorError18 = true;
-					_iteratorError18 = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion18 && _iterator18.return) {
-							_iterator18.return();
-						}
-					} finally {
-						if (_didIteratorError18) {
-							throw _iteratorError18;
-						}
-					}
-				}
-			} else {
-				var _iteratorNormalCompletion19 = true;
-				var _didIteratorError19 = false;
-				var _iteratorError19 = undefined;
-
-				try {
-					for (var _iterator19 = this.controlPoints[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-						var _point2 = _step19.value;
-
-						_point2.disp.lat = _point2[type].lat;
-						_point2.disp.lng = _point2[type].lng;
-					}
-				} catch (err) {
-					_didIteratorError19 = true;
-					_iteratorError19 = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion19 && _iterator19.return) {
-							_iterator19.return();
-						}
-					} finally {
-						if (_didIteratorError19) {
-							throw _iteratorError19;
-						}
-					}
-				}
-			}
-		}
-	}, {
-		key: 'getIJ',
-		value: function getIJ(idx) {
-			return {
-				i: parseInt(idx / (this.data.var.resolution.gridLng + 1)),
-				j: idx % (this.data.var.resolution.gridLng + 1)
-			};
-		}
-	}, {
-		key: 'makeNoWarpedGrid',
-		value: function makeNoWarpedGrid() {
-			var _iteratorNormalCompletion20 = true;
-			var _didIteratorError20 = false;
-			var _iteratorError20 = undefined;
-
-			try {
-				for (var _iterator20 = this.controlPoints[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-					var point = _step20.value;
-
-					point.real.lat = point.original.lat;
-					point.real.lng = point.original.lng;
-				}
-			} catch (err) {
-				_didIteratorError20 = true;
-				_iteratorError20 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion20 && _iterator20.return) {
-						_iterator20.return();
-					}
-				} finally {
-					if (_didIteratorError20) {
-						throw _iteratorError20;
-					}
-				}
-			}
-
-			console.log('makeNoWarpedGrid');
-		}
-	}, {
-		key: 'makeOriginalDCGrid',
-		value: function makeOriginalDCGrid() {
-			var _iteratorNormalCompletion21 = true;
-			var _didIteratorError21 = false;
-			var _iteratorError21 = undefined;
-
-			try {
-				for (var _iterator21 = this.controlPoints[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-					var point = _step21.value;
-
-					point.real.lat = point.target.lat;
-					point.real.lng = point.target.lng;
-				}
-			} catch (err) {
-				_didIteratorError21 = true;
-				_iteratorError21 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion21 && _iterator21.return) {
-						_iterator21.return();
-					}
-				} finally {
-					if (_didIteratorError21) {
-						throw _iteratorError21;
 					}
 				}
 			}
@@ -3840,26 +3730,26 @@ var TgMapControl = function () {
 				point.real.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
 			};
 
-			var _iteratorNormalCompletion22 = true;
-			var _didIteratorError22 = false;
-			var _iteratorError22 = undefined;
+			var _iteratorNormalCompletion17 = true;
+			var _didIteratorError17 = false;
+			var _iteratorError17 = undefined;
 
 			try {
-				for (var _iterator22 = this.controlPoints[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-					var _point3 = _step22.value;
-					_point3.intersected = false;
+				for (var _iterator17 = this.controlPoints[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+					var _point = _step17.value;
+					_point.intersected = false;
 				} // 0.1, ..., 0.7 (if margin = 0.3)
 			} catch (err) {
-				_didIteratorError22 = true;
-				_iteratorError22 = err;
+				_didIteratorError17 = true;
+				_iteratorError17 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion22 && _iterator22.return) {
-						_iterator22.return();
+					if (!_iteratorNormalCompletion17 && _iterator17.return) {
+						_iterator17.return();
 					}
 				} finally {
-					if (_didIteratorError22) {
-						throw _iteratorError22;
+					if (_didIteratorError17) {
+						throw _iteratorError17;
 					}
 				}
 			}
@@ -3868,13 +3758,13 @@ var TgMapControl = function () {
 				//console.log('pct = ' + pct);
 
 				// change the real position of all control points.
-				var _iteratorNormalCompletion23 = true;
-				var _didIteratorError23 = false;
-				var _iteratorError23 = undefined;
+				var _iteratorNormalCompletion18 = true;
+				var _didIteratorError18 = false;
+				var _iteratorError18 = undefined;
 
 				try {
-					for (var _iterator23 = this.controlPoints[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-						var point = _step23.value;
+					for (var _iterator18 = this.controlPoints[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+						var point = _step18.value;
 
 						if (!point.intersected) {
 							setRealPosition(point, pct);
@@ -3886,34 +3776,34 @@ var TgMapControl = function () {
 					// TODO: Check lat, lng before calculating intersections
 					// check intersections between grid lines.
 				} catch (err) {
-					_didIteratorError23 = true;
-					_iteratorError23 = err;
+					_didIteratorError18 = true;
+					_iteratorError18 = err;
 				} finally {
 					try {
-						if (!_iteratorNormalCompletion23 && _iterator23.return) {
-							_iterator23.return();
+						if (!_iteratorNormalCompletion18 && _iterator18.return) {
+							_iterator18.return();
 						}
 					} finally {
-						if (_didIteratorError23) {
-							throw _iteratorError23;
+						if (_didIteratorError18) {
+							throw _iteratorError18;
 						}
 					}
 				}
 
-				var _iteratorNormalCompletion24 = true;
-				var _didIteratorError24 = false;
-				var _iteratorError24 = undefined;
+				var _iteratorNormalCompletion19 = true;
+				var _didIteratorError19 = false;
+				var _iteratorError19 = undefined;
 
 				try {
-					for (var _iterator24 = this.gridLines[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-						var line1 = _step24.value;
-						var _iteratorNormalCompletion25 = true;
-						var _didIteratorError25 = false;
-						var _iteratorError25 = undefined;
+					for (var _iterator19 = this.gridLines[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+						var line1 = _step19.value;
+						var _iteratorNormalCompletion20 = true;
+						var _didIteratorError20 = false;
+						var _iteratorError20 = undefined;
 
 						try {
-							for (var _iterator25 = this.gridLines[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-								var line2 = _step25.value;
+							for (var _iterator20 = this.gridLines[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+								var line2 = _step20.value;
 
 
 								//if ((line1.start.intersected)||(line1.end.intersected)||
@@ -3952,31 +3842,31 @@ var TgMapControl = function () {
 								}
 							}
 						} catch (err) {
-							_didIteratorError25 = true;
-							_iteratorError25 = err;
+							_didIteratorError20 = true;
+							_iteratorError20 = err;
 						} finally {
 							try {
-								if (!_iteratorNormalCompletion25 && _iterator25.return) {
-									_iterator25.return();
+								if (!_iteratorNormalCompletion20 && _iterator20.return) {
+									_iterator20.return();
 								}
 							} finally {
-								if (_didIteratorError25) {
-									throw _iteratorError25;
+								if (_didIteratorError20) {
+									throw _iteratorError20;
 								}
 							}
 						}
 					}
 				} catch (err) {
-					_didIteratorError24 = true;
-					_iteratorError24 = err;
+					_didIteratorError19 = true;
+					_iteratorError19 = err;
 				} finally {
 					try {
-						if (!_iteratorNormalCompletion24 && _iterator24.return) {
-							_iterator24.return();
+						if (!_iteratorNormalCompletion19 && _iterator19.return) {
+							_iterator19.return();
 						}
 					} finally {
-						if (_didIteratorError24) {
-							throw _iteratorError24;
+						if (_didIteratorError19) {
+							throw _iteratorError19;
 						}
 					}
 				}
@@ -3997,26 +3887,26 @@ var TgMapControl = function () {
 				point.real.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
 			};
 
-			var _iteratorNormalCompletion26 = true;
-			var _didIteratorError26 = false;
-			var _iteratorError26 = undefined;
+			var _iteratorNormalCompletion21 = true;
+			var _didIteratorError21 = false;
+			var _iteratorError21 = undefined;
 
 			try {
-				for (var _iterator26 = this.controlPoints[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
-					var _point4 = _step26.value;
-					_point4.done = false;
+				for (var _iterator21 = this.controlPoints[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+					var _point2 = _step21.value;
+					_point2.done = false;
 				}
 			} catch (err) {
-				_didIteratorError26 = true;
-				_iteratorError26 = err;
+				_didIteratorError21 = true;
+				_iteratorError21 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion26 && _iterator26.return) {
-						_iterator26.return();
+					if (!_iteratorNormalCompletion21 && _iterator21.return) {
+						_iterator21.return();
 					}
 				} finally {
-					if (_didIteratorError26) {
-						throw _iteratorError26;
+					if (_didIteratorError21) {
+						throw _iteratorError21;
 					}
 				}
 			}
@@ -4025,13 +3915,13 @@ var TgMapControl = function () {
 				//console.log('pct = ' + pct);
 
 				// change the real position of all control points.
-				var _iteratorNormalCompletion27 = true;
-				var _didIteratorError27 = false;
-				var _iteratorError27 = undefined;
+				var _iteratorNormalCompletion22 = true;
+				var _didIteratorError22 = false;
+				var _iteratorError22 = undefined;
 
 				try {
-					for (var _iterator27 = this.controlPoints[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
-						var point = _step27.value;
+					for (var _iterator22 = this.controlPoints[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+						var point = _step22.value;
 
 
 						if (point.done) {
@@ -4041,13 +3931,13 @@ var TgMapControl = function () {
 
 						setRealPosition(point, pct);
 
-						var _iteratorNormalCompletion28 = true;
-						var _didIteratorError28 = false;
-						var _iteratorError28 = undefined;
+						var _iteratorNormalCompletion23 = true;
+						var _didIteratorError23 = false;
+						var _iteratorError23 = undefined;
 
 						try {
-							for (var _iterator28 = point.connectedGrids[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
-								var grid = _step28.value;
+							for (var _iterator23 = point.connectedGrids[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+								var grid = _step23.value;
 
 
 								var pointsArray = new Array(4);
@@ -4068,31 +3958,31 @@ var TgMapControl = function () {
 								}
 							}
 						} catch (err) {
-							_didIteratorError28 = true;
-							_iteratorError28 = err;
+							_didIteratorError23 = true;
+							_iteratorError23 = err;
 						} finally {
 							try {
-								if (!_iteratorNormalCompletion28 && _iterator28.return) {
-									_iterator28.return();
+								if (!_iteratorNormalCompletion23 && _iterator23.return) {
+									_iterator23.return();
 								}
 							} finally {
-								if (_didIteratorError28) {
-									throw _iteratorError28;
+								if (_didIteratorError23) {
+									throw _iteratorError23;
 								}
 							}
 						}
 					}
 				} catch (err) {
-					_didIteratorError27 = true;
-					_iteratorError27 = err;
+					_didIteratorError22 = true;
+					_iteratorError22 = err;
 				} finally {
 					try {
-						if (!_iteratorNormalCompletion27 && _iterator27.return) {
-							_iterator27.return();
+						if (!_iteratorNormalCompletion22 && _iterator22.return) {
+							_iterator22.return();
 						}
 					} finally {
-						if (_didIteratorError27) {
-							throw _iteratorError27;
+						if (_didIteratorError22) {
+							throw _iteratorError22;
 						}
 					}
 				}
@@ -8901,13 +8791,13 @@ module.exports = {
 			trunk: 6,
 			motorway: 7,
 			roadNode: 8,
-			grid: 10,
-			controlPoint: 15,
 			places: 19,
 			location: 20,
 			isochrone: 25,
 			origin: 30,
-			boundingBox: 50
+			boundingBox: 40,
+			grid: 50,
+			controlPoint: 51
 		},
 
 		color: {
@@ -8964,7 +8854,7 @@ module.exports = {
 
 		radius: {
 			anchor: 5,
-			controlPoint: 5,
+			controlPoint: 13,
 			node: 3
 		},
 
@@ -9348,6 +9238,7 @@ var TgLocations = __webpack_require__(9);
 var TgIsochrone = __webpack_require__(7);
 var TgBoundingBox = __webpack_require__(5);
 var TgOrigin = __webpack_require__(10);
+var TgGrid = __webpack_require__(20);
 var tgUtil = __webpack_require__(0);
 var TgMapUtil = __webpack_require__(13);
 
@@ -9386,6 +9277,7 @@ var TgMap = function () {
 		this.tgLanduse = new TgLanduse(this, this.data, this.graph);
 		this.tgLocs = new TgLocations(this, this.data, this.graph);
 		this.tgControl = new TgControl(this, this.data, this.graph);
+		this.tgGrids = new TgGrid(this, this.data, this.graph);
 		this.tgPlaces = new TgPlaces(this, this.data, this.graph);
 		this.tgBB = new TgBoundingBox(this, this.data, this.graph);
 		this.tgOrigin = new TgOrigin(this, this.data, this.graph);
@@ -9424,10 +9316,13 @@ var TgMap = function () {
 		this.tgIsochrone.turn(true);
 		$('#dispIsochroneCB').prop('checked', true);
 
-		this.dispGridLayer = false;
+		this.tgGrids.turn(true);
+		$('#dispGridCB').prop('checked', true);
+
+		//this.dispGridLayer = false;
 		//this.dispCenterPositionLayer = true;
-		this.dispControlPointLayer = false;
-		this.dispIsochroneLayer = true;
+		//this.dispControlPointLayer = false;
+		//this.dispIsochroneLayer = true;
 		this.warpingMode = 'shapePreserving';
 		this.needToCalWarping = false;
 		this.dispWaterNodeLayer = false;
@@ -9670,7 +9565,7 @@ var TgMap = function () {
 					//if (this.tgLocs.readyLocs) this.goToDcAgain();
 					//this.goToDcAgain();
 				} else if (_this4.currentMode === 'EM') {
-					_this4.tgControl.calDispNodes('original');
+					//this.tgControl.calDispNodes('original');
 				}
 
 				_this4.updateLayers();
@@ -9815,11 +9710,13 @@ var TgMap = function () {
 		value: function updateLayers() {
 			var s = new Date().getTime();
 
-			if (this.dispGridLayer || this.dispControlPointLayer) {
-				if (this.currentMode === 'EM') this.tgControl.calDispNodes('original');else if (this.currentMode === 'DC') {
-					if (this.warpingMode === 'none') this.tgControl.calDispNodes('target');else this.tgControl.calDispNodes('real');
-				}
-			}
+			/*if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
+   	if (this.currentMode === 'EM') this.tgControl.calDispNodes('original');
+   	else if (this.currentMode === 'DC') {
+   		if (this.warpingMode === 'none') this.tgControl.calDispNodes('target');
+   		else this.tgControl.calDispNodes('real');
+   	}
+   }*/
 
 			/*if (this.dispPlaceLayer) {
    	this.tgPlaces.calDispPlace();
@@ -9837,9 +9734,10 @@ var TgMap = function () {
 			//if (this.dispLanduseNodeLayer) this.tgLanduse.addLanduseNodeLayer();
 			//else this.tgLanduse.removeLanduseNodeLayer();
 
-			if (this.dispGridLayer) this.tgControl.drawGridLayer();else this.tgControl.removeGridLayer();
-
-			if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer();else this.tgControl.removeControlPointLayer();
+			/*if (this.dispGridLayer) this.tgControl.drawGridLayer()
+   else this.tgControl.removeGridLayer()
+   if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer()
+   else this.tgControl.removeControlPointLayer()*/
 
 			//if (this.dispCenterPositionLayer) this.tgAux.drawCenterPositionLayer()
 			//else this.tgAux.removeCenterPositionLayer();
@@ -9958,6 +9856,7 @@ var TgMap = function () {
 			this.tgOrigin.calDispNodes(intermediate, value);
 			this.tgLocs.calDispNodes(intermediate, value);
 			this.tgPlaces.calDispNodes(intermediate, value);
+			this.tgGrids.calDispNodes(intermediate, value);
 
 			if (render) {
 				this.tgWater.render();
@@ -9966,6 +9865,7 @@ var TgMap = function () {
 				this.tgOrigin.render();
 				this.tgLocs.render();
 				this.tgPlaces.render();
+				this.tgGrids.render();
 			}
 
 			/*if (this.dispPlaceLayer) {
@@ -9975,12 +9875,11 @@ var TgMap = function () {
     	this.tgPlaces.addPlaceLayer();
     }*/
 
-			if (this.dispGridLayer || this.dispControlPointLayer) {
-				this.tgControl.calDispNodes(intermediate, value);
-
-				if (this.dispGridLayer) this.tgControl.drawGridLayer();
-				if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer();
-			}
+			/*if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
+   	this.tgControl.calDispNodes(intermediate, value);
+   		if (this.dispGridLayer) this.tgControl.drawGridLayer();
+   	if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer();
+   }*/
 		}
 	}, {
 		key: 'goToDcByFrame',
@@ -10241,6 +10140,249 @@ var TgMap = function () {
 }();
 
 module.exports = TgMap;
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var TgNode = __webpack_require__(1);
+
+var TgMapGrid = function () {
+	function TgMapGrid(map, data, graph) {
+		_classCallCheck(this, TgMapGrid);
+
+		this.map = map;
+		this.data = data;
+		this.graph = graph;
+		this.mapUtil = map.mapUtil;
+
+		this.isDisabled = false;
+		this.display = false;
+		this.layer = null;
+
+		this.displayControlPoints = true;
+		this.controlPointLayer = null;
+	}
+
+	_createClass(TgMapGrid, [{
+		key: 'turn',
+		value: function turn(tf) {
+			this.display = tf;
+		}
+	}, {
+		key: 'disabled',
+		value: function disabled(tf) {
+			this.isDisabled = tf;
+		}
+	}, {
+		key: 'render',
+		value: function render() {
+			if (this.isDisabled || !this.display) {
+				this.discard();
+			} else {
+				this.updateLayer();
+				if (this.displayControlPoints) this.updateControlPointLayer();
+			}
+		}
+	}, {
+		key: 'discard',
+		value: function discard() {
+			this.removeLayer();
+			this.removeControlPointLayer();
+		}
+	}, {
+		key: 'updateLayer',
+		value: function updateLayer() {
+			var gridLines = this.map.tgControl.gridLines;
+			var viz = this.data.viz;
+			var arr = [];
+
+			var _iteratorNormalCompletion = true;
+			var _didIteratorError = false;
+			var _iteratorError = undefined;
+
+			try {
+				for (var _iterator = gridLines[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+					var line = _step.value;
+
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[line.start.disp.lng, line.start.disp.lat], [line.end.disp.lng, line.end.disp.lat]]), this.mapUtil.lineStyle(viz.color.grid, viz.width.grid));
+				}
+			} catch (err) {
+				_didIteratorError = true;
+				_iteratorError = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion && _iterator.return) {
+						_iterator.return();
+					}
+				} finally {
+					if (_didIteratorError) {
+						throw _iteratorError;
+					}
+				}
+			}
+
+			this.removeLayer();
+			this.layer = this.mapUtil.olVectorFromFeatures(arr);
+			this.layer.setZIndex(viz.z.grid);
+			this.mapUtil.addLayer(this.layer);
+		}
+	}, {
+		key: 'updateControlPointLayer',
+		value: function updateControlPointLayer() {
+			var controlPoints = this.map.tgControl.controlPoints;
+			var viz = this.data.viz;
+			var arr = [];
+
+			var _iteratorNormalCompletion2 = true;
+			var _didIteratorError2 = false;
+			var _iteratorError2 = undefined;
+
+			try {
+				for (var _iterator2 = controlPoints[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+					var point = _step2.value;
+
+					// draw control points
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([point.disp.lng, point.disp.lat]), this.mapUtil.nodeStyle(viz.color.controlPoint, viz.radius.controlPoint));
+
+					// draw additional lines meaning difference between target and real.
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[point.disp.lng, point.disp.lat], [point.target.lng, point.target.lat]]), this.mapUtil.lineStyle(viz.color.controlPointLine, viz.width.controlPointLine));
+
+					// add text
+					var text = point.travelTime != null ? point.travelTime.toString() : '-';
+					//text += ',' + point.index;
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([point.disp.lng, point.disp.lat]), this.mapUtil.textStyle({
+						text: text, color: viz.color.text, font: viz.font.text
+					}));
+				}
+			} catch (err) {
+				_didIteratorError2 = true;
+				_iteratorError2 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion2 && _iterator2.return) {
+						_iterator2.return();
+					}
+				} finally {
+					if (_didIteratorError2) {
+						throw _iteratorError2;
+					}
+				}
+			}
+
+			this.removeControlPointLayer();
+			this.controlPointLayer = this.mapUtil.olVectorFromFeatures(arr);
+			this.controlPointLayer.setZIndex(viz.z.controlPoint);
+			this.mapUtil.addLayer(this.controlPointLayer);
+		}
+	}, {
+		key: 'removeLayer',
+		value: function removeLayer() {
+			this.mapUtil.removeLayer(this.layer);
+		}
+	}, {
+		key: 'removeControlPointLayer',
+		value: function removeControlPointLayer() {
+			this.mapUtil.removeLayer(this.controlPointLayer);
+		}
+	}, {
+		key: 'calDispNodes',
+		value: function calDispNodes(kind, value) {
+			var controlPoints = this.map.tgControl.controlPoints;
+
+			if (kind === 'intermediateReal') {
+				var _iteratorNormalCompletion3 = true;
+				var _didIteratorError3 = false;
+				var _iteratorError3 = undefined;
+
+				try {
+					for (var _iterator3 = controlPoints[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+						var point = _step3.value;
+
+						point.disp.lat = (1 - value) * point.original.lat + value * point.real.lat;
+						point.disp.lng = (1 - value) * point.original.lng + value * point.real.lng;
+					}
+				} catch (err) {
+					_didIteratorError3 = true;
+					_iteratorError3 = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion3 && _iterator3.return) {
+							_iterator3.return();
+						}
+					} finally {
+						if (_didIteratorError3) {
+							throw _iteratorError3;
+						}
+					}
+				}
+			} else if (kind === 'intermediateTarget') {
+				var _iteratorNormalCompletion4 = true;
+				var _didIteratorError4 = false;
+				var _iteratorError4 = undefined;
+
+				try {
+					for (var _iterator4 = controlPoints[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+						var _point = _step4.value;
+
+						_point.disp.lat = (1 - value) * _point.original.lat + value * _point.target.lat;
+						_point.disp.lng = (1 - value) * _point.original.lng + value * _point.target.lng;
+					}
+				} catch (err) {
+					_didIteratorError4 = true;
+					_iteratorError4 = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion4 && _iterator4.return) {
+							_iterator4.return();
+						}
+					} finally {
+						if (_didIteratorError4) {
+							throw _iteratorError4;
+						}
+					}
+				}
+			} else {
+				var _iteratorNormalCompletion5 = true;
+				var _didIteratorError5 = false;
+				var _iteratorError5 = undefined;
+
+				try {
+					for (var _iterator5 = this.controlPoints[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+						var _point2 = _step5.value;
+
+						_point2.disp.lat = _point2[type].lat;
+						_point2.disp.lng = _point2[type].lng;
+					}
+				} catch (err) {
+					_didIteratorError5 = true;
+					_iteratorError5 = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion5 && _iterator5.return) {
+							_iterator5.return();
+						}
+					} finally {
+						if (_didIteratorError5) {
+							throw _iteratorError5;
+						}
+					}
+				}
+			}
+		}
+	}]);
+
+	return TgMapGrid;
+}();
+
+module.exports = TgMapGrid;
 
 /***/ })
 /******/ ]);

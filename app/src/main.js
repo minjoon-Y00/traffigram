@@ -220,8 +220,8 @@ $("#dispControlPointsCB").change(function(ev){
 });
 
 $("#dispGridCB").change(function(ev){
-	tg.map.dispGridLayer = ev.target.checked
-	tg.map.updateLayers()
+	tg.map.tgGrids.turn(ev.target.checked);
+	tg.map.tgGrids.render();
 });
 
 $("#dispIsochroneCB").change(function(ev){
@@ -229,7 +229,7 @@ $("#dispIsochroneCB").change(function(ev){
 	tg.map.tgIsochrone.render();
 });
 
-$("#dispWaterNodeCB").change(function(ev){ 
+/*$("#dispWaterNodeCB").change(function(ev){ 
 	tg.map.dispWaterNodeLayer = ev.target.checked;
 	tg.map.updateLayers();
 });
@@ -242,7 +242,7 @@ $("#dispRoadNodeCB").change(function(ev){
 $("#dispLanduseNodeCB").change(function(ev){ 
 	tg.map.dispLanduseNodeLayer = ev.target.checked;
 	tg.map.updateLayers();
-});
+});*/
 
 
 function debug() {

@@ -312,6 +312,7 @@ class TgMapControl {
 			console.log('complete: grid checking and control points.');
 			this.map.readyControlPoints = true;
 			this.map.disableSGapAndGapButtons(false);
+			this.map.tgGrids.render();
 
 			if (this.map.currentMode === 'DC') {
 				this.map.goToDcAgain();
@@ -835,7 +836,7 @@ class TgMapControl {
 	/** 
 	 * create a control point layer and add to olMap.
 	 */
-	drawControlPointLayer() {
+	/*drawControlPointLayer() {
 		let features = [];
 		const viz = this.data.viz;
 
@@ -877,19 +878,19 @@ class TgMapControl {
 		this.controlPointLayer = this.mapUtil.olVectorFromFeatures(features);
 		this.controlPointLayer.setZIndex(viz.z.controlPoint);
 	  this.mapUtil.addLayer(this.controlPointLayer);
-	}
+	}*/
 
 	/** 
 	 * remove a control point layer if exists.
 	 */
-	removeControlPointLayer() {
+	/*removeControlPointLayer() {
 		this.mapUtil.removeLayer(this.controlPointLayer);
-	}
+	}*/
 
 	/** 
 	 * create a grid layer and add to olMap.
 	 */
-	drawGridLayer() {
+	/*drawGridLayer() {
 		let features = [];
 		const viz = this.data.viz;
 
@@ -902,33 +903,20 @@ class TgMapControl {
 							this.mapUtil.lineStyle(viz.color.grid, viz.width.grid));
 		}
 
-
-
-
-		/*for(let point of this.controlPoints) {
-			for(let neighbor of point.connectedNodes) {
-				this.mapUtil.addFeatureInFeatures(
-						features, 
-						new ol.geom.LineString(
-								[[point.disp.lng, point.disp.lat], [neighbor.disp.lng, neighbor.disp.lat]]), 
-								this.mapUtil.lineStyle(viz.color.grid, viz.width.grid));
-			}			
-		}*/
-
 		this.removeGridLayer();
 		this.gridLayer = this.mapUtil.olVectorFromFeatures(features);
 		this.gridLayer.setZIndex(viz.z.grid);
 		this.mapUtil.addLayer(this.gridLayer);
-	}
+	}*/
 
 	/** 
 	 * remove a control point layer if exists.
 	 */
-	removeGridLayer() {
+	/*removeGridLayer() {
 		this.mapUtil.removeLayer(this.gridLayer)
-	}
+	}*/
 
-	calDispNodes(type, value) {
+	/*calDispNodes(type, value) {
 		if (type === 'intermediateReal') {
 			for(let point of this.controlPoints) {
 				point.disp.lat = (1 - value) * point.original.lat + value * point.real.lat;
@@ -947,7 +935,7 @@ class TgMapControl {
 				point.disp.lng = point[type].lng;
 			}
 		}
-	}
+	}*/
 
 
 
