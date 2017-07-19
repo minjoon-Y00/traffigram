@@ -2535,38 +2535,36 @@ var TgMapControl = function () {
 	_createClass(TgMapControl, [{
 		key: 'calUniformControlPoints',
 		value: function calUniformControlPoints() {
-			var latFactor = 0.02 / 1; //0.01;
-			var lngFactor = 0.026 / 1; //0.013;
 			var box = this.data.box;
 			var eps = 0.000001;
-			var zoomFactor = Math.pow(2, 13 - this.data.zoom.current);
-			var quantizationFactor = 100 / zoomFactor;
-			//const quantizationFactor = 100;
-			var start =
-			//{lat: Math.ceil(box.bottom * quantizationFactor) / quantizationFactor,
-			{ lat: Math.floor(box.bottom * quantizationFactor) / quantizationFactor,
-				lng: Math.ceil(box.left * quantizationFactor) / quantizationFactor };
-			var end = { lat: Math.floor(box.top * quantizationFactor) / quantizationFactor,
-				//lng: Math.floor(box.right * quantizationFactor) / quantizationFactor};
-				lng: Math.ceil(box.right * quantizationFactor) / quantizationFactor };
-			var step = { lat: latFactor * zoomFactor,
-				lng: lngFactor * zoomFactor };
-			var halfStep = { lat: step.lat / 2,
-				lng: step.lng / 2 };
-
-			// 12 -> 0.04 
-			// 13 -> 0.02 100 / 2
-			// 14 -> 0.01 100 / 1
+			var marginRate = 0.1; // 10%
+			var center = {
+				lat: this.map.tgOrigin.origin.original.lat,
+				lng: this.map.tgOrigin.origin.original.lng };
+			var half = {
+				lat: box.top - center.lat,
+				lng: box.right - center.lng };
+			var apprHalf = {
+				lat: half.lat - half.lat * marginRate,
+				lng: half.lng - half.lng * marginRate };
+			var step = {
+				lat: apprHalf.lat / 2,
+				lng: apprHalf.lng / 2 };
+			var start = {
+				lat: center.lat - apprHalf.lat,
+				lng: center.lng - apprHalf.lng };
+			var end = {
+				lat: center.lat + apprHalf.lat,
+				lng: center.lng + apprHalf.lng };
 
 			this.controlPoints = [];
 			this.numLatInColumn = 0;
 			var indexOfControlPoint = 0;
 
-			for (var lat = end.lat; lat > start.lat - halfStep.lat - eps; lat -= step.lat) {
-
+			for (var lat = end.lat; lat > start.lat - eps; lat -= step.lat) {
 				this.numLngInRow = 0;
 
-				for (var lng = start.lng; lng < end.lng + halfStep.lng + eps; lng += step.lng) {
+				for (var lng = start.lng; lng < end.lng + eps; lng += step.lng) {
 
 					var point = new TgControlPoint(lat, lng);
 					point.index = indexOfControlPoint++;
@@ -2575,23 +2573,6 @@ var TgMapControl = function () {
 				}
 				this.numLatInColumn++;
 			}
-
-			/*console.log('box.top: ' + box.top); // 40.7914382000846
-   console.log('box.bottom): ' + box.bottom); // 40.66742401978021
-   console.log('box.right): ' + box.right); // -73.947356711586
-   console.log('box.left): ' + box.left); // -74.04405928841399
-   console.log('start.lat: ' + start.lat);
-   console.log('end.lat: ' + end.lat);
-   console.log('start.lng: ' + start.lng);
-   console.log('end.lng: ' + end.lng);*/
-			// 40.68, 40.70, 40.72, 40.74, 40.76, 40.78
-			// -74.04, -74.02, -74.0, -73.98, -73.96,
-
-			/*console.log('numLngInRow: ' + this.numLngInRow);
-   console.log('numLatInColumn: ' + this.numLatInColumn);
-   console.log('# of controlPoints: ' + this.controlPoints.length);
-   console.log(this.controlPoints);
-   */
 		}
 	}, {
 		key: 'calGridLines',
@@ -9294,9 +9275,6 @@ var TgMap = function () {
 
 		// variables
 
-		//this.tgBB.turn(true);
-		//$('#dispBoundingBoxCB').prop('checked', true);
-
 		this.tgWater.turn(true);
 		$('#dispWaterCB').prop('checked', true);
 
@@ -9321,17 +9299,11 @@ var TgMap = function () {
 		this.tgGrids.turn(true);
 		$('#dispGridCB').prop('checked', true);
 
-		//this.dispGridLayer = false;
-		//this.dispCenterPositionLayer = true;
-		//this.dispControlPointLayer = false;
-		//this.dispIsochroneLayer = true;
+		//this.tgBB.turn(true);
+		//$('#dispBoundingBoxCB').prop('checked', true);
+
 		this.warpingMode = 'shapePreserving';
 		this.needToCalWarping = false;
-		this.dispWaterNodeLayer = false;
-		this.dispRoadNodeLayer = false;
-		this.dispPlaceLayer = false;
-		this.dispLanduseNodeLayer = false;
-		this.dispLocationNameLayer = true;
 
 		this.currentMode = 'EM';
 		this.data.zoom.current = this.olMap.getView().getZoom();
@@ -9800,38 +9772,7 @@ var TgMap = function () {
 			var noNeedToCalFactor = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
 
-			/*this.olView.animate({
-       center: ol.proj.fromLonLat(
-       	[this.tgOrigin.origin.original.lng, this.tgOrigin.origin.original.lat]),
-       duration: 2000,
-     });*/
-
-			/*let currentCenter = this.olView.getCenter();
-   currentCenter = 
-   	ol.proj.transform([currentCenter[0], currentCenter[1]], 'EPSG:3857', 'EPSG:4326');
-     const lng1 = currentCenter[0];
-   const lat1 = currentCenter[1];
-   const lng2 = this.tgOrigin.origin.original.lng;
-   const lat2 = this.tgOrigin.origin.original.lat;
-    let w = 0.2;
-   this.olView.setCenter(ol.proj.fromLonLat(
-   [lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
-    w = 0.4;
-   this.olView.setCenter(ol.proj.fromLonLat(
-   [lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
-    w = 0.6;
-   this.olView.setCenter(ol.proj.fromLonLat(
-   [lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
-    w = 0.8;
-   this.olView.setCenter(ol.proj.fromLonLat(
-   [lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
-    w = 1.0;
-   this.olView.setCenter(ol.proj.fromLonLat(
-   [lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
-      console.log(currentCenter);
-   console.log(this.tgOrigin.origin.original.lng);
-   console.log(this.tgOrigin.origin.original.lat);
-   */
+			// move the center		
 			this.olView.setCenter(ol.proj.fromLonLat([this.tgOrigin.origin.original.lng, this.tgOrigin.origin.original.lat]));
 
 			//if (this.currentMode === 'DC') return;

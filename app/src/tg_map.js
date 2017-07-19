@@ -60,9 +60,6 @@ class TgMap {
 
 	  // variables
 
-	 	//this.tgBB.turn(true);
-	  //$('#dispBoundingBoxCB').prop('checked', true);
-
 	  this.tgWater.turn(true);
 	  $('#dispWaterCB').prop('checked', true);
 
@@ -87,17 +84,11 @@ class TgMap {
 	  this.tgGrids.turn(true);
 	  $('#dispGridCB').prop('checked', true);
 
-	  //this.dispGridLayer = false;
-	  //this.dispCenterPositionLayer = true;
-	  //this.dispControlPointLayer = false;
-	  //this.dispIsochroneLayer = true;
+	 	//this.tgBB.turn(true);
+	  //$('#dispBoundingBoxCB').prop('checked', true);
+	  
 	  this.warpingMode = 'shapePreserving'; 
 	  this.needToCalWarping = false;
-	  this.dispWaterNodeLayer = false;
-	  this.dispRoadNodeLayer = false;
-	  this.dispPlaceLayer = false;
-	  this.dispLanduseNodeLayer = false;
-	  this.dispLocationNameLayer = true;
 
 	  this.currentMode = 'EM';
 		this.data.zoom.current = this.olMap.getView().getZoom();
@@ -559,48 +550,7 @@ class TgMap {
 
 	goToDc(animation = true, noNeedToCalFactor = false) {
 
-		/*this.olView.animate({
-      center: ol.proj.fromLonLat(
-      	[this.tgOrigin.origin.original.lng, this.tgOrigin.origin.original.lat]),
-      duration: 2000,
-    });*/
-
-    /*let currentCenter = this.olView.getCenter();
-    currentCenter = 
-    	ol.proj.transform([currentCenter[0], currentCenter[1]], 'EPSG:3857', 'EPSG:4326');
-
-
-    const lng1 = currentCenter[0];
-    const lat1 = currentCenter[1];
-    const lng2 = this.tgOrigin.origin.original.lng;
-    const lat2 = this.tgOrigin.origin.original.lat;
-
-    let w = 0.2;
-    this.olView.setCenter(ol.proj.fromLonLat(
-			[lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
-
-    w = 0.4;
-    this.olView.setCenter(ol.proj.fromLonLat(
-			[lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
-
-    w = 0.6;
-    this.olView.setCenter(ol.proj.fromLonLat(
-			[lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
-
-    w = 0.8;
-    this.olView.setCenter(ol.proj.fromLonLat(
-			[lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
-
-    w = 1.0;
-    this.olView.setCenter(ol.proj.fromLonLat(
-			[lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
-
-
-
-    console.log(currentCenter);
-    console.log(this.tgOrigin.origin.original.lng);
-    console.log(this.tgOrigin.origin.original.lat);
-*/
+		// move the center		
 		this.olView.setCenter(ol.proj.fromLonLat(
 				[this.tgOrigin.origin.original.lng, this.tgOrigin.origin.original.lat]));
 
