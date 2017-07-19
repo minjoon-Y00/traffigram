@@ -12,12 +12,6 @@ class TgMapControl {
 		this.data = data;
 		this.graph = graph;
 		this.mapUtil = map.mapUtil;
-
-		/** @private @const {!ol.Layer} */
-		this.controlPointLayer = null;
-
-		/** @private @const {!ol.Layer} */
-		this.gridLayer = null;
 		
 		/** 
 		 * one dimension array for ControlPoint object.

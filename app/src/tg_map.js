@@ -16,16 +16,19 @@ class TgMap {
 		this.tg = tg;
 		this.data = tg.data;
 		this.graph = tg.graph;
+
+		this.olView = new ol.View({
+      center: ol.proj.fromLonLat([0,0]),
+      maxZoom: this.data.zoom.max,
+    	minZoom: this.data.zoom.min,
+    	zoom: this.data.zoom.init,
+    });
+
 		this.olMap = new ol.Map({
 	    target: map_id,
 	    //controls: [],
 	    layers: [],
-	    view: new ol.View({
-	      center: ol.proj.fromLonLat([0,0]),
-	      maxZoom: this.data.zoom.max,
-	    	minZoom: this.data.zoom.min,
-	    	zoom: this.data.zoom.init,
-	    })
+	    view: this.olView,
 	  });
 
 	  this.olMap.getInteractions().forEach((interaction) => {
@@ -237,6 +240,8 @@ class TgMap {
 		this.tgControl.setOrigin(lat, lng);
 		this.tgOrigin.render();
 		this.calBoundaryBox();
+		this.requestControlPoints();
+
 		this.tgPlaces.needToBeRedrawn();
 		this.tgLocs.request();
 	}
@@ -275,7 +280,18 @@ class TgMap {
 	onPanEnd() {
 		console.log('onPanEnd.');
 		this.calBoundaryBox();
-		this.recalculateAndDraw();
+
+		this.resetTime();
+		this.resetDataInfo();
+
+		this.tgRoads.calDispRoads();
+		this.tgWater.calDispWater();
+		this.tgLanduse.calDispLanduse();
+
+		this.tgRoads.render();
+		this.tgWater.render();
+		this.tgLanduse.render();
+		//this.recalculateAndDraw();
 
 
 	}
@@ -317,7 +333,10 @@ class TgMap {
 
 		}
 
+		this.requestControlPoints();
+	}
 
+	requestControlPoints() {
 		this.readyControlPoints = false;
 		this.disableSGapAndGapButtons(true);
 
@@ -341,7 +360,6 @@ class TgMap {
 		  this.updateLayers();
 			this.dispMapInfo();
 	  });	
-
 	}
 
 	changeTransportType(type) {
@@ -540,6 +558,52 @@ class TgMap {
 	}
 
 	goToDc(animation = true, noNeedToCalFactor = false) {
+
+		/*this.olView.animate({
+      center: ol.proj.fromLonLat(
+      	[this.tgOrigin.origin.original.lng, this.tgOrigin.origin.original.lat]),
+      duration: 2000,
+    });*/
+
+    /*let currentCenter = this.olView.getCenter();
+    currentCenter = 
+    	ol.proj.transform([currentCenter[0], currentCenter[1]], 'EPSG:3857', 'EPSG:4326');
+
+
+    const lng1 = currentCenter[0];
+    const lat1 = currentCenter[1];
+    const lng2 = this.tgOrigin.origin.original.lng;
+    const lat2 = this.tgOrigin.origin.original.lat;
+
+    let w = 0.2;
+    this.olView.setCenter(ol.proj.fromLonLat(
+			[lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
+
+    w = 0.4;
+    this.olView.setCenter(ol.proj.fromLonLat(
+			[lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
+
+    w = 0.6;
+    this.olView.setCenter(ol.proj.fromLonLat(
+			[lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
+
+    w = 0.8;
+    this.olView.setCenter(ol.proj.fromLonLat(
+			[lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
+
+    w = 1.0;
+    this.olView.setCenter(ol.proj.fromLonLat(
+			[lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
+
+
+
+    console.log(currentCenter);
+    console.log(this.tgOrigin.origin.original.lng);
+    console.log(this.tgOrigin.origin.original.lat);
+*/
+		this.olView.setCenter(ol.proj.fromLonLat(
+				[this.tgOrigin.origin.original.lng, this.tgOrigin.origin.original.lat]));
+
 		//if (this.currentMode === 'DC') return;
 
 		//if ((this.needToCalWarping)||(!this.tpsReady)) {

@@ -2455,12 +2455,6 @@ var TgMapControl = function () {
 		this.graph = graph;
 		this.mapUtil = map.mapUtil;
 
-		/** @private @const {!ol.Layer} */
-		this.controlPointLayer = null;
-
-		/** @private @const {!ol.Layer} */
-		this.gridLayer = null;
-
 		/** 
    * one dimension array for ControlPoint object.
    * @type {Array<ControlPoint>} 
@@ -4114,6 +4108,7 @@ var TgMapIsochrone = function () {
 			var originLng = this.map.tgOrigin.origin.real.lng;
 
 			var heightLat = box.top - box.bottom; // 0.11
+			var latPerPx = heightLat / this.map.olMapHeightPX;
 			var maxTime = this.map.calTimeFromLatLng(originLat + heightLat / 2, originLng); // 749.4
 			var pxPerTime = this.map.olMapHeightPX / 2 / maxTime; // 0.64
 
@@ -4146,13 +4141,17 @@ var TgMapIsochrone = function () {
 				this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng, originLat]), this.mapUtil.isochroneStyle(radiusPx, viz.color.isochrone, viz.width.isochrone));
 
 				// red box
-				var offsetLng = (radiusPx + 3) * lngPerPx;
-				this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng + offsetLng, originLat]), this.mapUtil.imageStyle(viz.image.red10min));
+				//let offsetLng = (radiusPx + 3) * lngPerPx
+				var offsetLng = 0;
+				var offsetLat = radiusPx * latPerPx;
+				this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng + offsetLng, originLat + offsetLat]), this.mapUtil.imageStyle(viz.image.red10min));
 
 				// text
-				offsetLng = (radiusPx - 13) * lngPerPx;
+				//offsetLng = (radiusPx - 13) * lngPerPx;
+				offsetLng = -17 * lngPerPx;
+				offsetLat = radiusPx * latPerPx;
 				var text = _time / 60 + '';
-				this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng + offsetLng, originLat]), this.mapUtil.textStyle({
+				this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng + offsetLng, originLat + offsetLat]), this.mapUtil.textStyle({
 					text: text,
 					color: viz.color.isochroneText,
 					font: viz.font.isochroneText
@@ -9251,16 +9250,19 @@ var TgMap = function () {
 		this.tg = tg;
 		this.data = tg.data;
 		this.graph = tg.graph;
+
+		this.olView = new ol.View({
+			center: ol.proj.fromLonLat([0, 0]),
+			maxZoom: this.data.zoom.max,
+			minZoom: this.data.zoom.min,
+			zoom: this.data.zoom.init
+		});
+
 		this.olMap = new ol.Map({
 			target: map_id,
 			//controls: [],
 			layers: [],
-			view: new ol.View({
-				center: ol.proj.fromLonLat([0, 0]),
-				maxZoom: this.data.zoom.max,
-				minZoom: this.data.zoom.min,
-				zoom: this.data.zoom.init
-			})
+			view: this.olView
 		});
 
 		this.olMap.getInteractions().forEach(function (interaction) {
@@ -9472,6 +9474,8 @@ var TgMap = function () {
 			this.tgControl.setOrigin(lat, lng);
 			this.tgOrigin.render();
 			this.calBoundaryBox();
+			this.requestControlPoints();
+
 			this.tgPlaces.needToBeRedrawn();
 			this.tgLocs.request();
 		}
@@ -9510,7 +9514,19 @@ var TgMap = function () {
 		value: function onPanEnd() {
 			console.log('onPanEnd.');
 			this.calBoundaryBox();
-			this.recalculateAndDraw();
+
+			this.resetTime();
+			this.resetDataInfo();
+
+			this.tgRoads.calDispRoads();
+			this.tgWater.calDispWater();
+			this.tgLanduse.calDispLanduse();
+
+			this.tgRoads.render();
+			this.tgWater.render();
+			this.tgLanduse.render();
+			//this.recalculateAndDraw();
+
 		}
 
 		//
@@ -9520,7 +9536,6 @@ var TgMap = function () {
 	}, {
 		key: 'recalculateAndDraw',
 		value: function recalculateAndDraw() {
-			var _this4 = this;
 
 			if (!this.tgOrigin.getOrigin()) return;
 
@@ -9551,6 +9566,13 @@ var TgMap = function () {
 				this.tgLanduse.render();
 				//this.tgPlaces.render();
 			}
+
+			this.requestControlPoints();
+		}
+	}, {
+		key: 'requestControlPoints',
+		value: function requestControlPoints() {
+			var _this4 = this;
 
 			this.readyControlPoints = false;
 			this.disableSGapAndGapButtons(true);
@@ -9776,6 +9798,41 @@ var TgMap = function () {
 		value: function goToDc() {
 			var animation = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
 			var noNeedToCalFactor = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+
+			/*this.olView.animate({
+       center: ol.proj.fromLonLat(
+       	[this.tgOrigin.origin.original.lng, this.tgOrigin.origin.original.lat]),
+       duration: 2000,
+     });*/
+
+			/*let currentCenter = this.olView.getCenter();
+   currentCenter = 
+   	ol.proj.transform([currentCenter[0], currentCenter[1]], 'EPSG:3857', 'EPSG:4326');
+     const lng1 = currentCenter[0];
+   const lat1 = currentCenter[1];
+   const lng2 = this.tgOrigin.origin.original.lng;
+   const lat2 = this.tgOrigin.origin.original.lat;
+    let w = 0.2;
+   this.olView.setCenter(ol.proj.fromLonLat(
+   [lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
+    w = 0.4;
+   this.olView.setCenter(ol.proj.fromLonLat(
+   [lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
+    w = 0.6;
+   this.olView.setCenter(ol.proj.fromLonLat(
+   [lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
+    w = 0.8;
+   this.olView.setCenter(ol.proj.fromLonLat(
+   [lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
+    w = 1.0;
+   this.olView.setCenter(ol.proj.fromLonLat(
+   [lng1 * (w - 1) + lng2 * w, lat1 * (w - 1) + lng2 * w]));
+      console.log(currentCenter);
+   console.log(this.tgOrigin.origin.original.lng);
+   console.log(this.tgOrigin.origin.original.lat);
+   */
+			this.olView.setCenter(ol.proj.fromLonLat([this.tgOrigin.origin.original.lng, this.tgOrigin.origin.original.lat]));
 
 			//if (this.currentMode === 'DC') return;
 

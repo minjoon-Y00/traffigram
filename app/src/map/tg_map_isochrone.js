@@ -43,6 +43,7 @@ class TgMapIsochrone {
   	const originLng = this.map.tgOrigin.origin.real.lng;
 
   	const heightLat = box.top - box.bottom; // 0.11
+  	const latPerPx = heightLat / this.map.olMapHeightPX;
   	const maxTime = 
   		this.map.calTimeFromLatLng(originLat + heightLat/2, originLng); // 749.4
 		const pxPerTime = (this.map.olMapHeightPX / 2) / maxTime; // 0.64
@@ -80,18 +81,22 @@ class TgMapIsochrone {
 						viz.color.isochrone, viz.width.isochrone));
 
 			// red box
-			let offsetLng = (radiusPx + 3) * lngPerPx
+			//let offsetLng = (radiusPx + 3) * lngPerPx
+			let offsetLng = 0;
+			let offsetLat = radiusPx * latPerPx
 			this.mapUtil.addFeatureInFeatures(
 					features, new ol.geom.Point(
-							[originLng + offsetLng, originLat]),
+							[originLng + offsetLng, originLat + offsetLat]),
 							this.mapUtil.imageStyle(viz.image.red10min));
 
 			// text
-			offsetLng = (radiusPx - 13) * lngPerPx;
+			//offsetLng = (radiusPx - 13) * lngPerPx;
+			offsetLng = -17 * lngPerPx;
+			offsetLat = radiusPx * latPerPx;
 			const text = (time / 60) + '';
 			this.mapUtil.addFeatureInFeatures(
 					features, new ol.geom.Point(
-							[originLng + offsetLng, originLat]),
+							[originLng + offsetLng, originLat + offsetLat]),
 							this.mapUtil.textStyle({
 									text: text, 
 									color: viz.color.isochroneText, 
