@@ -50,7 +50,8 @@ class TgMapOrigin {
 
 		this.mapUtil.addFeatureInFeatures(arr,
 			new ol.geom.Point([this.origin.disp.lng, this.origin.disp.lat]), 
-			this.mapUtil.imageStyleFunc(viz.image.origin[this.map.tgControl.currentTransport]));
+			this.mapUtil.imageStyleFunc(viz.image.origin[this.map.tgControl.currentTransport]),
+			'origin');
 
 		this.removeLayer();
 		this.layer = this.mapUtil.olVectorFromFeatures(arr);

@@ -162,7 +162,6 @@ module.exports = {
 	},
 
 	var: {
-		clickRangePX: 10,
 		latPerPx: 0,
 		lngPerPx: 0,	
 		latMargin: 0,

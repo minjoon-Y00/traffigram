@@ -10,6 +10,7 @@ const TgOrigin = require('./map/tg_map_origin');
 const TgGrid = require('./map/tg_map_grid');
 const tgUtil = require('./tg_util');
 const TgMapUtil = require('./map/tg_map_util');
+const TgInteraction = require('./map/tg_map_interactions');
 
 class TgMap {
 	constructor(tg, map_id) {
@@ -25,6 +26,7 @@ class TgMap {
     });
 
 		this.olMap = new ol.Map({
+      interactions: ol.interaction.defaults().extend([new TgInteraction(this)]),
 	    target: map_id,
 	    //controls: [],
 	    layers: [],
@@ -81,12 +83,12 @@ class TgMap {
 	  this.tgIsochrone.turn(true);
 	  $('#dispIsochroneCB').prop('checked', true);
 
-	  this.tgGrids.turn(true);
-	  $('#dispGridCB').prop('checked', true);
+	  //this.tgGrids.turn(true);
+	  //$('#dispGridCB').prop('checked', true);
 
 	 	//this.tgBB.turn(true);
 	  //$('#dispBoundingBoxCB').prop('checked', true);
-	  
+
 	  this.warpingMode = 'shapePreserving'; 
 	  this.needToCalWarping = false;
 
@@ -101,11 +103,8 @@ class TgMap {
   	this.olMapWidthPX = 
   			Number(this.olMapWidthPX.slice(0, this.olMapWidthPX.length - 2)); // 600
 
-	  this.clickRange = {lat:0, lng:0};
-
 	  // Event Handlers
 		this.olMap.on('moveend', this.onMoveEnd.bind(this));
-		this.olMap.on('click', this.onClicked.bind(this));
 
 		this.times = {};
 		this.tempTimes = {};
@@ -408,18 +407,6 @@ class TgMap {
 		this.tgControl.currentSplitLevel = 0;
 		this.tgWater.checkPointsInWater(this.tgControl.controlPoints);
 		this.tgControl.checkGridSplit();
-	}
-
-
-
-
-	//
-	// When mouse button is clicked
-	//
-	onClicked(e) {
-		const pt = 
-				ol.proj.transform([e.coordinate[0], e.coordinate[1]], 'EPSG:3857', 'EPSG:4326');
-		this.tgLocs.showModal(pt[1], pt[0]); // lat, lng
 	}
 
   dispMapInfo() {

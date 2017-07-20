@@ -11,20 +11,22 @@ class TgMapUtil {
 		this.isochroneStyle = this.isochroneStyleFunc;
 	}
 
-	addFeatureInFeatures(arr, geometry, styleFunc) {
-		var feature = new ol.Feature({geometry: geometry})
-		feature.getGeometry().transform('EPSG:4326', 'EPSG:3857')
-		feature.setStyle(styleFunc)		
-		arr.push(feature)
+	addFeatureInFeatures(arr, geometry, styleFunc, type, source) {
+		var feature = new ol.Feature({geometry: geometry});
+		feature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+		feature.setStyle(styleFunc);
+		if (type) feature.type = type;
+		if (source) feature.source = source;
+		arr.push(feature);
 	}
 
 	isInTheBox(lat, lng) {
 		var box = this.data.box;
 
 		if ((lat < box.top) && (lat > box.bottom) && (lng < box.right)	&& (lng > box.left))
-			return true
+			return true;
 		else
-			return false
+			return false;
 	}
 
 	printElapsedTime(times, type) {

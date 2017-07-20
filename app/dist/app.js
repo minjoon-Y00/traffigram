@@ -5202,7 +5202,7 @@ var TgMapLocations = function () {
 					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), anchorStyleFunc);
 
 					// circle images
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationClusterStyleFunc);
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationClusterStyleFunc, 'cLoc', cLocs);
 
 					// number of locations
 					var numberStyleFunc = this.mapUtil.textStyle({
@@ -5210,7 +5210,7 @@ var TgMapLocations = function () {
 						color: viz.color.textNumberOfLocations,
 						font: viz.font.text
 					});
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), numberStyleFunc);
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), numberStyleFunc, 'cLoc', cLocs);
 				}
 
 				// display locations
@@ -5251,7 +5251,7 @@ var TgMapLocations = function () {
 					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([_dispAnchor.lng, _dispAnchor.lat]), anchorStyleFunc);
 
 					// circle images
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([_dispLoc.lng, _dispLoc.lat]), locationStyleFunc);
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([_dispLoc.lng, _dispLoc.lat]), locationStyleFunc, 'loc', loc);
 				}
 			} catch (err) {
 				_didIteratorError4 = true;
@@ -5517,59 +5517,7 @@ var TgMapLocations = function () {
 		}
 	}, {
 		key: 'showModal',
-		value: function showModal(lat, lng) {
-
-			var heightPX = $('#ol_map').css('height');
-			heightPX = Number(heightPX.slice(0, heightPX.length - 2));
-			var heightLat = this.data.box.top - this.data.box.bottom;
-			var latPerPx = heightLat / heightPX;
-
-			var widthPX = $('#ol_map').css('width');
-			widthPX = Number(widthPX.slice(0, widthPX.length - 2));
-			var widthLng = this.data.box.right - this.data.box.left;
-			var lngPerPx = widthLng / widthPX;
-
-			var clickRange = {
-				lat: this.data.var.clickRangePX * latPerPx,
-				lng: this.data.var.clickRangePX * lngPerPx
-			};
-
-			var _iteratorNormalCompletion11 = true;
-			var _didIteratorError11 = false;
-			var _iteratorError11 = undefined;
-
-			try {
-				for (var _iterator11 = this.locations[this.currentType][Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-					var loc = _step11.value;
-
-					if (Math.abs(loc.node.dispLoc.lat - lat) <= clickRange.lat && Math.abs(loc.node.dispLoc.lng - lng) <= clickRange.lng) {
-
-						this.updateModal(loc);
-						var modal = $('[data-remodal-id=modal]').remodal({});
-						modal.open();
-						return;
-					}
-				}
-			} catch (err) {
-				_didIteratorError11 = true;
-				_iteratorError11 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion11 && _iterator11.return) {
-						_iterator11.return();
-					}
-				} finally {
-					if (_didIteratorError11) {
-						throw _iteratorError11;
-					}
-				}
-			}
-
-			console.log('no infomation on this location.');
-		}
-	}, {
-		key: 'updateModal',
-		value: function updateModal(loc) {
+		value: function showModal(loc) {
 			$('#modal-name').text(loc.name);
 			$('#modal-img').attr('src', loc.imge_url);
 			$('#modal-category').text(loc.categories);
@@ -5589,6 +5537,9 @@ var TgMapLocations = function () {
 			} else {
 				$('#modal-travel-time').text('-');
 			}
+
+			var modal = $('[data-remodal-id=modal]').remodal({});
+			modal.open();
 		}
 	}]);
 
@@ -5668,7 +5619,7 @@ var TgMapOrigin = function () {
 			var viz = this.data.viz;
 			var arr = [];
 
-			this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([this.origin.disp.lng, this.origin.disp.lat]), this.mapUtil.imageStyleFunc(viz.image.origin[this.map.tgControl.currentTransport]));
+			this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([this.origin.disp.lng, this.origin.disp.lat]), this.mapUtil.imageStyleFunc(viz.image.origin[this.map.tgControl.currentTransport]), 'origin');
 
 			this.removeLayer();
 			this.layer = this.mapUtil.olVectorFromFeatures(arr);
@@ -7344,10 +7295,12 @@ var TgMapUtil = function () {
 
 	_createClass(TgMapUtil, [{
 		key: 'addFeatureInFeatures',
-		value: function addFeatureInFeatures(arr, geometry, styleFunc) {
+		value: function addFeatureInFeatures(arr, geometry, styleFunc, type, source) {
 			var feature = new ol.Feature({ geometry: geometry });
 			feature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
 			feature.setStyle(styleFunc);
+			if (type) feature.type = type;
+			if (source) feature.source = source;
 			arr.push(feature);
 		}
 	}, {
@@ -8905,7 +8858,6 @@ module.exports = {
 	},
 
 	var: {
-		clickRangePX: 10,
 		latPerPx: 0,
 		lngPerPx: 0,
 		latMargin: 0,
@@ -9221,6 +9173,7 @@ var TgOrigin = __webpack_require__(10);
 var TgGrid = __webpack_require__(20);
 var tgUtil = __webpack_require__(0);
 var TgMapUtil = __webpack_require__(13);
+var TgInteraction = __webpack_require__(21);
 
 var TgMap = function () {
 	function TgMap(tg, map_id) {
@@ -9240,6 +9193,7 @@ var TgMap = function () {
 		});
 
 		this.olMap = new ol.Map({
+			interactions: ol.interaction.defaults().extend([new TgInteraction(this)]),
 			target: map_id,
 			//controls: [],
 			layers: [],
@@ -9296,8 +9250,8 @@ var TgMap = function () {
 		this.tgIsochrone.turn(true);
 		$('#dispIsochroneCB').prop('checked', true);
 
-		this.tgGrids.turn(true);
-		$('#dispGridCB').prop('checked', true);
+		//this.tgGrids.turn(true);
+		//$('#dispGridCB').prop('checked', true);
 
 		//this.tgBB.turn(true);
 		//$('#dispBoundingBoxCB').prop('checked', true);
@@ -9314,11 +9268,8 @@ var TgMap = function () {
 		this.olMapWidthPX = $('#ol_map').css('width');
 		this.olMapWidthPX = Number(this.olMapWidthPX.slice(0, this.olMapWidthPX.length - 2)); // 600
 
-		this.clickRange = { lat: 0, lng: 0 };
-
 		// Event Handlers
 		this.olMap.on('moveend', this.onMoveEnd.bind(this));
-		this.olMap.on('click', this.onClicked.bind(this));
 
 		this.times = {};
 		this.tempTimes = {};
@@ -9625,17 +9576,6 @@ var TgMap = function () {
 			this.tgControl.currentSplitLevel = 0;
 			this.tgWater.checkPointsInWater(this.tgControl.controlPoints);
 			this.tgControl.checkGridSplit();
-		}
-
-		//
-		// When mouse button is clicked
-		//
-
-	}, {
-		key: 'onClicked',
-		value: function onClicked(e) {
-			var pt = ol.proj.transform([e.coordinate[0], e.coordinate[1]], 'EPSG:3857', 'EPSG:4326');
-			this.tgLocs.showModal(pt[1], pt[0]); // lat, lng
 		}
 	}, {
 		key: 'dispMapInfo',
@@ -10381,6 +10321,143 @@ var TgMapGrid = function () {
 }();
 
 module.exports = TgMapGrid;
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var TgMapInteraction = function (_ol$interaction$Point) {
+  _inherits(TgMapInteraction, _ol$interaction$Point);
+
+  function TgMapInteraction(map) {
+    _classCallCheck(this, TgMapInteraction);
+
+    var _this = _possibleConstructorReturn(this, (TgMapInteraction.__proto__ || Object.getPrototypeOf(TgMapInteraction)).call(this));
+
+    _this.map = map;
+    _this.data = map.data;
+    _this.coordinate_ = null;
+    _this.cursor_ = 'pointer';
+    _this.feature_ = null;
+    _this.previousCursor_ = undefined;
+    _this.dragging = false;
+    _this.draggedObject = null;
+
+    ol.interaction.Pointer.call(_this, {
+      handleDownEvent: _this.handleDownEvent,
+      handleDragEvent: _this.handleDragEvent,
+      handleMoveEvent: _this.handleMoveEvent,
+      handleUpEvent: _this.handleUpEvent
+    });
+    return _this;
+  }
+
+  _createClass(TgMapInteraction, [{
+    key: 'handleDownEvent',
+    value: function handleDownEvent(evt) {
+      var feature = evt.map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+        return feature;
+      });
+
+      if (feature) {
+
+        switch (feature.type) {
+          case 'origin':
+            this.dragging = true;
+            this.draggedObject = feature.type;
+            this.coordinate_ = evt.coordinate;
+            this.feature_ = feature;
+            break;
+          case 'loc':
+            console.log(feature.source);
+            this.map.tgLocs.showModal(feature.source);
+            break;
+          case 'cLoc':
+            console.log(feature.source);
+            break;
+        }
+
+        //console.log('handleDown');
+        //console.log(feature.type);
+        //console.log(feature);
+      }
+
+      return !!feature;
+    }
+  }, {
+    key: 'handleDragEvent',
+    value: function handleDragEvent(evt) {
+      if (this.dragging) {
+        var deltaX = evt.coordinate[0] - this.coordinate_[0];
+        var deltaY = evt.coordinate[1] - this.coordinate_[1];
+        var geometry = this.feature_.getGeometry();
+        geometry.translate(deltaX, deltaY);
+
+        this.coordinate_[0] = evt.coordinate[0];
+        this.coordinate_[1] = evt.coordinate[1];
+
+        //console.log('handleDrag');
+      }
+    }
+  }, {
+    key: 'handleMoveEvent',
+    value: function handleMoveEvent(evt) {
+      if (this.cursor_) {
+        var feature = evt.map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+          return feature;
+        });
+        var element = evt.map.getTargetElement();
+
+        if (feature) {
+          if (feature.type === 'origin') {
+            if (element.style.cursor != this.cursor_) {
+              this.previousCursor_ = element.style.cursor;
+              element.style.cursor = this.cursor_;
+            }
+          } else if (this.previousCursor_ !== undefined) {
+            element.style.cursor = this.previousCursor_;
+            this.previousCursor_ = undefined;
+          }
+        }
+        //console.log('handleMove');
+      }
+    }
+  }, {
+    key: 'handleUpEvent',
+    value: function handleUpEvent(evt) {
+      this.coordinate_ = null;
+      this.feature_ = null;
+
+      if (this.dragging) {
+        this.dragging = false;
+        var pt = ol.proj.transform([evt.coordinate[0], evt.coordinate[1]], 'EPSG:3857', 'EPSG:4326');
+
+        switch (this.draggedObject) {
+          case 'origin':
+            this.map.setCenter(pt[1], pt[0]);
+            break;
+        }
+      }
+
+      return false;
+    }
+  }]);
+
+  return TgMapInteraction;
+}(ol.interaction.Pointer);
+
+module.exports = TgMapInteraction;
 
 /***/ })
 /******/ ]);

@@ -203,7 +203,8 @@ class TgMapLocations {
 
 			// circle images
 			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationClusterStyleFunc);
+				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationClusterStyleFunc,
+				'cLoc', cLocs);
 
 			// number of locations
 			const numberStyleFunc = 
@@ -213,7 +214,8 @@ class TgMapLocations {
 					font: viz.font.text, 
 				});
 			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), numberStyleFunc);
+				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), numberStyleFunc, 
+				'cLoc', cLocs);
 		}
 
 		// display locations
@@ -238,7 +240,8 @@ class TgMapLocations {
 
 			// circle images
 			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationStyleFunc);
+					arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationStyleFunc,
+					'loc', loc);
 		}
 
 		if (arr.length > 0) {
@@ -362,38 +365,7 @@ class TgMapLocations {
 		}
 	}
 
-	showModal(lat, lng) {
-
-		let heightPX = $('#ol_map').css('height'); 
-  	heightPX = Number(heightPX.slice(0, heightPX.length - 2));
-		const heightLat = this.data.box.top - this.data.box.bottom;
-		const latPerPx = heightLat / heightPX;
-
-		let widthPX = $('#ol_map').css('width');  
-  	widthPX = Number(widthPX.slice(0, widthPX.length - 2));
-  	const widthLng = this.data.box.right - this.data.box.left;
-		const lngPerPx = widthLng / widthPX;
-
-		const clickRange = {
-			lat: this.data.var.clickRangePX * latPerPx,
-			lng: this.data.var.clickRangePX * lngPerPx,
-		};
-
-		for(let loc of this.locations[this.currentType]) {
-			if ((Math.abs(loc.node.dispLoc.lat - lat) <= clickRange.lat)
-				&&(Math.abs(loc.node.dispLoc.lng - lng) <= clickRange.lng)) {
-
-				this.updateModal(loc);
-				const modal = $('[data-remodal-id=modal]').remodal({});
-				modal.open();
-				return;
-			}
-		}
-
-		console.log('no infomation on this location.');
-	}
-
-	updateModal(loc) {
+	showModal(loc) {
 		$('#modal-name').text(loc.name);
 		$('#modal-img').attr('src', loc.imge_url);
 		$('#modal-category').text(loc.categories);
@@ -415,6 +387,9 @@ class TgMapLocations {
 		else {
 			$('#modal-travel-time').text('-');
 		}
+
+		const modal = $('[data-remodal-id=modal]').remodal({});
+		modal.open();
 	}
 }
 
