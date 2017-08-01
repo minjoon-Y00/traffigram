@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -492,16 +492,67 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var TgData = __webpack_require__(17);
-var TgMap = __webpack_require__(19);
-var TgGraph = __webpack_require__(18);
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var TgNode = __webpack_require__(1);
+
+var TgLocationNode = function (_TgNode) {
+	_inherits(TgLocationNode, _TgNode);
+
+	function TgLocationNode(orgLat, orgLng) {
+		_classCallCheck(this, TgLocationNode);
+
+		var _this = _possibleConstructorReturn(this, (TgLocationNode.__proto__ || Object.getPrototypeOf(TgLocationNode)).call(this, orgLat, orgLng));
+
+		_this.dispAnchor = { lat: orgLat, lng: orgLng };
+		_this.dispLoc = { lat: orgLat, lng: orgLng };
+		_this.dispName = true;
+		_this.nameOffsetX = 0;
+		_this.nameOffsetY = 0;
+		_this.nameAlign = 'center';
+		_this.group = null;
+		_this.time = 0;
+		return _this;
+	}
+
+	_createClass(TgLocationNode, [{
+		key: 'reset',
+		value: function reset(lat, lng) {
+			this.dispAnchor = { lat: lat, lng: lng };
+			this.dispLoc = { lat: lat, lng: lng };
+			this.group = null;
+			this.time = 0;
+		}
+	}]);
+
+	return TgLocationNode;
+}(TgNode);
+
+module.exports = TgLocationNode;
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var TgData = __webpack_require__(19);
+var TgMap = __webpack_require__(21);
+var TgGraph = __webpack_require__(20);
 
 var TgApp = function () {
 	function TgApp(map_id) {
 		_classCallCheck(this, TgApp);
 
-		this.graph = new TgGraph(this);
 		this.data = TgData;
+		this.graph = new TgGraph(this, this.data);
 		this.map = new TgMap(this, map_id);
 
 		//this.map.setArea('seattleDowntown');
@@ -511,14 +562,24 @@ var TgApp = function () {
 	}
 
 	_createClass(TgApp, [{
-		key: 'setCurrentLocationToOrigin',
-		value: function setCurrentLocationToOrigin() {
-			this.map.setOriginByCurrentLocation();
+		key: 'setOriginAsHome',
+		value: function setOriginAsHome() {
+			this.map.tgOrigin.setOriginByPreset('home');
 		}
 	}, {
-		key: 'setOriginAndGo',
-		value: function setOriginAndGo(param) {
-			this.map.setOrigin(param);
+		key: 'setOriginAsOffice',
+		value: function setOriginAsOffice() {
+			this.map.tgOrigin.setOriginByPreset('office');
+		}
+	}, {
+		key: 'setOriginAsCurrentLocation',
+		value: function setOriginAsCurrentLocation() {
+			this.map.tgOrigin.setOriginByCurrentLocation();
+		}
+	}, {
+		key: 'setOriginByAddress',
+		value: function setOriginByAddress(adress) {
+			this.map.tgOrigin.setOriginByAddress(adress);
 		}
 	}, {
 		key: 'initMap',
@@ -560,7 +621,7 @@ var TgApp = function () {
 module.exports = TgApp;
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -571,9 +632,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var TgTavelTimeApi = function () {
-	function TgTavelTimeApi() {
+	function TgTavelTimeApi(data) {
 		_classCallCheck(this, TgTavelTimeApi);
 
+		this.data = data;
 		this.centerLocation = {};
 		this.locations = [];
 		this.maxNumLocation = 48;
@@ -655,7 +717,8 @@ var TgTavelTimeApi = function () {
 
 			var str = 'https://matrix.mapzen.com/one_to_many?json=';
 			str += JSON.stringify(json);
-			str += '&api_key=matrix-qUpjg6W';
+			str += '&api_key=' + this.data.var.apiKeyTimeMatrix;
+			//str += '&api_key=matrix-qUpjg6W';
 			//str += '&api_key=matrix-AGvGZKs';
 
 			//console.log(str);
@@ -696,13 +759,13 @@ var TgTavelTimeApi = function () {
 module.exports = TgTavelTimeApi;
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var TgApp = __webpack_require__(2);
+var TgApp = __webpack_require__(3);
 
 // create the main app object
 var tg = new TgApp('ol_map');
@@ -710,70 +773,64 @@ var tg = new TgApp('ol_map');
 /*
  * For the origin setting
  */
-var myHome = {
+/*const myHome = {
 	address: '4225 24th Ave. NE, Seattle, WA',
 	lat: 47.6631772,
-	lng: -122.3104933
+	lng: -122.3104933,
 };
 
-/* 
-followings are also possible:
+const myOffice = {
+	address: '3960 Benton Lane NE, Seattle, WA',
+}
 
-const myHome = {
-	address: '4225 24th Ave. NE Seattle',
-	// if lat and lng are omitted, the app search them automatically.
-};
+const otherPlace = {
+	address: '1000 4th Ave, Seattle, WA 98104',
+}*/
 
-const myHome = {
-	lat: 47.706846,
-	lng: -122.302471,
-	// providing lat and lng make the app faster.
-};*/
+var otherAddress = '1000 4th Ave, Seattle, WA 98104';
 
-var myOffice = {
-	address: '3960 Benton Lane NE, Seattle, WA'
-};
+var favorites = ["Tilikum Place Cafe", "Radiator Whiskey", "The Zig Zag CafÃ©", "Pike Place Chowder", "Art of The Table", "SkyCity at the Needle", "Canlis", "Von's Gustobistro", "Purple CafÃ© and Wine Bar", "LecÅsho", "Olde 99 Pub"];
 
-var otherPlace = {
-	address: '1000 4th Ave, Seattle, WA 98104'
+tg.map.tgLocs.setFavorites(favorites);
 
-	// default: myHome
-};tg.setOriginAndGo(myHome);
-//tg.setOriginAndGo(myOffice);
-//tg.setOriginAndGo(otherPlace);
+// default: myHome
+tg.setOriginAsHome();
+//tg.setOriginAsOffice();
+//tg.setOriginByAddress(otherAddress);
+
 
 // ui for origin setting
-$("#yourHomeInput").val(myHome.address);
-$("#yourOfficeInput").val(myOffice.address);
-$("#otherPlaceInput").val(otherPlace.address);
-
-$("#originYourLocationRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.initMap();
-		tg.setCurrentLocationToOrigin();
-	}
-});
+$("#yourHomeInput").val(tg.data.origin.home.address);
+$("#yourOfficeInput").val(tg.data.origin.office.address);
+$("#otherPlaceInput").val(otherAddress);
 
 $("#originYourHomeRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.initMap();
-		tg.setOriginAndGo(myHome);
-	}
+  if (ev.target.checked) {
+    tg.initMap();
+    tg.setOriginAsHome();
+  }
 });
 
 $("#originYourOfficeRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.initMap();
-		tg.setOriginAndGo(myOffice);
-	}
+  if (ev.target.checked) {
+    tg.initMap();
+    tg.setOriginAsOffice();
+  }
 });
 
 $("#originOtherPlaceRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.initMap();
-		otherPlace.address = $("#otherPlaceInput").val();
-		tg.setOriginAndGo(otherPlace);
-	}
+  if (ev.target.checked) {
+    tg.initMap();
+    var address = $("#otherPlaceInput").val();
+    tg.setOriginByAddress(address);
+  }
+});
+
+$("#originYourLocationRB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.initMap();
+    tg.setOriginAsCurrentLocation();
+  }
 });
 
 /*
@@ -781,150 +838,150 @@ $("#originOtherPlaceRB").change(function (ev) {
  */
 
 $("#emModeRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.goToEm();
-	}
+  if (ev.target.checked) {
+    tg.goToEm();
+  }
 });
 
 $("#dcSGapModeRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.goToDc('shapePreserving');
-	}
+  if (ev.target.checked) {
+    tg.goToDc('shapePreserving');
+  }
 });
 
 $("#dcGapModeRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.goToDc('noIntersection');
-	}
+  if (ev.target.checked) {
+    tg.goToDc('noIntersection');
+  }
 });
 
 $("#dcOriginalModeRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.goToDc('originalDC');
-	}
+  if (ev.target.checked) {
+    tg.goToDc('originalDC');
+  }
 });
 
 $("#dcNoWarpModeRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.goToDc('noWarping');
-	}
+  if (ev.target.checked) {
+    tg.goToDc('noWarping');
+  }
 });
 
 /*
  * For the mode of the transportation
  */
 $("#transportVehiclesRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.setTransportTypeAndGo('auto');
-	}
+  if (ev.target.checked) {
+    tg.setTransportTypeAndGo('auto');
+  }
 });
 
 $("#transportBicyclesRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.setTransportTypeAndGo('bicycle');
-	}
+  if (ev.target.checked) {
+    tg.setTransportTypeAndGo('bicycle');
+  }
 });
 
 $("#transportOnFootRB").change(function (ev) {
-	if (ev.target.checked) {
-		tg.setTransportTypeAndGo('pedestrian');
-	}
+  if (ev.target.checked) {
+    tg.setTransportTypeAndGo('pedestrian');
+  }
 });
 
 /*
  * For the type of the destination
  */
-$("#locationRestaurantRB").change(function (ev) {
+/*$("#locationRestaurantRB").change(function(ev){
 	if (ev.target.checked) {
 		tg.map.tgLocs.changeType('food');
-	}
+	} 
 });
 
-$("#locatioBarRB").change(function (ev) {
+$("#locatioBarRB").change(function(ev){
 	if (ev.target.checked) {
 		tg.map.tgLocs.changeType('bar');
-	}
+	} 
 });
 
-$("#locationParkRB").change(function (ev) {
+$("#locationParkRB").change(function(ev){
 	if (ev.target.checked) {
 		tg.map.tgLocs.changeType('park');
-	}
+	} 
 });
 
-$("#locationMuseumRB").change(function (ev) {
+$("#locationMuseumRB").change(function(ev){
 	if (ev.target.checked) {
 		tg.map.tgLocs.changeType('museum');
-	}
-});
+	} 
+});*/
 
 /*
  * For general ui
  */
 
 function zoomIn() {
-	tg.zoomIn();
+  tg.zoomIn();
 }
 
 function zoomOut() {
-	tg.zoomOut();
+  tg.zoomOut();
 }
 
 // Visual Elements Representation Options (For debugging)
 
 $("#dispWaterCB").change(function (ev) {
-	tg.map.tgWater.turn(ev.target.checked);
-	tg.map.tgWater.render();
+  tg.map.tgWater.turn(ev.target.checked);
+  tg.map.tgWater.render();
 });
 
 $("#dispRoadsCB").change(function (ev) {
-	tg.map.tgRoads.turn(ev.target.checked);
-	tg.map.tgRoads.render();
+  tg.map.tgRoads.turn(ev.target.checked);
+  tg.map.tgRoads.render();
 });
 
 $("#dispLanduseCB").change(function (ev) {
-	tg.map.tgLanduse.turn(ev.target.checked);
-	tg.map.tgLanduse.render();
+  tg.map.tgLanduse.turn(ev.target.checked);
+  tg.map.tgLanduse.render();
 });
 
 $("#dispLocationCB").change(function (ev) {
-	tg.map.tgLocs.turn(ev.target.checked);
-	tg.map.tgLocs.render();
+  tg.map.tgLocs.turn(ev.target.checked);
+  tg.map.tgLocs.render();
 });
 
 $("#dispPlaceCB").change(function (ev) {
-	tg.map.tgPlaces.turn(ev.target.checked);
-	tg.map.tgPlaces.render();
+  tg.map.tgPlaces.turn(ev.target.checked);
+  tg.map.tgPlaces.render();
 });
 
 $("#dispNodesCB").change(function (ev) {
-	tg.map.dispNodeLayer = ev.target.checked;
-	tg.map.updateLayers();
+  tg.map.dispNodeLayer = ev.target.checked;
+  tg.map.updateLayers();
 });
 
 $("#dispOriginCB").change(function (ev) {
-	tg.map.tgOrigin.turn(ev.target.checked);
-	tg.map.tgOrigin.render();
+  tg.map.tgOrigin.turn(ev.target.checked);
+  tg.map.tgOrigin.render();
 });
 
 $("#dispBoundingBoxCB").change(function (ev) {
-	tg.map.tgBB.turn(ev.target.checked);
-	tg.map.tgBB.render();
+  tg.map.tgBB.turn(ev.target.checked);
+  tg.map.tgBB.render();
 });
 
 $("#dispControlPointsCB").change(function (ev) {
-	tg.map.dispControlPointLayer = ev.target.checked;
-	tg.map.updateLayers();
+  tg.map.dispControlPointLayer = ev.target.checked;
+  tg.map.updateLayers();
 });
 
 $("#dispGridCB").change(function (ev) {
-	tg.map.tgGrids.turn(ev.target.checked);
-	tg.map.tgGrids.render();
+  tg.map.tgGrids.turn(ev.target.checked);
+  tg.map.tgGrids.render();
 });
 
 $("#dispIsochroneCB").change(function (ev) {
-	tg.map.tgIsochrone.turn(ev.target.checked);
-	tg.map.tgIsochrone.render();
+  tg.map.tgIsochrone.turn(ev.target.checked);
+  tg.map.tgIsochrone.render();
 });
 
 /*$("#dispWaterNodeCB").change(function(ev){ 
@@ -943,8 +1000,229 @@ $("#dispLanduseNodeCB").change(function(ev){
 });*/
 
 function debug() {
-	tg.map.debug();
+  //tg.map.debug()
 }
+
+$("#tod_0_all").click(function (ev) {
+  tg.map.tgLocs.changeType(0, -1);
+});
+$("#tod_0_0").click(function (ev) {
+  tg.map.tgLocs.changeType(0, 0);
+});
+$("#tod_0_1").click(function (ev) {
+  tg.map.tgLocs.changeType(0, 1);
+});
+$("#tod_0_2").click(function (ev) {
+  tg.map.tgLocs.changeType(0, 2);
+});
+$("#tod_0_3").click(function (ev) {
+  tg.map.tgLocs.changeType(0, 3);
+});
+$("#tod_0_4").click(function (ev) {
+  tg.map.tgLocs.changeType(0, 4);
+});
+$("#tod_0_5").click(function (ev) {
+  tg.map.tgLocs.changeType(0, 5);
+});
+$("#tod_0_6").click(function (ev) {
+  tg.map.tgLocs.changeType(0, 6);
+});
+$("#tod_0_7").click(function (ev) {
+  tg.map.tgLocs.changeType(0, 7);
+});
+$("#tod_0_8").click(function (ev) {
+  tg.map.tgLocs.changeType(0, 8);
+});
+$("#tod_0_9").click(function (ev) {
+  tg.map.tgLocs.changeType(0, 9);
+});
+$("#tod_0_10").click(function (ev) {
+  tg.map.tgLocs.changeType(0, 10);
+});
+
+$("#tod_1_all").click(function (ev) {
+  tg.map.tgLocs.changeType(1, -1);
+});
+$("#tod_1_0").click(function (ev) {
+  tg.map.tgLocs.changeType(1, 0);
+});
+$("#tod_1_1").click(function (ev) {
+  tg.map.tgLocs.changeType(1, 1);
+});
+$("#tod_1_2").click(function (ev) {
+  tg.map.tgLocs.changeType(1, 2);
+});
+$("#tod_1_3").click(function (ev) {
+  tg.map.tgLocs.changeType(1, 3);
+});
+$("#tod_1_4").click(function (ev) {
+  tg.map.tgLocs.changeType(1, 4);
+});
+$("#tod_1_5").click(function (ev) {
+  tg.map.tgLocs.changeType(1, 5);
+});
+
+$("#tod_2_all").click(function (ev) {
+  tg.map.tgLocs.changeType(2, -1);
+});
+$("#tod_2_0").click(function (ev) {
+  tg.map.tgLocs.changeType(2, 0);
+});
+$("#tod_2_1").click(function (ev) {
+  tg.map.tgLocs.changeType(2, 1);
+});
+$("#tod_2_2").click(function (ev) {
+  tg.map.tgLocs.changeType(2, 2);
+});
+$("#tod_2_3").click(function (ev) {
+  tg.map.tgLocs.changeType(2, 3);
+});
+$("#tod_2_4").click(function (ev) {
+  tg.map.tgLocs.changeType(2, 4);
+});
+$("#tod_2_5").click(function (ev) {
+  tg.map.tgLocs.changeType(2, 5);
+});
+$("#tod_2_6").click(function (ev) {
+  tg.map.tgLocs.changeType(2, 6);
+});
+$("#tod_2_7").click(function (ev) {
+  tg.map.tgLocs.changeType(2, 7);
+});
+
+$("#tod_3_all").click(function (ev) {
+  tg.map.tgLocs.changeType(3, -1);
+});
+$("#tod_3_0").click(function (ev) {
+  tg.map.tgLocs.changeType(3, 0);
+});
+$("#tod_3_1").click(function (ev) {
+  tg.map.tgLocs.changeType(3, 1);
+});
+$("#tod_3_2").click(function (ev) {
+  tg.map.tgLocs.changeType(3, 2);
+});
+$("#tod_3_3").click(function (ev) {
+  tg.map.tgLocs.changeType(3, 3);
+});
+$("#tod_3_4").click(function (ev) {
+  tg.map.tgLocs.changeType(3, 4);
+});
+$("#tod_3_5").click(function (ev) {
+  tg.map.tgLocs.changeType(3, 5);
+});
+$("#tod_3_6").click(function (ev) {
+  tg.map.tgLocs.changeType(3, 6);
+});
+$("#tod_3_7").click(function (ev) {
+  tg.map.tgLocs.changeType(3, 7);
+});
+
+$("#tod_4_all").click(function (ev) {
+  tg.map.tgLocs.changeType(4, -1);
+});
+$("#tod_4_0").click(function (ev) {
+  tg.map.tgLocs.changeType(4, 0);
+});
+$("#tod_4_1").click(function (ev) {
+  tg.map.tgLocs.changeType(4, 1);
+});
+$("#tod_4_2").click(function (ev) {
+  tg.map.tgLocs.changeType(4, 2);
+});
+$("#tod_4_3").click(function (ev) {
+  tg.map.tgLocs.changeType(4, 3);
+});
+$("#tod_4_4").click(function (ev) {
+  tg.map.tgLocs.changeType(4, 4);
+});
+$("#tod_4_5").click(function (ev) {
+  tg.map.tgLocs.changeType(4, 5);
+});
+$("#tod_4_6").click(function (ev) {
+  tg.map.tgLocs.changeType(4, 6);
+});
+
+$("#ratingSlider").slider({
+  id: "ratingSlider",
+  step: 1,
+  value: [4, 8],
+  ticks: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+  ticks_labels: ['1', '', '2', '', '3', '', '4', '', '5'],
+  tooltip: 'hide'
+  //min: 0, max: 5, step: 0.5, value: 3, 
+  //tooltip: 'always'
+});
+
+$("#ratingSlider").on("change", function (e) {
+  if (e.value.oldValue[0] !== e.value.newValue[0] || e.value.oldValue[1] !== e.value.newValue[1]) {
+
+    var low = e.value.newValue[0] / 2 + 1;
+    var high = e.value.newValue[1] / 2 + 1;
+    //console.log(low + ', ' + high);
+
+    tg.map.tgLocs.doFilter('ratings', low, high);
+  }
+});
+
+$("#numRatingSlider").slider({
+  id: "numRatingSlider",
+  step: 1,
+  value: [1, 6],
+  ticks: [0, 1, 2, 3, 4, 5, 6],
+  ticks_labels: ['0', '5', '10', '50', '100', '500', '1000+'],
+  tooltip: 'hide'
+});
+
+$("#numRatingSlider").on("change", function (e) {
+  if (e.value.oldValue[0] !== e.value.newValue[0] || e.value.oldValue[1] !== e.value.newValue[1]) {
+
+    var labels = [0, 5, 10, 50, 100, 500, 1000];
+    var low = labels[e.value.newValue[0]];
+    var high = labels[e.value.newValue[1]];
+    //console.log(low + ', ' + high);
+
+    tg.map.tgLocs.doFilter('numRatings', low, high);
+  }
+});
+
+$("#priceRangeSlider").slider({
+  id: "priceRangeSlider",
+  step: 1,
+  value: [0, 3],
+  ticks: [0, 1, 2, 3],
+  ticks_labels: ['$', '$$', '$$$', '$$$$'],
+  tooltip: 'hide'
+});
+
+$("#priceRangeSlider").on("change", function (e) {
+  if (e.value.oldValue[0] !== e.value.newValue[0] || e.value.oldValue[1] !== e.value.newValue[1]) {
+
+    var low = e.value.newValue[0] + 1;
+    var high = e.value.newValue[1] + 1;
+    //console.log(low + ', ' + high);
+
+    tg.map.tgLocs.doFilter('priceRange', low, high);
+  }
+});
+
+$("#maxLocsSlider").slider({
+  id: "maxLocsSlider",
+  step: 1,
+  value: 2,
+  ticks: [1, 2, 3, 4, 5],
+  ticks_labels: ['10', '20', '30', '40', '50+'],
+  tooltip: 'hide'
+});
+
+$("#maxLocsSlider").on("change", function (e) {
+  if (e.value.oldValue !== e.value.newValue) {
+    var val = e.value.newValue * 10;
+    //console.log(val);
+
+    tg.map.tgLocs.doFilter('maxLocs', val);
+  }
+});
 
 /*
 // Center Options
@@ -1044,7 +1322,7 @@ $("#randomSlider").on("slideStop", function(evt) {
 });*/
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1055,7 +1333,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var tgUtil = __webpack_require__(0);
-var TgLocationNode = __webpack_require__(16);
+var TgLocationNode = __webpack_require__(2);
 
 var TgMapBoundingBox = function () {
 	function TgMapBoundingBox(map, data, graph) {
@@ -1146,103 +1424,161 @@ var TgMapBoundingBox = function () {
 				}
 			}
 		}
+
+		/*calBBOfClusterLocations(locationClusters) {
+  	const clusterLatPx = 45;
+  	const clusterLngPx = 45;
+  	const cLat = (clusterLatPx * this.data.var.latPerPx) / 2;
+  	const cLng = (clusterLngPx * this.data.var.lngPerPx) / 2;
+  		for(let cLocs of locationClusters) {
+  		const disp = cLocs.node.dispLoc;
+  		cLocs.bb = {
+  			left: disp.lng - cLng, 
+  			right: disp.lng + cLng,
+  			top: disp.lat - cLat,
+  			bottom: disp.lat + cLat,
+  		};
+  	}
+  }*/
+
 	}, {
-		key: 'calClusteredLocations',
-		value: function calClusteredLocations(locations) {
-			var clusteredLocations = [];
+		key: 'updateLocationGroups',
+		value: function updateLocationGroups(locGrps) {
+			var _iteratorNormalCompletion2 = true;
+			var _didIteratorError2 = false;
+			var _iteratorError2 = undefined;
 
-			for (var i = 0; i < locations.length; i++) {
-				var targetLoc = locations[i];
+			try {
+				for (var _iterator2 = locGrps[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+					var locGrp = _step2.value;
 
-				// check overlapped bb
-				var overlappedLoc = null;
-				for (var j = i + 1; j < locations.length; j++) {
-					var loc = locations[j];
-
-					if (tgUtil.intersectRect(targetLoc.bb, loc.bb)) {
-						overlappedLoc = loc;
-						break;
+					this.updateLocationGroup(locGrp);
+				}
+			} catch (err) {
+				_didIteratorError2 = true;
+				_iteratorError2 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion2 && _iterator2.return) {
+						_iterator2.return();
+					}
+				} finally {
+					if (_didIteratorError2) {
+						throw _iteratorError2;
 					}
 				}
+			}
+		}
+	}, {
+		key: 'updateLocationGroup',
+		value: function updateLocationGroup(locGrp) {
+			this.updateNodeOfLocationGroup(locGrp);
+			this.updateBBOfLocationGroup(locGrp);
+		}
+	}, {
+		key: 'updateNodeOfLocationGroup',
+		value: function updateNodeOfLocationGroup(locGrp) {
+			var dispLoc = { lat: 0, lng: 0 };
+			var dispAnchor = { lat: 0, lng: 0 };
 
-				if (overlappedLoc) {
-					// if there is any overlapped location
+			var _iteratorNormalCompletion3 = true;
+			var _didIteratorError3 = false;
+			var _iteratorError3 = undefined;
 
-					// if the overlapped loc already exists in the cluster
-					var found = false;
-					var _iteratorNormalCompletion2 = true;
-					var _didIteratorError2 = false;
-					var _iteratorError2 = undefined;
+			try {
+				for (var _iterator3 = locGrp.locs[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+					var cLoc = _step3.value;
 
-					try {
-						for (var _iterator2 = clusteredLocations[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-							var cLocs = _step2.value;
-							var _iteratorNormalCompletion3 = true;
-							var _didIteratorError3 = false;
-							var _iteratorError3 = undefined;
-
-							try {
-								for (var _iterator3 = cLocs.locs[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-									var cLoc = _step3.value;
-
-									if (cLoc === targetLoc) {
-										cLocs.locs.push(overlappedLoc);
-										found = true;
-										break;
-									}
-								}
-							} catch (err) {
-								_didIteratorError3 = true;
-								_iteratorError3 = err;
-							} finally {
-								try {
-									if (!_iteratorNormalCompletion3 && _iterator3.return) {
-										_iterator3.return();
-									}
-								} finally {
-									if (_didIteratorError3) {
-										throw _iteratorError3;
-									}
-								}
-							}
-
-							if (found) break;
-						}
-
-						// if the overlapped loc doesn't exist in the cluster
-					} catch (err) {
-						_didIteratorError2 = true;
-						_iteratorError2 = err;
-					} finally {
-						try {
-							if (!_iteratorNormalCompletion2 && _iterator2.return) {
-								_iterator2.return();
-							}
-						} finally {
-							if (_didIteratorError2) {
-								throw _iteratorError2;
-							}
-						}
+					dispLoc.lat += cLoc.node.dispLoc.lat;
+					dispLoc.lng += cLoc.node.dispLoc.lng;
+					dispAnchor.lat += cLoc.node.dispAnchor.lat;
+					dispAnchor.lng += cLoc.node.dispAnchor.lng;
+				}
+			} catch (err) {
+				_didIteratorError3 = true;
+				_iteratorError3 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion3 && _iterator3.return) {
+						_iterator3.return();
 					}
-
-					if (!found) {
-						clusteredLocations.push({
-							locs: [targetLoc, overlappedLoc]
-						});
+				} finally {
+					if (_didIteratorError3) {
+						throw _iteratorError3;
 					}
 				}
 			}
 
-			// set isInCluster property
+			var len = locGrp.locs.length;
+			dispLoc.lat /= len;
+			dispLoc.lng /= len;
+			dispAnchor.lat /= len;
+			dispAnchor.lng /= len;
+
+			if (locGrp.node) {
+				locGrp.node.reset(dispLoc.lat, dispLoc.lng);
+			} else {
+				locGrp.node = new TgLocationNode(dispLoc.lat, dispLoc.lng);
+			}
+			locGrp.node.dispAnchor = dispAnchor;
+			locGrp.time = 0;
+		}
+	}, {
+		key: 'updateBBOfLocationGroup',
+		value: function updateBBOfLocationGroup(locGrp) {
+			var locGrpLatPx = 45;
+			var locGrpLngPx = 45;
+			var cLat = locGrpLatPx * this.data.var.latPerPx / 2;
+			var cLng = locGrpLngPx * this.data.var.lngPerPx / 2;
+			var disp = locGrp.node.dispLoc;
+			locGrp.bb = {
+				left: disp.lng - cLng,
+				right: disp.lng + cLng,
+				top: disp.lat - cLat,
+				bottom: disp.lat + cLat
+			};
+		}
+	}, {
+		key: 'addIntoGroupOrmakeNewGroup',
+		value: function addIntoGroupOrmakeNewGroup(locGrps, loc1, loc2) {
+
+			// I. both locs are in groups
+			if (loc1.group && loc2.group) {
+				if (loc1.group !== loc2.group) {
+					//loc1.group.locs = loc1.group.locs.concat(loc2.group.locs);
+					//loc2.group = loc1.group;
+				}
+			}
+			// II. loc1 is in group
+			else if (loc1.group) {
+					loc1.group.locs.push(loc2);
+					loc2.group = loc1.group;
+				}
+				// III. loc2 is in group
+				else if (loc2.group) {
+						loc2.group.locs.push(loc1);
+						loc1.group = loc2.group;
+					}
+					// IV. no locs are in group
+					else {
+							var locGrp = { locs: [loc1, loc2] };
+							locGrps.push(locGrp);
+							loc1.group = locGrp;
+							loc2.group = locGrp;
+						}
+		}
+	}, {
+		key: 'mergeLocationGoup',
+		value: function mergeLocationGoup(locGrp1, locGrp2) {
 			var _iteratorNormalCompletion4 = true;
 			var _didIteratorError4 = false;
 			var _iteratorError4 = undefined;
 
 			try {
-				for (var _iterator4 = locations[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-					var _loc = _step4.value;
+				for (var _iterator4 = locGrp2.locs[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+					var loc = _step4.value;
 
-					_loc.isInCluster = false;
+					if (locGrp1.locs.indexOf(loc) < 0) locGrp1.locs.push(loc);
 				}
 			} catch (err) {
 				_didIteratorError4 = true;
@@ -1259,37 +1595,41 @@ var TgMapBoundingBox = function () {
 				}
 			}
 
+			this.updateLocationGroup(locGrp1);
+			return locGrp1;
+		}
+	}, {
+		key: 'calLocationGroup',
+		value: function calLocationGroup(locs) {
+			var locGrps = [];
+
+			// make distance arrays between all locations and sort it.
+			var distBetweenLocGrps = [];
+			for (var i = 0; i < locs.length; i++) {
+				for (var j = i + 1; j < locs.length; j++) {
+					distBetweenLocGrps.push({
+						loc1: locs[i], loc2: locs[j],
+						dist: tgUtil.D2_s(locs[i].node.dispLoc.lat, locs[i].node.dispLoc.lng, locs[j].node.dispLoc.lat, locs[j].node.dispLoc.lng)
+					});
+				}
+				locs[i].group = null;
+			}
+			distBetweenLocGrps.sort(function (a, b) {
+				return a.dist - b.dist;
+			});
+
+			// make location group
 			var _iteratorNormalCompletion5 = true;
 			var _didIteratorError5 = false;
 			var _iteratorError5 = undefined;
 
 			try {
-				for (var _iterator5 = clusteredLocations[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-					var _cLocs = _step5.value;
-					var _iteratorNormalCompletion6 = true;
-					var _didIteratorError6 = false;
-					var _iteratorError6 = undefined;
+				for (var _iterator5 = distBetweenLocGrps[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+					var twoLocs = _step5.value;
 
-					try {
-						for (var _iterator6 = _cLocs.locs[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-							var _cLoc = _step6.value;
-
-							_cLoc.isInCluster = true;
-						}
-					} catch (err) {
-						_didIteratorError6 = true;
-						_iteratorError6 = err;
-					} finally {
-						try {
-							if (!_iteratorNormalCompletion6 && _iterator6.return) {
-								_iterator6.return();
-							}
-						} finally {
-							if (_didIteratorError6) {
-								throw _iteratorError6;
-							}
-						}
-					}
+					if (tgUtil.intersectRect(twoLocs.loc1.bb, twoLocs.loc2.bb)) {
+						this.addIntoGroupOrmakeNewGroup(locGrps, twoLocs.loc1, twoLocs.loc2);
+					} else break;
 				}
 			} catch (err) {
 				_didIteratorError5 = true;
@@ -1306,34 +1646,69 @@ var TgMapBoundingBox = function () {
 				}
 			}
 
-			return clusteredLocations;
-		}
-	}, {
-		key: 'updateNodeOfClusteredLocations',
-		value: function updateNodeOfClusteredLocations(locationClusters) {
+			this.updateLocationGroups(locGrps);
+
+			// check among location groups
+			var newLocGroups = [];
+			while (locGrps.length > 0) {
+				var targetLocGrp = locGrps.shift();
+				var overlapped = false;
+				var _iteratorNormalCompletion6 = true;
+				var _didIteratorError6 = false;
+				var _iteratorError6 = undefined;
+
+				try {
+					for (var _iterator6 = locGrps[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+						var locGrp = _step6.value;
+
+						if (tgUtil.intersectRect(targetLocGrp.bb, locGrp.bb)) {
+							overlapped = true;
+							locGrp = this.mergeLocationGoup(locGrp, targetLocGrp);
+						}
+					}
+				} catch (err) {
+					_didIteratorError6 = true;
+					_iteratorError6 = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion6 && _iterator6.return) {
+							_iterator6.return();
+						}
+					} finally {
+						if (_didIteratorError6) {
+							throw _iteratorError6;
+						}
+					}
+				}
+
+				if (!overlapped) {
+					newLocGroups.push(targetLocGrp);
+				}
+			}
+			locGrps = newLocGroups;
+
+			// check overlap between groups and locations
 			var _iteratorNormalCompletion7 = true;
 			var _didIteratorError7 = false;
 			var _iteratorError7 = undefined;
 
 			try {
-				for (var _iterator7 = locationClusters[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-					var cLocs = _step7.value;
-
-					var dispLoc = { lat: 0, lng: 0 };
-					var dispAnchor = { lat: 0, lng: 0 };
-
+				for (var _iterator7 = locGrps[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+					var _locGrp = _step7.value;
 					var _iteratorNormalCompletion8 = true;
 					var _didIteratorError8 = false;
 					var _iteratorError8 = undefined;
 
 					try {
-						for (var _iterator8 = cLocs.locs[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-							var cLoc = _step8.value;
+						for (var _iterator8 = locs[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+							var loc = _step8.value;
 
-							dispLoc.lat += cLoc.node.dispLoc.lat;
-							dispLoc.lng += cLoc.node.dispLoc.lng;
-							dispAnchor.lat += cLoc.node.dispAnchor.lat;
-							dispAnchor.lng += cLoc.node.dispAnchor.lng;
+							if (loc.group) continue;
+							if (tgUtil.intersectRect(_locGrp.bb, loc.bb)) {
+								_locGrp.locs.push(loc);
+								loc.group = _locGrp;
+								this.updateLocationGroup(_locGrp);
+							}
 						}
 					} catch (err) {
 						_didIteratorError8 = true;
@@ -1349,16 +1724,9 @@ var TgMapBoundingBox = function () {
 							}
 						}
 					}
-
-					var len = cLocs.locs.length;
-					dispLoc.lat /= len;
-					dispLoc.lng /= len;
-					dispAnchor.lat /= len;
-					dispAnchor.lng /= len;
-
-					cLocs.node = new TgLocationNode(dispLoc.lat, dispLoc.lng);
-					cLocs.node.dispAnchor = dispAnchor;
 				}
+
+				//console.log(locGrps);
 			} catch (err) {
 				_didIteratorError7 = true;
 				_iteratorError7 = err;
@@ -1373,30 +1741,69 @@ var TgMapBoundingBox = function () {
 					}
 				}
 			}
-		}
-	}, {
-		key: 'calBBOfClusterLocations',
-		value: function calBBOfClusterLocations(locationClusters) {
-			var clusterLatPx = 45;
-			var clusterLngPx = 45;
-			var cLat = clusterLatPx * this.data.var.latPerPx / 2;
-			var cLng = clusterLngPx * this.data.var.lngPerPx / 2;
 
+			return locGrps;
+		}
+
+		/*updateNodeOfClusteredLocations(locationClusters) {
+  	for(let cLocs of locationClusters) {
+  		let dispLoc = {lat: 0, lng: 0};
+  		let dispAnchor = {lat: 0, lng: 0};
+  			for(let cLoc of cLocs.locs) {
+  			dispLoc.lat += cLoc.node.dispLoc.lat;
+  			dispLoc.lng += cLoc.node.dispLoc.lng;
+  			dispAnchor.lat += cLoc.node.dispAnchor.lat;
+  			dispAnchor.lng += cLoc.node.dispAnchor.lng;
+  		}
+  			const len = cLocs.locs.length;
+  		dispLoc.lat /= len;
+  		dispLoc.lng /= len;
+  		dispAnchor.lat /= len;
+  		dispAnchor.lng /= len;
+  			cLocs.node = new TgLocationNode(dispLoc.lat, dispLoc.lng);
+  		cLocs.node.dispAnchor = dispAnchor;
+  		cLocs.time = 0;
+  	}
+  }*/
+
+	}, {
+		key: 'updateTimeOfLocationGroups',
+		value: function updateTimeOfLocationGroups(locGrps) {
 			var _iteratorNormalCompletion9 = true;
 			var _didIteratorError9 = false;
 			var _iteratorError9 = undefined;
 
 			try {
-				for (var _iterator9 = locationClusters[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-					var cLocs = _step9.value;
+				for (var _iterator9 = locGrps[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+					var locGrp = _step9.value;
 
-					var disp = cLocs.node.dispLoc;
-					cLocs.bb = {
-						left: disp.lng - cLng,
-						right: disp.lng + cLng,
-						top: disp.lat - cLat,
-						bottom: disp.lat + cLat
-					};
+					var time = 0;
+					var _iteratorNormalCompletion10 = true;
+					var _didIteratorError10 = false;
+					var _iteratorError10 = undefined;
+
+					try {
+						for (var _iterator10 = locGrp.locs[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+							var loc = _step10.value;
+							time += loc.time;
+						}
+					} catch (err) {
+						_didIteratorError10 = true;
+						_iteratorError10 = err;
+					} finally {
+						try {
+							if (!_iteratorNormalCompletion10 && _iterator10.return) {
+								_iterator10.return();
+							}
+						} finally {
+							if (_didIteratorError10) {
+								throw _iteratorError10;
+							}
+						}
+					}
+
+					time /= locGrp.locs.length;
+					locGrp.time = time;
 				}
 			} catch (err) {
 				_didIteratorError9 = true;
@@ -1417,84 +1824,39 @@ var TgMapBoundingBox = function () {
 		key: 'calNonOverlappedLocationNames',
 		value: function calNonOverlappedLocationNames(locations, locationClusters) {
 			// location names in the cluster are not displayed
-			var _iteratorNormalCompletion10 = true;
-			var _didIteratorError10 = false;
-			var _iteratorError10 = undefined;
+			var _iteratorNormalCompletion11 = true;
+			var _didIteratorError11 = false;
+			var _iteratorError11 = undefined;
 
 			try {
-				for (var _iterator10 = locationClusters[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-					var cLoc = _step10.value;
-					var _iteratorNormalCompletion12 = true;
-					var _didIteratorError12 = false;
-					var _iteratorError12 = undefined;
+				for (var _iterator11 = locationClusters[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+					var cLoc = _step11.value;
+					var _iteratorNormalCompletion13 = true;
+					var _didIteratorError13 = false;
+					var _iteratorError13 = undefined;
 
 					try {
-						for (var _iterator12 = cLoc.locs[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-							var loc = _step12.value;
+						for (var _iterator13 = cLoc.locs[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+							var loc = _step13.value;
 							loc.dispName = false;
 						}
 					} catch (err) {
-						_didIteratorError12 = true;
-						_iteratorError12 = err;
+						_didIteratorError13 = true;
+						_iteratorError13 = err;
 					} finally {
 						try {
-							if (!_iteratorNormalCompletion12 && _iterator12.return) {
-								_iterator12.return();
+							if (!_iteratorNormalCompletion13 && _iterator13.return) {
+								_iterator13.return();
 							}
 						} finally {
-							if (_didIteratorError12) {
-								throw _iteratorError12;
+							if (_didIteratorError13) {
+								throw _iteratorError13;
 							}
 						}
 					}
 				}
 
 				// calculate non-overlapped location names
-			} catch (err) {
-				_didIteratorError10 = true;
-				_iteratorError10 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion10 && _iterator10.return) {
-						_iterator10.return();
-					}
-				} finally {
-					if (_didIteratorError10) {
-						throw _iteratorError10;
-					}
-				}
-			}
-
-			var _iteratorNormalCompletion11 = true;
-			var _didIteratorError11 = false;
-			var _iteratorError11 = undefined;
-
-			try {
-				for (var _iterator11 = locations[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-					var _loc2 = _step11.value;
-
-
-					if (_loc2.isInCluster) continue;
-
-					for (var i = 0; i < 8; i++) {
-						var ret = this.getCandidatePosition(i, _loc2.node.dispLoc.lat, _loc2.node.dispLoc.lng, _loc2.name);
-
-						if (this.isItNotOverlappedByLocs(locations, locationClusters, ret.bb)) {
-							_loc2.dispName = true;
-							_loc2.nameOffsetX = ret.offset.x;
-							_loc2.nameOffsetY = ret.offset.y;
-							_loc2.nameAlign = ret.offset.align;
-							_loc2.nameBB = ret.bb;
-							break;
-						}
-
-						// if not possible
-						if (i === 7) {
-							_loc2.dispName = false;
-							console.log('fail to put a loc.');
-						}
-					}
-				}
 			} catch (err) {
 				_didIteratorError11 = true;
 				_iteratorError11 = err;
@@ -1509,45 +1871,65 @@ var TgMapBoundingBox = function () {
 					}
 				}
 			}
+
+			var _iteratorNormalCompletion12 = true;
+			var _didIteratorError12 = false;
+			var _iteratorError12 = undefined;
+
+			try {
+				for (var _iterator12 = locations[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+					var _loc = _step12.value;
+
+
+					if (_loc.group) continue;
+
+					for (var i = 0; i < 8; i++) {
+						var ret = this.getCandidatePosition(i, _loc.node.dispLoc.lat, _loc.node.dispLoc.lng, _loc.name);
+
+						if (this.isItNotOverlappedByLocs(locations, locationClusters, ret.bb)) {
+							_loc.dispName = true;
+							_loc.nameOffsetX = ret.offset.x;
+							_loc.nameOffsetY = ret.offset.y;
+							_loc.nameAlign = ret.offset.align;
+							_loc.nameBB = ret.bb;
+							break;
+						}
+
+						// if not possible
+						if (i === 7) {
+							_loc.dispName = false;
+							console.log('fail to put a loc.');
+						}
+					}
+				}
+			} catch (err) {
+				_didIteratorError12 = true;
+				_iteratorError12 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion12 && _iterator12.return) {
+						_iterator12.return();
+					}
+				} finally {
+					if (_didIteratorError12) {
+						throw _iteratorError12;
+					}
+				}
+			}
 		}
 	}, {
 		key: 'isItNotOverlappedByLocs',
 		value: function isItNotOverlappedByLocs(locations, locationClusters, inBB) {
-			var _iteratorNormalCompletion13 = true;
-			var _didIteratorError13 = false;
-			var _iteratorError13 = undefined;
-
-			try {
-				for (var _iterator13 = locations[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-					var loc = _step13.value;
-
-					if (loc.bb && tgUtil.intersectRect(inBB, loc.bb)) return false;
-					if (loc.nameBB && tgUtil.intersectRect(inBB, loc.nameBB)) return false;
-				}
-			} catch (err) {
-				_didIteratorError13 = true;
-				_iteratorError13 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion13 && _iterator13.return) {
-						_iterator13.return();
-					}
-				} finally {
-					if (_didIteratorError13) {
-						throw _iteratorError13;
-					}
-				}
-			}
-
 			var _iteratorNormalCompletion14 = true;
 			var _didIteratorError14 = false;
 			var _iteratorError14 = undefined;
 
 			try {
-				for (var _iterator14 = locationClusters[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
-					var cLoc = _step14.value;
+				for (var _iterator14 = locations[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+					var loc = _step14.value;
 
-					if (cLoc.bb && tgUtil.intersectRect(inBB, cLoc.bb)) return false;
+					if (loc.bb && tgUtil.intersectRect(inBB, loc.bb)) return false;
+					if (loc.nameBB && tgUtil.intersectRect(inBB, loc.nameBB)) return false;
 				}
 			} catch (err) {
 				_didIteratorError14 = true;
@@ -1560,6 +1942,31 @@ var TgMapBoundingBox = function () {
 				} finally {
 					if (_didIteratorError14) {
 						throw _iteratorError14;
+					}
+				}
+			}
+
+			var _iteratorNormalCompletion15 = true;
+			var _didIteratorError15 = false;
+			var _iteratorError15 = undefined;
+
+			try {
+				for (var _iterator15 = locationClusters[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+					var cLoc = _step15.value;
+
+					if (cLoc.bb && tgUtil.intersectRect(inBB, cLoc.bb)) return false;
+				}
+			} catch (err) {
+				_didIteratorError15 = true;
+				_iteratorError15 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion15 && _iterator15.return) {
+						_iterator15.return();
+					}
+				} finally {
+					if (_didIteratorError15) {
+						throw _iteratorError15;
 					}
 				}
 			}
@@ -1734,13 +2141,13 @@ var TgMapBoundingBox = function () {
 			var dLat = iconLatPx * this.data.var.latPerPx / 2;
 			var dLng = iconLngPx * this.data.var.lngPerPx / 2;
 
-			var _iteratorNormalCompletion15 = true;
-			var _didIteratorError15 = false;
-			var _iteratorError15 = undefined;
+			var _iteratorNormalCompletion16 = true;
+			var _didIteratorError16 = false;
+			var _iteratorError16 = undefined;
 
 			try {
-				for (var _iterator15 = locations[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
-					var loc = _step15.value;
+				for (var _iterator16 = locations[Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
+					var loc = _step16.value;
 
 					this.BBs.push({
 						left: loc.node.dispLoc.lng - dLng,
@@ -1751,16 +2158,16 @@ var TgMapBoundingBox = function () {
 					});
 				}
 			} catch (err) {
-				_didIteratorError15 = true;
-				_iteratorError15 = err;
+				_didIteratorError16 = true;
+				_iteratorError16 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion15 && _iterator15.return) {
-						_iterator15.return();
+					if (!_iteratorNormalCompletion16 && _iterator16.return) {
+						_iterator16.return();
 					}
 				} finally {
-					if (_didIteratorError15) {
-						throw _iteratorError15;
+					if (_didIteratorError16) {
+						throw _iteratorError16;
 					}
 				}
 			}
@@ -2107,56 +2514,16 @@ var TgMapBoundingBox = function () {
 	}, {
 		key: 'addLocationsToBB',
 		value: function addLocationsToBB() {
-			var _iteratorNormalCompletion16 = true;
-			var _didIteratorError16 = false;
-			var _iteratorError16 = undefined;
-
-			try {
-				for (var _iterator16 = this.map.tgLocs.locations[this.map.tgLocs.currentType][Symbol.iterator](), _step16; !(_iteratorNormalCompletion16 = (_step16 = _iterator16.next()).done); _iteratorNormalCompletion16 = true) {
-					//console.log(loc);
-					//this.addBB(loc.node.original.lat, loc.node.original.lng)
-
-					var loc = _step16.value;
-				}
-			} catch (err) {
-				_didIteratorError16 = true;
-				_iteratorError16 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion16 && _iterator16.return) {
-						_iterator16.return();
-					}
-				} finally {
-					if (_didIteratorError16) {
-						throw _iteratorError16;
-					}
-				}
-			}
-		}
-	}, {
-		key: 'updateLayer',
-		value: function updateLayer() {
-			var BBPolygons = [];
-
-			// for locations
-			var locs = this.map.tgLocs.getCurrentLocations();
 			var _iteratorNormalCompletion17 = true;
 			var _didIteratorError17 = false;
 			var _iteratorError17 = undefined;
 
 			try {
-				for (var _iterator17 = locs[Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+				for (var _iterator17 = this.map.tgLocs.locations[this.map.tgLocs.currentType][Symbol.iterator](), _step17; !(_iteratorNormalCompletion17 = (_step17 = _iterator17.next()).done); _iteratorNormalCompletion17 = true) {
+					//console.log(loc);
+					//this.addBB(loc.node.original.lat, loc.node.original.lng)
+
 					var loc = _step17.value;
-
-					var _bb = loc.bb;
-					if (_bb) {
-						BBPolygons.push([[_bb.right, _bb.top], [_bb.right, _bb.bottom], [_bb.left, _bb.bottom], [_bb.left, _bb.top], [_bb.right, _bb.top]]);
-					}
-
-					_bb = loc.nameBB;
-					if (_bb) {
-						BBPolygons.push([[_bb.right, _bb.top], [_bb.right, _bb.bottom], [_bb.left, _bb.bottom], [_bb.left, _bb.top], [_bb.right, _bb.top]]);
-					}
 				}
 			} catch (err) {
 				_didIteratorError17 = true;
@@ -2172,23 +2539,32 @@ var TgMapBoundingBox = function () {
 					}
 				}
 			}
+		}
+	}, {
+		key: 'updateLayer',
+		value: function updateLayer() {
+			var BBPolygons = [];
 
-			var cLocs = this.map.tgLocs.getCurrentLocationClusters();
+			// for locations
+			var locs = this.map.tgLocs.getCurrentLocations();
 			var _iteratorNormalCompletion18 = true;
 			var _didIteratorError18 = false;
 			var _iteratorError18 = undefined;
 
 			try {
-				for (var _iterator18 = cLocs[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
-					var cLoc = _step18.value;
+				for (var _iterator18 = locs[Symbol.iterator](), _step18; !(_iteratorNormalCompletion18 = (_step18 = _iterator18.next()).done); _iteratorNormalCompletion18 = true) {
+					var loc = _step18.value;
 
-					var _bb2 = cLoc.bb;
-					if (_bb2) {
-						BBPolygons.push([[_bb2.right, _bb2.top], [_bb2.right, _bb2.bottom], [_bb2.left, _bb2.bottom], [_bb2.left, _bb2.top], [_bb2.right, _bb2.top]]);
+					var _bb = loc.bb;
+					if (_bb) {
+						BBPolygons.push([[_bb.right, _bb.top], [_bb.right, _bb.bottom], [_bb.left, _bb.bottom], [_bb.left, _bb.top], [_bb.right, _bb.top]]);
+					}
+
+					_bb = loc.nameBB;
+					if (_bb) {
+						BBPolygons.push([[_bb.right, _bb.top], [_bb.right, _bb.bottom], [_bb.left, _bb.bottom], [_bb.left, _bb.top], [_bb.right, _bb.top]]);
 					}
 				}
-
-				// for places
 			} catch (err) {
 				_didIteratorError18 = true;
 				_iteratorError18 = err;
@@ -2200,6 +2576,37 @@ var TgMapBoundingBox = function () {
 				} finally {
 					if (_didIteratorError18) {
 						throw _iteratorError18;
+					}
+				}
+			}
+
+			var cLocs = this.map.tgLocs.getCurrentLocationClusters();
+			var _iteratorNormalCompletion19 = true;
+			var _didIteratorError19 = false;
+			var _iteratorError19 = undefined;
+
+			try {
+				for (var _iterator19 = cLocs[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
+					var cLoc = _step19.value;
+
+					var _bb2 = cLoc.bb;
+					if (_bb2) {
+						BBPolygons.push([[_bb2.right, _bb2.top], [_bb2.right, _bb2.bottom], [_bb2.left, _bb2.bottom], [_bb2.left, _bb2.top], [_bb2.right, _bb2.top]]);
+					}
+				}
+
+				// for places
+			} catch (err) {
+				_didIteratorError19 = true;
+				_iteratorError19 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion19 && _iterator19.return) {
+						_iterator19.return();
+					}
+				} finally {
+					if (_didIteratorError19) {
+						throw _iteratorError19;
 					}
 				}
 			}
@@ -2216,27 +2623,27 @@ var TgMapBoundingBox = function () {
 			var arr = [];
 			var styleFunc = this.mapUtil.polygonStyleFunc(viz.color.boundingBox);
 
-			var _iteratorNormalCompletion19 = true;
-			var _didIteratorError19 = false;
-			var _iteratorError19 = undefined;
+			var _iteratorNormalCompletion20 = true;
+			var _didIteratorError20 = false;
+			var _iteratorError20 = undefined;
 
 			try {
-				for (var _iterator19 = BBPolygons[Symbol.iterator](), _step19; !(_iteratorNormalCompletion19 = (_step19 = _iterator19.next()).done); _iteratorNormalCompletion19 = true) {
-					var _bb3 = _step19.value;
+				for (var _iterator20 = BBPolygons[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
+					var _bb3 = _step20.value;
 
 					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Polygon([_bb3]), styleFunc);
 				}
 			} catch (err) {
-				_didIteratorError19 = true;
-				_iteratorError19 = err;
+				_didIteratorError20 = true;
+				_iteratorError20 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion19 && _iterator19.return) {
-						_iterator19.return();
+					if (!_iteratorNormalCompletion20 && _iterator20.return) {
+						_iterator20.return();
 					}
 				} finally {
-					if (_didIteratorError19) {
-						throw _iteratorError19;
+					if (_didIteratorError20) {
+						throw _iteratorError20;
 					}
 				}
 			}
@@ -2263,29 +2670,29 @@ var TgMapBoundingBox = function () {
 			this.drawLocationLayer();
 
 			// name
-			var _iteratorNormalCompletion20 = true;
-			var _didIteratorError20 = false;
-			var _iteratorError20 = undefined;
+			var _iteratorNormalCompletion21 = true;
+			var _didIteratorError21 = false;
+			var _iteratorError21 = undefined;
 
 			try {
-				for (var _iterator20 = this.nonOverlappedLocations[Symbol.iterator](), _step20; !(_iteratorNormalCompletion20 = (_step20 = _iterator20.next()).done); _iteratorNormalCompletion20 = true) {
-					var loc = _step20.value;
+				for (var _iterator21 = this.nonOverlappedLocations[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
+					var loc = _step21.value;
 
 					this.addBB(loc.node.dispLoc.lat, loc.node.dispLoc.lng, 14, loc.name.length * 9, 0, 17, 'left', loc);
 				}
 
 				//this.addLayer();
 			} catch (err) {
-				_didIteratorError20 = true;
-				_iteratorError20 = err;
+				_didIteratorError21 = true;
+				_iteratorError21 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion20 && _iterator20.return) {
-						_iterator20.return();
+					if (!_iteratorNormalCompletion21 && _iterator21.return) {
+						_iterator21.return();
 					}
 				} finally {
-					if (_didIteratorError20) {
-						throw _iteratorError20;
+					if (_didIteratorError21) {
+						throw _iteratorError21;
 					}
 				}
 			}
@@ -2305,13 +2712,13 @@ var TgMapBoundingBox = function () {
 			var viz = this.data.viz;
 			var arr = [];
 
-			var _iteratorNormalCompletion21 = true;
-			var _didIteratorError21 = false;
-			var _iteratorError21 = undefined;
+			var _iteratorNormalCompletion22 = true;
+			var _didIteratorError22 = false;
+			var _iteratorError22 = undefined;
 
 			try {
-				for (var _iterator21 = this.locs[Symbol.iterator](), _step21; !(_iteratorNormalCompletion21 = (_step21 = _iterator21.next()).done); _iteratorNormalCompletion21 = true) {
-					var loc = _step21.value;
+				for (var _iterator22 = this.locs[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+					var loc = _step22.value;
 
 					var nameStyleFunc = this.mapUtil.textStyle({
 						text: loc.name,
@@ -2325,16 +2732,16 @@ var TgMapBoundingBox = function () {
 					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([loc.lng, loc.lat]), nameStyleFunc);
 				}
 			} catch (err) {
-				_didIteratorError21 = true;
-				_iteratorError21 = err;
+				_didIteratorError22 = true;
+				_iteratorError22 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion21 && _iterator21.return) {
-						_iterator21.return();
+					if (!_iteratorNormalCompletion22 && _iterator22.return) {
+						_iterator22.return();
 					}
 				} finally {
-					if (_didIteratorError21) {
-						throw _iteratorError21;
+					if (_didIteratorError22) {
+						throw _iteratorError22;
 					}
 				}
 			}
@@ -2355,13 +2762,13 @@ var TgMapBoundingBox = function () {
 			var locationStyleFunc = this.mapUtil.imageStyleFunc(viz.image.location);
 			var lineStyleFunc = this.mapUtil.lineStyleFunc(viz.color.locationLine, viz.width.locationLine);
 
-			var _iteratorNormalCompletion22 = true;
-			var _didIteratorError22 = false;
-			var _iteratorError22 = undefined;
+			var _iteratorNormalCompletion23 = true;
+			var _didIteratorError23 = false;
+			var _iteratorError23 = undefined;
 
 			try {
-				for (var _iterator22 = this.nonOverlappedLocations[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-					var loc = _step22.value;
+				for (var _iterator23 = this.nonOverlappedLocations[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+					var loc = _step23.value;
 
 
 					if (loc.node.target.lng != loc.node.dispAnchor.lng || loc.node.target.lat != loc.node.dispAnchor.lat) {
@@ -2377,16 +2784,16 @@ var TgMapBoundingBox = function () {
 					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), locationStyleFunc);
 				}
 			} catch (err) {
-				_didIteratorError22 = true;
-				_iteratorError22 = err;
+				_didIteratorError23 = true;
+				_iteratorError23 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion22 && _iterator22.return) {
-						_iterator22.return();
+					if (!_iteratorNormalCompletion23 && _iterator23.return) {
+						_iterator23.return();
 					}
 				} finally {
-					if (_didIteratorError22) {
-						throw _iteratorError22;
+					if (_didIteratorError23) {
+						throw _iteratorError23;
 					}
 				}
 			}
@@ -2429,7 +2836,7 @@ var TgMapBoundingBox = function () {
 module.exports = TgMapBoundingBox;
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2442,9 +2849,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * Class for control points.
  */
-var tgUtil = __webpack_require__(0);
-var TgTravelTimeApi = __webpack_require__(3);
-var TgControlPoint = __webpack_require__(15);
+var TgUtil = __webpack_require__(0);
+var TgTravelTimeApi = __webpack_require__(4);
+var TgControlPoint = __webpack_require__(18);
 
 var TgMapControl = function () {
 	function TgMapControl(map, data, graph) {
@@ -2492,7 +2899,7 @@ var TgMapControl = function () {
    * api object for getting travel time.
    * @private @type {!TravelTimeApi>} 
    */
-		this.travelTimeApi = new TgTravelTimeApi();
+		this.travelTimeApi = new TgTravelTimeApi(this.data);
 
 		/** 
    * Map object to cache travel time.
@@ -3096,12 +3503,12 @@ var TgMapControl = function () {
 			var newGrid = this.addGridObject(pointIndexes);
 			var pointsArray = new Array(4);
 
-			for (var i = 0; i < pointIndexes.length; i++) {
-				this.controlPoints[pointIndexes[i]].connectedGrids.push(newGrid);
-				pointsArray[i] = this.controlPoints[pointIndexes[i]];
+			for (var _i = 0; _i < pointIndexes.length; _i++) {
+				this.controlPoints[pointIndexes[_i]].connectedGrids.push(newGrid);
+				pointsArray[_i] = this.controlPoints[pointIndexes[_i]];
 			}
 
-			var ab = tgUtil.abByFFT(pointsArray, 'original', 5);
+			var ab = TgUtil.abByFFT(pointsArray, 'original', 5);
 			newGrid.a = ab.as;
 			newGrid.b = ab.bs;
 		}
@@ -3488,14 +3895,13 @@ var TgMapControl = function () {
 		key: 'getCenterControlPoint',
 		value: function getCenterControlPoint() {
 			var threshold = 0.0001;
-			var dist;
 
-			for (var i = 0; i < this.controlPoints.length; i++) {
-				dist = tgUtil.D2(this.controlPoints[i].original.lat, this.controlPoints[i].original.lng, this.map.tgOrigin.origin.original.lat, this.map.tgOrigin.origin.original.lng);
-				if (dist < threshold) return i;
+			for (var _i2 = 0; _i2 < this.controlPoints.length; _i2++) {
+				var dist = TgUtil.D2(this.controlPoints[_i2].original.lat, this.controlPoints[_i2].original.lng, this.map.tgOrigin.origin.original.lat, this.map.tgOrigin.origin.original.lng);
+				if (dist < threshold) return _i2;
 			}
 
-			if (i == this.controlPoints.length) {
+			if (i === this.controlPoints.length) {
 				console.log('could not find center control point');
 				return -1;
 			}
@@ -3510,118 +3916,6 @@ var TgMapControl = function () {
 			//if (theta < 0) theta = 360 + theta; // range [0, 360)
 			return theta;
 		}
-	}, {
-		key: 'calTargets',
-		value: function calTargets() {
-			var target;
-			for (var i = 0; i < this.controlPoints.length; i++) {
-				target = this.graph.transform(this.controlPoints[i].original.lat, this.controlPoints[i].original.lng);
-				this.controlPoints[i].target.lat = target.lat;
-				this.controlPoints[i].target.lng = target.lng;
-			}
-		}
-
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Drawing Part
-		//////////////////////////////////////////////////////////////////////////////////////////
-
-		/** 
-   * create a control point layer and add to olMap.
-   */
-		/*drawControlPointLayer() {
-  	let features = [];
-  	const viz = this.data.viz;
-  		for(let point of this.controlPoints) {
-  		// draw control points
-  		this.mapUtil.addFeatureInFeatures(
-  				features,
-  				new ol.geom.Point(
-  						[point.disp.lng, point.disp.lat]), 
-  						this.mapUtil.nodeStyle(
-  								viz.color.controlPoint, 
-  								viz.radius.controlPoint));
-  			// draw additional lines if there is a difference between target and real.
-  		if ((point.target.lng != point.disp.lng) 
-  			|| (point.target.lat != point.disp.lat)) {
-  				this.mapUtil.addFeatureInFeatures(
-  					features, 
-  					new ol.geom.LineString(
-  							[[point.disp.lng, point.disp.lat], [point.target.lng, point.target.lat]]), 
-  							this.mapUtil.lineStyle(
-  								viz.color.controlPointLine, viz.width.controlPointLine));
-  		}
-  			// add text
-  		let text = (point.travelTime != null) ? point.travelTime.toString() : '-';
-  		text += ',' + point.index;
-  		this.mapUtil.addFeatureInFeatures(
-  				features,
-  				new ol.geom.Point(
-  						[point.disp.lng, point.disp.lat]), 
-  						this.mapUtil.textStyle({
-  								text: text, color: viz.color.text, font: viz.font.text
-  							}));
-  	}
-  		this.removeControlPointLayer();
-  	this.controlPointLayer = this.mapUtil.olVectorFromFeatures(features);
-  	this.controlPointLayer.setZIndex(viz.z.controlPoint);
-    this.mapUtil.addLayer(this.controlPointLayer);
-  }*/
-
-		/** 
-   * remove a control point layer if exists.
-   */
-		/*removeControlPointLayer() {
-  	this.mapUtil.removeLayer(this.controlPointLayer);
-  }*/
-
-		/** 
-   * create a grid layer and add to olMap.
-   */
-		/*drawGridLayer() {
-  	let features = [];
-  	const viz = this.data.viz;
-  		for(let line of this.gridLines) {
-  		this.mapUtil.addFeatureInFeatures(
-  				features, 
-  				new ol.geom.LineString(
-  						[[line.start.disp.lng, line.start.disp.lat], 
-  						[line.end.disp.lng, line.end.disp.lat]]), 
-  						this.mapUtil.lineStyle(viz.color.grid, viz.width.grid));
-  	}
-  		this.removeGridLayer();
-  	this.gridLayer = this.mapUtil.olVectorFromFeatures(features);
-  	this.gridLayer.setZIndex(viz.z.grid);
-  	this.mapUtil.addLayer(this.gridLayer);
-  }*/
-
-		/** 
-   * remove a control point layer if exists.
-   */
-		/*removeGridLayer() {
-  	this.mapUtil.removeLayer(this.gridLayer)
-  }*/
-
-		/*calDispNodes(type, value) {
-  	if (type === 'intermediateReal') {
-  		for(let point of this.controlPoints) {
-  			point.disp.lat = (1 - value) * point.original.lat + value * point.real.lat;
-  			point.disp.lng = (1 - value) * point.original.lng + value * point.real.lng;
-  		}
-  	}
-  	else if (type === 'intermediateTarget') {
-  		for(let point of this.controlPoints) {
-  			point.disp.lat = (1 - value) * point.original.lat + value * point.target.lat;
-  			point.disp.lng = (1 - value) * point.original.lng + value * point.target.lng;
-  		}
-  	}
-  	else {
-  		for(let point of this.controlPoints) {
-  			point.disp.lat = point[type].lat;
-  			point.disp.lng = point[type].lng;
-  		}
-  	}
-  }*/
-
 	}, {
 		key: 'getIJ',
 		value: function getIJ(idx) {
@@ -3784,7 +4078,7 @@ var TgMapControl = function () {
 								//if ((line1.start.intersected)||(line1.end.intersected)||
 								//(line2.start.intersected)||(line2.end.intersected)) continue;
 
-								if (tgUtil.intersects(line1.start.real.lat, line1.start.real.lng, line1.end.real.lat, line1.end.real.lng, line2.start.real.lat, line2.start.real.lng, line2.end.real.lat, line2.end.real.lng)) {
+								if (TgUtil.intersects(line1.start.real.lat, line1.start.real.lng, line1.end.real.lat, line1.end.real.lng, line2.start.real.lat, line2.start.real.lng, line2.end.real.lat, line2.end.real.lng)) {
 
 									if (line1.end.index !== line2.start.index && line1.start.index !== line2.end.index) {
 
@@ -3916,14 +4210,14 @@ var TgMapControl = function () {
 
 
 								var pointsArray = new Array(4);
-								for (var i = 0; i < grid.pointIndexes.length; i++) {
-									pointsArray[i] = this.controlPoints[grid.pointIndexes[i]];
+								for (var _i3 = 0; _i3 < grid.pointIndexes.length; _i3++) {
+									pointsArray[_i3] = this.controlPoints[grid.pointIndexes[_i3]];
 								}
-								var abReal = tgUtil.abByFFT(pointsArray, 'real', 5);
+								var abReal = TgUtil.abByFFT(pointsArray, 'real', 5);
 
 								var dif = 0;
-								for (var _i = 0; _i < abReal.as.length; _i++) {
-									dif += tgUtil.D2(grid.a[_i], grid.b[_i], abReal.as[_i], abReal.bs[_i]);
+								for (var _i4 = 0; _i4 < abReal.as.length; _i4++) {
+									dif += TgUtil.D2(grid.a[_i4], grid.b[_i4], abReal.as[_i4], abReal.bs[_i4]);
 								}
 								//console.log('dif: ' + dif);
 								if (dif > threshold) {
@@ -4026,7 +4320,504 @@ var TgMapControl = function () {
 module.exports = TgMapControl;
 
 /***/ }),
-/* 7 */
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var TgNode = __webpack_require__(1);
+
+var TgMapGrid = function () {
+	function TgMapGrid(map, data, graph) {
+		_classCallCheck(this, TgMapGrid);
+
+		this.map = map;
+		this.data = data;
+		this.graph = graph;
+		this.mapUtil = map.mapUtil;
+
+		this.isDisabled = false;
+		this.display = false;
+		this.layer = null;
+
+		this.displayControlPoints = true;
+		this.controlPointLayer = null;
+	}
+
+	_createClass(TgMapGrid, [{
+		key: 'turn',
+		value: function turn(tf) {
+			this.display = tf;
+		}
+	}, {
+		key: 'disabled',
+		value: function disabled(tf) {
+			this.isDisabled = tf;
+		}
+	}, {
+		key: 'render',
+		value: function render() {
+			if (this.isDisabled || !this.display) {
+				this.discard();
+			} else {
+				this.updateLayer();
+				if (this.displayControlPoints) this.updateControlPointLayer();
+			}
+		}
+	}, {
+		key: 'discard',
+		value: function discard() {
+			this.removeLayer();
+			this.removeControlPointLayer();
+		}
+	}, {
+		key: 'updateLayer',
+		value: function updateLayer() {
+			var gridLines = this.map.tgControl.gridLines;
+			var viz = this.data.viz;
+			var arr = [];
+
+			var _iteratorNormalCompletion = true;
+			var _didIteratorError = false;
+			var _iteratorError = undefined;
+
+			try {
+				for (var _iterator = gridLines[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+					var line = _step.value;
+
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[line.start.disp.lng, line.start.disp.lat], [line.end.disp.lng, line.end.disp.lat]]), this.mapUtil.lineStyle(viz.color.grid, viz.width.grid));
+				}
+			} catch (err) {
+				_didIteratorError = true;
+				_iteratorError = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion && _iterator.return) {
+						_iterator.return();
+					}
+				} finally {
+					if (_didIteratorError) {
+						throw _iteratorError;
+					}
+				}
+			}
+
+			this.removeLayer();
+			this.layer = this.mapUtil.olVectorFromFeatures(arr);
+			this.layer.setZIndex(viz.z.grid);
+			this.mapUtil.addLayer(this.layer);
+		}
+	}, {
+		key: 'updateControlPointLayer',
+		value: function updateControlPointLayer() {
+			var controlPoints = this.map.tgControl.controlPoints;
+			var viz = this.data.viz;
+			var arr = [];
+
+			var _iteratorNormalCompletion2 = true;
+			var _didIteratorError2 = false;
+			var _iteratorError2 = undefined;
+
+			try {
+				for (var _iterator2 = controlPoints[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+					var point = _step2.value;
+
+					// draw control points
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([point.disp.lng, point.disp.lat]), this.mapUtil.nodeStyle(viz.color.controlPoint, viz.radius.controlPoint));
+
+					// draw additional lines meaning difference between target and real.
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[point.disp.lng, point.disp.lat], [point.target.lng, point.target.lat]]), this.mapUtil.lineStyle(viz.color.controlPointLine, viz.width.controlPointLine));
+
+					// add text
+					var text = point.travelTime != null ? (point.travelTime / 60).toFixed(1) : '-';
+					//let text = (point.travelTime != null) ? point.travelTime + '' : '-';
+					//text += ',' + point.index;
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([point.disp.lng, point.disp.lat]), this.mapUtil.textStyle({
+						text: text, color: viz.color.text, font: viz.font.text
+					}));
+				}
+			} catch (err) {
+				_didIteratorError2 = true;
+				_iteratorError2 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion2 && _iterator2.return) {
+						_iterator2.return();
+					}
+				} finally {
+					if (_didIteratorError2) {
+						throw _iteratorError2;
+					}
+				}
+			}
+
+			this.removeControlPointLayer();
+			this.controlPointLayer = this.mapUtil.olVectorFromFeatures(arr);
+			this.controlPointLayer.setZIndex(viz.z.controlPoint);
+			this.mapUtil.addLayer(this.controlPointLayer);
+		}
+	}, {
+		key: 'removeLayer',
+		value: function removeLayer() {
+			this.mapUtil.removeLayer(this.layer);
+		}
+	}, {
+		key: 'removeControlPointLayer',
+		value: function removeControlPointLayer() {
+			this.mapUtil.removeLayer(this.controlPointLayer);
+		}
+	}, {
+		key: 'calDispNodes',
+		value: function calDispNodes(kind, value) {
+			var controlPoints = this.map.tgControl.controlPoints;
+
+			if (kind === 'intermediateReal') {
+				var _iteratorNormalCompletion3 = true;
+				var _didIteratorError3 = false;
+				var _iteratorError3 = undefined;
+
+				try {
+					for (var _iterator3 = controlPoints[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+						var point = _step3.value;
+
+						point.disp.lat = (1 - value) * point.original.lat + value * point.real.lat;
+						point.disp.lng = (1 - value) * point.original.lng + value * point.real.lng;
+					}
+				} catch (err) {
+					_didIteratorError3 = true;
+					_iteratorError3 = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion3 && _iterator3.return) {
+							_iterator3.return();
+						}
+					} finally {
+						if (_didIteratorError3) {
+							throw _iteratorError3;
+						}
+					}
+				}
+			} else if (kind === 'intermediateTarget') {
+				var _iteratorNormalCompletion4 = true;
+				var _didIteratorError4 = false;
+				var _iteratorError4 = undefined;
+
+				try {
+					for (var _iterator4 = controlPoints[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+						var _point = _step4.value;
+
+						_point.disp.lat = (1 - value) * _point.original.lat + value * _point.target.lat;
+						_point.disp.lng = (1 - value) * _point.original.lng + value * _point.target.lng;
+					}
+				} catch (err) {
+					_didIteratorError4 = true;
+					_iteratorError4 = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion4 && _iterator4.return) {
+							_iterator4.return();
+						}
+					} finally {
+						if (_didIteratorError4) {
+							throw _iteratorError4;
+						}
+					}
+				}
+			} else {
+				var _iteratorNormalCompletion5 = true;
+				var _didIteratorError5 = false;
+				var _iteratorError5 = undefined;
+
+				try {
+					for (var _iterator5 = this.controlPoints[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+						var _point2 = _step5.value;
+
+						_point2.disp.lat = _point2[type].lat;
+						_point2.disp.lng = _point2[type].lng;
+					}
+				} catch (err) {
+					_didIteratorError5 = true;
+					_iteratorError5 = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion5 && _iterator5.return) {
+							_iterator5.return();
+						}
+					} finally {
+						if (_didIteratorError5) {
+							throw _iteratorError5;
+						}
+					}
+				}
+			}
+		}
+	}]);
+
+	return TgMapGrid;
+}();
+
+module.exports = TgMapGrid;
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var TgUtil = __webpack_require__(0);
+
+var TgMapInteraction = function (_ol$interaction$Point) {
+  _inherits(TgMapInteraction, _ol$interaction$Point);
+
+  function TgMapInteraction(map) {
+    _classCallCheck(this, TgMapInteraction);
+
+    var _this = _possibleConstructorReturn(this, (TgMapInteraction.__proto__ || Object.getPrototypeOf(TgMapInteraction)).call(this));
+
+    _this.map = map;
+    _this.data = map.data;
+    _this.coordinate_ = null;
+    _this.cursor_ = 'pointer';
+    _this.feature_ = null;
+    _this.previousCursor_ = undefined;
+    _this.dragging = false;
+    _this.draggedObject = null;
+    _this.tooltip = null;
+    _this.overlay = null;
+    _this.timer = null;
+    _this.downCoordinate = null;
+    _this.originMoving = false;
+    _this.isochroneMoving = false;
+    _this.curTime = 0;
+
+    ol.interaction.Pointer.call(_this, {
+      handleDownEvent: _this.handleDownEvent,
+      handleDragEvent: _this.handleDragEvent,
+      handleMoveEvent: _this.handleMoveEvent,
+      handleUpEvent: _this.handleUpEvent
+    });
+    return _this;
+  }
+
+  _createClass(TgMapInteraction, [{
+    key: 'addOverlay',
+    value: function addOverlay() {
+      this.tooltip = document.getElementById('tooltip');
+      this.overlay = new ol.Overlay({
+        element: this.tooltip,
+        offset: [0, -30],
+        positioning: 'top-center'
+      });
+
+      this.map.olMap.addOverlay(this.overlay);
+    }
+  }, {
+    key: 'handleDownEvent',
+    value: function handleDownEvent(evt) {
+
+      /*const pt = ol.proj.transform([evt.coordinate[0], evt.coordinate[1]], 
+            'EPSG:3857', 'EPSG:4326');
+      console.log(pt[1]);
+      console.log(pt[0]);*/
+
+      var feature = evt.map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+        return feature;
+      });
+
+      if (feature) {
+
+        switch (feature.type) {
+          case 'origin':
+            this.dragging = true;
+            this.draggedObject = feature.type;
+            this.coordinate_ = evt.coordinate;
+            this.downCoordinate = evt.coordinate;
+            this.feature_ = feature;
+            this.timer = setTimeout(this.longPress.bind(this), this.data.var.longPressTime);
+          case 'isochrone':
+            if (this.map.currentMode === 'DC') {
+              // if hightlight mode, start moving isochrone
+              if (this.map.tgLocs.getHighLightMode()) {
+                //this.map.tgIsochrone.discard();
+                this.isochroneMoving = true;
+                this.dragging = true;
+              }
+              // if normal mode, go to highlight mode
+              else {
+                  var time = feature.source;
+                  this.map.tgIsochrone.discard(); // remove current isochrones
+                  this.map.tgLocs.setHighLightMode(true, time); // set highlight mode
+                  this.map.tgLocs.render();
+                  this.map.tgIsochrone.render();
+                }
+            }
+            break;
+          case 'loc':
+            console.log(feature.source);
+            this.map.tgLocs.showModal(feature.source);
+            break;
+          case 'cLoc':
+            console.log(feature.source);
+            break;
+          default:
+            this.disableHighlightMode();
+        }
+      } else {
+        this.disableHighlightMode();
+      }
+
+      return !!feature;
+    }
+  }, {
+    key: 'disableHighlightMode',
+    value: function disableHighlightMode() {
+      if (this.map.tgLocs.getHighLightMode()) {
+        this.map.tgIsochrone.discard();
+        this.map.tgLocs.setHighLightMode(false, 0);
+        this.map.tgLocs.render();
+        this.map.tgIsochrone.render();
+      }
+    }
+  }, {
+    key: 'longPress',
+    value: function longPress() {
+      console.log('long pressed');
+      this.originMoving = true;
+      this.map.tgOrigin.render({ translucent: true }); // make it translucent
+      this.feature_ = this.map.tgOrigin.feature;
+    }
+  }, {
+    key: 'handleDragEvent',
+    value: function handleDragEvent(evt) {
+      if (this.dragging) {
+        if (this.originMoving) {
+
+          var deltaX = evt.coordinate[0] - this.coordinate_[0];
+          var deltaY = evt.coordinate[1] - this.coordinate_[1];
+          var geometry = this.feature_.getGeometry();
+          geometry.translate(deltaX, deltaY);
+
+          this.coordinate_[0] = evt.coordinate[0];
+          this.coordinate_[1] = evt.coordinate[1];
+        } else {
+          if (this.timer) {
+            // check dragged distance
+            var dist = TgUtil.D2(this.downCoordinate[0], this.downCoordinate[1], evt.coordinate[0], evt.coordinate[1]);
+
+            if (dist > this.data.var.longPressSensitivity) {
+              clearTimeout(this.timer);
+              this.timer = null;
+              if (this.map.currentMode === 'DC') {
+                this.map.tgIsochrone.discard();
+                this.isochroneMoving = true;
+              }
+            }
+          }
+
+          if (this.isochroneMoving) {
+            var pt = ol.proj.transform([evt.coordinate[0], evt.coordinate[1]], 'EPSG:3857', 'EPSG:4326');
+            this.curTime = this.map.calTimeFromLatLng(pt[1], pt[0]);
+            this.map.tgIsochrone.updateHighLightLayer(this.curTime);
+          }
+        }
+      }
+    }
+  }, {
+    key: 'handleMoveEvent',
+    value: function handleMoveEvent(evt) {
+      if (this.cursor_) {
+        var feature = evt.map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+          return feature;
+        });
+
+        if (feature && (feature.type === 'loc' || feature.type === 'cLoc')) this.tooltip.style.display = '';else this.tooltip.style.display = 'none';
+
+        if (feature) {
+
+          // for tooltip
+          if (feature.type) {
+            this.overlay.setPosition(evt.coordinate);
+
+            switch (feature.type) {
+              case 'loc':
+                this.tooltip.innerHTML = feature.source.name;
+                break;
+              case 'cLoc':
+                var locs = feature.source.locs;
+                var str = locs[0].name;
+                for (var i = 1; i < locs.length; i++) {
+                  str += '<br/>' + locs[i].name;
+                }
+                this.tooltip.innerHTML = str;
+                break;
+            }
+          }
+
+          // for cursor
+          var element = evt.map.getTargetElement();
+
+          if (feature.type === 'origin' || feature.type === 'isochrone') {
+            if (element.style.cursor != this.cursor_) {
+              this.previousCursor_ = element.style.cursor;
+              element.style.cursor = this.cursor_;
+            }
+          } else if (this.previousCursor_ !== undefined) {
+            element.style.cursor = this.previousCursor_;
+            this.previousCursor_ = undefined;
+          }
+        }
+      }
+    }
+  }, {
+    key: 'handleUpEvent',
+    value: function handleUpEvent(evt) {
+      this.coordinate_ = null;
+      this.feature_ = null;
+
+      if (this.dragging) {
+        this.dragging = false;
+        if (this.timer) clearTimeout(this.timer);
+
+        // when handle up while moving origin
+        if (this.originMoving) {
+          var pt = ol.proj.transform([evt.coordinate[0], evt.coordinate[1]], 'EPSG:3857', 'EPSG:4326');
+          this.map.setCenter(pt[1], pt[0]);
+          this.map.tgOrigin.render(); // make it opaque
+          this.originMoving = false;
+        }
+
+        // when handle up while moving isochrone
+        if (this.isochroneMoving) {
+          this.isochroneMoving = false;
+          this.map.tgLocs.setHighLightMode(true, this.curTime);
+          this.map.tgLocs.render();
+        }
+      }
+      return false;
+    }
+  }]);
+
+  return TgMapInteraction;
+}(ol.interaction.Pointer);
+
+module.exports = TgMapInteraction;
+
+/***/ }),
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4048,6 +4839,7 @@ var TgMapIsochrone = function () {
 		this.isDisabled = false;
 		this.display = false;
 		this.layer = null;
+		this.highLightLayer = null;
 	}
 
 	_createClass(TgMapIsochrone, [{
@@ -4063,12 +4855,61 @@ var TgMapIsochrone = function () {
 	}, {
 		key: 'render',
 		value: function render() {
-			if (this.isDisabled || !this.display) this.discard();else this.updateLayer();
+			if (this.isDisabled || !this.display) this.discard();else {
+				if (this.map.tgLocs.getHighLightMode()) this.updateHighLightLayer(this.map.tgLocs.highLightTime);else this.updateLayer();
+			}
 		}
 	}, {
 		key: 'discard',
 		value: function discard() {
-			this.removeLayer();
+			if (this.map.tgLocs.getHighLightMode()) this.removeHightLightLayer();else this.removeLayer();
+		}
+	}, {
+		key: 'removeHightLightLayer',
+		value: function removeHightLightLayer() {
+			this.mapUtil.removeLayer(this.highLightLayer);
+		}
+	}, {
+		key: 'updateHighLightLayer',
+		value: function updateHighLightLayer(time) {
+			if (!this.graph.factor) return;
+
+			var viz = this.data.viz;
+			var box = this.data.box;
+			var originLat = this.map.tgOrigin.origin.real.lat;
+			var originLng = this.map.tgOrigin.origin.real.lng;
+			var heightLat = box.top - box.bottom; // 0.11
+			var latPerPx = heightLat / this.map.olMapHeightPX;
+			var maxTime = heightLat / 2 * this.graph.factor;
+			var pxPerTime = this.map.olMapHeightPX / 2 / maxTime; // 0.64
+			var widthLng = box.right - box.left; // 0.09784
+			var lngPerPx = widthLng / this.map.olMapWidthPX;
+
+			var radiusPx = time * pxPerTime;
+			var features = [];
+
+			// circle
+			this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng, originLat]), this.mapUtil.isochroneStyle(radiusPx, viz.color.isochrone, viz.width.highLightIsochrone));
+
+			// red box
+			var offsetLng = 0;
+			var offsetLat = radiusPx * latPerPx;
+			this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng + offsetLng, originLat + offsetLat]), this.mapUtil.imageStyle(viz.image.red10min), 'isochrone');
+
+			// text
+			offsetLng = -17 * lngPerPx;
+			offsetLat = radiusPx * latPerPx;
+			var text = parseInt(time / 60) + '';
+			this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng + offsetLng, originLat + offsetLat]), this.mapUtil.textStyle({
+				text: text,
+				color: viz.color.isochroneText,
+				font: viz.font.isochroneText
+			}), 'isochrone');
+
+			this.removeHightLightLayer();
+			this.highLightLayer = this.mapUtil.olVectorFromFeatures(features);
+			this.highLightLayer.setZIndex(viz.z.isochrone + 1);
+			this.mapUtil.addLayer(this.highLightLayer);
 		}
 	}, {
 		key: 'removeLayer',
@@ -4080,8 +4921,6 @@ var TgMapIsochrone = function () {
 		value: function updateLayer() {
 			if (!this.graph.factor) return;
 
-			console.log('@ isochrone updateLayer');
-
 			var viz = this.data.viz;
 			var box = this.data.box;
 			var features = [];
@@ -4090,7 +4929,7 @@ var TgMapIsochrone = function () {
 
 			var heightLat = box.top - box.bottom; // 0.11
 			var latPerPx = heightLat / this.map.olMapHeightPX;
-			var maxTime = this.map.calTimeFromLatLng(originLat + heightLat / 2, originLng); // 749.4
+			var maxTime = heightLat / 2 * this.graph.factor;
 			var pxPerTime = this.map.olMapHeightPX / 2 / maxTime; // 0.64
 
 			var widthLng = box.right - box.left; // 0.09784
@@ -4125,7 +4964,7 @@ var TgMapIsochrone = function () {
 				//let offsetLng = (radiusPx + 3) * lngPerPx
 				var offsetLng = 0;
 				var offsetLat = radiusPx * latPerPx;
-				this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng + offsetLng, originLat + offsetLat]), this.mapUtil.imageStyle(viz.image.red10min));
+				this.mapUtil.addFeatureInFeatures(features, new ol.geom.Point([originLng + offsetLng, originLat + offsetLat]), this.mapUtil.imageStyle(viz.image.red10min), 'isochrone', _time);
 
 				// text
 				//offsetLng = (radiusPx - 13) * lngPerPx;
@@ -4136,7 +4975,7 @@ var TgMapIsochrone = function () {
 					text: text,
 					color: viz.color.isochroneText,
 					font: viz.font.isochroneText
-				}));
+				}), 'isochrone', _time);
 			}
 
 			this.removeLayer();
@@ -4152,7 +4991,7 @@ var TgMapIsochrone = function () {
 module.exports = TgMapIsochrone;
 
 /***/ }),
-/* 8 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4162,7 +5001,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var tgUtil = __webpack_require__(0);
+var TgUtil = __webpack_require__(0);
 var TgNode = __webpack_require__(1);
 
 var TgMapLanduse = function () {
@@ -4228,7 +5067,11 @@ var TgMapLanduse = function () {
 				format: new ol.format.TopoJSON(),
 				projection: 'EPSG:3857',
 				tileGrid: new ol.tilegrid.createXYZ({ maxZoom: 22 }),
-				url: 'https://tile.mapzen.com/mapzen/vector/v1/landuse/{z}/{x}/{y}.topojson?' + 'api_key=vector-tiles-c1X4vZE'
+				url: 'https://tile.mapzen.com/mapzen/vector/v1/landuse/{z}/{x}/{y}.topojson?' + 'api_key=' + this.data.var.apiKeyVectorTile
+				//url: 'https://tile.mapzen.com/mapzen/vector/v1/landuse/{z}/{x}/{y}.topojson?' 
+				//	+ 'api_key=vector-tiles-c1X4vZE'
+				//url: 'https://tile.mapzen.com/mapzen/vector/v1/landuse/{z}/{x}/{y}.topojson?' 
+				//	+ 'api_key=mapzen-dKpzpj5'
 			});
 
 			this.mapUtil.addLayer(new ol.layer.VectorTile({
@@ -4303,7 +5146,7 @@ var TgMapLanduse = function () {
 			if (geoType === 'Polygon') {
 
 				if (this.simplify && this.map.simplify) {
-					coords = tgUtil.RDPSimp2DLoop(coords, this.rdpThreshold);
+					coords = TgUtil.RDPSimp2DLoop(coords, this.rdpThreshold);
 				}
 
 				for (var i = 0; i < coords.length; i++) {
@@ -4939,7 +5782,7 @@ var TgMapLanduse = function () {
 module.exports = TgMapLanduse;
 
 /***/ }),
-/* 9 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4949,8 +5792,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var tgUtil = __webpack_require__(0);
-var TgLocationNode = __webpack_require__(16);
+var TgUtil = __webpack_require__(0);
+var TgLocationNode = __webpack_require__(2);
 
 var TgMapLocations = function () {
 	function TgMapLocations(map, data, graph) {
@@ -4968,13 +5811,18 @@ var TgMapLocations = function () {
 		this.dispNameLayer = true;
 		this.nameLayer = null;
 
-		this.locationTypes = ['food', 'bar', 'park', 'museum'];
-		this.currentType = 'food';
-		this.locations = {};
-		this.locationClusters = {};
-		this.needToDisplayLocs = false;
+		this.currentTOD = 0;
+		this.currentSubTOD = 0;
+		this.isHighlightMode = false;
+		this.dispLocsAfterCalWarping = false;
+		this.displayTimeOfLocs = false; // for debug
+		this.highLightMode = false;
+		this.highLightTime = 0;
 
-		this.initLocations();
+		this.locations = [];
+		this.locationsInBox = [];
+		this.locationGroups = [];
+		this.favorites = [];
 	}
 
 	_createClass(TgMapLocations, [{
@@ -4989,11 +5837,11 @@ var TgMapLocations = function () {
 		}
 	}, {
 		key: 'render',
-		value: function render() {
+		value: function render(param) {
 			if (this.isDisabled || !this.display) {
 				this.discard();
 			} else {
-				this.updateLayer();
+				this.updateLayer(param);
 				if (this.dispNameLayer) this.updateNameLayer();
 			}
 		}
@@ -5004,18 +5852,21 @@ var TgMapLocations = function () {
 			this.removeNameLayer();
 		}
 	}, {
-		key: 'initLocations',
-		value: function initLocations() {
+		key: 'highLightMode',
+		value: function highLightMode(tf) {
+			this.isHighlightMode = tf;
+		}
+	}, {
+		key: 'resetTimeOfLocations',
+		value: function resetTimeOfLocations() {
 			var _iteratorNormalCompletion = true;
 			var _didIteratorError = false;
 			var _iteratorError = undefined;
 
 			try {
-				for (var _iterator = this.locationTypes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-					var type = _step.value;
-
-					this.locations[type] = [];
-					this.locationClusters[type] = [];
+				for (var _iterator = this.locationsInBox[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+					var loc = _step.value;
+					loc.time = 0;
 				}
 			} catch (err) {
 				_didIteratorError = true;
@@ -5033,327 +5884,166 @@ var TgMapLocations = function () {
 			}
 		}
 	}, {
-		key: 'request',
-		value: function request() {
-			var _this = this;
+		key: 'setTimeOfLocations',
+		value: function setTimeOfLocations() {
+			//for(let loc of this.locationsInBox) {
+			var _iteratorNormalCompletion2 = true;
+			var _didIteratorError2 = false;
+			var _iteratorError2 = undefined;
 
-			this.readyLocs = false;
-			this.data.var.readyLocation = false;
+			try {
+				for (var _iterator2 = this.locations[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+					var loc = _step2.value;
 
-			var options = {
-				term: this.currentType,
-				lat: this.map.tgOrigin.origin.original.lat,
-				lng: this.map.tgOrigin.origin.original.lng,
-				radius: parseInt(this.map.calMaxDistance('lat') * 1000)
-			};
+					var lat = loc.node.target.lat;
+					var lng = loc.node.target.lng;
+					loc.time = this.map.calTimeFromLatLng(lat, lng);
+				}
+			} catch (err) {
+				_didIteratorError2 = true;
+				_iteratorError2 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion2 && _iterator2.return) {
+						_iterator2.return();
+					}
+				} finally {
+					if (_didIteratorError2) {
+						throw _iteratorError2;
+					}
+				}
+			}
+		}
+	}, {
+		key: 'setTimeOfLocationGroups',
+		value: function setTimeOfLocationGroups() {
+			this.map.tgBB.updateTimeOfLocationGroups(this.locationGroups);
+		}
+	}, {
+		key: 'setFavorites',
+		value: function setFavorites(favorites) {
+			this.favorites = favorites;
+		}
+	}, {
+		key: 'calLocsInBox',
+		value: function calLocsInBox() {
+			var top = this.data.box.top + this.data.var.latMargin;
+			var bottom = this.data.box.bottom - this.data.var.latMargin;
+			var right = this.data.box.right + this.data.var.lngMargin;
+			var left = this.data.box.left - this.data.var.lngMargin;
 
-			var s = new Date().getTime();
+			this.locationsInBox = [];
 
-			$.post("http://citygram.smusic.nyu.edu:2999/yelpSearch", options).done(function (locations) {
-
-				var elapsed = new Date().getTime() - s;
-				console.log('received: locations (' + elapsed + ' ms)');
-
-				// calculate tgLocationNode of locations
-				var _iteratorNormalCompletion2 = true;
-				var _didIteratorError2 = false;
-				var _iteratorError2 = undefined;
+			if (this.currentSubTOD >= 0) {
+				var _iteratorNormalCompletion3 = true;
+				var _didIteratorError3 = false;
+				var _iteratorError3 = undefined;
 
 				try {
-					for (var _iterator2 = locations[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-						var loc = _step2.value;
+					for (var _iterator3 = tod[this.currentTOD][this.currentSubTOD][Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+						var loc = _step3.value;
 
-						loc.node = new TgLocationNode(loc.lat, loc.lng);
-						delete loc.lat;
-						delete loc.lng;
+						var lat = loc.lng; // original data is wrong, should be fixed.
+						var lng = loc.lat; // original data is wrong, should be fixed.
+
+						if (lat < top && lat > bottom && lng < right && lng > left) {
+							loc.node = new TgLocationNode(lat, lng);
+							loc.time = 0;
+							this.locationsInBox.push(loc);
+						}
 					}
-
-					// calculate BB of locations
 				} catch (err) {
-					_didIteratorError2 = true;
-					_iteratorError2 = err;
+					_didIteratorError3 = true;
+					_iteratorError3 = err;
 				} finally {
 					try {
-						if (!_iteratorNormalCompletion2 && _iterator2.return) {
-							_iterator2.return();
+						if (!_iteratorNormalCompletion3 && _iterator3.return) {
+							_iterator3.return();
 						}
 					} finally {
-						if (_didIteratorError2) {
-							throw _iteratorError2;
+						if (_didIteratorError3) {
+							throw _iteratorError3;
 						}
 					}
 				}
-
-				_this.map.tgBB.calBBOfLocations(locations);
-
-				// calculate clusters of locations
-				var locationClusters = _this.map.tgBB.calClusteredLocations(locations);
-
-				// calculate average node in clusterLocations
-				_this.map.tgBB.updateNodeOfClusteredLocations(locationClusters);
-
-				// calculate BB for clusterLocations
-				_this.map.tgBB.calBBOfClusterLocations(locationClusters);
-
-				// calculate non-overlapped location names
-				_this.map.tgBB.calNonOverlappedLocationNames(locations, locationClusters);
-
-				// assign locations and locationClusters
-				_this.locations[_this.currentType] = locations;
-				_this.locationClusters[_this.currentType] = locationClusters;
-
-				/*console.log('locations: ');
-    console.log(locations);
-    console.log('clusteredLocations: ');
-    console.log(locationClusters);*/
-
-				if (_this.map.currentMode !== 'EM') {
-					if (!_this.map.tpsReady) {
-						console.log('@ Not ready so wait.');
-						_this.needToDisplayLocs = true;
-					} else {
-						_this.displayLocsInDc();
-					}
-				} else {
-					_this.render();
-					_this.map.tgBB.render();
-				}
-
-				_this.data.var.readyLocation = true;
-
-				if (!_this.data.var.placeProcessed) {
-					_this.map.tgPlaces.processPlaceObjects();
-				}
-			});
-		}
-	}, {
-		key: 'displayLocsInDc',
-		value: function displayLocsInDc() {
-			console.log('@ displayLocsInDc');
-			this.calTargetNodes();
-			this.calRealNodes();
-			this.calDispNodes(null, 1);
-
-			this.map.tgBB.cleanBB();
-			this.map.tgBB.addBBOfLocations();
-			this.updateNonOverlappedLocationNames();
-
-			this.render();
-			this.map.tgBB.render();
-		}
-	}, {
-		key: 'changeType',
-		value: function changeType(type) {
-			if (this.currentType === type) return;
-
-			this.currentType = type;
-			if (this.locations[this.currentType].length === 0) {
-				this.request();
 			} else {
-				this.map.tgBB.cleanBB();
-				this.map.tgBB.addBBOfLocations();
-				this.updateNonOverlappedLocationNames();
+				// all 
+				var _iteratorNormalCompletion4 = true;
+				var _didIteratorError4 = false;
+				var _iteratorError4 = undefined;
 
-				this.render();
-				this.map.tgBB.render();
-			}
-		}
-	}, {
-		key: 'getCurrentLocations',
-		value: function getCurrentLocations() {
-			return this.locations[this.currentType];
-		}
-	}, {
-		key: 'getCurrentLocationClusters',
-		value: function getCurrentLocationClusters() {
-			return this.locationClusters[this.currentType];
-		}
-	}, {
-		key: 'updateNonOverlappedLocationNames',
-		value: function updateNonOverlappedLocationNames() {
-			this.locations[this.currentType] = this.map.tgBB.getNonOverlappedLocationNames(this.locations[this.currentType]);
-		}
-	}, {
-		key: 'updateLayer',
-		value: function updateLayer() {
-			var viz = this.data.viz;
-			var arr = [];
-			var anchorStyleFunc = this.mapUtil.nodeStyleFunc(viz.color.anchor, viz.radius.anchor);
-			var locationStyleFunc = this.mapUtil.imageStyleFunc(viz.image.location[this.currentType]);
-			var locationClusterStyleFunc = this.mapUtil.imageStyleFunc(viz.image.location.cluster);
-			var lineStyleFunc = this.mapUtil.lineStyleFunc(viz.color.locationLine, viz.width.locationLine);
-
-			// display locationClusters
-			var _iteratorNormalCompletion3 = true;
-			var _didIteratorError3 = false;
-			var _iteratorError3 = undefined;
-
-			try {
-				for (var _iterator3 = this.locationClusters[this.currentType][Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-					var cLocs = _step3.value;
-
-					var dispLoc = cLocs.node.dispLoc;
-					var dispAnchor = cLocs.node.dispAnchor;
-
-					// lines
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[dispAnchor.lng, dispAnchor.lat], [dispLoc.lng, dispLoc.lat]]), lineStyleFunc);
-
-					// anchor images
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), anchorStyleFunc);
-
-					// circle images
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationClusterStyleFunc, 'cLoc', cLocs);
-
-					// number of locations
-					var numberStyleFunc = this.mapUtil.textStyle({
-						text: cLocs.locs.length + '',
-						color: viz.color.textNumberOfLocations,
-						font: viz.font.text
-					});
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), numberStyleFunc, 'cLoc', cLocs);
-				}
-
-				// display locations
-			} catch (err) {
-				_didIteratorError3 = true;
-				_iteratorError3 = err;
-			} finally {
 				try {
-					if (!_iteratorNormalCompletion3 && _iterator3.return) {
-						_iterator3.return();
+					for (var _iterator4 = tod[this.currentTOD][Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+						var locs = _step4.value;
+						var _iteratorNormalCompletion5 = true;
+						var _didIteratorError5 = false;
+						var _iteratorError5 = undefined;
+
+						try {
+							for (var _iterator5 = locs[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+								var _loc = _step5.value;
+
+								var _lat = _loc.lng; // original data is wrong, should be fixed.
+								var _lng = _loc.lat; // original data is wrong, should be fixed.
+
+								if (_lat < top && _lat > bottom && _lng < right && _lng > left) {
+									_loc.node = new TgLocationNode(_lat, _lng);
+									_loc.time = 0;
+									this.locationsInBox.push(_loc);
+								}
+							}
+						} catch (err) {
+							_didIteratorError5 = true;
+							_iteratorError5 = err;
+						} finally {
+							try {
+								if (!_iteratorNormalCompletion5 && _iterator5.return) {
+									_iterator5.return();
+								}
+							} finally {
+								if (_didIteratorError5) {
+									throw _iteratorError5;
+								}
+							}
+						}
 					}
+				} catch (err) {
+					_didIteratorError4 = true;
+					_iteratorError4 = err;
 				} finally {
-					if (_didIteratorError3) {
-						throw _iteratorError3;
+					try {
+						if (!_iteratorNormalCompletion4 && _iterator4.return) {
+							_iterator4.return();
+						}
+					} finally {
+						if (_didIteratorError4) {
+							throw _iteratorError4;
+						}
 					}
 				}
-			}
-
-			var _iteratorNormalCompletion4 = true;
-			var _didIteratorError4 = false;
-			var _iteratorError4 = undefined;
-
-			try {
-				for (var _iterator4 = this.locations[this.currentType][Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-					var loc = _step4.value;
-
-
-					// pass though if the location in the cluster
-					if (loc.isInCluster) continue;
-
-					var _dispLoc = loc.node.dispLoc;
-					var _dispAnchor = loc.node.dispAnchor;
-
-					// lines
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[_dispAnchor.lng, _dispAnchor.lat], [_dispLoc.lng, _dispLoc.lat]]), lineStyleFunc);
-
-					// anchor images
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([_dispAnchor.lng, _dispAnchor.lat]), anchorStyleFunc);
-
-					// circle images
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([_dispLoc.lng, _dispLoc.lat]), locationStyleFunc, 'loc', loc);
-				}
-			} catch (err) {
-				_didIteratorError4 = true;
-				_iteratorError4 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion4 && _iterator4.return) {
-						_iterator4.return();
-					}
-				} finally {
-					if (_didIteratorError4) {
-						throw _iteratorError4;
-					}
-				}
-			}
-
-			if (arr.length > 0) {
-				this.removeLayer();
-				this.layer = this.mapUtil.olVectorFromFeatures(arr);
-				this.layer.setZIndex(viz.z.location);
-				this.mapUtil.addLayer(this.layer);
-				console.log('tgLocs.updateLayer():' + arr.length);
 			}
 		}
 	}, {
-		key: 'updateNameLayer',
-		value: function updateNameLayer() {
-			var viz = this.data.viz;
-			var arr = [];
+		key: 'calFilteredLocs',
+		value: function calFilteredLocs() {
+			var locsByRRP = [];
 
-			var _iteratorNormalCompletion5 = true;
-			var _didIteratorError5 = false;
-			var _iteratorError5 = undefined;
-
-			try {
-				for (var _iterator5 = this.locations[this.currentType][Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-					var loc = _step5.value;
-
-					if (!loc.dispName) continue;
-
-					// only in final EM/DC map
-					if (this.map.currentMode !== 'INTERMEDIATE') {
-						var nameStyleFunc = this.mapUtil.textStyle({
-							text: loc.name,
-							color: viz.color.textLocation,
-							font: viz.font.text,
-							offsetX: loc.nameOffsetX,
-							offsetY: loc.nameOffsetY,
-							align: loc.nameAlign
-						});
-
-						this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), nameStyleFunc);
-					}
-				}
-			} catch (err) {
-				_didIteratorError5 = true;
-				_iteratorError5 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion5 && _iterator5.return) {
-						_iterator5.return();
-					}
-				} finally {
-					if (_didIteratorError5) {
-						throw _iteratorError5;
-					}
-				}
-			}
-
-			if (arr.length > 0) {
-				this.removeNameLayer();
-				this.nameLayer = this.mapUtil.olVectorFromFeatures(arr);
-				this.nameLayer.setZIndex(viz.z.location);
-				this.mapUtil.addLayer(this.nameLayer);
-			}
-		}
-	}, {
-		key: 'removeLayer',
-		value: function removeLayer() {
-			this.mapUtil.removeLayer(this.layer);
-		}
-	}, {
-		key: 'removeNameLayer',
-		value: function removeNameLayer() {
-			this.mapUtil.removeLayer(this.nameLayer);
-		}
-	}, {
-		key: 'calRealNodes',
-		value: function calRealNodes() {
-			var transform = this.graph.transformReal.bind(this.graph);
-
+			// I. Filter by rating, numRating, and Price
 			var _iteratorNormalCompletion6 = true;
 			var _didIteratorError6 = false;
 			var _iteratorError6 = undefined;
 
 			try {
-				for (var _iterator6 = this.locations[this.currentType][Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+				for (var _iterator6 = this.locationsInBox[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
 					var loc = _step6.value;
 
-					var modified = transform(loc.node.original.lat, loc.node.original.lng);
-					loc.node.real.lat = modified.lat;
-					loc.node.real.lng = modified.lng;
+					// if current tod is not 'travel attractions'
+					if (this.currentTOD !== 2) {
+						if (!this.filterByRating(loc.rating)) continue;
+						if (!this.filterByNumRating(loc.rating_cnt)) continue;
+						if (!this.filterByPrice(loc.price_range)) continue;
+					}
+					locsByRRP.push(loc);
 				}
 			} catch (err) {
 				_didIteratorError6 = true;
@@ -5369,32 +6059,52 @@ var TgMapLocations = function () {
 					}
 				}
 			}
-		}
-	}, {
-		key: 'calTargetNodes',
-		value: function calTargetNodes() {
-			var originLat = this.map.tgOrigin.origin.original.lat;
-			var originLng = this.map.tgOrigin.origin.original.lng;
-			var transformTarget = this.graph.transformTarget.bind(this.graph);
-			var transformReal = this.graph.transformReal.bind(this.graph);
 
+			var numLocsInStage1 = locsByRRP.length;
+
+			// II. Filter by total number
+			this.locations = [];
+			var maxTops = 10; //100000;
+			var maxHots = 10; //100000;
+			var maxNumLocs = 30;
+			//const maxNumLocs = this.data.var.maxNumLocations;
+
+			var countTops = 0;
+			var countHots = 0;
+			var countTotal = 0;
 			var _iteratorNormalCompletion7 = true;
 			var _didIteratorError7 = false;
 			var _iteratorError7 = undefined;
 
 			try {
-				for (var _iterator7 = this.locations[this.currentType][Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-					var loc = _step7.value;
+				for (var _iterator7 = locsByRRP[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+					var _loc2 = _step7.value;
 
-					var targetPos = transformTarget(loc.node.original.lat, loc.node.original.lng);
-					var realPos = transformReal(loc.node.original.lat, loc.node.original.lng);
-					var targetLen = tgUtil.D2(originLat, originLng, targetPos.lat, targetPos.lng);
-					var realDegree = degreeToOrigin(realPos.lat, realPos.lng);
-
-					loc.node.target.lat = originLat + targetLen * Math.cos(realDegree);
-					loc.node.target.lng = originLng + targetLen * Math.sin(realDegree);
-					//originLng + targetLen * Math.sin(realDegree) * this.graph.toLat();
+					if (_loc2.top) {
+						if (countTops < maxTops && countTotal < maxNumLocs) {
+							this.locations.push(_loc2);
+							console.log(_loc2);
+							countTops++;
+							countTotal++;
+						}
+					} else if (_loc2.hot) {
+						if (countHots < maxHots && countTotal < maxNumLocs) {
+							this.locations.push(_loc2);
+							countHots++;
+							countTotal++;
+						}
+					} else {
+						if (countTotal < maxNumLocs) {
+							this.locations.push(_loc2);
+							countTotal++;
+						}
+					}
 				}
+
+				/*if ((maxNumLocs !== 50) && (this.locations.length > maxNumLocs)) {
+    	this.locations.sort((a, b) => {return b.rating - a.rating});
+    	this.locations = this.locations.slice(0, maxNumLocs);
+    }*/
 			} catch (err) {
 				_didIteratorError7 = true;
 				_iteratorError7 = err;
@@ -5410,32 +6120,209 @@ var TgMapLocations = function () {
 				}
 			}
 
-			function degreeToOrigin(lat, lng) {
-				var deg = Math.atan((lng - originLng) / (lat - originLat));
-				if (originLat == lat && originLng == lng) deg = 0;
-				if (lat - originLat < 0) deg = deg + Math.PI;
-				return deg;
+			var numLocsInBox = this.locationsInBox.length;
+			var numLocs = this.locations.length;
+			console.log('LOCS [' + numLocsInBox + ' -> ' + numLocsInStage1 + ' -> ' + numLocs + ']');
+			console.log('LOCS Top(' + countTops + ') Hot(' + countHots + ') Others(' + (countTotal - countTops - countHots) + ')');
+		}
+	}, {
+		key: 'filterByRating',
+		value: function filterByRating(rating) {
+			var low = this.data.var.ratings[0];
+			var high = this.data.var.ratings[1];
+
+			if (rating >= low && rating <= high) return true;else return false;
+		}
+	}, {
+		key: 'filterByNumRating',
+		value: function filterByNumRating(numRating) {
+			var low = this.data.var.numRatings[0];
+			var high = this.data.var.numRatings[1];
+
+			if (high !== 1000) {
+				if (numRating >= low && numRating <= high) return true;else return false;
+			} else {
+				if (numRating >= low) return true;else return false;
 			}
 		}
 	}, {
-		key: 'calDispNodes',
-		value: function calDispNodes(kind, value) {
-			// update disp for locations
+		key: 'filterByPrice',
+		value: function filterByPrice(price) {
+			var low = this.data.var.priceRange[0];
+			var high = this.data.var.priceRange[1];
+
+			if (price >= low && price <= high) return true;else return false;
+		}
+	}, {
+		key: 'doFilter',
+		value: function doFilter(type, low, high) {
+			if (type === 'maxLocs') {
+				this.data.var.maxNumLocations = low;
+				this.request({ calLocsInBox: false });
+			} else {
+				// if current tod is not 'travel attractions'
+				if (this.currentTOD !== 2) {
+					switch (type) {
+						case 'ratings':
+							this.data.var.ratings = [low, high];
+							break;
+						case 'numRatings':
+							this.data.var.numRatings = [low, high];
+							break;
+						case 'priceRange':
+							this.data.var.priceRange = [low, high];
+							break;
+					}
+					this.request({ calLocsInBox: false });
+				}
+			}
+		}
+	}, {
+		key: 'request',
+		value: function request(param) {
+			if (!param || param.calLocsInBox) {
+				this.calLocsInBox();
+			}
+
+			this.calFilteredLocs();
+
+			//console.log(this.locations);
+
+			// calculate BB of locations
+			this.map.tgBB.calBBOfLocations(this.locations);
+
+			// calculate clusters of locations
+			this.locationGroups = this.map.tgBB.calLocationGroup(this.locations);
+
+			// calculate non-overlapped location names
+			this.map.tgBB.calNonOverlappedLocationNames(this.locations, this.locationGroups);
+
+			//console.log(this.locationGroups);
+
+			if (this.map.currentMode === 'EM') {
+				this.render();
+				this.map.tgBB.render();
+			} else {
+				// displayLocsInDc will be called after
+				this.dispLocsAfterCalWarping = true;
+			}
+
+			this.data.var.readyLocation = true;
+
+			if (!this.data.var.placeProcessed) {
+				this.map.tgPlaces.processPlaceObjects();
+			}
+		}
+	}, {
+		key: 'displayLocsInDc',
+		value: function displayLocsInDc() {
+			this.calTargetAndRealNodes();
+			this.calDispNodes(null, 1); // disp = real 
+
+			//this.map.tgBB.cleanBB();
+			//this.map.tgBB.addBBOfLocations();
+			//this.updateNonOverlappedLocationNames();
+
+			this.render();
+			this.map.tgBB.render();
+		}
+	}, {
+		key: 'changeType',
+		value: function changeType(type, subType) {
+			if (this.currentTOD === type && this.currentSubTOD === subType) return;
+
+			this.currentTOD = type;
+			this.currentSubTOD = subType;
+			this.request();
+		}
+	}, {
+		key: 'getCurrentLocations',
+		value: function getCurrentLocations() {
+			return this.locations;
+		}
+	}, {
+		key: 'getCurrentLocationClusters',
+		value: function getCurrentLocationClusters() {
+			return this.locationGroups;
+		}
+	}, {
+		key: 'updateNonOverlappedLocationNames',
+		value: function updateNonOverlappedLocationNames() {
+			this.locations = this.map.tgBB.getNonOverlappedLocationNames(this.locations);
+		}
+	}, {
+		key: 'setHighLightMode',
+		value: function setHighLightMode(tf, time) {
+			this.highLightMode = tf;
+			this.highLightTime = time;
+		}
+	}, {
+		key: 'getHighLightMode',
+		value: function getHighLightMode() {
+			return this.highLightMode;
+		}
+	}, {
+		key: 'updateLayer',
+		value: function updateLayer() {
+			var viz = this.data.viz;
+			var arr = [];
+			var anchorStyleFunc = this.mapUtil.nodeStyleFunc(viz.color.anchor, viz.radius.anchor);
+
+			var locStyleFunc = this.mapUtil.imageStyleFunc(viz.image.location[this.currentTOD]);
+			var locStyleFuncTranslucent = this.mapUtil.imageStyleFunc(viz.image.location[this.currentTOD], 0.3);
+
+			var favStyleFunc = this.mapUtil.imageStyleFunc(viz.image.favorite);
+			var favStyleFuncTranslucent = this.mapUtil.imageStyleFunc(viz.image.favorite, 0.3);
+
+			var cLocStyleFunc = this.mapUtil.imageStyleFunc(viz.image.locationCluster);
+			var cLocStyleFuncTranslucent = this.mapUtil.imageStyleFunc(viz.image.locationCluster, 0.3);
+
+			var lineStyleFunc = this.mapUtil.lineStyleFunc(viz.color.locationLine, viz.width.locationLine);
+
+			// display locationClusters
 			var _iteratorNormalCompletion8 = true;
 			var _didIteratorError8 = false;
 			var _iteratorError8 = undefined;
 
 			try {
-				for (var _iterator8 = this.locations[this.currentType][Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-					var loc = _step8.value;
+				for (var _iterator8 = this.locationGroups[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+					var cLocs = _step8.value;
 
-					loc.node.dispAnchor = { lat: (1 - value) * loc.node.original.lat + value * loc.node.real.lat,
-						lng: (1 - value) * loc.node.original.lng + value * loc.node.real.lng };
-					loc.node.dispLoc = { lat: (1 - value) * loc.node.original.lat + value * loc.node.target.lat,
-						lng: (1 - value) * loc.node.original.lng + value * loc.node.target.lng };
+					var dispLoc = cLocs.node.dispLoc;
+					var dispAnchor = cLocs.node.dispAnchor;
+
+					// for highlight mode
+					var imageStyleFunc = cLocStyleFunc;
+					var displayLinesAndAnchor = true;
+					if (this.highLightMode && cLocs.time > this.highLightTime) {
+						displayLinesAndAnchor = false;
+						imageStyleFunc = cLocStyleFuncTranslucent;
+					}
+
+					if (displayLinesAndAnchor) {
+						// lines
+						this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[dispAnchor.lng, dispAnchor.lat], [dispLoc.lng, dispLoc.lat]]), lineStyleFunc);
+
+						// anchor images
+						this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), anchorStyleFunc);
+					}
+
+					// circle images
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), imageStyleFunc, 'cLoc', cLocs);
+
+					var strText = cLocs.locs.length + '';
+					if (this.displayTimeOfLocs) strText += ', ' + parseInt(cLocs.time / 60);
+
+					// number of locations
+					var numberStyleFunc = this.mapUtil.textStyle({
+						text: strText,
+						color: viz.color.textNumberOfLocations,
+						font: viz.font.text
+					});
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), numberStyleFunc, 'cLoc', cLocs);
 				}
 
-				// update disp for location clusters
+				// display locations
 			} catch (err) {
 				_didIteratorError8 = true;
 				_iteratorError8 = err;
@@ -5456,49 +6343,51 @@ var TgMapLocations = function () {
 			var _iteratorError9 = undefined;
 
 			try {
-				for (var _iterator9 = this.locationClusters[this.currentType][Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-					var cLocs = _step9.value;
+				for (var _iterator9 = this.locations[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+					var loc = _step9.value;
 
-					var dispLoc = cLocs.node.dispLoc;
-					var dispAnchor = cLocs.node.dispAnchor;
-					dispLoc.lat = 0;
-					dispLoc.lng = 0;
-					dispAnchor.lat = 0;
-					dispAnchor.lng = 0;
 
-					var _iteratorNormalCompletion10 = true;
-					var _didIteratorError10 = false;
-					var _iteratorError10 = undefined;
+					// pass though if the location in the cluster
+					if (loc.group) continue;
 
-					try {
-						for (var _iterator10 = cLocs.locs[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-							var cLoc = _step10.value;
+					var _dispLoc = loc.node.dispLoc;
+					var _dispAnchor = loc.node.dispAnchor;
 
-							dispLoc.lat += cLoc.node.dispLoc.lat;
-							dispLoc.lng += cLoc.node.dispLoc.lng;
-							dispAnchor.lat += cLoc.node.dispAnchor.lat;
-							dispAnchor.lng += cLoc.node.dispAnchor.lng;
-						}
-					} catch (err) {
-						_didIteratorError10 = true;
-						_iteratorError10 = err;
-					} finally {
-						try {
-							if (!_iteratorNormalCompletion10 && _iterator10.return) {
-								_iterator10.return();
-							}
-						} finally {
-							if (_didIteratorError10) {
-								throw _iteratorError10;
-							}
-						}
+					// for highlight mode
+					var _imageStyleFunc = locStyleFunc;
+					var favImageStyleFunc = favStyleFunc;
+					var _displayLinesAndAnchor = true;
+
+					if (this.highLightMode && loc.time > this.highLightTime) {
+						_displayLinesAndAnchor = false;
+						_imageStyleFunc = locStyleFuncTranslucent;
+						favImageStyleFunc = favStyleFuncTranslucent;
 					}
 
-					var len = cLocs.locs.length;
-					dispLoc.lat /= len;
-					dispLoc.lng /= len;
-					dispAnchor.lat /= len;
-					dispAnchor.lng /= len;
+					if (_displayLinesAndAnchor) {
+						// lines
+						this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[_dispAnchor.lng, _dispAnchor.lat], [_dispLoc.lng, _dispLoc.lat]]), lineStyleFunc);
+
+						// anchor images
+						this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([_dispAnchor.lng, _dispAnchor.lat]), anchorStyleFunc);
+					}
+
+					// circle images
+					var circleImageStyleFunc = _imageStyleFunc;
+
+					// one of favorites
+					if (this.favorites.indexOf(loc.name) >= 0) {
+						circleImageStyleFunc = favImageStyleFunc;
+					}
+
+					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([_dispLoc.lng, _dispLoc.lat]), circleImageStyleFunc, 'loc', loc);
+
+					// time display (for debugging)
+					if (this.displayTimeOfLocs) {
+						var timeStr = parseInt(loc.time / 60) + '';
+						var timeStyleFunc = this.mapUtil.textStyle({ text: timeStr, color: '#000', font: viz.font.text });
+						this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([_dispLoc.lng, _dispLoc.lat]), timeStyleFunc);
+					}
 				}
 			} catch (err) {
 				_didIteratorError9 = true;
@@ -5511,6 +6400,276 @@ var TgMapLocations = function () {
 				} finally {
 					if (_didIteratorError9) {
 						throw _iteratorError9;
+					}
+				}
+			}
+
+			this.removeLayer();
+			if (arr.length > 0) {
+				this.layer = this.mapUtil.olVectorFromFeatures(arr);
+				this.layer.setZIndex(viz.z.location);
+				this.mapUtil.addLayer(this.layer);
+				console.log('tgLocs.updateLayer():' + arr.length);
+			}
+		}
+	}, {
+		key: 'updateNameLayer',
+		value: function updateNameLayer() {
+			var viz = this.data.viz;
+			var arr = [];
+
+			var _iteratorNormalCompletion10 = true;
+			var _didIteratorError10 = false;
+			var _iteratorError10 = undefined;
+
+			try {
+				for (var _iterator10 = this.locations[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+					var loc = _step10.value;
+
+					if (!loc.dispName) continue;
+
+					// only in final EM/DC map
+					if (this.map.currentMode !== 'INTERMEDIATE') {
+
+						if (!this.highLightMode || loc.time <= this.highLightTime) {
+							var nameStyleFunc = this.mapUtil.textStyle({
+								text: loc.name,
+								color: viz.color.textLocation,
+								font: viz.font.text,
+								offsetX: loc.nameOffsetX,
+								offsetY: loc.nameOffsetY,
+								align: loc.nameAlign
+							});
+
+							this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), nameStyleFunc);
+						}
+					}
+				}
+			} catch (err) {
+				_didIteratorError10 = true;
+				_iteratorError10 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion10 && _iterator10.return) {
+						_iterator10.return();
+					}
+				} finally {
+					if (_didIteratorError10) {
+						throw _iteratorError10;
+					}
+				}
+			}
+
+			this.removeNameLayer();
+
+			if (arr.length > 0) {
+				this.nameLayer = this.mapUtil.olVectorFromFeatures(arr);
+				this.nameLayer.setZIndex(viz.z.location);
+				this.mapUtil.addLayer(this.nameLayer);
+			}
+		}
+	}, {
+		key: 'removeLayer',
+		value: function removeLayer() {
+			this.mapUtil.removeLayer(this.layer);
+		}
+	}, {
+		key: 'removeNameLayer',
+		value: function removeNameLayer() {
+			this.mapUtil.removeLayer(this.nameLayer);
+		}
+	}, {
+		key: 'calRealNodes',
+		value: function calRealNodes() {
+			var transform = this.graph.transformReal.bind(this.graph);
+
+			var _iteratorNormalCompletion11 = true;
+			var _didIteratorError11 = false;
+			var _iteratorError11 = undefined;
+
+			try {
+				for (var _iterator11 = this.locations[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+					var loc = _step11.value;
+
+					var modified = transform(loc.node.original.lat, loc.node.original.lng);
+					loc.node.real.lat = modified.lat;
+					loc.node.real.lng = modified.lng;
+				}
+			} catch (err) {
+				_didIteratorError11 = true;
+				_iteratorError11 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion11 && _iterator11.return) {
+						_iterator11.return();
+					}
+				} finally {
+					if (_didIteratorError11) {
+						throw _iteratorError11;
+					}
+				}
+			}
+		}
+	}, {
+		key: 'calTargetAndRealNodes',
+		value: function calTargetAndRealNodes() {
+			var cLat = this.map.tgOrigin.origin.original.lat;
+			var cLng = this.map.tgOrigin.origin.original.lng;
+			var transformTarget = this.graph.transformTarget.bind(this.graph);
+			var transformReal = this.graph.transformReal.bind(this.graph);
+
+			var _iteratorNormalCompletion12 = true;
+			var _didIteratorError12 = false;
+			var _iteratorError12 = undefined;
+
+			try {
+				for (var _iterator12 = this.locations[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+					var loc = _step12.value;
+
+					//for(let loc of this.locationsInBox) {
+					var targetPos = transformTarget(loc.node.original.lat, loc.node.original.lng);
+					var realPos = transformReal(loc.node.original.lat, loc.node.original.lng);
+
+					var targetLen = this.calLenFromLatLng(cLat, cLng, targetPos.lat, targetPos.lng);
+					//const realLen = this.calLenFromLatLng(cLat, cLng, realPos.lat, realPos.lng);
+
+					var realDegree = degreeToOrigin(realPos.lat, realPos.lng);
+					//const targetDegree = degreeToOrigin(targetPos.lat, targetPos.lng);
+
+					loc.node.real.lat = realPos.lat;
+					loc.node.real.lng = realPos.lng;
+
+					//loc.node.target.lat = targetPos.lat;
+					//loc.node.target.lng = targetPos.lng;
+
+					loc.node.target.lat = cLat + targetLen * Math.cos(realDegree);
+					loc.node.target.lng = cLng + targetLen * Math.sin(realDegree);
+				}
+			} catch (err) {
+				_didIteratorError12 = true;
+				_iteratorError12 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion12 && _iterator12.return) {
+						_iterator12.return();
+					}
+				} finally {
+					if (_didIteratorError12) {
+						throw _iteratorError12;
+					}
+				}
+			}
+
+			function degreeToOrigin(lat, lng) {
+				var deg = Math.atan((lng - cLng) / (lat - cLat));
+				//let deg = Math.atan((lng - cLng) / ((lat - cLat) * this.graph.shrink());
+				if (cLat === lat && cLng === lng) deg = 0;
+				if (lat - cLat < 0) deg += Math.PI;
+				return deg;
+			}
+		}
+	}, {
+		key: 'calLenFromLatLng',
+		value: function calLenFromLatLng(cLat, cLng, lat, lng) {
+			var dLat = cLat - lat;
+			var dLng = cLng - lng;
+			//const dLng = (cLng - lng) * this.graph.shrink();
+			return Math.sqrt(dLat * dLat + dLng * dLng);
+		}
+	}, {
+		key: 'calDispNodes',
+		value: function calDispNodes(kind, value) {
+			// update disp for locations
+			var _iteratorNormalCompletion13 = true;
+			var _didIteratorError13 = false;
+			var _iteratorError13 = undefined;
+
+			try {
+				for (var _iterator13 = this.locations[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+					var loc = _step13.value;
+
+					loc.node.dispAnchor = { lat: (1 - value) * loc.node.original.lat + value * loc.node.real.lat,
+						lng: (1 - value) * loc.node.original.lng + value * loc.node.real.lng };
+					loc.node.dispLoc = { lat: (1 - value) * loc.node.original.lat + value * loc.node.target.lat,
+						lng: (1 - value) * loc.node.original.lng + value * loc.node.target.lng };
+				}
+
+				// update disp for location clusters
+			} catch (err) {
+				_didIteratorError13 = true;
+				_iteratorError13 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion13 && _iterator13.return) {
+						_iterator13.return();
+					}
+				} finally {
+					if (_didIteratorError13) {
+						throw _iteratorError13;
+					}
+				}
+			}
+
+			var _iteratorNormalCompletion14 = true;
+			var _didIteratorError14 = false;
+			var _iteratorError14 = undefined;
+
+			try {
+				for (var _iterator14 = this.locationGroups[Symbol.iterator](), _step14; !(_iteratorNormalCompletion14 = (_step14 = _iterator14.next()).done); _iteratorNormalCompletion14 = true) {
+					var cLocs = _step14.value;
+
+					var dispLoc = cLocs.node.dispLoc;
+					var dispAnchor = cLocs.node.dispAnchor;
+					dispLoc.lat = 0;
+					dispLoc.lng = 0;
+					dispAnchor.lat = 0;
+					dispAnchor.lng = 0;
+
+					var _iteratorNormalCompletion15 = true;
+					var _didIteratorError15 = false;
+					var _iteratorError15 = undefined;
+
+					try {
+						for (var _iterator15 = cLocs.locs[Symbol.iterator](), _step15; !(_iteratorNormalCompletion15 = (_step15 = _iterator15.next()).done); _iteratorNormalCompletion15 = true) {
+							var cLoc = _step15.value;
+
+							dispLoc.lat += cLoc.node.dispLoc.lat;
+							dispLoc.lng += cLoc.node.dispLoc.lng;
+							dispAnchor.lat += cLoc.node.dispAnchor.lat;
+							dispAnchor.lng += cLoc.node.dispAnchor.lng;
+						}
+					} catch (err) {
+						_didIteratorError15 = true;
+						_iteratorError15 = err;
+					} finally {
+						try {
+							if (!_iteratorNormalCompletion15 && _iterator15.return) {
+								_iterator15.return();
+							}
+						} finally {
+							if (_didIteratorError15) {
+								throw _iteratorError15;
+							}
+						}
+					}
+
+					var len = cLocs.locs.length;
+					dispLoc.lat /= len;
+					dispLoc.lng /= len;
+					dispAnchor.lat /= len;
+					dispAnchor.lng /= len;
+				}
+			} catch (err) {
+				_didIteratorError14 = true;
+				_iteratorError14 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion14 && _iterator14.return) {
+						_iterator14.return();
+					}
+				} finally {
+					if (_didIteratorError14) {
+						throw _iteratorError14;
 					}
 				}
 			}
@@ -5549,7 +6708,7 @@ var TgMapLocations = function () {
 module.exports = TgMapLocations;
 
 /***/ }),
-/* 10 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5573,8 +6732,10 @@ var TgMapOrigin = function () {
 		this.isDisabled = false;
 		this.display = false;
 		this.layer = null;
+		this.presetLayer = null;
 		this.origin = null;
 		this.bb = null;
+		this.type = 'home'; // 'office' // 'other'
 	}
 
 	_createClass(TgMapOrigin, [{
@@ -5589,8 +6750,14 @@ var TgMapOrigin = function () {
 		}
 	}, {
 		key: 'render',
-		value: function render() {
-			if (this.isDisabled || !this.display) this.removeLayer();else this.updateLayer();
+		value: function render(param) {
+			if (this.isDisabled || !this.display) {
+				this.removeLayer();
+				this.removePresetLayer();
+			} else {
+				this.updateLayer(param);
+				this.updatePresetLayer();
+			}
 		}
 	}, {
 		key: 'discard',
@@ -5601,6 +6768,11 @@ var TgMapOrigin = function () {
 		key: 'removeLayer',
 		value: function removeLayer() {
 			this.mapUtil.removeLayer(this.layer);
+		}
+	}, {
+		key: 'removePresetLayer',
+		value: function removePresetLayer() {
+			this.mapUtil.removeLayer(this.presetLayer);
 		}
 	}, {
 		key: 'setOrigin',
@@ -5615,16 +6787,39 @@ var TgMapOrigin = function () {
 		}
 	}, {
 		key: 'updateLayer',
-		value: function updateLayer() {
+		value: function updateLayer(param) {
+			var opacity = param && param.translucent ? 0.5 : 1.0;
 			var viz = this.data.viz;
 			var arr = [];
 
-			this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([this.origin.disp.lng, this.origin.disp.lat]), this.mapUtil.imageStyleFunc(viz.image.origin[this.map.tgControl.currentTransport]), 'origin');
+			this.feature = this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([this.origin.disp.lng, this.origin.disp.lat]), this.mapUtil.imageStyleFunc(viz.image.origin[this.map.tgControl.currentTransport], opacity), 'origin');
 
 			this.removeLayer();
 			this.layer = this.mapUtil.olVectorFromFeatures(arr);
 			this.layer.setZIndex(viz.z.origin);
 			this.mapUtil.addLayer(this.layer);
+		}
+	}, {
+		key: 'updatePresetLayer',
+		value: function updatePresetLayer() {
+			var opacityOfPreset = 0.5;
+			var viz = this.data.viz;
+			var arr = [];
+
+			// display home icon
+			if (this.type !== 'home') {
+				this.feature = this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([this.data.origin.home.lng, this.data.origin.home.lat]), this.mapUtil.imageStyleFunc(viz.image.origin.home, opacityOfPreset));
+			}
+
+			// display office icon
+			if (this.type !== 'office') {
+				this.feature = this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([this.data.origin.office.lng, this.data.origin.office.lat]), this.mapUtil.imageStyleFunc(viz.image.origin.office, opacityOfPreset));
+			}
+
+			this.removePresetLayer();
+			this.presetLayer = this.mapUtil.olVectorFromFeatures(arr);
+			this.presetLayer.setZIndex(viz.z.presets);
+			this.mapUtil.addLayer(this.presetLayer);
 		}
 	}, {
 		key: 'calRealNodes',
@@ -5664,8 +6859,12 @@ var TgMapOrigin = function () {
 	}, {
 		key: 'searchLatLngByAddress',
 		value: function searchLatLngByAddress(address) {
+			var _this = this;
+
 			return new Promise(function (resolve, reject) {
-				var key = 'vector-tiles-c1X4vZE';
+				var key = _this.data.var.apiKeyVectorTile;
+				//const key = 'vector-tiles-c1X4vZE';
+				//const key = 'mapzen-dKpzpj5';
 				var url = 'https://search.mapzen.com/v1/search?api_key=' + key + '&text=' + address;
 				$.get(url).done(function (data) {
 					resolve({
@@ -5701,6 +6900,88 @@ var TgMapOrigin = function () {
 				}
 			});
 		}
+
+		/*setArea(area) {
+  	this.map.setCenter(this.data.center[area].lat, this.data.center[area].lng);
+  }*/
+
+	}, {
+		key: 'setDefaultOrigin',
+		value: function setDefaultOrigin() {
+			console.log('use default lat & lng.');
+			this.map.setCenter(this.data.origin.default.lat, this.data.origin.default.lng);
+		}
+	}, {
+		key: 'setOriginByLatLng',
+		value: function setOriginByLatLng(lat, lng) {
+			this.map.setCenter(lat, lng);
+		}
+	}, {
+		key: 'setOriginByPreset',
+		value: function setOriginByPreset(type) {
+			var _this2 = this;
+
+			if (type === 'home' || type === 'office') {
+				this.type = type;
+				var org = this.data.origin[type];
+
+				// if there are lat & lng
+				if (org.lat && org.lng) {
+					this.setOriginByLatLng(org.lat, org.lng);
+				}
+				// if there is address
+				else if (org.address) {
+						this.searchLatLngByAddress(org.address).then(function (data) {
+							_this2.setOriginByLatLng(data.lat, data.lng);
+							// TODO: save lat/lng to the server
+						}).catch(function (error) {
+							console.error(error);
+						});
+					}
+			}
+		}
+	}, {
+		key: 'setOriginByCurrentLocation',
+		value: function setOriginByCurrentLocation() {
+			var _this3 = this;
+
+			this.tgOrigin.getCurrentLocation().then(function (data) {
+				console.log('got lat & lng from geolocation.');
+				_this3.type = 'other';
+
+				_this3.map.setCenter(data.lat, data.lng);
+			}).catch(function (error) {
+				console.error(error);
+				if (!_this3.origin) _this3.setDefaultOrigin();
+			});
+		}
+	}, {
+		key: 'setOriginByAddress',
+		value: function setOriginByAddress(address) {
+			var _this4 = this;
+
+			this.searchLatLngByAddress(address).then(function (data) {
+				_this4.type = 'other';
+				_this4.map.setCenter(data.lat, data.lng);
+			}).catch(function (error) {
+				console.error(error);
+				if (!_this4.origin) _this4.setDefaultOrigin();
+			});
+		}
+
+		/*setOrigin(param) {
+  	if (param.lat && param.lng) {
+  		this.setOriginByLatLng(param.lat, param.lng);
+  	}
+  	else if (param.address) {
+  		this.setOriginByAddress(param.address);
+  	}
+  	else {
+  		console.error('invalid param in setOrigin()');
+  		if (!this.origin) this.setDefaultOrigin();
+  	}
+  }*/
+
 	}]);
 
 	return TgMapOrigin;
@@ -5709,7 +6990,7 @@ var TgMapOrigin = function () {
 module.exports = TgMapOrigin;
 
 /***/ }),
-/* 11 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5773,7 +7054,11 @@ var TgMapPlaces = function () {
 				format: new ol.format.TopoJSON(),
 				projection: 'EPSG:3857',
 				tileGrid: new ol.tilegrid.createXYZ({ maxZoom: 22 }),
-				url: 'https://tile.mapzen.com/mapzen/vector/v1/places/{z}/{x}/{y}.topojson?' + 'api_key=vector-tiles-c1X4vZE'
+				url: 'https://tile.mapzen.com/mapzen/vector/v1/places/{z}/{x}/{y}.topojson?' + 'api_key=' + this.data.var.apiKeyVectorTile
+				//url: 'https://tile.mapzen.com/mapzen/vector/v1/places/{z}/{x}/{y}.topojson?' 
+				//	+ 'api_key=vector-tiles-c1X4vZE'
+				//url: 'https://tile.mapzen.com/mapzen/vector/v1/places/{z}/{x}/{y}.topojson?' 
+				//	+ 'api_key=mapzen-dKpzpj5'
 			});
 
 			this.mapUtil.addLayer(new ol.layer.VectorTile({
@@ -5792,7 +7077,10 @@ var TgMapPlaces = function () {
 			if (this.timerGetPlacesData) clearTimeout(this.timerGetPlacesData);
 			this.timerGetPlacesData = setTimeout(this.processPlaceObjects.bind(this), this.data.time.waitForGettingData);
 
+			//console.log(feature.get('min_zoom'));
+
 			var name = feature.get('name').toUpperCase();
+			//const name = feature.get('min_zoom');
 
 			// if there is the same place, skip it.
 			if (this.placeObjectNames.indexOf(name) >= 0) return null;
@@ -6068,7 +7356,7 @@ var TgMapPlaces = function () {
 module.exports = TgMapPlaces;
 
 /***/ }),
-/* 12 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6188,7 +7476,11 @@ var TgMapRoads = function () {
 				format: new ol.format.TopoJSON(),
 				projection: 'EPSG:3857',
 				tileGrid: new ol.tilegrid.createXYZ({ maxZoom: 22 }),
-				url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' + 'api_key=vector-tiles-c1X4vZE'
+				url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' + 'api_key=' + this.data.var.apiKeyVectorTile
+				//url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' 
+				// 	+ 'api_key=vector-tiles-c1X4vZE'
+				//url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' 
+				//	+ 'api_key=mapzen-dKpzpj5'
 			});
 
 			this.mapUtil.addLayer(new ol.layer.VectorTile({
@@ -7268,7 +8560,7 @@ var TgMapRoads = function () {
 module.exports = TgMapRoads;
 
 /***/ }),
-/* 13 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7302,6 +8594,8 @@ var TgMapUtil = function () {
 			if (type) feature.type = type;
 			if (source) feature.source = source;
 			arr.push(feature);
+
+			return feature;
 		}
 	}, {
 		key: 'isInTheBox',
@@ -7384,11 +8678,12 @@ var TgMapUtil = function () {
 	}, {
 		key: 'imageStyleFunc',
 		value: function imageStyleFunc(src) {
-			var xPixel = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.5;
+			var opacity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1.0;
 
 			return new ol.style.Style({
 				image: new ol.style.Icon({
-					src: src
+					src: src,
+					opacity: opacity
 					//anchor: [0.5, 0.5],
 					//anchorXUnits: 'pixels'
 				})
@@ -7438,7 +8733,7 @@ var TgMapUtil = function () {
 module.exports = TgMapUtil;
 
 /***/ }),
-/* 14 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7511,7 +8806,11 @@ var TgMapWater = function () {
 				projection: 'EPSG:3857',
 				//preload: 1,
 				tileGrid: new ol.tilegrid.createXYZ({ maxZoom: 22 }),
-				url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' + 'api_key=vector-tiles-c1X4vZE'
+				url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' + 'api_key=' + this.data.var.apiKeyVectorTile
+				//url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
+				//	+ 'api_key=vector-tiles-c1X4vZE'
+				//url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
+				//	+ 'api_key=mapzen-dKpzpj5'
 			});
 
 			this.mapUtil.addLayer(new ol.layer.VectorTile({
@@ -8618,7 +9917,7 @@ var TgMapWater = function () {
 module.exports = TgMapWater;
 
 /***/ }),
-/* 15 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8653,44 +9952,7 @@ var TgControlPoint = function (_TgNode) {
 module.exports = TgControlPoint;
 
 /***/ }),
-/* 16 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var TgNode = __webpack_require__(1);
-
-var TgLocationNode = function (_TgNode) {
-	_inherits(TgLocationNode, _TgNode);
-
-	function TgLocationNode(orgLat, orgLng) {
-		_classCallCheck(this, TgLocationNode);
-
-		var _this = _possibleConstructorReturn(this, (TgLocationNode.__proto__ || Object.getPrototypeOf(TgLocationNode)).call(this, orgLat, orgLng));
-
-		_this.dispAnchor = { lat: orgLat, lng: orgLng };
-		_this.dispLoc = { lat: orgLat, lng: orgLng };
-		_this.dispName = true;
-		_this.nameOffsetX = 0;
-		_this.nameOffsetY = 0;
-		_this.nameAlign = 'center';
-		return _this;
-	}
-
-	return TgLocationNode;
-}(TgNode);
-
-module.exports = TgLocationNode;
-
-/***/ }),
-/* 17 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8699,8 +9961,8 @@ module.exports = TgLocationNode;
 module.exports = {
 	zoom: {
 		max: 18,
-		min: 10,
-		init: 14,
+		min: 11,
+		init: 12,
 		current: 0,
 		disp: {
 			motorway: { min: 1, max: 20 },
@@ -8724,10 +9986,11 @@ module.exports = {
 			trunk: 6,
 			motorway: 7,
 			roadNode: 8,
-			places: 19,
+			presets: 9,
+			places: 10,
+			origin: 15,
 			location: 20,
 			isochrone: 25,
-			origin: 30,
 			boundingBox: 40,
 			grid: 50,
 			controlPoint: 51
@@ -8763,7 +10026,7 @@ module.exports = {
 			textPlace: 'rgba(0, 0, 0, 0.5)', //'#000'
 			textPlaceStroke: 'rgba(255, 255, 255, 0.5)', //'#FFF',
 			textLocation: '#000', //'rgb(122, 62, 44)', 
-			textNumberOfLocations: '#FFF',
+			textNumberOfLocations: '#000', //'#FFF',
 			water: 'rgb(163, 204, 255)',
 			waterNode: '#0071BC'
 		},
@@ -8773,6 +10036,7 @@ module.exports = {
 			edge: 2,
 			grid: 2,
 			isochrone: 1,
+			highLightIsochrone: 2,
 			locationLine: 1,
 			road: {
 				motorway: 4,
@@ -8793,17 +10057,20 @@ module.exports = {
 
 		image: {
 			anchor: 'img/anchor.png',
-			location: {
-				food: 'img/location_food.png',
-				bar: 'img/location_bar.png',
-				park: 'img/location_park.png',
-				museum: 'img/location_museum.png',
-				cluster: 'img/dest_group.png'
-			},
+			favorite: 'img/mapbtn_dest_favorite@2x.png',
+			location: ['img/mapbtn_dest_menu1_big@2x.png', // restaurant
+			'img/mapbtn_dest_menu2_big@2x.png', // cafe
+			'img/mapbtn_dest_menu3_big@2x.png', // travel attractions
+			'img/mapbtn_dest_menu4_big@2x.png', // shopping
+			'img/mapbtn_dest_menu5_big@2x.png' // night life
+			],
+			locationCluster: 'img/mapbtn_dest_cluster@2x.png',
 			origin: {
-				auto: 'img/origin_car.png',
-				bicycle: 'img/origin_bicycles.png',
-				pedestrian: 'img/origin_foot.png'
+				auto: 'img/mapbtn_origin_vehicle@2x.png',
+				bicycle: 'img/mapbtn_origin_bicycles@2x.png',
+				pedestrian: 'img/mapbtn_origin_foot@2x.png',
+				home: 'img/mapbtn_dest_home@2x.png',
+				office: 'img/mapbtn_dest_office@2x.png'
 			},
 			red10min: 'img/10min.png'
 			//red100min: 'img/100min.png',
@@ -8820,6 +10087,16 @@ module.exports = {
 		default: {
 			lat: 47.6631772,
 			lng: -122.3104933
+		},
+		home: {
+			address: '4225 24th Ave. NE, Seattle, WA',
+			lat: 47.6631772,
+			lng: -122.3104933
+		},
+		office: {
+			address: '3960 Benton Lane NE, Seattle, WA',
+			lat: 47.6549064,
+			lng: -122.3086493
 		}
 	},
 
@@ -8858,15 +10135,26 @@ module.exports = {
 	},
 
 	var: {
+		apiKeyVectorTile: 'vector-tiles-c1X4vZE', // mine
+		//apiKeyVectorTile: 'mapzen-dKpzpj5', // Ray's
+		apiKeyTimeMatrix: 'matrix-AGvGZKs', // mine
+		//apiKeyTimeMatrix: 'matrix-qUpjg6W', // Ray's
+
 		latPerPx: 0,
 		lngPerPx: 0,
 		latMargin: 0,
 		lngMargin: 0,
+		longPressTime: 1000, // 1 sec
+		longPressSensitivity: 100,
 		numLanduseClasses: 6,
-		marginPercent: 30,
+		numRatings: [5, 1000],
+		marginPercent: 3.0,
+		maxNumLocations: 20,
 		maxSplitLevel: 0,
 		placeProcessed: false,
+		priceRange: [1, 4], // 1 ~ 4
 		shapePreservingDegree: 1.0,
+		ratings: [3, 5], // 1 ~ 5
 		readyLocation: false,
 		resolution: {
 			gridLng: 4, // horiozontal resolution. even number is recommended
@@ -8877,6 +10165,7 @@ module.exports = {
 			water: 0.0005,
 			landuse: 0.001
 		}
+
 	},
 
 	time: {
@@ -8889,7 +10178,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 18 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8899,13 +10188,14 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var tgUtil = __webpack_require__(0);
+var TgUtil = __webpack_require__(0);
 
 var TgGraph = function () {
-	function TgGraph(tg) {
+	function TgGraph(tg, data) {
 		_classCallCheck(this, TgGraph);
 
 		this.tg = tg;
+		this.data = data;
 		this.tpsTarget = null;
 		this.tpsReal = null;
 	}
@@ -8913,15 +10203,11 @@ var TgGraph = function () {
 	_createClass(TgGraph, [{
 		key: 'calWarping',
 		value: function calWarping(noNeedToCalFactor) {
-			this.tg.map.setTime('controlPointWarping', 'start', new Date().getTime());
-
 			var ctlPts = this.tg.map.tgControl.controlPoints;
+
 			this.calDegrees(ctlPts);
 			if (!noNeedToCalFactor) this.factor = this.calFactor(ctlPts);
 			this.calTargetNodesOfCtlPts();
-
-			this.tg.map.setTime('controlPointWarping', 'end', new Date().getTime());
-			//console.log('factor = ' + this.factor);
 		}
 
 		//
@@ -8931,18 +10217,39 @@ var TgGraph = function () {
 	}, {
 		key: 'calDegrees',
 		value: function calDegrees(nodes) {
-			var xLat = this.tg.map.tgOrigin.origin.original.lat;
-			var xLng = this.tg.map.tgOrigin.origin.original.lng;
-			var yLat, yLng, deg;
+			var cLat = this.tg.map.tgOrigin.origin.original.lat;
+			var cLng = this.tg.map.tgOrigin.origin.original.lng;
 
-			for (var i = 0; i < nodes.length; i++) {
-				yLat = nodes[i].original.lat;
-				yLng = nodes[i].original.lng;
+			var _iteratorNormalCompletion = true;
+			var _didIteratorError = false;
+			var _iteratorError = undefined;
 
-				deg = Math.atan((yLng - xLng) / (yLat - xLat));
-				if (xLat == yLat && xLng == yLng) deg = 0;
-				if (yLat - xLat < 0) deg = deg + Math.PI;
-				nodes[i].deg = deg;
+			try {
+				for (var _iterator = nodes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+					var node = _step.value;
+
+					var lat = node.original.lat;
+					var lng = node.original.lng;
+					var deg = Math.atan((lng - cLng) / (lat - cLat));
+					//let deg = Math.atan((lng - cLng) * this.shrink() / (lat - cLat));
+
+					if (cLat === lat && cLng === lng) deg = 0;
+					if (lat - cLat < 0) deg += Math.PI;
+					node.deg = deg;
+				}
+			} catch (err) {
+				_didIteratorError = true;
+				_iteratorError = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion && _iterator.return) {
+						_iterator.return();
+					}
+				} finally {
+					if (_didIteratorError) {
+						throw _iteratorError;
+					}
+				}
 			}
 		}
 	}, {
@@ -8956,13 +10263,11 @@ var TgGraph = function () {
 			var eps = 10;
 
 			for (var time = 0; time < MAX_ITERATION; time++) {
-
-				//console.log('[' + start + ', ' + end + ']');
-
 				var half = (start + end) / 2;
 				var dif = this.calDifference(half, nodes, cLat, cLng);
 				var after_dif = this.calDifference(half + eps, nodes, cLat, cLng);
 
+				//console.log('[' + start + ', ' + end + ']');
 				//console.log(dif + ' - ' + after_dif);
 
 				if (dif < after_dif) {
@@ -8978,24 +10283,26 @@ var TgGraph = function () {
 		value: function calDifference(factor, nodes, cLat, cLng) {
 			var lenNodes = nodes.length;
 			var target = Array(lenNodes);
-			var len;
 
 			for (var i = 0; i < lenNodes; i++) {
 				target[i] = { lat: 0, lng: 0 };
 			}
 
-			for (var i = 0; i < lenNodes; i++) {
-				if (nodes[i].travelTime) {
-					len = nodes[i].travelTime / factor;
-					target[i].lat = cLat + len * Math.cos(nodes[i].deg);
-					target[i].lng = cLng + len * Math.sin(nodes[i].deg) * this.toLat();
+			for (var _i = 0; _i < lenNodes; _i++) {
+				if (nodes[_i].travelTime) {
+					var len = nodes[_i].travelTime / factor;
+					target[_i].lat = cLat + len * Math.cos(nodes[_i].deg);
+					target[_i].lng = cLng + len * Math.sin(nodes[_i].deg) * this.magnify();
+					//target[i].lng = cLng + len * Math.sin(nodes[i].deg);
 				}
 			}
 
 			var sum = 0;
-			for (var i = 0; i < lenNodes; i++) {
-				if (nodes[i].travelTime) {
-					sum += tgUtil.D2(nodes[i].original.lat, nodes[i].original.lng, target[i].lat, target[i].lng);
+			for (var _i2 = 0; _i2 < lenNodes; _i2++) {
+				if (nodes[_i2].travelTime) {
+					sum += TgUtil.D2(
+					//sum += tgUtil.distance(
+					nodes[_i2].original.lat, nodes[_i2].original.lng, target[_i2].lat, target[_i2].lng);
 				}
 			}
 			return sum;
@@ -9004,93 +10311,149 @@ var TgGraph = function () {
 		key: 'calTargetNodesOfCtlPts',
 		value: function calTargetNodesOfCtlPts() {
 			var nodes = this.tg.map.tgControl.controlPoints;
-			var xLat = this.tg.map.tgOrigin.origin.original.lat;
-			var xLng = this.tg.map.tgOrigin.origin.original.lng;
+			var cLat = this.tg.map.tgOrigin.origin.original.lat;
+			var cLng = this.tg.map.tgOrigin.origin.original.lng;
 
-			for (var i = 0; i < nodes.length; i++) {
-				if (nodes[i].travelTime) {
-					nodes[i].len = nodes[i].travelTime / this.factor;
-					nodes[i].target.lat = xLat + nodes[i].len * Math.cos(nodes[i].deg);
-					nodes[i].target.lng = xLng + nodes[i].len * Math.sin(nodes[i].deg) * this.toLat();
-				} else {
-					nodes[i].target.lat = nodes[i].original.lat;
-					nodes[i].target.lng = nodes[i].original.lng;
+			var _iteratorNormalCompletion2 = true;
+			var _didIteratorError2 = false;
+			var _iteratorError2 = undefined;
+
+			try {
+				for (var _iterator2 = nodes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+					var node = _step2.value;
+
+					if (node.travelTime) {
+						node.len = node.travelTime / this.factor;
+						//node.len = tgUtil.D2(cLat, cLng, node.original.lat, node.original.lng);
+						node.target.lat = cLat + node.len * Math.cos(node.deg);
+						node.target.lng = cLng + node.len * Math.sin(node.deg) * this.magnify();
+						//node.target.lng = cLng + node.len * Math.sin(node.deg);
+					} else {
+						node.target.lat = node.original.lat;
+						node.target.lng = node.original.lng;
+					}
+
+					if (cLat === node.original.lat && cLng === node.original.lng) {
+						node.len = 0;
+						node.target.lat = cLat;
+						node.target.lng = cLng;
+					}
+
+					node.real.lat = node.target.lat;
+					node.real.lng = node.target.lng;
 				}
-
-				if (xLat == nodes[i].original.lat && xLng == nodes[i].original.lng) {
-					nodes[i].len = 0;
-					nodes[i].target.lat = xLat;
-					nodes[i].target.lng = xLng;
+			} catch (err) {
+				_didIteratorError2 = true;
+				_iteratorError2 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion2 && _iterator2.return) {
+						_iterator2.return();
+					}
+				} finally {
+					if (_didIteratorError2) {
+						throw _iteratorError2;
+					}
 				}
-
-				nodes[i].real.lat = nodes[i].target.lat;
-				nodes[i].real.lng = nodes[i].target.lng;
 			}
 		}
 	}, {
 		key: 'toLat',
 		value: function toLat() {
+
+			var heightPX = $('#ol_map').css('height');
+			heightPX = Number(heightPX.slice(0, heightPX.length - 2)); // 900
+			var heightLat = this.data.box.top - this.data.box.bottom; // 0.052025323579982796
+			var latPerPx = heightLat / heightPX; // 0.00005780591508886977
+
+			var widthPX = $('#ol_map').css('width');
+			widthPX = Number(widthPX.slice(0, widthPX.length - 2)); // 570
+			var widthLng = this.data.box.right - this.data.box.left; // 0.048923492431640625
+			var lngPerPx = widthLng / widthPX; // 0.0000858306884765625
+
+			console.log('---');
+			console.log(heightPX);
+			console.log(heightLat);
+			console.log(latPerPx);
+
+			console.log(widthPX);
+			console.log(widthLng);
+			console.log(lngPerPx);
+
 			/*
-   let heightPX = $('#ol_map').css('height'); 
-   	heightPX = Number(heightPX.slice(0, heightPX.length - 2));
-   const heightLat = this.data.box.top - this.data.box.bottom;
-   const latPerPx = heightLat / heightPX;
-   	let widthPX = $('#ol_map').css('width');  
-   	widthPX = Number(widthPX.slice(0, widthPX.length - 2));
-   	const widthLng = this.data.box.right - this.data.box.left;
-   const lngPerPx = widthLng / widthPX;
-   	return lngPerPx / latPerPx;
+   return lngPerPx / latPerPx;
    */
 
-			return 0.00016965364355785907 / 0.00011481966468342245; //org
+			return 0.00016965364355785907 / 0.00011481966468342245; //1.477566
 		}
+	}, {
+		key: 'shrink',
+		value: function shrink() {
+			return 0.00005780591508886977 / 0.0000858306884765625; // 0.673487725
 
-		//
-		//
-		//
+			var heightPX = $('#ol_map').css('height');
+			heightPX = Number(heightPX.slice(0, heightPX.length - 2)); // 900
+			var heightLat = this.data.box.top - this.data.box.bottom; // 0.052025323579982796
+			var latPerPx = heightLat / heightPX; // 0.00005780591508886977
 
+			var widthPX = $('#ol_map').css('width');
+			widthPX = Number(widthPX.slice(0, widthPX.length - 2)); // 570
+			var widthLng = this.data.box.right - this.data.box.left; // 0.048923492431640625
+			var lngPerPx = widthLng / widthPX; // 0.0000858306884765625
+
+			console.log(latPerPx / lngPerPx);
+			return latPerPx / lngPerPx;
+		}
+	}, {
+		key: 'magnify',
+		value: function magnify() {
+			return 0.0000858306884765625 / 0.00005780591508886977; // 1.484808
+
+			var heightPX = $('#ol_map').css('height');
+			heightPX = Number(heightPX.slice(0, heightPX.length - 2)); // 900
+			var heightLat = this.data.box.top - this.data.box.bottom; // 0.052025323579982796
+			var latPerPx = heightLat / heightPX; // 0.00005780591508886977
+
+			var widthPX = $('#ol_map').css('width');
+			widthPX = Number(widthPX.slice(0, widthPX.length - 2)); // 570
+			var widthLng = this.data.box.right - this.data.box.left; // 0.048923492431640625
+			var lngPerPx = widthLng / widthPX; // 0.0000858306884765625
+
+			return lngPerPx / latPerPx;
+		}
 	}, {
 		key: 'TPSSolve',
 		value: function TPSSolve() {
-
-			/*
-   // rearrangement
-   var dLat = (this.data.box.top - this.data.box.bottom) / (this.data.var.resolution.gridLat - 1)
-   var dLng = (this.data.box.right - this.data.box.left) / (this.data.var.resolution.gridLng - 1)
-   var lngL, latB
-   var nodes = [];
-   	for(var i = 0; i < this.data.var.resolution.gridLat; i++) {
-   	for(var j = 0; j < this.data.var.resolution.gridLng; j++) {
-   			lngL = this.data.box.left + dLng * j
-   		latB = this.data.box.bottom + dLat * i
-   			var min_dist = Number.MAX_VALUE
-   		var dist, min_k = 0
-   			for(var k = 0; k < ctlPts.length; k++) {
-   			dist = tgUtil.D2(latB, lngL, ctlPts[k].original.lat, ctlPts[k].original.lng)
-   				if (dist < min_dist) {
-   				min_dist = dist
-   				min_k = k
-   			}
-   		}
-   		nodes.push(ctlPts[min_k])
-   	}
-   }
-   	console.log(nodes)
-   */
-
-			this.tg.map.setTime('tpsCalculating', 'start', new Date().getTime());
-
 			var nodes = this.tg.map.tgControl.controlPoints;
 			var ptTarget = [];
 			var ptReal = [];
 			var counter = 0;
 
-			for (var i = 0; i < nodes.length; i++) {
-				ptTarget[counter] = [[nodes[i].original.lat, nodes[i].original.lng], [nodes[i].target.lat, nodes[i].target.lng]];
-				ptReal[counter] = [[nodes[i].original.lat, nodes[i].original.lng], [nodes[i].real.lat, nodes[i].real.lng]];
-				counter++;
-				//console.log(nodes[i].original.lat + '->' + nodes[i].target.lat)
-				//console.log(nodes[i].original.lng + '->' + nodes[i].target.lng)
+			var _iteratorNormalCompletion3 = true;
+			var _didIteratorError3 = false;
+			var _iteratorError3 = undefined;
+
+			try {
+				for (var _iterator3 = nodes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+					var n = _step3.value;
+
+					ptTarget[counter] = [[n.original.lat, n.original.lng], [n.target.lat, n.target.lng]];
+					ptReal[counter] = [[n.original.lat, n.original.lng], [n.real.lat, n.real.lng]];
+					counter++;
+				}
+			} catch (err) {
+				_didIteratorError3 = true;
+				_iteratorError3 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion3 && _iterator3.return) {
+						_iterator3.return();
+					}
+				} finally {
+					if (_didIteratorError3) {
+						throw _iteratorError3;
+					}
+				}
 			}
 
 			this.tpsTarget = new ThinPlateSpline();
@@ -9100,8 +10463,6 @@ var TgGraph = function () {
 			this.tpsReal = new ThinPlateSpline();
 			this.tpsReal.push_points(ptReal);
 			this.tpsReal.solve();
-
-			this.tg.map.setTime('tpsCalculating', 'end', new Date().getTime());
 		}
 	}, {
 		key: 'TPSTest',
@@ -9113,14 +10474,12 @@ var TgGraph = function () {
 
 			var lat = this.tg.map.tgOrigin.origin.original.lat;
 			var lng = this.tg.map.tgOrigin.origin.original.lng;
-			var trpt = this.tpsTarget.transform([lat, lng], false);
-			var d = tgUtil.D2(lat, lng, trpt[0], trpt[1]);
+			var pt = this.tpsTarget.transform([lat, lng], false);
+			var d = TgUtil.D2(lat, lng, pt[0], pt[1]);
 
-			if (d < 0.1) {
-				return true;
-			} else {
-				console.log(lat + '->' + trpt[0]);
-				console.log(lng + '->' + trpt[1]);
+			if (d < 0.1) return true;else {
+				console.log(lat + '->' + pt[0]);
+				console.log(lng + '->' + pt[1]);
 				console.log('d = ' + d);
 				return false;
 			}
@@ -9128,20 +10487,14 @@ var TgGraph = function () {
 	}, {
 		key: 'transformTarget',
 		value: function transformTarget(lat, lng) {
-			var trpt = this.tpsTarget.transform([lat, lng], false);
-			return { lat: trpt[0], lng: trpt[1] };
+			var pt = this.tpsTarget.transform([lat, lng], false);
+			return { lat: pt[0], lng: pt[1] };
 		}
 	}, {
 		key: 'transformReal',
 		value: function transformReal(lat, lng) {
-			var trpt = this.tpsReal.transform([lat, lng], false);
-			return { lat: trpt[0], lng: trpt[1] };
-		}
-	}, {
-		key: 'transform',
-		value: function transform(lat, lng) {
-			var trpt = this.tpsReal.transform([lat, lng], false);
-			return { lat: trpt[0], lng: trpt[1] };
+			var pt = this.tpsReal.transform([lat, lng], false);
+			return { lat: pt[0], lng: pt[1] };
 		}
 	}]);
 
@@ -9151,7 +10504,7 @@ var TgGraph = function () {
 module.exports = TgGraph;
 
 /***/ }),
-/* 19 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9161,19 +10514,19 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var TgControl = __webpack_require__(6);
-var TgRoads = __webpack_require__(12);
-var TgWater = __webpack_require__(14);
-var TgLanduse = __webpack_require__(8);
-var TgPlaces = __webpack_require__(11);
-var TgLocations = __webpack_require__(9);
-var TgIsochrone = __webpack_require__(7);
-var TgBoundingBox = __webpack_require__(5);
-var TgOrigin = __webpack_require__(10);
-var TgGrid = __webpack_require__(20);
-var tgUtil = __webpack_require__(0);
-var TgMapUtil = __webpack_require__(13);
-var TgInteraction = __webpack_require__(21);
+var TgControl = __webpack_require__(7);
+var TgRoads = __webpack_require__(15);
+var TgWater = __webpack_require__(17);
+var TgLanduse = __webpack_require__(11);
+var TgPlaces = __webpack_require__(14);
+var TgLocations = __webpack_require__(12);
+var TgIsochrone = __webpack_require__(10);
+var TgBoundingBox = __webpack_require__(6);
+var TgOrigin = __webpack_require__(13);
+var TgGrid = __webpack_require__(8);
+var TgUtil = __webpack_require__(0);
+var TgMapUtil = __webpack_require__(16);
+var TgInteraction = __webpack_require__(9);
 
 var TgMap = function () {
 	function TgMap(tg, map_id) {
@@ -9192,13 +10545,17 @@ var TgMap = function () {
 			zoom: this.data.zoom.init
 		});
 
+		this.tgInteraction = new TgInteraction(this);
+
 		this.olMap = new ol.Map({
-			interactions: ol.interaction.defaults().extend([new TgInteraction(this)]),
+			interactions: ol.interaction.defaults().extend([this.tgInteraction]),
 			target: map_id,
 			//controls: [],
 			layers: [],
 			view: this.olView
 		});
+
+		this.tgInteraction.addOverlay();
 
 		this.olMap.getInteractions().forEach(function (interaction) {
 			if (interaction instanceof ol.interaction.DragPan) {
@@ -9344,52 +10701,6 @@ var TgMap = function () {
 			//console.log(this.calMaxDistance('lng'));
 		}
 	}, {
-		key: 'setArea',
-		value: function setArea(area) {
-			this.setCenter(this.data.center[area].lat, this.data.center[area].lng);
-		}
-	}, {
-		key: 'setOrigin',
-		value: function setOrigin(param) {
-			var _this2 = this;
-
-			if (param.lat && param.lng) {
-				this.setCenter(param.lat, param.lng);
-			} else if (param.address) {
-				var s = new Date().getTime();
-
-				this.tgOrigin.searchLatLngByAddress(param.address).then(function (data) {
-					var elapsed = new Date().getTime() - s;
-					console.log('received: lat & lng (' + elapsed + ' ms)');
-					_this2.setCenter(data.lat, data.lng);
-				}).catch(function (error) {
-					console.error(error);
-					if (!_this2.tgOrigin.getOrigin()) setDefaultOrigin();
-				});
-			} else {
-				console.error('invalid param in setOrigin()');
-				if (!this.tgOrigin.getOrigin()) setDefaultOrigin();
-			}
-
-			function setDefaultOrigin() {
-				console.log('use default lat & lng.');
-				this.setCenter(this.data.origin.default.lat, this.data.origin.default.lng);
-			}
-		}
-	}, {
-		key: 'setOriginByCurrentLocation',
-		value: function setOriginByCurrentLocation() {
-			var _this3 = this;
-
-			this.tgOrigin.getCurrentLocation().then(function (data) {
-				console.log('got lat & lng from geolocation.');
-				_this3.setCenter(data.lat, data.lng);
-			}).catch(function (error) {
-				console.error(error);
-				if (!_this3.tgOrigin.getOrigin()) setDefaultOrigin();
-			});
-		}
-	}, {
 		key: 'setCenter',
 		value: function setCenter(lat, lng) {
 			this.olMap.getView().setCenter(ol.proj.fromLonLat([lng, lat]));
@@ -9410,8 +10721,10 @@ var TgMap = function () {
 	}, {
 		key: 'onMoveEnd',
 		value: function onMoveEnd(e) {
-			if (this.data.zoom.current != this.olMap.getView().getZoom()) {
-				this.data.zoom.current = this.olMap.getView().getZoom();
+			console.log(this.olMap.getView().getZoom());
+			var intZoom = Math.round(this.olMap.getView().getZoom());
+			if (this.data.zoom.current != intZoom) {
+				this.data.zoom.current = intZoom;
 				this.onZoomEnd();
 			} else {
 				this.onPanEnd();
@@ -9420,7 +10733,7 @@ var TgMap = function () {
 	}, {
 		key: 'onZoomEnd',
 		value: function onZoomEnd() {
-			console.log('onZoomEnd');
+			console.log('onZoomEnd : ' + this.data.zoom.current);
 
 			this.tgWater.tempCount = 0;
 
@@ -9429,7 +10742,6 @@ var TgMap = function () {
 			this.tgPlaces.needToBeRedrawn();
 			this.tgLocs.request();
 
-			this.tgLocs.initLocations();
 			this.recalculateAndDraw();
 		}
 	}, {
@@ -9481,8 +10793,8 @@ var TgMap = function () {
 				//this.tgLanduse.discard();
 
 				this.tgLocs.discard();
-				this.tgOrigin.discard();
 				this.tgIsochrone.discard();
+				this.tgLocs.setHighLightMode(false, 0);
 			} else {
 				this.tgRoads.render();
 				this.tgWater.render();
@@ -9495,7 +10807,7 @@ var TgMap = function () {
 	}, {
 		key: 'requestControlPoints',
 		value: function requestControlPoints() {
-			var _this4 = this;
+			var _this2 = this;
 
 			this.readyControlPoints = false;
 			this.disableSGapAndGapButtons(true);
@@ -9504,23 +10816,23 @@ var TgMap = function () {
 
 				console.log('received: control points.');
 
-				_this4.timerCheckGridSplitInTgMap = setTimeout(_this4.calSplittedGrid.bind(_this4), _this4.data.time.waitForFinishGettingWaterData);
+				_this2.timerCheckGridSplitInTgMap = setTimeout(_this2.calSplittedGrid.bind(_this2), _this2.data.time.waitForFinishGettingWaterData);
 
-				if (_this4.currentMode === 'DC') {
+				if (_this2.currentMode === 'DC') {
 					//if (this.tgLocs.readyLocs) this.goToDcAgain();
 					//this.goToDcAgain();
-				} else if (_this4.currentMode === 'EM') {
+				} else if (_this2.currentMode === 'EM') {
 					//this.tgControl.calDispNodes('original');
 				}
 
-				_this4.updateLayers();
-				_this4.dispMapInfo();
+				_this2.updateLayers();
+				_this2.dispMapInfo();
 			});
 		}
 	}, {
 		key: 'changeTransportType',
 		value: function changeTransportType(type) {
-			var _this5 = this;
+			var _this3 = this;
 
 			if (this.tgControl.currentTransport === type) return;
 
@@ -9529,13 +10841,13 @@ var TgMap = function () {
 			this.tgControl.currentTransport = type;
 			this.tgControl.getTravelTimeOfControlPoints(function () {
 
-				_this5.disableSGapAndGapButtons(false);
+				_this3.disableSGapAndGapButtons(false);
 
-				if (_this5.currentMode === 'DC') {
-					_this5.goToDcAgain(false);
+				if (_this3.currentMode === 'DC') {
+					_this3.goToDcAgain(false);
 					//this.goToDcAgain(true);
 				} else {
-					_this5.tgOrigin.render();
+					_this3.tgOrigin.render();
 				}
 
 				/*
@@ -9565,9 +10877,9 @@ var TgMap = function () {
    */
 			this.goToDc(false, noNeedToCalFactor);
 
-			if (this.tgLocs.needToDisplayLocs) {
+			if (this.tgLocs.dispLocsAfterCalWarping) {
 				this.tgLocs.displayLocsInDc();
-				this.tgLocs.needToDisplayLocs = false;
+				this.tgLocs.dispLocsAfterCalWarping = false;
 			}
 		}
 	}, {
@@ -9644,51 +10956,9 @@ var TgMap = function () {
 		value: function updateLayers() {
 			var s = new Date().getTime();
 
-			/*if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
-   	if (this.currentMode === 'EM') this.tgControl.calDispNodes('original');
-   	else if (this.currentMode === 'DC') {
-   		if (this.warpingMode === 'none') this.tgControl.calDispNodes('target');
-   		else this.tgControl.calDispNodes('real');
-   	}
-   }*/
-
-			/*if (this.dispPlaceLayer) {
-   	this.tgPlaces.calDispPlace();
-   	this.tgPlaces.addPlaceLayer();
-   }
-   else this.tgPlaces.clearLayers();
-   */
-
-			//if (this.dispWaterNodeLayer) this.tgWater.addWaterNodeLayer();
-			//else this.tgWater.removeWaterNodeLayer();
-
-			//if (this.dispRoadNodeLayer) this.tgRoads.addNodeLayer();
-			//else this.tgRoads.removeNodeLayer();
-
-			//if (this.dispLanduseNodeLayer) this.tgLanduse.addLanduseNodeLayer();
-			//else this.tgLanduse.removeLanduseNodeLayer();
-
-			/*if (this.dispGridLayer) this.tgControl.drawGridLayer()
-   else this.tgControl.removeGridLayer()
-   if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer()
-   else this.tgControl.removeControlPointLayer()*/
-
-			//if (this.dispCenterPositionLayer) this.tgAux.drawCenterPositionLayer()
-			//else this.tgAux.removeCenterPositionLayer();
-
-			//if (this.dispLocationLayer) this.tgLocs.drawLocationLayer()
-			//else this.tgLocs.removeLocationLayer();
-
-			//if (this.dispLocationNameLayer) this.tgLocs.drawLocationNameLayer()
-			//else this.tgLocs.removeLocationNameLayer();
-
-			//if (this.dispIsochroneLayer) this.tgAux.drawIsochroneLayer();
-			//else this.tgAux.removeIsochroneLayer();
-
-			//this.tgOrigin.render();
 			this.tgBB.render();
 
-			console.log('updateLayers : ' + (new Date().getTime() - s) + 'ms');
+			//console.log('updateLayers : ' + ((new Date()).getTime() - s) + 'ms')
 		}
 	}, {
 		key: 'goToEm',
@@ -9742,15 +11012,13 @@ var TgMap = function () {
 			if (this.tg.graph.TPSTest()) {
 				console.log('complete: TPS(' + parseInt(this.tg.graph.factor) + ')');
 				this.tpsReady = true;
-
-				// TODO: if locations are not ready...
 			} else {
-				//console.log('fail: TPS...');
 				alert('fail: TPS...');
 			}
+
 			//this.needToCalWarping = false;
 
-			this.tgLocs.calTargetNodes();
+			//this.tgLocs.calTargetNodes();
 
 			if (this.warpingMode === 'none') {
 				this.tgWater.calTargetNodes();
@@ -9763,9 +11031,13 @@ var TgMap = function () {
 				this.tgRoads.calRealNodes();
 				this.tgPlaces.calRealNodes();
 				this.tgLanduse.calRealNodes();
-				this.tgLocs.calRealNodes();
+				this.tgLocs.calTargetAndRealNodes();
 				this.tgOrigin.calRealNodes();
 			}
+
+			// calculate time of all locations
+			this.tgLocs.setTimeOfLocations();
+			this.tgLocs.setTimeOfLocationGroups();
 
 			if (animation) {
 				this.timerFrame = setInterval(this.goToDcByFrame.bind(this), this.animationSpeed);
@@ -9774,6 +11046,19 @@ var TgMap = function () {
 				this.moveElementsByValue('intermediateReal', 1.0);
 				this.reachDc();
 			}
+
+			// test
+			/*let sum = 0;
+   for(let pt of this.tgControl.controlPoints) {
+   	if (pt.travelTime) {
+   		const expectedTime = 
+   				parseInt(this.calTimeFromLatLng(pt.target.lat, pt.target.lng));
+   		const dif = Math.abs(pt.travelTime - expectedTime);
+   		sum += dif;
+   		console.log(pt.travelTime + ' , ' + expectedTime + ' : ' + dif);
+   	}
+   }
+   console.log('dif sum: ' + sum);*/
 		}
 
 		/*
@@ -9855,6 +11140,7 @@ var TgMap = function () {
 			this.currentMode = 'INTERMEDIATE';
 			this.tgIsochrone.disabled(true);
 			this.tgIsochrone.render();
+			this.tgLocs.setHighLightMode(false, 0);
 			this.tgLocs.dispNameLayer = false;
 			this.tgLocs.removeNameLayer();
 			this.tgLocs.render();
@@ -9881,8 +11167,8 @@ var TgMap = function () {
 		value: function reachDcOrEm() {
 			clearInterval(this.timerFrame);
 			this.tgOrigin.render();
-			this.tgBB.cleanBB();
-			this.tgBB.addBBOfLocations();
+			//this.tgBB.cleanBB();
+			//this.tgBB.addBBOfLocations();
 			this.tgLocs.dispNameLayer = true;
 			//this.tgLocs.updateNonOverlappedLocationNames();
 			this.tgLocs.render();
@@ -9892,7 +11178,7 @@ var TgMap = function () {
 		key: 'resetUI',
 		value: function resetUI() {
 			var tf = this.currentMode === 'EM';
-			this.olMap.dragPan.setActive(tf);
+			//this.olMap.dragPan.setActive(tf);
 			$('#dispIsochroneCB').prop('disabled', tf);
 			//this.disableSGapAndGapButtons(tf);
 		}
@@ -9935,7 +11221,6 @@ var TgMap = function () {
 		key: 'initMap',
 		value: function initMap() {
 			this.tgBB.cleanBB();
-			this.tgLocs.initLocations();
 			this.tgLocs.removeLayer();
 			this.tgLocs.removeNameLayer();
 			this.tgLocs.render();
@@ -9947,6 +11232,8 @@ var TgMap = function () {
 				this.resetUI();
 				this.tgIsochrone.disabled(true);
 				this.tgIsochrone.render();
+				this.tgLocs.setHighLightMode(false, 0);
+
 				this.calAllDispNodeAsOriginal();
 				this.frame = 0;
 
@@ -9962,8 +11249,7 @@ var TgMap = function () {
 			this.tgRoads.calDispNodes('original');
 			this.tgLanduse.calDispNodes('original');
 			this.tgPlaces.calDispNodes('original');
-			this.tgOrigin.calDispNodes('original');
-			this.tgControl.calDispNodes('original');
+			//this.tgGrids.calDispNodes('original');
 		}
 	}, {
 		key: 'resetTime',
@@ -10038,23 +11324,35 @@ var TgMap = function () {
 			$('#' + type).html(str);
 		}
 	}, {
+		key: 'calLenFromLatLng',
+		value: function calLenFromLatLng(lat, lng) {
+			var cLat = this.tgOrigin.origin.original.lat;
+			var cLng = this.tgOrigin.origin.original.lng;
+			var dLat = (cLat - lat) * this.graph.shrink();
+			var dLng = cLng - lng;
+			//const dLng = (cLng - lng) * this.graph.shrink();
+			return Math.sqrt(dLat * dLat + dLng * dLng);
+		}
+	}, {
 		key: 'calTimeFromLatLng',
 		value: function calTimeFromLatLng(lat, lng) {
 			if (!this.tg.graph.factor) return 0;
 
-			var centerLat = this.tgOrigin.origin.original.lat;
-			var centerLng = this.tgOrigin.origin.original.lng; // / this.tg.graph.toLat();
-			var inLat = lat;
-			var inLng = lng; // / this.tg.graph.toLat();
-			//return tgUtil.D2(centerLat, centerLng, lat, lng) * this.tg.graph.factor;
-			return tgUtil.D2(centerLat, centerLng, inLat, inLng) * this.tg.graph.factor;
+			var cLat = this.tgOrigin.origin.original.lat;
+			var cLng = this.tgOrigin.origin.original.lng;
+
+			var dLat = cLat - lat;
+			var dLng = (cLng - lng) * this.graph.shrink();
+			var dist = Math.sqrt(dLat * dLat + dLng * dLng);
+
+			return dist * this.tg.graph.factor;
 		}
 	}, {
 		key: 'calDistanceFromLatLng',
 		value: function calDistanceFromLatLng(lat, lng) {
 			var centerLat = this.tgOrigin.origin.original.lat;
 			var centerLng = this.tgOrigin.origin.original.lng;
-			return tgUtil.distance(centerLat, centerLng, lat, lng); // km
+			return TgUtil.distance(centerLat, centerLng, lat, lng); // km
 		}
 	}, {
 		key: 'calMaxDistance',
@@ -10078,386 +11376,6 @@ var TgMap = function () {
 }();
 
 module.exports = TgMap;
-
-/***/ }),
-/* 20 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var TgNode = __webpack_require__(1);
-
-var TgMapGrid = function () {
-	function TgMapGrid(map, data, graph) {
-		_classCallCheck(this, TgMapGrid);
-
-		this.map = map;
-		this.data = data;
-		this.graph = graph;
-		this.mapUtil = map.mapUtil;
-
-		this.isDisabled = false;
-		this.display = false;
-		this.layer = null;
-
-		this.displayControlPoints = true;
-		this.controlPointLayer = null;
-	}
-
-	_createClass(TgMapGrid, [{
-		key: 'turn',
-		value: function turn(tf) {
-			this.display = tf;
-		}
-	}, {
-		key: 'disabled',
-		value: function disabled(tf) {
-			this.isDisabled = tf;
-		}
-	}, {
-		key: 'render',
-		value: function render() {
-			if (this.isDisabled || !this.display) {
-				this.discard();
-			} else {
-				this.updateLayer();
-				if (this.displayControlPoints) this.updateControlPointLayer();
-			}
-		}
-	}, {
-		key: 'discard',
-		value: function discard() {
-			this.removeLayer();
-			this.removeControlPointLayer();
-		}
-	}, {
-		key: 'updateLayer',
-		value: function updateLayer() {
-			var gridLines = this.map.tgControl.gridLines;
-			var viz = this.data.viz;
-			var arr = [];
-
-			var _iteratorNormalCompletion = true;
-			var _didIteratorError = false;
-			var _iteratorError = undefined;
-
-			try {
-				for (var _iterator = gridLines[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-					var line = _step.value;
-
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[line.start.disp.lng, line.start.disp.lat], [line.end.disp.lng, line.end.disp.lat]]), this.mapUtil.lineStyle(viz.color.grid, viz.width.grid));
-				}
-			} catch (err) {
-				_didIteratorError = true;
-				_iteratorError = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion && _iterator.return) {
-						_iterator.return();
-					}
-				} finally {
-					if (_didIteratorError) {
-						throw _iteratorError;
-					}
-				}
-			}
-
-			this.removeLayer();
-			this.layer = this.mapUtil.olVectorFromFeatures(arr);
-			this.layer.setZIndex(viz.z.grid);
-			this.mapUtil.addLayer(this.layer);
-		}
-	}, {
-		key: 'updateControlPointLayer',
-		value: function updateControlPointLayer() {
-			var controlPoints = this.map.tgControl.controlPoints;
-			var viz = this.data.viz;
-			var arr = [];
-
-			var _iteratorNormalCompletion2 = true;
-			var _didIteratorError2 = false;
-			var _iteratorError2 = undefined;
-
-			try {
-				for (var _iterator2 = controlPoints[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-					var point = _step2.value;
-
-					// draw control points
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([point.disp.lng, point.disp.lat]), this.mapUtil.nodeStyle(viz.color.controlPoint, viz.radius.controlPoint));
-
-					// draw additional lines meaning difference between target and real.
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString([[point.disp.lng, point.disp.lat], [point.target.lng, point.target.lat]]), this.mapUtil.lineStyle(viz.color.controlPointLine, viz.width.controlPointLine));
-
-					// add text
-					var text = point.travelTime != null ? point.travelTime.toString() : '-';
-					//text += ',' + point.index;
-					this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point([point.disp.lng, point.disp.lat]), this.mapUtil.textStyle({
-						text: text, color: viz.color.text, font: viz.font.text
-					}));
-				}
-			} catch (err) {
-				_didIteratorError2 = true;
-				_iteratorError2 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion2 && _iterator2.return) {
-						_iterator2.return();
-					}
-				} finally {
-					if (_didIteratorError2) {
-						throw _iteratorError2;
-					}
-				}
-			}
-
-			this.removeControlPointLayer();
-			this.controlPointLayer = this.mapUtil.olVectorFromFeatures(arr);
-			this.controlPointLayer.setZIndex(viz.z.controlPoint);
-			this.mapUtil.addLayer(this.controlPointLayer);
-		}
-	}, {
-		key: 'removeLayer',
-		value: function removeLayer() {
-			this.mapUtil.removeLayer(this.layer);
-		}
-	}, {
-		key: 'removeControlPointLayer',
-		value: function removeControlPointLayer() {
-			this.mapUtil.removeLayer(this.controlPointLayer);
-		}
-	}, {
-		key: 'calDispNodes',
-		value: function calDispNodes(kind, value) {
-			var controlPoints = this.map.tgControl.controlPoints;
-
-			if (kind === 'intermediateReal') {
-				var _iteratorNormalCompletion3 = true;
-				var _didIteratorError3 = false;
-				var _iteratorError3 = undefined;
-
-				try {
-					for (var _iterator3 = controlPoints[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-						var point = _step3.value;
-
-						point.disp.lat = (1 - value) * point.original.lat + value * point.real.lat;
-						point.disp.lng = (1 - value) * point.original.lng + value * point.real.lng;
-					}
-				} catch (err) {
-					_didIteratorError3 = true;
-					_iteratorError3 = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion3 && _iterator3.return) {
-							_iterator3.return();
-						}
-					} finally {
-						if (_didIteratorError3) {
-							throw _iteratorError3;
-						}
-					}
-				}
-			} else if (kind === 'intermediateTarget') {
-				var _iteratorNormalCompletion4 = true;
-				var _didIteratorError4 = false;
-				var _iteratorError4 = undefined;
-
-				try {
-					for (var _iterator4 = controlPoints[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-						var _point = _step4.value;
-
-						_point.disp.lat = (1 - value) * _point.original.lat + value * _point.target.lat;
-						_point.disp.lng = (1 - value) * _point.original.lng + value * _point.target.lng;
-					}
-				} catch (err) {
-					_didIteratorError4 = true;
-					_iteratorError4 = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion4 && _iterator4.return) {
-							_iterator4.return();
-						}
-					} finally {
-						if (_didIteratorError4) {
-							throw _iteratorError4;
-						}
-					}
-				}
-			} else {
-				var _iteratorNormalCompletion5 = true;
-				var _didIteratorError5 = false;
-				var _iteratorError5 = undefined;
-
-				try {
-					for (var _iterator5 = this.controlPoints[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-						var _point2 = _step5.value;
-
-						_point2.disp.lat = _point2[type].lat;
-						_point2.disp.lng = _point2[type].lng;
-					}
-				} catch (err) {
-					_didIteratorError5 = true;
-					_iteratorError5 = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion5 && _iterator5.return) {
-							_iterator5.return();
-						}
-					} finally {
-						if (_didIteratorError5) {
-							throw _iteratorError5;
-						}
-					}
-				}
-			}
-		}
-	}]);
-
-	return TgMapGrid;
-}();
-
-module.exports = TgMapGrid;
-
-/***/ }),
-/* 21 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var TgMapInteraction = function (_ol$interaction$Point) {
-  _inherits(TgMapInteraction, _ol$interaction$Point);
-
-  function TgMapInteraction(map) {
-    _classCallCheck(this, TgMapInteraction);
-
-    var _this = _possibleConstructorReturn(this, (TgMapInteraction.__proto__ || Object.getPrototypeOf(TgMapInteraction)).call(this));
-
-    _this.map = map;
-    _this.data = map.data;
-    _this.coordinate_ = null;
-    _this.cursor_ = 'pointer';
-    _this.feature_ = null;
-    _this.previousCursor_ = undefined;
-    _this.dragging = false;
-    _this.draggedObject = null;
-
-    ol.interaction.Pointer.call(_this, {
-      handleDownEvent: _this.handleDownEvent,
-      handleDragEvent: _this.handleDragEvent,
-      handleMoveEvent: _this.handleMoveEvent,
-      handleUpEvent: _this.handleUpEvent
-    });
-    return _this;
-  }
-
-  _createClass(TgMapInteraction, [{
-    key: 'handleDownEvent',
-    value: function handleDownEvent(evt) {
-      var feature = evt.map.forEachFeatureAtPixel(evt.pixel, function (feature) {
-        return feature;
-      });
-
-      if (feature) {
-
-        switch (feature.type) {
-          case 'origin':
-            this.dragging = true;
-            this.draggedObject = feature.type;
-            this.coordinate_ = evt.coordinate;
-            this.feature_ = feature;
-            break;
-          case 'loc':
-            console.log(feature.source);
-            this.map.tgLocs.showModal(feature.source);
-            break;
-          case 'cLoc':
-            console.log(feature.source);
-            break;
-        }
-
-        //console.log('handleDown');
-        //console.log(feature.type);
-        //console.log(feature);
-      }
-
-      return !!feature;
-    }
-  }, {
-    key: 'handleDragEvent',
-    value: function handleDragEvent(evt) {
-      if (this.dragging) {
-        var deltaX = evt.coordinate[0] - this.coordinate_[0];
-        var deltaY = evt.coordinate[1] - this.coordinate_[1];
-        var geometry = this.feature_.getGeometry();
-        geometry.translate(deltaX, deltaY);
-
-        this.coordinate_[0] = evt.coordinate[0];
-        this.coordinate_[1] = evt.coordinate[1];
-
-        //console.log('handleDrag');
-      }
-    }
-  }, {
-    key: 'handleMoveEvent',
-    value: function handleMoveEvent(evt) {
-      if (this.cursor_) {
-        var feature = evt.map.forEachFeatureAtPixel(evt.pixel, function (feature) {
-          return feature;
-        });
-        var element = evt.map.getTargetElement();
-
-        if (feature) {
-          if (feature.type === 'origin') {
-            if (element.style.cursor != this.cursor_) {
-              this.previousCursor_ = element.style.cursor;
-              element.style.cursor = this.cursor_;
-            }
-          } else if (this.previousCursor_ !== undefined) {
-            element.style.cursor = this.previousCursor_;
-            this.previousCursor_ = undefined;
-          }
-        }
-        //console.log('handleMove');
-      }
-    }
-  }, {
-    key: 'handleUpEvent',
-    value: function handleUpEvent(evt) {
-      this.coordinate_ = null;
-      this.feature_ = null;
-
-      if (this.dragging) {
-        this.dragging = false;
-        var pt = ol.proj.transform([evt.coordinate[0], evt.coordinate[1]], 'EPSG:3857', 'EPSG:4326');
-
-        switch (this.draggedObject) {
-          case 'origin':
-            this.map.setCenter(pt[1], pt[0]);
-            break;
-        }
-      }
-
-      return false;
-    }
-  }]);
-
-  return TgMapInteraction;
-}(ol.interaction.Pointer);
-
-module.exports = TgMapInteraction;
 
 /***/ })
 /******/ ]);

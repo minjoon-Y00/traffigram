@@ -1,7 +1,7 @@
 /**
  * Class for control points.
  */
-const tgUtil = require('../tg_util');
+const TgUtil = require('../tg_util');
 const TgTravelTimeApi = require('../api/tg_travel_time_api');
 const TgControlPoint = require('../node/tg_control_point');
 
@@ -50,7 +50,7 @@ class TgMapControl {
 		 * api object for getting travel time.
 		 * @private @type {!TravelTimeApi>} 
 		 */
-		this.travelTimeApi = new TgTravelTimeApi();
+		this.travelTimeApi = new TgTravelTimeApi(this.data);
 
 		/** 
 		 * Map object to cache travel time.
@@ -521,7 +521,7 @@ class TgMapControl {
 			pointsArray[i] = this.controlPoints[pointIndexes[i]];
 		}
 
-		const ab = tgUtil.abByFFT(pointsArray, 'original', 5);
+		const ab = TgUtil.abByFFT(pointsArray, 'original', 5);
 		newGrid.a = ab.as;
 		newGrid.b = ab.bs;
 	}
@@ -760,21 +760,20 @@ class TgMapControl {
 	}*/
 
 	getCenterControlPoint() {
-		var threshold = 0.0001
-		var dist
+		const threshold = 0.0001;
 
-		for(var i = 0; i < this.controlPoints.length; i++) {
-			dist = tgUtil.D2(
+		for(let i = 0; i < this.controlPoints.length; i++) {
+			const dist = TgUtil.D2(
 				this.controlPoints[i].original.lat, 
 				this.controlPoints[i].original.lng,
 				this.map.tgOrigin.origin.original.lat, 
 				this.map.tgOrigin.origin.original.lng)
-			if (dist < threshold) return i
+			if (dist < threshold) return i;
 		}
 
-		if (i == this.controlPoints.length) {
-			console.log('could not find center control point')
-			return -1
+		if (i === this.controlPoints.length) {
+			console.log('could not find center control point');
+			return -1;
 		}
 	}
 
@@ -786,126 +785,6 @@ class TgMapControl {
 	  //if (theta < 0) theta = 360 + theta; // range [0, 360)
 	  return theta;
 	}
-
-	calTargets() {
-		var target
-		for(var i = 0; i < this.controlPoints.length; i++) {
-			target = this.graph.transform(
-				this.controlPoints[i].original.lat, this.controlPoints[i].original.lng)
-			this.controlPoints[i].target.lat = target.lat
-			this.controlPoints[i].target.lng = target.lng
-		}
-	}
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-	// Drawing Part
-	//////////////////////////////////////////////////////////////////////////////////////////
-
-	/** 
-	 * create a control point layer and add to olMap.
-	 */
-	/*drawControlPointLayer() {
-		let features = [];
-		const viz = this.data.viz;
-
-		for(let point of this.controlPoints) {
-			// draw control points
-			this.mapUtil.addFeatureInFeatures(
-					features,
-					new ol.geom.Point(
-							[point.disp.lng, point.disp.lat]), 
-							this.mapUtil.nodeStyle(
-									viz.color.controlPoint, 
-									viz.radius.controlPoint));
-
-			// draw additional lines if there is a difference between target and real.
-			if ((point.target.lng != point.disp.lng) 
-				|| (point.target.lat != point.disp.lat)) {
-
-				this.mapUtil.addFeatureInFeatures(
-						features, 
-						new ol.geom.LineString(
-								[[point.disp.lng, point.disp.lat], [point.target.lng, point.target.lat]]), 
-								this.mapUtil.lineStyle(
-									viz.color.controlPointLine, viz.width.controlPointLine));
-			}
-
-			// add text
-			let text = (point.travelTime != null) ? point.travelTime.toString() : '-';
-			text += ',' + point.index;
-			this.mapUtil.addFeatureInFeatures(
-					features,
-					new ol.geom.Point(
-							[point.disp.lng, point.disp.lat]), 
-							this.mapUtil.textStyle({
-									text: text, color: viz.color.text, font: viz.font.text
-								}));
-		}
-
-		this.removeControlPointLayer();
-		this.controlPointLayer = this.mapUtil.olVectorFromFeatures(features);
-		this.controlPointLayer.setZIndex(viz.z.controlPoint);
-	  this.mapUtil.addLayer(this.controlPointLayer);
-	}*/
-
-	/** 
-	 * remove a control point layer if exists.
-	 */
-	/*removeControlPointLayer() {
-		this.mapUtil.removeLayer(this.controlPointLayer);
-	}*/
-
-	/** 
-	 * create a grid layer and add to olMap.
-	 */
-	/*drawGridLayer() {
-		let features = [];
-		const viz = this.data.viz;
-
-		for(let line of this.gridLines) {
-			this.mapUtil.addFeatureInFeatures(
-					features, 
-					new ol.geom.LineString(
-							[[line.start.disp.lng, line.start.disp.lat], 
-							[line.end.disp.lng, line.end.disp.lat]]), 
-							this.mapUtil.lineStyle(viz.color.grid, viz.width.grid));
-		}
-
-		this.removeGridLayer();
-		this.gridLayer = this.mapUtil.olVectorFromFeatures(features);
-		this.gridLayer.setZIndex(viz.z.grid);
-		this.mapUtil.addLayer(this.gridLayer);
-	}*/
-
-	/** 
-	 * remove a control point layer if exists.
-	 */
-	/*removeGridLayer() {
-		this.mapUtil.removeLayer(this.gridLayer)
-	}*/
-
-	/*calDispNodes(type, value) {
-		if (type === 'intermediateReal') {
-			for(let point of this.controlPoints) {
-				point.disp.lat = (1 - value) * point.original.lat + value * point.real.lat;
-				point.disp.lng = (1 - value) * point.original.lng + value * point.real.lng;
-			}
-		}
-		else if (type === 'intermediateTarget') {
-			for(let point of this.controlPoints) {
-				point.disp.lat = (1 - value) * point.original.lat + value * point.target.lat;
-				point.disp.lng = (1 - value) * point.original.lng + value * point.target.lng;
-			}
-		}
-		else {
-			for(let point of this.controlPoints) {
-				point.disp.lat = point[type].lat;
-				point.disp.lng = point[type].lng;
-			}
-		}
-	}*/
-
-
 
 	getIJ(idx) {
 		return {
@@ -966,7 +845,7 @@ class TgMapControl {
 					//if ((line1.start.intersected)||(line1.end.intersected)||
 						//(line2.start.intersected)||(line2.end.intersected)) continue;
 
-					if (tgUtil.intersects(
+					if (TgUtil.intersects(
 							line1.start.real.lat, line1.start.real.lng, 
 							line1.end.real.lat, line1.end.real.lng, 
 							line2.start.real.lat, line2.start.real.lng, 
@@ -1042,11 +921,11 @@ class TgMapControl {
 					for(let i = 0; i < grid.pointIndexes.length; i++) {
 						pointsArray[i] = this.controlPoints[grid.pointIndexes[i]];
 					}
-					const abReal = tgUtil.abByFFT(pointsArray, 'real', 5);
+					const abReal = TgUtil.abByFFT(pointsArray, 'real', 5);
 
 					let dif = 0;
 					for(let i = 0; i < abReal.as.length; i++) {
-						dif += tgUtil.D2(grid.a[i], grid.b[i], abReal.as[i], abReal.bs[i]);
+						dif += TgUtil.D2(grid.a[i], grid.b[i], abReal.as[i], abReal.bs[i]);
 					}
 					//console.log('dif: ' + dif);
 					if (dif > threshold) {

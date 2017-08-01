@@ -1,0 +1,44 @@
+0_0 top: 45 hots: 77 others: 632
+0_1 top: 8 hots: 16 others: 293
+0_2 top: 5 hots: 7 others: 26
+0_3 top: 5 hots: 6 others: 103
+0_4 top: 15 hots: 36 others: 185
+0_5 top: 18 hots: 43 others: 345
+0_6 top: 12 hots: 89 others: 351
+0_7 top: 7 hots: 40 others: 99
+0_8 top: 4 hots: 24 others: 189
+0_9 top: 4 hots: 17 others: 30
+0_10 top: 2 hots: 18 others: 55
+
+1_0 top: 23 hots: 320 others: 776
+1_1 top: 1 hots: 8 others: 48
+1_2 top: 0 hots: 17 others: 11
+1_3 top: 2 hots: 24 others: 103
+1_4 top: 5 hots: 80 others: 106
+1_5 top: 8 hots: 45 others: 133
+
+2_0 top: 1 hots: 24 others: 28
+2_1 top: 2 hots: 27 others: 25
+2_2 top: 0 hots: 0 others: 1
+2_3 top: 1 hots: 194 others: 232
+2_4 top: 0 hots: 16 others: 23
+2_5 top: 0 hots: 2 others: 7
+2_6 top: 1 hots: 1 others: 1
+2_7 top: 0 hots: 146 others: 57
+
+3_0 top: 0 hots: 179 others: 111
+3_1 top: 0 hots: 45 others: 38
+3_2 top: 0 hots: 71 others: 139
+3_3 top: 1 hots: 12 others: 109
+3_4 top: 0 hots: 32 others: 227
+3_5 top: 0 hots: 33 others: 108
+3_6 top: 1 hots: 468 others: 696
+3_7 top: 0 hots: 94 others: 342
+
+4_0 top: 51 hots: 159 others: 832
+4_1 top: 1 hots: 4 others: 8
+4_2 top: 0 hots: 2 others: 5
+4_3 top: 1 hots: 6 others: 40
+4_4 top: 0 hots: 4 others: 5
+4_5 top: 1 hots: 22 others: 60
+4_6 top: 1 hots: 7 others: 25

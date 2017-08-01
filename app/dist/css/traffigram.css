@@ -1,16 +1,34 @@
-.cb {
-	margin-right: 15px;
-	margin-top: 5px;
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#ol_map {
+	background-color: #EAEAEA;
 }
 
 .ol_map {
+	border-style: inset;
+	margin: 10px;
+  padding: 10px;
 	//width: 600px; // 540px
 	//height: 900px; // 960px
-	border-style: inset;
 	width: 100%;
 	height: 100%;
-	background-color: #EAEAEA; //rgba(234,234,234,1);
-	margin: 10px;
+}
+
+.ol_map_mobile {
+	margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cb {
+	margin-right: 15px;
+	margin-top: 5px;
 }
 
 .ol-control.ol-zoom {
@@ -35,4 +53,36 @@
 
 .marginB {
 	margin-bottom: 5px;
+}
+
+.tooltip {
+  position: relative;
+  padding: 3px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  opacity: 0.7;
+  white-space: nowrap;
+  font: 10pt sans-serif;
+}
+
+#maxLocsSlider .slider-track-low {
+  //background: green;
+}
+
+#numRatingSlider #priceRangeSlider #ratingSlider .slider-selection {
+  background: green;
+}
+
+/* mobile specific */
+@media only screen and (max-width: 600px) {
+    body {
+        height           : 100%;
+        margin           : 0;
+        padding          : 0;
+        width            : 100%;
+    }
+    #ol_map {
+        height           : 100%;
+        width      : 100%;
+    }
 }

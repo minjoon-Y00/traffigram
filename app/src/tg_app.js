@@ -4,8 +4,8 @@ const TgGraph = require('./tg_graph');
 
 class TgApp {
 	constructor(map_id) {
-		this.graph = new TgGraph(this);
 		this.data = TgData;
+		this.graph = new TgGraph(this, this.data);
 		this.map = new TgMap(this, map_id);
 
 	  //this.map.setArea('seattleDowntown');
@@ -14,12 +14,20 @@ class TgApp {
 	  //this.map.setArea('sfLombard');
 	}
 
-	setCurrentLocationToOrigin() {
-		this.map.setOriginByCurrentLocation();
+	setOriginAsHome() {
+		this.map.tgOrigin.setOriginByPreset('home');
 	}
 
-	setOriginAndGo(param) {
-		this.map.setOrigin(param);
+	setOriginAsOffice() {
+		this.map.tgOrigin.setOriginByPreset('office');
+	}
+
+	setOriginAsCurrentLocation() {
+		this.map.tgOrigin.setOriginByCurrentLocation();
+	}
+
+	setOriginByAddress(adress) {
+		this.map.tgOrigin.setOriginByAddress(adress);
 	}
 
 	initMap() {

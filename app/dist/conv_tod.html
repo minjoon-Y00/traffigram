@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>CONVERT TOD</title>
+  <script src="./data/tod.js"></script>
+</head>
+<body>
+
+<script>
+	
+console.log(tod);
+
+let results = new Array(5);
+let mainIdx = 0;
+let subIdx = 0;
+
+for(let mainTod of tod) { // 5
+	subIdx = 0;
+	results[mainIdx] = [];
+
+	for(let subTod of mainTod) { // 7 (if restaurant)
+		let tops = [];
+		let hots = [];
+		let normals = [];
+		for(let dest of subTod) {
+			if ((dest.rating >= 4) && (dest.rating_cnt >= 500)) {
+				dest.top = 1;
+				tops.push(dest);
+			}
+			else if (dest.rating >= 4.5) {
+				dest.hot = 1;
+				hots.push(dest);
+			}
+			else {
+				normals.push(dest);
+			}
+		}
+
+		console.log(mainIdx + '_' + subIdx + ' top: ' + tops.length + 
+				' hots: ' + hots.length + ' others: ' + normals.length);
+
+		tops.sort((a, b) => {return b.rating - a.rating});
+		hots.sort((a, b) => {return b.rating - a.rating});
+		normals.sort((a, b) => {return b.rating - a.rating});
+
+		results[mainIdx].push(tops.concat(hots).concat(normals));
+		subIdx++;
+	}
+	mainIdx++;
+}
+
+console.log(results);
+
+saveTextAsFile(results, 'tod_th.js');
+
+
+function saveTextAsFile(textToWrite, fileNameToSaveAs) {
+  textToWrite = JSON.stringify(textToWrite)
+  var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'})
+  var downloadLink = document.createElement("a")
+  downloadLink.download = fileNameToSaveAs
+  downloadLink.innerHTML = "Download File"
+  downloadLink.href = window.URL.createObjectURL(textFileAsBlob)
+  downloadLink.click()
+}
+
+
+
+
+</script>
+
+</body>
+</html>

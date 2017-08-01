@@ -1,40 +1,37 @@
-const tgUtil = require('./tg_util');
+const TgUtil = require('./tg_util');
 
 class TgGraph {
-	constructor(tg) {
+	constructor(tg, data) {
 		this.tg = tg;
+		this.data = data;
 		this.tpsTarget = null;
 		this.tpsReal = null;
 	}
 
 	calWarping(noNeedToCalFactor) {
-		this.tg.map.setTime('controlPointWarping', 'start', (new Date()).getTime());
+		const ctlPts = this.tg.map.tgControl.controlPoints;
 
-		var ctlPts = this.tg.map.tgControl.controlPoints;
 		this.calDegrees(ctlPts);
 		if (!noNeedToCalFactor) this.factor = this.calFactor(ctlPts);
 		this.calTargetNodesOfCtlPts();
-
-		this.tg.map.setTime('controlPointWarping', 'end', (new Date()).getTime());
-		//console.log('factor = ' + this.factor);
 	}
 
 	//
 	// calculate the degrees of all nodes.
 	//
 	calDegrees(nodes) {
-		var xLat = this.tg.map.tgOrigin.origin.original.lat
-		var xLng = this.tg.map.tgOrigin.origin.original.lng
-	  var yLat, yLng, deg
+		const cLat = this.tg.map.tgOrigin.origin.original.lat;
+		const cLng = this.tg.map.tgOrigin.origin.original.lng;
 
-	  for(var i = 0; i < nodes.length; i++) {
-	  	yLat = nodes[i].original.lat
-	    yLng = nodes[i].original.lng
-	    
-	    deg = Math.atan((yLng - xLng) / (yLat - xLat))
-	    if ((xLat == yLat)&&(xLng == yLng)) deg = 0
-	    if ((yLat - xLat) < 0) deg = deg + Math.PI
-	    nodes[i].deg = deg
+	  for(let node of nodes) {
+	  	const lat = node.original.lat;
+	    const lng = node.original.lng;
+	    let deg = Math.atan((lng - cLng) / (lat - cLat));
+	    //let deg = Math.atan((lng - cLng) * this.shrink() / (lat - cLat));
+
+	    if ((cLat === lat) && (cLng === lng)) deg = 0;
+	    if ((lat - cLat) < 0) deg += Math.PI;
+	    node.deg = deg;
 	  }
 	}
 
@@ -47,13 +44,11 @@ class TgGraph {
 		let eps = 10;
 
 		for(let time = 0; time < MAX_ITERATION; time++) {
-
-			//console.log('[' + start + ', ' + end + ']');
-
 			const half = (start + end) / 2;
 			const dif = this.calDifference(half, nodes, cLat, cLng);
 			const after_dif = this.calDifference(half + eps, nodes, cLat, cLng);
 
+			//console.log('[' + start + ', ' + end + ']');
 			//console.log(dif + ' - ' + after_dif);
 
 			if (dif < after_dif) {
@@ -67,180 +62,176 @@ class TgGraph {
 	}
 
 	calDifference(factor, nodes, cLat, cLng) {
-		var lenNodes = nodes.length
-		var target = Array(lenNodes)
-		var len
+		const lenNodes = nodes.length;
+		let target = Array(lenNodes);
 
-		for(var i = 0; i < lenNodes; i++) {
-			target[i] = {lat:0, lng:0}
+		for(let i = 0; i < lenNodes; i++) {
+			target[i] = {lat: 0, lng: 0};
 		}
 		
-		for(var i = 0; i < lenNodes; i++) {
+		for(let i = 0; i < lenNodes; i++) {
 			if (nodes[i].travelTime) {
-				len = nodes[i].travelTime / factor
-	  		target[i].lat = cLat + len * Math.cos(nodes[i].deg)
-	  		target[i].lng = cLng + len * Math.sin(nodes[i].deg) * this.toLat();
+				const len = nodes[i].travelTime / factor;
+	  		target[i].lat = cLat + len * Math.cos(nodes[i].deg);
+	  		target[i].lng = cLng + len * Math.sin(nodes[i].deg) * this.magnify();
+	  		//target[i].lng = cLng + len * Math.sin(nodes[i].deg);
 	  	}
 		}
 
-		var sum = 0
-		for(var i = 0; i < lenNodes; i++) {
+		let sum = 0;
+		for(let i = 0; i < lenNodes; i++) {
 	   	if (nodes[i].travelTime) {
-   			sum +=  tgUtil.D2(
+   			sum +=  TgUtil.D2(
+   			//sum += tgUtil.distance(
    				nodes[i].original.lat, nodes[i].original.lng, target[i].lat, target[i].lng)
 	   	}
 	  }
-	  return sum
+	  return sum;
 	}
 
 
 	calTargetNodesOfCtlPts() {
-		var nodes = this.tg.map.tgControl.controlPoints
-		var xLat = this.tg.map.tgOrigin.origin.original.lat
-		var xLng = this.tg.map.tgOrigin.origin.original.lng
+		const nodes = this.tg.map.tgControl.controlPoints;
+		const cLat = this.tg.map.tgOrigin.origin.original.lat;
+		const cLng = this.tg.map.tgOrigin.origin.original.lng;
 
-	  for(var i = 0; i < nodes.length; i++) {
-			if (nodes[i].travelTime) {
-				nodes[i].len = nodes[i].travelTime / this.factor
-				nodes[i].target.lat = xLat + nodes[i].len * Math.cos(nodes[i].deg)
-				nodes[i].target.lng = 
-						xLng + nodes[i].len * Math.sin(nodes[i].deg) * this.toLat();
+	  for(let node of nodes) {
+			if (node.travelTime) {
+				node.len = node.travelTime / this.factor;
+				//node.len = tgUtil.D2(cLat, cLng, node.original.lat, node.original.lng);
+				node.target.lat = cLat + node.len * Math.cos(node.deg);
+				node.target.lng = cLng + node.len * Math.sin(node.deg) * this.magnify();
+				//node.target.lng = cLng + node.len * Math.sin(node.deg);
 			}
 			else {
-				nodes[i].target.lat = nodes[i].original.lat
-				nodes[i].target.lng = nodes[i].original.lng
+				node.target.lat = node.original.lat
+				node.target.lng = node.original.lng
 			}
 
-	    if ((xLat == nodes[i].original.lat)&&(xLng == nodes[i].original.lng)) {
-	    	nodes[i].len = 0;
-	  		nodes[i].target.lat = xLat
-	  		nodes[i].target.lng = xLng
+	    if ((cLat === node.original.lat) && (cLng === node.original.lng)) {
+	    	node.len = 0;
+	  		node.target.lat = cLat;
+	  		node.target.lng = cLng;
 	    }
 
-	    nodes[i].real.lat = nodes[i].target.lat;
-	    nodes[i].real.lng = nodes[i].target.lng;
+	    node.real.lat = node.target.lat;
+	    node.real.lng = node.target.lng;
 	  }
 	}
 
 	toLat() {
-		/*
+		
 		let heightPX = $('#ol_map').css('height'); 
-  	heightPX = Number(heightPX.slice(0, heightPX.length - 2));
-		const heightLat = this.data.box.top - this.data.box.bottom;
-		const latPerPx = heightLat / heightPX;
+  	heightPX = Number(heightPX.slice(0, heightPX.length - 2)); // 900
+		const heightLat = this.data.box.top - this.data.box.bottom; // 0.052025323579982796
+		const latPerPx = heightLat / heightPX; // 0.00005780591508886977
 
-		let widthPX = $('#ol_map').css('width');  
-  	widthPX = Number(widthPX.slice(0, widthPX.length - 2));
-  	const widthLng = this.data.box.right - this.data.box.left;
-		const lngPerPx = widthLng / widthPX;
+		let widthPX = $('#ol_map').css('width'); 
+  	widthPX = Number(widthPX.slice(0, widthPX.length - 2)); // 570
+  	const widthLng = this.data.box.right - this.data.box.left; // 0.048923492431640625
+		const lngPerPx = widthLng / widthPX; // 0.0000858306884765625
 
+		console.log('---');
+		console.log(heightPX);
+		console.log(heightLat);
+		console.log(latPerPx);
+
+		console.log(widthPX);
+		console.log(widthLng);
+		console.log(lngPerPx);
+
+		/*
 		return lngPerPx / latPerPx;
 		*/
 		
-	  return 0.00016965364355785907 / 0.00011481966468342245; //org
+	  return 0.00016965364355785907 / 0.00011481966468342245; //1.477566
 	}
 
-	//
-	//
-	//
+	shrink() {
+		return 0.00005780591508886977 / 0.0000858306884765625; // 0.673487725
+
+		let heightPX = $('#ol_map').css('height'); 
+  	heightPX = Number(heightPX.slice(0, heightPX.length - 2)); // 900
+		const heightLat = this.data.box.top - this.data.box.bottom; // 0.052025323579982796
+		const latPerPx = heightLat / heightPX; // 0.00005780591508886977
+
+		let widthPX = $('#ol_map').css('width'); 
+  	widthPX = Number(widthPX.slice(0, widthPX.length - 2)); // 570
+  	const widthLng = this.data.box.right - this.data.box.left; // 0.048923492431640625
+		const lngPerPx = widthLng / widthPX; // 0.0000858306884765625
+
+		console.log(latPerPx / lngPerPx);
+		return latPerPx / lngPerPx;
+
+	}
+
+	magnify() {
+		return 0.0000858306884765625 / 0.00005780591508886977; // 1.484808
+
+		let heightPX = $('#ol_map').css('height'); 
+  	heightPX = Number(heightPX.slice(0, heightPX.length - 2)); // 900
+		const heightLat = this.data.box.top - this.data.box.bottom; // 0.052025323579982796
+		const latPerPx = heightLat / heightPX; // 0.00005780591508886977
+
+		let widthPX = $('#ol_map').css('width'); 
+  	widthPX = Number(widthPX.slice(0, widthPX.length - 2)); // 570
+  	const widthLng = this.data.box.right - this.data.box.left; // 0.048923492431640625
+		const lngPerPx = widthLng / widthPX; // 0.0000858306884765625
+
+		return lngPerPx / latPerPx;
+	}
+
 	TPSSolve() {
+		const nodes = this.tg.map.tgControl.controlPoints
+  	let ptTarget = [];
+  	let ptReal = [];
+  	let counter = 0
 
-		/*
-		// rearrangement
-		var dLat = (this.data.box.top - this.data.box.bottom) / (this.data.var.resolution.gridLat - 1)
-		var dLng = (this.data.box.right - this.data.box.left) / (this.data.var.resolution.gridLng - 1)
-		var lngL, latB
-		var nodes = [];
-
-		for(var i = 0; i < this.data.var.resolution.gridLat; i++) {
-			for(var j = 0; j < this.data.var.resolution.gridLng; j++) {
-
-				lngL = this.data.box.left + dLng * j
-				latB = this.data.box.bottom + dLat * i
-
-				var min_dist = Number.MAX_VALUE
-				var dist, min_k = 0
-
-				for(var k = 0; k < ctlPts.length; k++) {
-					dist = tgUtil.D2(latB, lngL, ctlPts[k].original.lat, ctlPts[k].original.lng)
-
-					if (dist < min_dist) {
-						min_dist = dist
-						min_k = k
-					}
-				}
-				nodes.push(ctlPts[min_k])
-			}
-		}
-
-		console.log(nodes)
-		*/
-
-		this.tg.map.setTime('tpsCalculating', 'start', (new Date()).getTime());
-
-
-		var nodes = this.tg.map.tgControl.controlPoints
-  	var ptTarget = [];
-  	var ptReal = [];
-  	var counter = 0
-
-  	for(var i = 0; i < nodes.length; i++) { 
-	    ptTarget[counter] = [[nodes[i].original.lat, nodes[i].original.lng], 
-	    	[nodes[i].target.lat, nodes[i].target.lng]]
-	    ptReal[counter] = [[nodes[i].original.lat, nodes[i].original.lng], 
-	    	[nodes[i].real.lat, nodes[i].real.lng]]
-	    counter++
-	    //console.log(nodes[i].original.lat + '->' + nodes[i].target.lat)
-	    //console.log(nodes[i].original.lng + '->' + nodes[i].target.lng)
+  	for(let n of nodes) { 
+	    ptTarget[counter] = 
+	    		[[n.original.lat, n.original.lng], [n.target.lat, n.target.lng]];
+	    ptReal[counter] = 
+	    		[[n.original.lat, n.original.lng], [n.real.lat, n.real.lng]];
+	    counter++;
 	  }
 
-	  this.tpsTarget = new ThinPlateSpline()
-	  this.tpsTarget.push_points(ptTarget)
-	  this.tpsTarget.solve()
+	  this.tpsTarget = new ThinPlateSpline();
+	  this.tpsTarget.push_points(ptTarget);
+	  this.tpsTarget.solve();
 
-	  this.tpsReal = new ThinPlateSpline()
-	  this.tpsReal.push_points(ptReal)
-	  this.tpsReal.solve()
-
-		this.tg.map.setTime('tpsCalculating', 'end', (new Date()).getTime());
-
+	  this.tpsReal = new ThinPlateSpline();
+	  this.tpsReal.push_points(ptReal);
+	  this.tpsReal.solve();
 	}
 
 	TPSTest() {
 		if ((!this.tpsTarget)||(!this.tpsReal)) {
-			console.log('TPS is null')
-			return false
+			console.log('TPS is null');
+			return false;
 		}
 
-		var lat = this.tg.map.tgOrigin.origin.original.lat
-		var lng = this.tg.map.tgOrigin.origin.original.lng
-		var trpt = this.tpsTarget.transform([lat, lng], false)
-		var d = tgUtil.D2(lat, lng, trpt[0], trpt[1])
+		const lat = this.tg.map.tgOrigin.origin.original.lat;
+		const lng = this.tg.map.tgOrigin.origin.original.lng;
+		const pt = this.tpsTarget.transform([lat, lng], false);
+		const d = TgUtil.D2(lat, lng, pt[0], pt[1]);
 
-		if (d < 0.1) {
-			return true
-		}
+		if (d < 0.1) return true;
 		else {
-			console.log(lat + '->' + trpt[0])
-			console.log(lng + '->' + trpt[1])
-			console.log('d = ' + d)
-			return false
+			console.log(lat + '->' + pt[0]);
+			console.log(lng + '->' + pt[1]);
+			console.log('d = ' + d);
+			return false;
 		}
 	}
 
 	transformTarget(lat, lng) {
-		var trpt = this.tpsTarget.transform([lat, lng], false)
-		return {lat:trpt[0], lng:trpt[1]}
+		const pt = this.tpsTarget.transform([lat, lng], false);
+		return {lat: pt[0], lng: pt[1]};
 	}
 
 	transformReal(lat, lng) {
-		var trpt = this.tpsReal.transform([lat, lng], false)
-		return {lat:trpt[0], lng:trpt[1]}
-	}
-
-	transform(lat, lng) {
-		var trpt = this.tpsReal.transform([lat, lng], false)
-		return {lat:trpt[0], lng:trpt[1]}
+		const pt = this.tpsReal.transform([lat, lng], false);
+		return {lat: pt[0], lng: pt[1]};
 	}
 }
 

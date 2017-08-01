@@ -1,0 +1,38 @@
+Searching 25 files for "mapzen-dKpzpj5"
+
+/Users/elska/Sites/TG/tg/app/src/map/tg_map_landuse.js:
+   60  	    	+ 'api_key=vector-tiles-c1X4vZE'
+   61  	    //url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' 
+   62: 	    //	+ 'api_key=mapzen-dKpzpj5'
+   63  		});
+   64  
+
+/Users/elska/Sites/TG/tg/app/src/map/tg_map_origin.js:
+  104  		return new Promise((resolve, reject) => {
+  105  			const key = 'vector-tiles-c1X4vZE';
+  106: 			//const key = 'mapzen-dKpzpj5';
+  107  			const url = 'https://search.mapzen.com/v1/search?api_key=' + key + '&text=' + address;
+  108  			$.get(url)
+
+/Users/elska/Sites/TG/tg/app/src/map/tg_map_places.js:
+   49  	    	+ 'api_key=vector-tiles-c1X4vZE'
+   50  	    //url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' 
+   51: 	    //	+ 'api_key=mapzen-dKpzpj5'
+   52  		});
+   53  
+
+/Users/elska/Sites/TG/tg/app/src/map/tg_map_roads.js:
+   63  	    	+ 'api_key=vector-tiles-c1X4vZE'
+   64  	    //url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' 
+   65: 	    //	+ 'api_key=mapzen-dKpzpj5'
+   66  	  })
+   67  
+
+/Users/elska/Sites/TG/tg/app/src/map/tg_map_water.js:
+   58  	    	+ 'api_key=vector-tiles-c1X4vZE'
+   59  	    //url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' 
+   60: 	    //	+ 'api_key=mapzen-dKpzpj5'
+   61  		})
+   62  
+
+5 matches across 5 files

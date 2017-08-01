@@ -6,25 +6,11 @@ const tg = new TgApp('ol_map');
 /*
  * For the origin setting
  */
-const myHome = {
+/*const myHome = {
 	address: '4225 24th Ave. NE, Seattle, WA',
 	lat: 47.6631772,
 	lng: -122.3104933,
 };
-
-/* 
-followings are also possible:
-
-const myHome = {
-	address: '4225 24th Ave. NE Seattle',
-	// if lat and lng are omitted, the app search them automatically.
-};
-
-const myHome = {
-	lat: 47.706846,
-	lng: -122.302471,
-	// providing lat and lng make the app faster.
-};*/
 
 const myOffice = {
 	address: '3960 Benton Lane NE, Seattle, WA',
@@ -32,44 +18,54 @@ const myOffice = {
 
 const otherPlace = {
 	address: '1000 4th Ave, Seattle, WA 98104',
-}
+}*/
+
+const otherAddress = '1000 4th Ave, Seattle, WA 98104';
+
+const favorites = ["Tilikum Place Cafe", "Radiator Whiskey", "The Zig Zag CafÃ©",
+  "Pike Place Chowder", "Art of The Table", "SkyCity at the Needle", 
+  "Canlis", "Von's Gustobistro", "Purple CafÃ© and Wine Bar", "LecÅsho", "Olde 99 Pub"];
+
+tg.map.tgLocs.setFavorites(favorites);
+
 
 // default: myHome
-tg.setOriginAndGo(myHome);
-//tg.setOriginAndGo(myOffice);
-//tg.setOriginAndGo(otherPlace);
+tg.setOriginAsHome();
+//tg.setOriginAsOffice();
+//tg.setOriginByAddress(otherAddress);
+
 
 // ui for origin setting
-$("#yourHomeInput").val(myHome.address);
-$("#yourOfficeInput").val(myOffice.address);
-$("#otherPlaceInput").val(otherPlace.address);
-
-$("#originYourLocationRB").change(function(ev){
-  if (ev.target.checked) {
-  	tg.initMap();
-  	tg.setCurrentLocationToOrigin();
-  }
-});
+$("#yourHomeInput").val(tg.data.origin.home.address);
+$("#yourOfficeInput").val(tg.data.origin.office.address);
+$("#otherPlaceInput").val(otherAddress);
 
 $("#originYourHomeRB").change(function(ev){
   if (ev.target.checked) {
   	tg.initMap();
-  	tg.setOriginAndGo(myHome);
+  	tg.setOriginAsHome();
   }
 });
 
 $("#originYourOfficeRB").change(function(ev){
   if (ev.target.checked) {
   	tg.initMap();
-  	tg.setOriginAndGo(myOffice);
+  	tg.setOriginAsOffice();
   }
 });
 
 $("#originOtherPlaceRB").change(function(ev){
   if (ev.target.checked) {
   	tg.initMap();
-  	otherPlace.address = $("#otherPlaceInput").val();
-  	tg.setOriginAndGo(otherPlace);
+  	const address = $("#otherPlaceInput").val();
+  	tg.setOriginByAddress(address);
+  }
+});
+
+$("#originYourLocationRB").change(function(ev){
+  if (ev.target.checked) {
+    tg.initMap();
+    tg.setOriginAsCurrentLocation();
   }
 });
 
@@ -131,7 +127,7 @@ $("#transportOnFootRB").change(function(ev){
 /*
  * For the type of the destination
  */
-$("#locationRestaurantRB").change(function(ev){
+/*$("#locationRestaurantRB").change(function(ev){
 	if (ev.target.checked) {
 		tg.map.tgLocs.changeType('food');
 	} 
@@ -153,7 +149,7 @@ $("#locationMuseumRB").change(function(ev){
 	if (ev.target.checked) {
 		tg.map.tgLocs.changeType('museum');
 	} 
-});
+});*/
 
 
 
@@ -246,8 +242,146 @@ $("#dispLanduseNodeCB").change(function(ev){
 
 
 function debug() {
-	tg.map.debug()
+	//tg.map.debug()
 }
+
+$("#tod_0_all").click((ev) => { tg.map.tgLocs.changeType(0, -1); });
+$("#tod_0_0").click((ev) => { tg.map.tgLocs.changeType(0, 0); });
+$("#tod_0_1").click((ev) => { tg.map.tgLocs.changeType(0, 1); });
+$("#tod_0_2").click((ev) => { tg.map.tgLocs.changeType(0, 2); });
+$("#tod_0_3").click((ev) => { tg.map.tgLocs.changeType(0, 3); });
+$("#tod_0_4").click((ev) => { tg.map.tgLocs.changeType(0, 4); });
+$("#tod_0_5").click((ev) => { tg.map.tgLocs.changeType(0, 5); });
+$("#tod_0_6").click((ev) => { tg.map.tgLocs.changeType(0, 6); });
+$("#tod_0_7").click((ev) => { tg.map.tgLocs.changeType(0, 7); });
+$("#tod_0_8").click((ev) => { tg.map.tgLocs.changeType(0, 8); });
+$("#tod_0_9").click((ev) => { tg.map.tgLocs.changeType(0, 9); });
+$("#tod_0_10").click((ev) => { tg.map.tgLocs.changeType(0, 10); });
+
+$("#tod_1_all").click((ev) => { tg.map.tgLocs.changeType(1, -1); });
+$("#tod_1_0").click((ev) => { tg.map.tgLocs.changeType(1, 0); });
+$("#tod_1_1").click((ev) => { tg.map.tgLocs.changeType(1, 1); });
+$("#tod_1_2").click((ev) => { tg.map.tgLocs.changeType(1, 2); });
+$("#tod_1_3").click((ev) => { tg.map.tgLocs.changeType(1, 3); });
+$("#tod_1_4").click((ev) => { tg.map.tgLocs.changeType(1, 4); });
+$("#tod_1_5").click((ev) => { tg.map.tgLocs.changeType(1, 5); });
+
+$("#tod_2_all").click((ev) => { tg.map.tgLocs.changeType(2, -1); });
+$("#tod_2_0").click((ev) => { tg.map.tgLocs.changeType(2, 0); });
+$("#tod_2_1").click((ev) => { tg.map.tgLocs.changeType(2, 1); });
+$("#tod_2_2").click((ev) => { tg.map.tgLocs.changeType(2, 2); });
+$("#tod_2_3").click((ev) => { tg.map.tgLocs.changeType(2, 3); });
+$("#tod_2_4").click((ev) => { tg.map.tgLocs.changeType(2, 4); });
+$("#tod_2_5").click((ev) => { tg.map.tgLocs.changeType(2, 5); });
+$("#tod_2_6").click((ev) => { tg.map.tgLocs.changeType(2, 6); });
+$("#tod_2_7").click((ev) => { tg.map.tgLocs.changeType(2, 7); });
+
+$("#tod_3_all").click((ev) => { tg.map.tgLocs.changeType(3, -1); });
+$("#tod_3_0").click((ev) => { tg.map.tgLocs.changeType(3, 0); });
+$("#tod_3_1").click((ev) => { tg.map.tgLocs.changeType(3, 1); });
+$("#tod_3_2").click((ev) => { tg.map.tgLocs.changeType(3, 2); });
+$("#tod_3_3").click((ev) => { tg.map.tgLocs.changeType(3, 3); });
+$("#tod_3_4").click((ev) => { tg.map.tgLocs.changeType(3, 4); });
+$("#tod_3_5").click((ev) => { tg.map.tgLocs.changeType(3, 5); });
+$("#tod_3_6").click((ev) => { tg.map.tgLocs.changeType(3, 6); });
+$("#tod_3_7").click((ev) => { tg.map.tgLocs.changeType(3, 7); });
+
+$("#tod_4_all").click((ev) => { tg.map.tgLocs.changeType(4, -1); });
+$("#tod_4_0").click((ev) => { tg.map.tgLocs.changeType(4, 0); });
+$("#tod_4_1").click((ev) => { tg.map.tgLocs.changeType(4, 1); });
+$("#tod_4_2").click((ev) => { tg.map.tgLocs.changeType(4, 2); });
+$("#tod_4_3").click((ev) => { tg.map.tgLocs.changeType(4, 3); });
+$("#tod_4_4").click((ev) => { tg.map.tgLocs.changeType(4, 4); });
+$("#tod_4_5").click((ev) => { tg.map.tgLocs.changeType(4, 5); });
+$("#tod_4_6").click((ev) => { tg.map.tgLocs.changeType(4, 6); });
+
+$("#ratingSlider").slider({ 
+  id: "ratingSlider", 
+  step: 1,
+  value: [4, 8],
+  ticks: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+  ticks_labels: ['1', '', '2', '', '3', '', '4', '', '5'],
+  tooltip: 'hide',
+  //min: 0, max: 5, step: 0.5, value: 3, 
+  //tooltip: 'always'
+});
+
+
+$("#ratingSlider").on("change", function(e) {
+  if ((e.value.oldValue[0] !== e.value.newValue[0]) || 
+    (e.value.oldValue[1] !== e.value.newValue[1])) {
+
+    const low = e.value.newValue[0] / 2 + 1;
+    const high = e.value.newValue[1] / 2 + 1;
+    //console.log(low + ', ' + high);
+
+    tg.map.tgLocs.doFilter('ratings', low, high);
+  }
+});
+
+
+$("#numRatingSlider").slider({ 
+  id: "numRatingSlider", 
+  step: 1,
+  value: [1, 6],
+  ticks: [0, 1, 2, 3, 4, 5, 6],
+  ticks_labels: ['0', '5', '10', '50', '100', '500', '1000+'],
+  tooltip: 'hide',
+});
+
+$("#numRatingSlider").on("change", function(e) {
+  if ((e.value.oldValue[0] !== e.value.newValue[0]) || 
+    (e.value.oldValue[1] !== e.value.newValue[1])) {
+
+    const labels = [0, 5, 10, 50, 100, 500, 1000];
+    const low = labels[e.value.newValue[0]];
+    const high = labels[e.value.newValue[1]];
+    //console.log(low + ', ' + high);
+
+    tg.map.tgLocs.doFilter('numRatings', low, high);
+  }
+});
+
+$("#priceRangeSlider").slider({ 
+  id: "priceRangeSlider", 
+  step: 1,
+  value: [0, 3],
+  ticks: [0, 1, 2, 3],
+  ticks_labels: ['$', '$$', '$$$', '$$$$'],
+  tooltip: 'hide',
+});
+
+
+$("#priceRangeSlider").on("change", function(e) {
+  if ((e.value.oldValue[0] !== e.value.newValue[0]) || 
+    (e.value.oldValue[1] !== e.value.newValue[1])) {
+
+    const low = e.value.newValue[0] + 1;
+    const high = e.value.newValue[1] + 1;
+    //console.log(low + ', ' + high);
+
+    tg.map.tgLocs.doFilter('priceRange', low, high);
+  }
+});
+
+$("#maxLocsSlider").slider({ 
+  id: "maxLocsSlider", 
+  step: 1,
+  value: 2,
+  ticks: [1, 2, 3, 4, 5],
+  ticks_labels: ['10', '20', '30', '40', '50+'],
+  tooltip: 'hide',
+});
+
+$("#maxLocsSlider").on("change", function(e) {
+  if (e.value.oldValue !== e.value.newValue) {
+    const val = e.value.newValue * 10;
+    //console.log(val);
+
+    tg.map.tgLocs.doFilter('maxLocs', val);
+  }
+});
+
 
 
 /*

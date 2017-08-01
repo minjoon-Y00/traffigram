@@ -9,6 +9,15 @@ class TgLocationNode extends TgNode {
 		this.nameOffsetX = 0;
 		this.nameOffsetY = 0;
 		this.nameAlign = 'center';
+		this.group = null;
+		this.time = 0;
+	}
+
+	reset(lat, lng) {
+		this.dispAnchor = {lat: lat, lng: lng};
+		this.dispLoc = {lat: lat, lng: lng};
+		this.group = null;
+		this.time = 0;
 	}
 }
 

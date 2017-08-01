@@ -12,12 +12,14 @@ class TgMapUtil {
 	}
 
 	addFeatureInFeatures(arr, geometry, styleFunc, type, source) {
-		var feature = new ol.Feature({geometry: geometry});
+		let feature = new ol.Feature({geometry: geometry});
 		feature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
 		feature.setStyle(styleFunc);
 		if (type) feature.type = type;
 		if (source) feature.source = source;
 		arr.push(feature);
+		
+		return feature;
 	}
 
 	isInTheBox(lat, lng) {
@@ -94,10 +96,11 @@ class TgMapUtil {
 	 	})
 	}
 
-	imageStyleFunc(src, xPixel = 0.5) {
+	imageStyleFunc(src, opacity = 1.0) {
 		return new ol.style.Style({
 			image: new ol.style.Icon({
 	  		src: src,
+	  		opacity: opacity,
 	  		//anchor: [0.5, 0.5],
       	//anchorXUnits: 'pixels'
 			})

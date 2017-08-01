@@ -46,7 +46,11 @@ class TgMapPlaces {
 		  projection: 'EPSG:3857',
 		  tileGrid: new ol.tilegrid.createXYZ({maxZoom: 22}),
 		  url: 'https://tile.mapzen.com/mapzen/vector/v1/places/{z}/{x}/{y}.topojson?' 
-		    + 'api_key=vector-tiles-c1X4vZE',
+	    	+ 'api_key=' + this.data.var.apiKeyVectorTile
+		  //url: 'https://tile.mapzen.com/mapzen/vector/v1/places/{z}/{x}/{y}.topojson?' 
+	    //	+ 'api_key=vector-tiles-c1X4vZE'
+	    //url: 'https://tile.mapzen.com/mapzen/vector/v1/places/{z}/{x}/{y}.topojson?' 
+	    //	+ 'api_key=mapzen-dKpzpj5'
 		});
 
 		this.mapUtil.addLayer(new ol.layer.VectorTile({
@@ -64,7 +68,10 @@ class TgMapPlaces {
 				this.processPlaceObjects.bind(this), 
 				this.data.time.waitForGettingData);
 
+		//console.log(feature.get('min_zoom'));
+
 		const name = feature.get('name').toUpperCase();
+		//const name = feature.get('min_zoom');
 
 		// if there is the same place, skip it.
 		if (this.placeObjectNames.indexOf(name) >= 0) return null;

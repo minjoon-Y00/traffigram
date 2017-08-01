@@ -1,4 +1,4 @@
-const tgUtil = require('../tg_util');
+const TgUtil = require('../tg_util');
 const TgLocationNode = require('../node/tg_location_node');
 
 class TgMapLocations {
@@ -15,13 +15,18 @@ class TgMapLocations {
 		this.dispNameLayer = true;
 		this.nameLayer = null;
 
-		this.locationTypes = ['food', 'bar', 'park', 'museum'];
-		this.currentType = 'food';
-		this.locations = {};
-		this.locationClusters = {};
-	  this.needToDisplayLocs = false;
+		this.currentTOD = 0;
+		this.currentSubTOD = 0;
+		this.isHighlightMode = false;
+	  this.dispLocsAfterCalWarping = false;
+	  this.displayTimeOfLocs = false; // for debug
+	  this.highLightMode = false;
+		this.highLightTime = 0;
 
-		this.initLocations();
+		this.locations = [];
+		this.locationsInBox = [];
+		this.locationGroups = [];
+		this.favorites = [];
 	}
 
 	turn(tf) {
@@ -32,12 +37,12 @@ class TgMapLocations {
 		this.isDisabled = tf;
 	}
 
-	render() {
+	render(param) {
 		if (this.isDisabled||(!this.display)) {
 			this.discard();
 		}
 		else {
-			this.updateLayer();
+			this.updateLayer(param);
 			if (this.dispNameLayer) this.updateNameLayer();
 		}
 	}
@@ -47,130 +52,260 @@ class TgMapLocations {
 		this.removeNameLayer();
 	}
 
-	initLocations() {
-		for(let type of this.locationTypes) {
-			this.locations[type] = [];
-			this.locationClusters[type] = [];
+	highLightMode(tf) {
+		this.isHighlightMode = tf;
+	}
+
+	resetTimeOfLocations() {
+		for(let loc of this.locationsInBox) loc.time = 0;
+	}
+
+	setTimeOfLocations() {
+		//for(let loc of this.locationsInBox) {
+		for(let loc of this.locations) {
+			const lat = loc.node.target.lat;
+			const lng = loc.node.target.lng;
+			loc.time = this.map.calTimeFromLatLng(lat, lng);
 		}
 	}
 
-	request() {
-		this.readyLocs = false;
-		this.data.var.readyLocation = false;
+	setTimeOfLocationGroups() {
+		this.map.tgBB.updateTimeOfLocationGroups(this.locationGroups);
+	}
 
-		const options = {
-			term: this.currentType,
-			lat: this.map.tgOrigin.origin.original.lat,
-			lng: this.map.tgOrigin.origin.original.lng,
-			radius: parseInt(this.map.calMaxDistance('lat') * 1000),
+	setFavorites(favorites) {
+		this.favorites = favorites;
+	}
+
+	calLocsInBox() {
+		const top = this.data.box.top + this.data.var.latMargin;
+		const bottom = this.data.box.bottom - this.data.var.latMargin;
+		const right = this.data.box.right + this.data.var.lngMargin;
+		const left = this.data.box.left - this.data.var.lngMargin;
+
+		this.locationsInBox = [];
+
+		if (this.currentSubTOD >= 0) {
+			for(let loc of tod[this.currentTOD][this.currentSubTOD]) {
+				const lat = loc.lng; // original data is wrong, should be fixed.
+				const lng = loc.lat; // original data is wrong, should be fixed.
+
+				if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
+					loc.node = new TgLocationNode(lat, lng);
+					loc.time = 0;
+					this.locationsInBox.push(loc);
+				}
+			}
+		}
+		else {
+			// all 
+			for(let locs of tod[this.currentTOD]) {
+				for(let loc of locs) {
+					const lat = loc.lng; // original data is wrong, should be fixed.
+					const lng = loc.lat; // original data is wrong, should be fixed.
+
+					if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
+						loc.node = new TgLocationNode(lat, lng);
+						loc.time = 0;
+						this.locationsInBox.push(loc);
+					}
+				}
+			}
+		}
+	}
+
+	calFilteredLocs() {
+		let locsByRRP = [];
+
+		// I. Filter by rating, numRating, and Price
+		for(let loc of this.locationsInBox) {
+			// if current tod is not 'travel attractions'
+			if (this.currentTOD !== 2) {
+				if (!this.filterByRating(loc.rating)) continue;
+				if (!this.filterByNumRating(loc.rating_cnt)) continue;
+				if (!this.filterByPrice(loc.price_range)) continue;
+			}
+			locsByRRP.push(loc);
+		}
+		const numLocsInStage1 = locsByRRP.length;
+
+		// II. Filter by total number
+		this.locations = [];
+		const maxTops = 10; //100000;
+		const maxHots = 10; //100000;
+		const maxNumLocs = 30;
+		//const maxNumLocs = this.data.var.maxNumLocations;
+
+		let countTops = 0;
+		let countHots = 0;
+		let countTotal = 0;
+		for(let loc of locsByRRP) {
+			if (loc.top) {
+				if ((countTops < maxTops) && (countTotal < maxNumLocs)) {
+					this.locations.push(loc);
+					console.log(loc);
+					countTops++;
+					countTotal++;
+				}
+			}
+			else if (loc.hot) {
+				if ((countHots < maxHots) && (countTotal < maxNumLocs)) {
+					this.locations.push(loc);
+					countHots++;
+					countTotal++;
+				}
+			}
+			else {
+				if (countTotal < maxNumLocs) {
+					this.locations.push(loc);
+					countTotal++;
+				}
+			}
 		}
 
-		const s = (new Date()).getTime();
 
-		$.post("http://citygram.smusic.nyu.edu:2999/yelpSearch", options)
-		.done((locations) => {
+		/*if ((maxNumLocs !== 50) && (this.locations.length > maxNumLocs)) {
+			this.locations.sort((a, b) => {return b.rating - a.rating});
+			this.locations = this.locations.slice(0, maxNumLocs);
+		}*/
 
-			const elapsed = (new Date()).getTime() - s;
-			console.log('received: locations (' + elapsed + ' ms)');
+		const numLocsInBox = this.locationsInBox.length;
+		const numLocs = this.locations.length;
+		console.log('LOCS [' + numLocsInBox + ' -> ' + numLocsInStage1 + 
+				' -> ' + numLocs + ']');
+		console.log('LOCS Top(' + countTops + ') Hot(' + countHots + 
+				') Others(' + (countTotal - countTops - countHots) + ')')
+	}
 
-			// calculate tgLocationNode of locations
-			for(let loc of locations) {
-				loc.node = new TgLocationNode(loc.lat, loc.lng);
-				delete loc.lat;
-				delete loc.lng;
-			}
+	filterByRating(rating) {
+		const low = this.data.var.ratings[0];
+		const high = this.data.var.ratings[1];
 
-			// calculate BB of locations
-			this.map.tgBB.calBBOfLocations(locations);
+		if ((rating >= low)&&(rating <= high)) return true;
+		else return false;
+	}
 
-			// calculate clusters of locations
-			const locationClusters = this.map.tgBB.calClusteredLocations(locations);
+	filterByNumRating(numRating) {
+		const low = this.data.var.numRatings[0];
+		const high = this.data.var.numRatings[1];
 
-			// calculate average node in clusterLocations
-			this.map.tgBB.updateNodeOfClusteredLocations(locationClusters);
+		if (high !== 1000) {
+			if ((numRating >= low)&&(numRating <= high)) return true;
+			else return false;
+		}
+		else {
+			if (numRating >= low) return true;
+			else return false;
+		}
+	}
 
-			// calculate BB for clusterLocations
-			this.map.tgBB.calBBOfClusterLocations(locationClusters);
+	filterByPrice(price) {
+		const low = this.data.var.priceRange[0];
+		const high = this.data.var.priceRange[1];
 
-			// calculate non-overlapped location names
-			this.map.tgBB.calNonOverlappedLocationNames(locations, locationClusters);
+		if ((price >= low)&&(price <= high)) return true;
+		else return false;
+	}
 
-
-			// assign locations and locationClusters
-		  this.locations[this.currentType] = locations;
-			this.locationClusters[this.currentType] = locationClusters;
-
-			/*console.log('locations: ');
-			console.log(locations);
-			console.log('clusteredLocations: ');
-			console.log(locationClusters);*/
-
-
-		  if (this.map.currentMode !== 'EM') {
-		  	if (!this.map.tpsReady) {
-		  		console.log('@ Not ready so wait.');
-		  		this.needToDisplayLocs = true;
-		  	}
-		  	else {
-					this.displayLocsInDc();
+	doFilter(type, low, high) {
+		if (type === 'maxLocs') {
+			this.data.var.maxNumLocations = low;
+			this.request({calLocsInBox: false});
+		}
+		else {
+			// if current tod is not 'travel attractions'
+			if (this.currentTOD !== 2) {
+				switch(type) {
+					case 'ratings':
+						this.data.var.ratings = [low, high];
+						break;
+					case 'numRatings':
+						this.data.var.numRatings = [low, high];
+						break;
+					case 'priceRange':
+						this.data.var.priceRange = [low, high];
+						break;
 				}
-		  }
-		  else {
-		  	this.render();
-		  	this.map.tgBB.render();
-		  }
-
-			this.data.var.readyLocation = true;
-
-			if (!this.data.var.placeProcessed) {
-				this.map.tgPlaces.processPlaceObjects();
+				this.request({calLocsInBox: false});
 			}
+		}
+	}
 
-		});
+	request(param) {
+		if ((!param) || (param.calLocsInBox)) {
+			this.calLocsInBox();
+		}
+
+		this.calFilteredLocs();
+
+		//console.log(this.locations);
+
+		// calculate BB of locations
+		this.map.tgBB.calBBOfLocations(this.locations);
+
+		// calculate clusters of locations
+		this.locationGroups = this.map.tgBB.calLocationGroup(this.locations);
+
+		// calculate non-overlapped location names
+		this.map.tgBB.calNonOverlappedLocationNames(this.locations, this.locationGroups);
+
+		//console.log(this.locationGroups);
+
+		if (this.map.currentMode === 'EM') {
+			this.render();
+	  	this.map.tgBB.render();
+		}
+		else {
+			// displayLocsInDc will be called after
+			this.dispLocsAfterCalWarping = true;
+		}
+
+		this.data.var.readyLocation = true;
+
+		if (!this.data.var.placeProcessed) {
+			this.map.tgPlaces.processPlaceObjects();
+		}
 	}
 
 	displayLocsInDc() {
-		console.log('@ displayLocsInDc');
-		this.calTargetNodes();
-		this.calRealNodes();
-		this.calDispNodes(null, 1);
+		this.calTargetAndRealNodes();
+		this.calDispNodes(null, 1); // disp = real 
 
-		this.map.tgBB.cleanBB();
-		this.map.tgBB.addBBOfLocations();
-		this.updateNonOverlappedLocationNames();
+		//this.map.tgBB.cleanBB();
+		//this.map.tgBB.addBBOfLocations();
+		//this.updateNonOverlappedLocationNames();
 
 		this.render();
   	this.map.tgBB.render();
 	}
 
-	changeType(type) {
-		if (this.currentType === type) return;
+	changeType(type, subType) {
+		if ((this.currentTOD === type) && (this.currentSubTOD === subType)) return;
 
-		this.currentType = type;
-		if (this.locations[this.currentType].length === 0) {
-			this.request();
-		}
-		else {
-			this.map.tgBB.cleanBB();
-			this.map.tgBB.addBBOfLocations();
-			this.updateNonOverlappedLocationNames();
-
-			this.render();
-		  this.map.tgBB.render();
-		}
+		this.currentTOD = type;
+		this.currentSubTOD = subType;
+		this.request();
 	}
 
 	getCurrentLocations() {
-		return this.locations[this.currentType];
+		return this.locations;
 	}
 
 	getCurrentLocationClusters() {
-		return this.locationClusters[this.currentType];
+		return this.locationGroups;
 	}
 
 	updateNonOverlappedLocationNames() {
-		this.locations[this.currentType] = 
-				this.map.tgBB.getNonOverlappedLocationNames(this.locations[this.currentType]);
+		this.locations = this.map.tgBB.getNonOverlappedLocationNames(this.locations);
+	}
+
+	setHighLightMode(tf, time) {
+		this.highLightMode = tf;
+		this.highLightTime = time;
+	}
+
+	getHighLightMode() {
+		return this.highLightMode;
 	}
 
 	updateLayer() {
@@ -178,38 +313,61 @@ class TgMapLocations {
 		var arr = [];
 		const anchorStyleFunc = 
 			this.mapUtil.nodeStyleFunc(viz.color.anchor, viz.radius.anchor);
-		const locationStyleFunc = 
-			this.mapUtil.imageStyleFunc(viz.image.location[this.currentType]);
-		const locationClusterStyleFunc = 
-			this.mapUtil.imageStyleFunc(viz.image.location.cluster);
+
+		const locStyleFunc = 
+			this.mapUtil.imageStyleFunc(viz.image.location[this.currentTOD]);
+		const locStyleFuncTranslucent = 
+			this.mapUtil.imageStyleFunc(viz.image.location[this.currentTOD], 0.3);
+
+		const favStyleFunc = this.mapUtil.imageStyleFunc(viz.image.favorite);
+		const favStyleFuncTranslucent = this.mapUtil.imageStyleFunc(viz.image.favorite, 0.3);
+
+		const cLocStyleFunc = 
+			this.mapUtil.imageStyleFunc(viz.image.locationCluster);
+		const cLocStyleFuncTranslucent = 
+			this.mapUtil.imageStyleFunc(viz.image.locationCluster, 0.3);
+
 		const lineStyleFunc = 
 			this.mapUtil.lineStyleFunc(viz.color.locationLine, viz.width.locationLine);
 
 		// display locationClusters
-		for(let cLocs of this.locationClusters[this.currentType]) {
+		for(let cLocs of this.locationGroups) {
 			const dispLoc = cLocs.node.dispLoc;
 			const dispAnchor = cLocs.node.dispAnchor;
 
-			// lines
-			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.LineString(
-					[[dispAnchor.lng, dispAnchor.lat], [dispLoc.lng, dispLoc.lat]]), 
-				lineStyleFunc);
+			// for highlight mode
+			let imageStyleFunc = cLocStyleFunc;
+			let displayLinesAndAnchor = true;
+			if ((this.highLightMode) && (cLocs.time > this.highLightTime)) {
+				displayLinesAndAnchor = false;
+				imageStyleFunc = cLocStyleFuncTranslucent;
+			}
 
-			// anchor images
-			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), 
-				anchorStyleFunc);
+			if (displayLinesAndAnchor) {
+				// lines
+				this.mapUtil.addFeatureInFeatures(
+					arr, new ol.geom.LineString(
+						[[dispAnchor.lng, dispAnchor.lat], [dispLoc.lng, dispLoc.lat]]), 
+					lineStyleFunc);
+
+				// anchor images
+				this.mapUtil.addFeatureInFeatures(
+					arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), 
+					anchorStyleFunc);
+			}
 
 			// circle images
 			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationClusterStyleFunc,
+				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), imageStyleFunc,
 				'cLoc', cLocs);
+
+			let strText = cLocs.locs.length + '';
+			if (this.displayTimeOfLocs) strText += ', ' + parseInt(cLocs.time/60);
 
 			// number of locations
 			const numberStyleFunc = 
 				this.mapUtil.textStyle({
-					text: cLocs.locs.length + '', 
+					text: strText, 
 					color: viz.color.textNumberOfLocations, 
 					font: viz.font.text, 
 				});
@@ -219,33 +377,62 @@ class TgMapLocations {
 		}
 
 		// display locations
-		for(let loc of this.locations[this.currentType]) {
+		for(let loc of this.locations) {
 
 			// pass though if the location in the cluster
-			if (loc.isInCluster) continue;
+			if (loc.group) continue;
 
 			const dispLoc = loc.node.dispLoc;
 			const dispAnchor = loc.node.dispAnchor;
 
-			// lines
-			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.LineString(
-					[[dispAnchor.lng, dispAnchor.lat], [dispLoc.lng, dispLoc.lat]]), 
-				lineStyleFunc);
+			// for highlight mode
+			let imageStyleFunc = locStyleFunc;
+			let favImageStyleFunc = favStyleFunc;
+			let displayLinesAndAnchor = true;
 
-			// anchor images
-			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), 
-				anchorStyleFunc);
+			if ((this.highLightMode) && (loc.time > this.highLightTime)) {
+				displayLinesAndAnchor = false;
+				imageStyleFunc = locStyleFuncTranslucent;
+				favImageStyleFunc = favStyleFuncTranslucent;
+			}
+
+			if (displayLinesAndAnchor) {
+				// lines
+				this.mapUtil.addFeatureInFeatures(
+					arr, new ol.geom.LineString(
+						[[dispAnchor.lng, dispAnchor.lat], [dispLoc.lng, dispLoc.lat]]), 
+					lineStyleFunc);
+
+				// anchor images
+				this.mapUtil.addFeatureInFeatures(
+					arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), 
+					anchorStyleFunc);
+			}
 
 			// circle images
+			let circleImageStyleFunc = imageStyleFunc;
+
+			// one of favorites
+			if (this.favorites.indexOf(loc.name) >= 0) {
+				circleImageStyleFunc = favImageStyleFunc;
+			}
+		
 			this.mapUtil.addFeatureInFeatures(
-					arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), locationStyleFunc,
-					'loc', loc);
+				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), circleImageStyleFunc,
+				'loc', loc);
+
+			// time display (for debugging)
+			if (this.displayTimeOfLocs) {
+				const timeStr = parseInt(loc.time/60) + '';
+				const timeStyleFunc = 
+					this.mapUtil.textStyle({text: timeStr, color: '#000', font: viz.font.text});
+				this.mapUtil.addFeatureInFeatures(
+					arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), timeStyleFunc);
+			}
 		}
 
+		this.removeLayer();
 		if (arr.length > 0) {
-			this.removeLayer();
 			this.layer = this.mapUtil.olVectorFromFeatures(arr);
 			this.layer.setZIndex(viz.z.location);
 		  this.mapUtil.addLayer(this.layer);
@@ -257,29 +444,33 @@ class TgMapLocations {
 		const viz = this.data.viz;
 		var arr = [];
 		
-		for(let loc of this.locations[this.currentType]) {
+		for(let loc of this.locations) {
 			if (!loc.dispName) continue;
 
 			// only in final EM/DC map
 			if (this.map.currentMode !== 'INTERMEDIATE') {
-				const nameStyleFunc = 
-					this.mapUtil.textStyle({
-						text: loc.name, 
-						color: viz.color.textLocation, 
-						font: viz.font.text, 
-						offsetX: loc.nameOffsetX, 
-						offsetY: loc.nameOffsetY, 
-						align: loc.nameAlign
-					});
 
-				this.mapUtil.addFeatureInFeatures(arr,
-					new ol.geom.Point(
-						[loc.node.dispLoc.lng, loc.node.dispLoc.lat]), nameStyleFunc);
+				if ((!this.highLightMode) || (loc.time <= this.highLightTime)) {
+					const nameStyleFunc = 
+						this.mapUtil.textStyle({
+							text: loc.name, 
+							color: viz.color.textLocation, 
+							font: viz.font.text, 
+							offsetX: loc.nameOffsetX, 
+							offsetY: loc.nameOffsetY, 
+							align: loc.nameAlign
+						});
+
+					this.mapUtil.addFeatureInFeatures(arr,
+						new ol.geom.Point(
+							[loc.node.dispLoc.lng, loc.node.dispLoc.lat]), nameStyleFunc);
+				}
 			}
 		}
 
+		this.removeNameLayer();
+
 		if (arr.length > 0) {
-			this.removeNameLayer();
 			this.nameLayer = this.mapUtil.olVectorFromFeatures(arr);
 			this.nameLayer.setZIndex(viz.z.location);
 		  this.mapUtil.addLayer(this.nameLayer);
@@ -297,42 +488,59 @@ class TgMapLocations {
 	calRealNodes() {
 		const transform = this.graph.transformReal.bind(this.graph);
 
-		for(let loc of this.locations[this.currentType]) {
+		for(let loc of this.locations) {
 			const modified = transform(loc.node.original.lat, loc.node.original.lng);
 			loc.node.real.lat = modified.lat;
 			loc.node.real.lng = modified.lng;
 		}
 	}
 
-	calTargetNodes() {
-		const originLat = this.map.tgOrigin.origin.original.lat;
-  	const originLng = this.map.tgOrigin.origin.original.lng;
+	calTargetAndRealNodes() {
+		const cLat = this.map.tgOrigin.origin.original.lat;
+  	const cLng = this.map.tgOrigin.origin.original.lng;
 		const transformTarget = this.graph.transformTarget.bind(this.graph);
 		const transformReal = this.graph.transformReal.bind(this.graph);
 
-		for(let loc of this.locations[this.currentType]) {
+		for(let loc of this.locations) {
+		//for(let loc of this.locationsInBox) {
 			const targetPos = transformTarget(loc.node.original.lat, loc.node.original.lng);
 			const realPos = transformReal(loc.node.original.lat, loc.node.original.lng);
-			const targetLen = tgUtil.D2(originLat, originLng, targetPos.lat, targetPos.lng);
-			const realDegree = degreeToOrigin(realPos.lat, realPos.lng);
 
-			loc.node.target.lat = originLat + targetLen * Math.cos(realDegree);
-			loc.node.target.lng = 
-					originLng + targetLen * Math.sin(realDegree);
-					//originLng + targetLen * Math.sin(realDegree) * this.graph.toLat();
+			const targetLen = this.calLenFromLatLng(cLat, cLng, targetPos.lat, targetPos.lng);
+			//const realLen = this.calLenFromLatLng(cLat, cLng, realPos.lat, realPos.lng);
+
+			const realDegree = degreeToOrigin(realPos.lat, realPos.lng);
+			//const targetDegree = degreeToOrigin(targetPos.lat, targetPos.lng);
+
+			loc.node.real.lat = realPos.lat;
+			loc.node.real.lng = realPos.lng;
+
+			//loc.node.target.lat = targetPos.lat;
+			//loc.node.target.lng = targetPos.lng;
+
+			loc.node.target.lat = cLat + targetLen * Math.cos(realDegree);
+			loc.node.target.lng = cLng + targetLen * Math.sin(realDegree);
 		}
-		
+
 		function degreeToOrigin(lat, lng) {
-			let deg = Math.atan((lng - originLng) / (lat - originLat));
-	    if ((originLat == lat) && (originLng == lng)) deg = 0;
-	    if ((lat - originLat) < 0) deg = deg + Math.PI;
+			let deg = Math.atan((lng - cLng) / (lat - cLat));
+			//let deg = Math.atan((lng - cLng) / ((lat - cLat) * this.graph.shrink());
+	    if ((cLat === lat) && (cLng === lng)) deg = 0;
+	    if ((lat - cLat) < 0) deg += Math.PI;
 	    return deg;
 		}
 	}
 
+	calLenFromLatLng(cLat, cLng, lat, lng) {
+  	const dLat = (cLat - lat);
+  	const dLng = (cLng - lng);
+  	//const dLng = (cLng - lng) * this.graph.shrink();
+	  return Math.sqrt(dLat * dLat + dLng * dLng);
+	}
+
 	calDispNodes(kind, value) {
 		// update disp for locations
-		for(let loc of this.locations[this.currentType]) {
+		for(let loc of this.locations) {
 			loc.node.dispAnchor = 
 				{lat: (1 - value) * loc.node.original.lat + value * loc.node.real.lat,
 				 lng: (1 - value) * loc.node.original.lng + value * loc.node.real.lng }
@@ -342,7 +550,7 @@ class TgMapLocations {
 		}
 
 		// update disp for location clusters
-		for(let cLocs of this.locationClusters[this.currentType]) {
+		for(let cLocs of this.locationGroups) {
 			const dispLoc = cLocs.node.dispLoc;
 			const dispAnchor = cLocs.node.dispAnchor;
 			dispLoc.lat = 0;

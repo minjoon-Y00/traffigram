@@ -1,5 +1,6 @@
 class TgTavelTimeApi {
-	constructor() {
+	constructor(data) {
+		this.data = data;
 		this.centerLocation = {};
 		this.locations = [];
 		this.maxNumLocation = 48;
@@ -71,7 +72,8 @@ class TgTavelTimeApi {
 
 		let str = 'https://matrix.mapzen.com/one_to_many?json=';
 		str += JSON.stringify(json);
-		str += '&api_key=matrix-qUpjg6W';
+		str += '&api_key=' + this.data.var.apiKeyTimeMatrix;
+		//str += '&api_key=matrix-qUpjg6W';
 		//str += '&api_key=matrix-AGvGZKs';
 
 		//console.log(str);

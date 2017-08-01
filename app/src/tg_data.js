@@ -1,8 +1,8 @@
 module.exports = {
 	zoom: {
 		max: 18,
-		min: 10,
-		init: 14,
+		min: 11,
+		init: 12,
 		current: 0,
 		disp: {
 			motorway: {min: 1, max: 20},
@@ -26,10 +26,11 @@ module.exports = {
 			trunk: 6,
 			motorway: 7,
 			roadNode: 8,
-			places: 19,
+			presets: 9,
+			places: 10,
+			origin: 15,
 			location: 20,
 			isochrone: 25,
-			origin: 30,
 			boundingBox: 40,
 			grid: 50,
 			controlPoint: 51,
@@ -67,7 +68,7 @@ module.exports = {
 			textPlace: 'rgba(0, 0, 0, 0.5)', //'#000'
 			textPlaceStroke: 'rgba(255, 255, 255, 0.5)', //'#FFF',
 			textLocation: '#000', //'rgb(122, 62, 44)', 
-			textNumberOfLocations: '#FFF',
+			textNumberOfLocations: '#000', //'#FFF',
 			water: 'rgb(163, 204, 255)',
 			waterNode: '#0071BC',
 		},
@@ -77,6 +78,7 @@ module.exports = {
 			edge: 2,
 			grid: 2,
 			isochrone: 1,
+			highLightIsochrone: 2,
 			locationLine: 1,
 			road: {
 				motorway: 4,
@@ -97,17 +99,21 @@ module.exports = {
 
 		image: {
 			anchor: 'img/anchor.png',
-			location: {
-				food: 'img/location_food.png',
-				bar: 'img/location_bar.png',
-				park: 'img/location_park.png',
-				museum: 'img/location_museum.png',
-				cluster: 'img/dest_group.png',
-			},
+			favorite: 'img/mapbtn_dest_favorite@2x.png',
+			location: [
+				'img/mapbtn_dest_menu1_big@2x.png', // restaurant
+				'img/mapbtn_dest_menu2_big@2x.png', // cafe
+				'img/mapbtn_dest_menu3_big@2x.png', // travel attractions
+				'img/mapbtn_dest_menu4_big@2x.png', // shopping
+				'img/mapbtn_dest_menu5_big@2x.png' // night life
+			],
+			locationCluster: 'img/mapbtn_dest_cluster@2x.png',
 			origin: {
-				auto: 'img/origin_car.png',
-				bicycle: 'img/origin_bicycles.png',
-				pedestrian: 'img/origin_foot.png',
+				auto: 'img/mapbtn_origin_vehicle@2x.png',
+				bicycle: 'img/mapbtn_origin_bicycles@2x.png',
+				pedestrian: 'img/mapbtn_origin_foot@2x.png',
+				home: 'img/mapbtn_dest_home@2x.png',
+				office: 'img/mapbtn_dest_office@2x.png',
 			}, 
 			red10min: 'img/10min.png',
 			//red100min: 'img/100min.png',
@@ -124,6 +130,16 @@ module.exports = {
 		default: {
 			lat: 47.6631772,
 			lng: -122.3104933,
+		},
+		home: {
+			address: '4225 24th Ave. NE, Seattle, WA',
+			lat: 47.6631772,
+			lng: -122.3104933,
+		},
+		office: {
+			address: '3960 Benton Lane NE, Seattle, WA',
+			lat: 47.6549064,
+			lng: -122.3086493,
 		}
 	},
 
@@ -162,15 +178,26 @@ module.exports = {
 	},
 
 	var: {
+		apiKeyVectorTile: 'vector-tiles-c1X4vZE', // mine
+		//apiKeyVectorTile: 'mapzen-dKpzpj5', // Ray's
+		apiKeyTimeMatrix: 'matrix-AGvGZKs', // mine
+		//apiKeyTimeMatrix: 'matrix-qUpjg6W', // Ray's
+
 		latPerPx: 0,
 		lngPerPx: 0,	
 		latMargin: 0,
 		lngMargin: 0,
+		longPressTime: 1000, // 1 sec
+		longPressSensitivity: 100,
 		numLanduseClasses: 6,
-		marginPercent: 30, 
+		numRatings: [5, 1000],
+		marginPercent: 3.0, 
+		maxNumLocations: 20,
 		maxSplitLevel: 0, 
 		placeProcessed: false,
-		shapePreservingDegree: 1.0, 
+		priceRange: [1, 4], // 1 ~ 4
+		shapePreservingDegree: 1.0,
+		ratings: [3, 5], // 1 ~ 5
 		readyLocation: false,
 		resolution: {
 			gridLng: 4, // horiozontal resolution. even number is recommended
@@ -181,6 +208,7 @@ module.exports = {
 			water: 0.0005,
 			landuse: 0.001,
 		},
+
 	},
 
 	time: {

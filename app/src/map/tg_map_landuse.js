@@ -1,4 +1,4 @@
-const tgUtil = require('../tg_util');
+const TgUtil = require('../tg_util');
 const TgNode = require('../node/tg_node');
 
 class TgMapLanduse {
@@ -57,7 +57,11 @@ class TgMapLanduse {
 		  projection: 'EPSG:3857',
 		  tileGrid: new ol.tilegrid.createXYZ({maxZoom: 22}),
 		  url: 'https://tile.mapzen.com/mapzen/vector/v1/landuse/{z}/{x}/{y}.topojson?' 
-		    + 'api_key=vector-tiles-c1X4vZE',
+	    	+ 'api_key=' + this.data.var.apiKeyVectorTile
+		  //url: 'https://tile.mapzen.com/mapzen/vector/v1/landuse/{z}/{x}/{y}.topojson?' 
+	    //	+ 'api_key=vector-tiles-c1X4vZE'
+	    //url: 'https://tile.mapzen.com/mapzen/vector/v1/landuse/{z}/{x}/{y}.topojson?' 
+	    //	+ 'api_key=mapzen-dKpzpj5'
 		});
 
 		this.mapUtil.addLayer(new ol.layer.VectorTile({
@@ -134,7 +138,7 @@ class TgMapLanduse {
 		if (geoType === 'Polygon') {
 
 			if ((this.simplify)&&(this.map.simplify)) {
-				coords = tgUtil.RDPSimp2DLoop(coords, this.rdpThreshold);
+				coords = TgUtil.RDPSimp2DLoop(coords, this.rdpThreshold);
 			}
 
 			for(let i = 0; i < coords.length; i++) {

@@ -8,6 +8,7 @@ class TgMapIsochrone {
 		this.isDisabled = false;
 		this.display = false;
 		this.layer = null;
+		this.highLightLayer = null;
 	}
 
 	turn(tf) {
@@ -20,11 +21,72 @@ class TgMapIsochrone {
 
 	render() {
 		if (this.isDisabled||(!this.display)) this.discard();
-		else this.updateLayer();
+		else {
+			if (this.map.tgLocs.getHighLightMode()) 
+				this.updateHighLightLayer(this.map.tgLocs.highLightTime);
+			else this.updateLayer();
+		}
 	}
 
 	discard() {
-		this.removeLayer();
+		if (this.map.tgLocs.getHighLightMode()) this.removeHightLightLayer();
+		else this.removeLayer();
+	}
+
+	removeHightLightLayer() {
+		this.mapUtil.removeLayer(this.highLightLayer);
+	}
+
+	updateHighLightLayer(time) {
+		if (!this.graph.factor) return;
+
+		const viz = this.data.viz;
+		const box = this.data.box;
+		const originLat = this.map.tgOrigin.origin.real.lat;
+  	const originLng = this.map.tgOrigin.origin.real.lng;
+  	const heightLat = box.top - box.bottom; // 0.11
+  	const latPerPx = heightLat / this.map.olMapHeightPX;
+		const maxTime = (heightLat / 2) * this.graph.factor;
+		const pxPerTime = (this.map.olMapHeightPX / 2) / maxTime; // 0.64
+		const widthLng = box.right - box.left; // 0.09784
+		const lngPerPx = widthLng / this.map.olMapWidthPX;
+
+		const radiusPx = time * pxPerTime;
+		let features = [];
+
+		// circle
+		this.mapUtil.addFeatureInFeatures(
+			features, new ol.geom.Point(
+				[originLng, originLat]),
+				this.mapUtil.isochroneStyle(radiusPx, 
+					viz.color.isochrone, viz.width.highLightIsochrone));
+
+	  // red box
+  	let offsetLng = 0;
+		let offsetLat = radiusPx * latPerPx
+		this.mapUtil.addFeatureInFeatures(
+				features, new ol.geom.Point(
+						[originLng + offsetLng, originLat + offsetLat]),
+						this.mapUtil.imageStyle(viz.image.red10min),
+						'isochrone');
+
+		// text
+		offsetLng = -17 * lngPerPx;
+		offsetLat = radiusPx * latPerPx;
+		const text = parseInt(time / 60) + '';
+		this.mapUtil.addFeatureInFeatures(
+				features, new ol.geom.Point(
+						[originLng + offsetLng, originLat + offsetLat]),
+						this.mapUtil.textStyle({
+								text: text, 
+								color: viz.color.isochroneText, 
+								font: viz.font.isochroneText,
+						}), 'isochrone');
+
+		this.removeHightLightLayer();
+		this.highLightLayer = this.mapUtil.olVectorFromFeatures(features);
+		this.highLightLayer.setZIndex(viz.z.isochrone + 1);
+	  this.mapUtil.addLayer(this.highLightLayer);
 	}
 
 	removeLayer() {
@@ -34,8 +96,6 @@ class TgMapIsochrone {
 	updateLayer() {
 		if (!this.graph.factor) return;
 
-		console.log('@ isochrone updateLayer');
-
 		const viz = this.data.viz;
 		const box = this.data.box;
 		let features = [];
@@ -44,8 +104,7 @@ class TgMapIsochrone {
 
   	const heightLat = box.top - box.bottom; // 0.11
   	const latPerPx = heightLat / this.map.olMapHeightPX;
-  	const maxTime = 
-  		this.map.calTimeFromLatLng(originLat + heightLat/2, originLng); // 749.4
+		const maxTime = (heightLat / 2) * this.graph.factor;
 		const pxPerTime = (this.map.olMapHeightPX / 2) / maxTime; // 0.64
 
 		const widthLng = box.right - box.left; // 0.09784
@@ -87,7 +146,8 @@ class TgMapIsochrone {
 			this.mapUtil.addFeatureInFeatures(
 					features, new ol.geom.Point(
 							[originLng + offsetLng, originLat + offsetLat]),
-							this.mapUtil.imageStyle(viz.image.red10min));
+							this.mapUtil.imageStyle(viz.image.red10min),
+							'isochrone', time);
 
 			// text
 			//offsetLng = (radiusPx - 13) * lngPerPx;
@@ -101,7 +161,8 @@ class TgMapIsochrone {
 									text: text, 
 									color: viz.color.isochroneText, 
 									font: viz.font.isochroneText,
-								}));
+							}),
+					'isochrone', time);
 		}
 
 		this.removeLayer();

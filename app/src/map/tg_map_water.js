@@ -55,7 +55,11 @@ class TgMapWater {
 		  //preload: 1,
 		  tileGrid: new ol.tilegrid.createXYZ({maxZoom: 22}),
 		  url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
-		    + 'api_key=vector-tiles-c1X4vZE'
+	    	+ 'api_key=' + this.data.var.apiKeyVectorTile
+		  //url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
+	    //	+ 'api_key=vector-tiles-c1X4vZE'
+	    //url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
+	    //	+ 'api_key=mapzen-dKpzpj5'
 		})
 
 		this.mapUtil.addLayer(new ol.layer.VectorTile({

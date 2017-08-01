@@ -8,7 +8,7 @@ const TgIsochrone = require('./map/tg_map_isochrone');
 const TgBoundingBox = require('./map/tg_map_bounding_box');
 const TgOrigin = require('./map/tg_map_origin');
 const TgGrid = require('./map/tg_map_grid');
-const tgUtil = require('./tg_util');
+const TgUtil = require('./tg_util');
 const TgMapUtil = require('./map/tg_map_util');
 const TgInteraction = require('./map/tg_map_interactions');
 
@@ -25,13 +25,17 @@ class TgMap {
     	zoom: this.data.zoom.init,
     });
 
+    this.tgInteraction = new TgInteraction(this);
+
 		this.olMap = new ol.Map({
-      interactions: ol.interaction.defaults().extend([new TgInteraction(this)]),
+      interactions: ol.interaction.defaults().extend([this.tgInteraction]),
 	    target: map_id,
 	    //controls: [],
 	    layers: [],
 	    view: this.olView,
 	  });
+
+	  this.tgInteraction.addOverlay();
 
 	  this.olMap.getInteractions().forEach((interaction) => {
 		  if (interaction instanceof ol.interaction.DragPan) {
@@ -179,50 +183,7 @@ class TgMap {
 		//console.log(this.calMaxDistance('lng'));
 	}
 
-  setArea(area) {
-		this.setCenter(this.data.center[area].lat, this.data.center[area].lng);
-	}
 
-	setOrigin(param) {
-		if (param.lat && param.lng) {
-			this.setCenter(param.lat, param.lng);
-		}
-		else if (param.address) {
-			const s = (new Date()).getTime();
-
-			this.tgOrigin.searchLatLngByAddress(param.address)
-			.then((data) => {
-				const elapsed = (new Date()).getTime() - s;
-				console.log('received: lat & lng (' + elapsed + ' ms)');
-				this.setCenter(data.lat, data.lng);
-			})
-			.catch((error) => {
-				console.error(error);
-				if (!this.tgOrigin.getOrigin()) setDefaultOrigin();
-			});
-		}
-		else {
-			console.error('invalid param in setOrigin()');
-			if (!this.tgOrigin.getOrigin()) setDefaultOrigin();
-		}
-
-		function setDefaultOrigin() {
-			console.log('use default lat & lng.')
-			this.setCenter(this.data.origin.default.lat, this.data.origin.default.lng);
-		}
-	}
-
-	setOriginByCurrentLocation() {
-  	this.tgOrigin.getCurrentLocation()
-  	.then((data) => {
-  		console.log('got lat & lng from geolocation.');
-			this.setCenter(data.lat, data.lng);
-  	})
-  	.catch((error) => {
-			console.error(error);
-			if (!this.tgOrigin.getOrigin()) setDefaultOrigin();
-		});
-  }
 
 	setCenter(lat, lng) {
 		this.olMap.getView().setCenter(ol.proj.fromLonLat([lng, lat]));
@@ -236,14 +197,14 @@ class TgMap {
 		this.tgLocs.request();
 	}
 
-
-
 	//
 	// When finising the mouse move or zoom in/out
 	//
 	onMoveEnd(e) {
-		if (this.data.zoom.current != this.olMap.getView().getZoom()) {
-	    this.data.zoom.current = this.olMap.getView().getZoom();
+		console.log(this.olMap.getView().getZoom());
+		const intZoom = Math.round(this.olMap.getView().getZoom());
+		if (this.data.zoom.current != intZoom) {
+	    this.data.zoom.current = intZoom;
 	    this.onZoomEnd();
 	  }
 	  else {
@@ -252,7 +213,7 @@ class TgMap {
 	}
 
 	onZoomEnd() {
-    console.log('onZoomEnd');
+    console.log('onZoomEnd : ' + this.data.zoom.current);
 
     this.tgWater.tempCount = 0;
 
@@ -261,7 +222,6 @@ class TgMap {
 		this.tgPlaces.needToBeRedrawn();
     this.tgLocs.request();
 
-    this.tgLocs.initLocations();
 		this.recalculateAndDraw();
 
 
@@ -312,8 +272,8 @@ class TgMap {
 			//this.tgLanduse.discard();
 
 			this.tgLocs.discard();
-			this.tgOrigin.discard();
 			this.tgIsochrone.discard();
+			this.tgLocs.setHighLightMode(false, 0);
 		}
 		else {
 			this.tgRoads.render();
@@ -397,9 +357,9 @@ class TgMap {
 		*/
 		this.goToDc(false, noNeedToCalFactor);
 
-		if (this.tgLocs.needToDisplayLocs) {
+		if (this.tgLocs.dispLocsAfterCalWarping) {
 			this.tgLocs.displayLocsInDc();
-			this.tgLocs.needToDisplayLocs = false;
+			this.tgLocs.dispLocsAfterCalWarping = false;
 		}
 	}
 
@@ -473,52 +433,10 @@ class TgMap {
 	updateLayers() {
 		var s = (new Date()).getTime();
 
-		/*if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
-			if (this.currentMode === 'EM') this.tgControl.calDispNodes('original');
-			else if (this.currentMode === 'DC') {
-				if (this.warpingMode === 'none') this.tgControl.calDispNodes('target');
-				else this.tgControl.calDispNodes('real');
-			}
-		}*/
-
-		/*if (this.dispPlaceLayer) {
-			this.tgPlaces.calDispPlace();
-			this.tgPlaces.addPlaceLayer();
-		}
-		else this.tgPlaces.clearLayers();
-		*/
-
-		//if (this.dispWaterNodeLayer) this.tgWater.addWaterNodeLayer();
-		//else this.tgWater.removeWaterNodeLayer();
-
-		//if (this.dispRoadNodeLayer) this.tgRoads.addNodeLayer();
-		//else this.tgRoads.removeNodeLayer();
-
-		//if (this.dispLanduseNodeLayer) this.tgLanduse.addLanduseNodeLayer();
-		//else this.tgLanduse.removeLanduseNodeLayer();
-
-	  /*if (this.dispGridLayer) this.tgControl.drawGridLayer()
-		else this.tgControl.removeGridLayer()
-
-		if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer()
-		else this.tgControl.removeControlPointLayer()*/
-
-		//if (this.dispCenterPositionLayer) this.tgAux.drawCenterPositionLayer()
-		//else this.tgAux.removeCenterPositionLayer();
-
-		//if (this.dispLocationLayer) this.tgLocs.drawLocationLayer()
-		//else this.tgLocs.removeLocationLayer();
-
-		//if (this.dispLocationNameLayer) this.tgLocs.drawLocationNameLayer()
-		//else this.tgLocs.removeLocationNameLayer();
-
-		//if (this.dispIsochroneLayer) this.tgAux.drawIsochroneLayer();
-		//else this.tgAux.removeIsochroneLayer();
-
-		//this.tgOrigin.render();
+		
 		this.tgBB.render();
 
-		console.log('updateLayers : ' + ((new Date()).getTime() - s) + 'ms')
+		//console.log('updateLayers : ' + ((new Date()).getTime() - s) + 'ms')
 	}
 
 	goToEm(animation = true) {
@@ -568,16 +486,16 @@ class TgMap {
 		if (this.tg.graph.TPSTest()) {
 			console.log('complete: TPS(' + parseInt(this.tg.graph.factor) + ')');
 			this.tpsReady = true;
-
-			// TODO: if locations are not ready...
 		}
 		else {
-			//console.log('fail: TPS...');
 			alert('fail: TPS...');
 		}
+
+
+
 		//this.needToCalWarping = false;
 
-		this.tgLocs.calTargetNodes();
+		//this.tgLocs.calTargetNodes();
 
 		if (this.warpingMode === 'none') {
 			this.tgWater.calTargetNodes();
@@ -591,9 +509,13 @@ class TgMap {
 	  	this.tgRoads.calRealNodes();
 	  	this.tgPlaces.calRealNodes();
 	  	this.tgLanduse.calRealNodes();
-	  	this.tgLocs.calRealNodes();
+	  	this.tgLocs.calTargetAndRealNodes();
 	  	this.tgOrigin.calRealNodes();
 		}
+
+		// calculate time of all locations
+		this.tgLocs.setTimeOfLocations();
+		this.tgLocs.setTimeOfLocationGroups();
 
 		if (animation) {
 			this.timerFrame = 
@@ -604,6 +526,19 @@ class TgMap {
 			this.moveElementsByValue('intermediateReal', 1.0);
 			this.reachDc();
 		}
+
+		// test
+		/*let sum = 0;
+		for(let pt of this.tgControl.controlPoints) {
+			if (pt.travelTime) {
+				const expectedTime = 
+						parseInt(this.calTimeFromLatLng(pt.target.lat, pt.target.lng));
+				const dif = Math.abs(pt.travelTime - expectedTime);
+				sum += dif;
+				console.log(pt.travelTime + ' , ' + expectedTime + ' : ' + dif);
+			}
+		}
+		console.log('dif sum: ' + sum);*/
 	}
 
 	/*
@@ -683,6 +618,7 @@ class TgMap {
 		this.currentMode = 'INTERMEDIATE';
 		this.tgIsochrone.disabled(true);
 		this.tgIsochrone.render();
+		this.tgLocs.setHighLightMode(false, 0);
 		this.tgLocs.dispNameLayer = false;
 		this.tgLocs.removeNameLayer();
 		this.tgLocs.render();
@@ -706,8 +642,8 @@ class TgMap {
 	reachDcOrEm() {
 		clearInterval(this.timerFrame);
 		this.tgOrigin.render();
-		this.tgBB.cleanBB();
-		this.tgBB.addBBOfLocations();
+		//this.tgBB.cleanBB();
+		//this.tgBB.addBBOfLocations();
 		this.tgLocs.dispNameLayer = true;
 		//this.tgLocs.updateNonOverlappedLocationNames();
 		this.tgLocs.render();
@@ -717,7 +653,7 @@ class TgMap {
 
 	resetUI() {
 		const tf = (this.currentMode === 'EM');
-		this.olMap.dragPan.setActive(tf);
+		//this.olMap.dragPan.setActive(tf);
 		$('#dispIsochroneCB').prop('disabled', tf);
 		//this.disableSGapAndGapButtons(tf);
 	}
@@ -766,7 +702,6 @@ class TgMap {
 
 	initMap() {
 		this.tgBB.cleanBB();
-		this.tgLocs.initLocations();
 		this.tgLocs.removeLayer();
 		this.tgLocs.removeNameLayer();
 		this.tgLocs.render();
@@ -778,6 +713,8 @@ class TgMap {
 			this.resetUI();
 			this.tgIsochrone.disabled(true);
 			this.tgIsochrone.render();
+			this.tgLocs.setHighLightMode(false, 0);
+
 			this.calAllDispNodeAsOriginal();
 			this.frame = 0;
 
@@ -792,8 +729,7 @@ class TgMap {
   	this.tgRoads.calDispNodes('original');
   	this.tgLanduse.calDispNodes('original');
 	  this.tgPlaces.calDispNodes('original');
-	  this.tgOrigin.calDispNodes('original');
-  	this.tgControl.calDispNodes('original');
+  	//this.tgGrids.calDispNodes('original');
 	}
 
 	resetTime() {
@@ -868,21 +804,33 @@ class TgMap {
 
 	}
 
+	calLenFromLatLng(lat, lng) {
+  	const cLat = this.tgOrigin.origin.original.lat;
+  	const cLng = this.tgOrigin.origin.original.lng;
+  	const dLat = (cLat - lat) * this.graph.shrink();
+  	const dLng = (cLng - lng);
+  	//const dLng = (cLng - lng) * this.graph.shrink();
+	  return Math.sqrt(dLat * dLat + dLng * dLng);
+
+	}
+
 	calTimeFromLatLng(lat, lng) {
 		if (!this.tg.graph.factor) return 0;
-		
-		const centerLat = this.tgOrigin.origin.original.lat;
-  	const centerLng = this.tgOrigin.origin.original.lng;// / this.tg.graph.toLat();
-  	const inLat = lat;
-  	const inLng = lng; // / this.tg.graph.toLat();
-  	//return tgUtil.D2(centerLat, centerLng, lat, lng) * this.tg.graph.factor;
-  	return tgUtil.D2(centerLat, centerLng, inLat, inLng) * this.tg.graph.factor;
+
+  	const cLat = this.tgOrigin.origin.original.lat;
+  	const cLng = this.tgOrigin.origin.original.lng;
+  	
+  	const dLat = (cLat - lat);
+  	const dLng = (cLng - lng) * this.graph.shrink();
+	 	const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+
+  	return dist * this.tg.graph.factor;
 	}
 
 	calDistanceFromLatLng(lat, lng) {
 		const centerLat = this.tgOrigin.origin.original.lat;
   	const centerLng = this.tgOrigin.origin.original.lng;
-  	return tgUtil.distance(centerLat, centerLng, lat, lng); // km
+  	return TgUtil.distance(centerLat, centerLng, lat, lng); // km
 	}
 
 	calMaxDistance(latOrLng = 'lat') {

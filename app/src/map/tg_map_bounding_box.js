@@ -63,63 +63,172 @@ class TgMapBoundingBox {
 		}
 	}
 
-	calClusteredLocations(locations) {
-		let clusteredLocations = [];
+	/*calBBOfClusterLocations(locationClusters) {
+		const clusterLatPx = 45;
+		const clusterLngPx = 45;
+		const cLat = (clusterLatPx * this.data.var.latPerPx) / 2;
+		const cLng = (clusterLngPx * this.data.var.lngPerPx) / 2;
 
-		for(let i = 0; i < locations.length; i++) {
-			const targetLoc = locations[i];
-
-			// check overlapped bb
-			let overlappedLoc = null;
-			for(let j = i + 1; j < locations.length; j++) {
-				const loc = locations[j];
-
-				if (tgUtil.intersectRect(targetLoc.bb, loc.bb)) {
-					overlappedLoc = loc;
-					break;
-				}
-			}
-
-			if (overlappedLoc) {
-				// if there is any overlapped location
-
-				// if the overlapped loc already exists in the cluster
-				let found = false;
-				for(let cLocs of clusteredLocations) {
-					for(let cLoc of cLocs.locs) {
-						if (cLoc === targetLoc) {
-							cLocs.locs.push(overlappedLoc);
-							found = true;
-							break;
-						}
-					}
-					if (found) break;
-				}
-
-				// if the overlapped loc doesn't exist in the cluster
-				if (!found) {
-					clusteredLocations.push({
-						locs: [targetLoc, overlappedLoc]
-					});
-				}
-			}
+		for(let cLocs of locationClusters) {
+			const disp = cLocs.node.dispLoc;
+			cLocs.bb = {
+				left: disp.lng - cLng, 
+				right: disp.lng + cLng,
+				top: disp.lat - cLat,
+				bottom: disp.lat + cLat,
+			};
 		}
+	}*/
 
-		// set isInCluster property
-		for(let loc of locations) {
-			loc.isInCluster = false;
+	updateLocationGroups(locGrps) {
+		for(let locGrp of locGrps) {
+			this.updateLocationGroup(locGrp);
 		}
-
-		for(let cLocs of clusteredLocations) {
-			for(let cLoc of cLocs.locs) {
-				cLoc.isInCluster = true;
-			}
-		}
-
-		return clusteredLocations;
 	}
 
-	updateNodeOfClusteredLocations(locationClusters) {
+	updateLocationGroup(locGrp) {
+		this.updateNodeOfLocationGroup(locGrp);
+		this.updateBBOfLocationGroup(locGrp);
+	}
+
+	updateNodeOfLocationGroup(locGrp) {
+		let dispLoc = {lat: 0, lng: 0};
+		let dispAnchor = {lat: 0, lng: 0};
+
+		for(let cLoc of locGrp.locs) {
+			dispLoc.lat += cLoc.node.dispLoc.lat;
+			dispLoc.lng += cLoc.node.dispLoc.lng;
+			dispAnchor.lat += cLoc.node.dispAnchor.lat;
+			dispAnchor.lng += cLoc.node.dispAnchor.lng;
+		}
+
+		const len = locGrp.locs.length;
+		dispLoc.lat /= len;
+		dispLoc.lng /= len;
+		dispAnchor.lat /= len;
+		dispAnchor.lng /= len;
+
+		if (locGrp.node) {
+			locGrp.node.reset(dispLoc.lat, dispLoc.lng);
+		}
+		else {
+			locGrp.node = new TgLocationNode(dispLoc.lat, dispLoc.lng);
+		}
+		locGrp.node.dispAnchor = dispAnchor;
+		locGrp.time = 0;
+	}
+
+	updateBBOfLocationGroup(locGrp) {
+		const locGrpLatPx = 45;
+		const locGrpLngPx = 45;
+		const cLat = (locGrpLatPx * this.data.var.latPerPx) / 2;
+		const cLng = (locGrpLngPx * this.data.var.lngPerPx) / 2;
+		const disp = locGrp.node.dispLoc;
+		locGrp.bb = {
+			left: disp.lng - cLng, 
+			right: disp.lng + cLng,
+			top: disp.lat - cLat,
+			bottom: disp.lat + cLat,
+		};
+	}
+
+	addIntoGroupOrmakeNewGroup(locGrps, loc1, loc2) {
+
+		// I. both locs are in groups
+		if ((loc1.group) && (loc2.group)) {
+			if (loc1.group !== loc2.group) {
+				//loc1.group.locs = loc1.group.locs.concat(loc2.group.locs);
+				//loc2.group = loc1.group;
+			}
+		}
+		// II. loc1 is in group
+		else if (loc1.group) {
+			loc1.group.locs.push(loc2);
+			loc2.group = loc1.group;
+		}
+		// III. loc2 is in group
+		else if (loc2.group) {
+			loc2.group.locs.push(loc1);
+			loc1.group = loc2.group;
+		}
+		// IV. no locs are in group
+		else {
+			const locGrp = {locs: [loc1, loc2]};
+			locGrps.push(locGrp);
+			loc1.group = locGrp;
+			loc2.group = locGrp;
+		}
+	}
+
+	mergeLocationGoup(locGrp1, locGrp2) {
+		for(let loc of locGrp2.locs) {
+			if (locGrp1.locs.indexOf(loc) < 0) locGrp1.locs.push(loc);
+		}
+		this.updateLocationGroup(locGrp1);
+		return locGrp1;
+	}
+
+	calLocationGroup(locs) {
+		let locGrps = [];
+
+		// make distance arrays between all locations and sort it.
+		let distBetweenLocGrps = [];
+		for(let i = 0; i < locs.length; i++) {
+			for(let j = i + 1; j < locs.length; j++) {
+				distBetweenLocGrps.push({
+					loc1: locs[i], loc2: locs[j],
+					dist: tgUtil.D2_s(locs[i].node.dispLoc.lat, locs[i].node.dispLoc.lng, 
+						locs[j].node.dispLoc.lat, locs[j].node.dispLoc.lng)
+				});
+			}
+			locs[i].group = null;
+		}
+		distBetweenLocGrps.sort((a, b) => {return a.dist - b.dist});
+
+		// make location group
+		for(let twoLocs of distBetweenLocGrps) {
+			if (tgUtil.intersectRect(twoLocs.loc1.bb, twoLocs.loc2.bb)) {
+				this.addIntoGroupOrmakeNewGroup(locGrps, twoLocs.loc1, twoLocs.loc2);
+			}
+			else break;
+		}
+		this.updateLocationGroups(locGrps);
+
+		// check among location groups
+		let newLocGroups = [];
+		while(locGrps.length > 0) {
+			const targetLocGrp = locGrps.shift();
+			let overlapped = false;
+			for(let locGrp of locGrps) {
+				if (tgUtil.intersectRect(targetLocGrp.bb, locGrp.bb)) {
+					overlapped = true;
+					locGrp = this.mergeLocationGoup(locGrp, targetLocGrp);
+				}
+			}
+			if (!overlapped) {
+				newLocGroups.push(targetLocGrp);
+			}
+		}
+		locGrps = newLocGroups;
+
+		// check overlap between groups and locations
+		for(let locGrp of locGrps) {
+			for(let loc of locs) {
+				if (loc.group) continue;
+				if (tgUtil.intersectRect(locGrp.bb, loc.bb)) {
+					locGrp.locs.push(loc);
+					loc.group = locGrp;
+					this.updateLocationGroup(locGrp);
+				}
+			}
+		}
+
+		//console.log(locGrps);
+
+		return locGrps;
+	}
+
+	/*updateNodeOfClusteredLocations(locationClusters) {
 		for(let cLocs of locationClusters) {
 			let dispLoc = {lat: 0, lng: 0};
 			let dispAnchor = {lat: 0, lng: 0};
@@ -139,25 +248,21 @@ class TgMapBoundingBox {
 
 			cLocs.node = new TgLocationNode(dispLoc.lat, dispLoc.lng);
 			cLocs.node.dispAnchor = dispAnchor;
+			cLocs.time = 0;
+		}
+	}*/
+
+	updateTimeOfLocationGroups(locGrps) {
+		for(let locGrp of locGrps) {
+			let time = 0;
+			for(let loc of locGrp.locs) time += loc.time;
+			time /= locGrp.locs.length;
+			locGrp.time = time;
 		}
 	}
 
-	calBBOfClusterLocations(locationClusters) {
-		const clusterLatPx = 45;
-		const clusterLngPx = 45;
-		const cLat = (clusterLatPx * this.data.var.latPerPx) / 2;
-		const cLng = (clusterLngPx * this.data.var.lngPerPx) / 2;
 
-		for(let cLocs of locationClusters) {
-			const disp = cLocs.node.dispLoc;
-			cLocs.bb = {
-				left: disp.lng - cLng, 
-				right: disp.lng + cLng,
-				top: disp.lat - cLat,
-				bottom: disp.lat + cLat,
-			};
-		}
-	}
+
 
 	calNonOverlappedLocationNames(locations, locationClusters) {
 		// location names in the cluster are not displayed
@@ -168,7 +273,7 @@ class TgMapBoundingBox {
 		// calculate non-overlapped location names
 		for(let loc of locations) {
 			
-			if (loc.isInCluster) continue;
+			if (loc.group) continue;
 
 			for(let i = 0; i < 8; i++) {
 				const ret = 
