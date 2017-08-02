@@ -1,16 +1,16 @@
-const TgControl = require('./map/tg_map_control');
-const TgRoads = require('./map/tg_map_roads');
-const TgWater = require('./map/tg_map_water');
-const TgLanduse = require('./map/tg_map_landuse');
-const TgPlaces = require('./map/tg_map_places');
-const TgLocations = require('./map/tg_map_locations');
-const TgIsochrone = require('./map/tg_map_isochrone');
-const TgBoundingBox = require('./map/tg_map_bounding_box');
-const TgOrigin = require('./map/tg_map_origin');
-const TgGrid = require('./map/tg_map_grid');
-const TgUtil = require('./tg_util');
-const TgMapUtil = require('./map/tg_map_util');
-const TgInteraction = require('./map/tg_map_interactions');
+//const TgControl = require('./map/tg_map_control');
+//const TgRoads = require('./map/tg_map_roads');
+//const TgWater = require('./map/tg_map_water');
+//const TgLanduse = require('./map/tg_map_landuse');
+//const TgPlaces = require('./map/tg_map_places');
+//const TgLocations = require('./map/tg_map_locations');
+//const TgIsochrone = require('./map/tg_map_isochrone');
+//const TgBoundingBox = require('./map/tg_map_bounding_box');
+//const TgOrigin = require('./map/tg_map_origin');
+//const TgGrid = require('./map/tg_map_grid');
+//const TgUtil = require('./tg_util');
+//const TgMapUtil = require('./map/tg_map_util');
+//const TgMapInteraction = require('./map/tg_map_interactions');
 
 class TgMap {
 	constructor(tg, map_id) {
@@ -25,7 +25,7 @@ class TgMap {
     	zoom: this.data.zoom.init,
     });
 
-    this.tgInteraction = new TgInteraction(this);
+    this.tgInteraction = new TgMapInteraction(this);
 
 		this.olMap = new ol.Map({
       interactions: ol.interaction.defaults().extend([this.tgInteraction]),
@@ -46,23 +46,24 @@ class TgMap {
 		// modules
 
 		this.mapUtil = new TgMapUtil(this.data, this.olMap);
-	  this.tgWater = new TgWater(this, this.data, this.graph);
-	  this.tgRoads = new TgRoads(this, this.data, this.graph);
-	  this.tgLanduse = new TgLanduse(this, this.data, this.graph);
-	  this.tgLocs = new TgLocations(this, this.data, this.graph);
-	  this.tgControl = new TgControl(this, this.data, this.graph);
-	  this.tgGrids = new TgGrid(this, this.data, this.graph);
-	  this.tgPlaces = new TgPlaces(this, this.data, this.graph);
-	  this.tgBB = new TgBoundingBox(this, this.data, this.graph);
-	  this.tgOrigin = new TgOrigin(this, this.data, this.graph);
-	  this.tgIsochrone = new TgIsochrone(this, this.data, this.graph);
+	  this.tgWater = new TgMapWater(this, this.data, this.graph);
+	  this.tgRoads = new TgMapRoads(this, this.data, this.graph);
+	  this.tgLanduse = new TgMapLanduse(this, this.data, this.graph);
+	  this.tgLocs = new TgMapLocations(this, this.data, this.graph);
+	  this.tgControl = new TgMapControl(this, this.data, this.graph);
+	  this.tgGrids = new TgMapGrid(this, this.data, this.graph);
+	  this.tgPlaces = new TgMapPlaces(this, this.data, this.graph);
+	  this.tgBB = new TgMapBoundingBox(this, this.data, this.graph);
+	  this.tgOrigin = new TgMapOrigin(this, this.data, this.graph);
+	  this.tgIsochrone = new TgMapIsochrone(this, this.data, this.graph);
 
 	  // initialization
 
-	  this.tgWater.init();
+	  //this.tgWater.init();
 	  this.tgRoads.init();
-	  this.tgLanduse.init();
-	  this.tgPlaces.init();
+	  //this.tgLanduse.init();
+	  //this.tgPlaces.init();
+	  this.tgOrigin.setPresets();
 
 	  // variables
 
@@ -72,8 +73,10 @@ class TgMap {
 	  this.tgRoads.turn(true);
 	  $('#dispRoadsCB').prop('checked', true);
 	  
-	  this.tgLanduse.turn(true);
-	  $('#dispLanduseCB').prop('checked', true);
+	  //this.tgLanduse.turn(true);
+	  this.tgLanduse.turn(false);
+	  $('#dispLanduseCB').prop('checked', false);
+	  //$('#dispLanduseCB').prop('checked', true);
 	  
 	  this.tgPlaces.turn(true);
 	  $('#dispPlaceCB').prop('checked', true);	  
@@ -95,6 +98,7 @@ class TgMap {
 
 	  this.warpingMode = 'shapePreserving'; 
 	  this.needToCalWarping = false;
+	  this.simplify = true;
 
 	  this.currentMode = 'EM';
 		this.data.zoom.current = this.olMap.getView().getZoom();
@@ -849,4 +853,4 @@ class TgMap {
 
 }
 
-module.exports = TgMap;
+//module.exports = TgMap;

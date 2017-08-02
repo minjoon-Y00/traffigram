@@ -172,4 +172,4 @@ class TgMapIsochrone {
 	}
 }
 
-module.exports = TgMapIsochrone;
+//module.exports = TgMapIsochrone;

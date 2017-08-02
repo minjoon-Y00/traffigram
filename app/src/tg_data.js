@@ -1,16 +1,16 @@
-module.exports = {
+var TgData = {
 	zoom: {
 		max: 18,
 		min: 11,
-		init: 12,
+		init: 15,
 		current: 0,
 		disp: {
 			motorway: {min: 1, max: 20},
 			trunk: {min: 1, max: 20},
-			primary: {min: 12, max: 20},
-			secondary: {min: 13, max: 20},
-			tertiary: {min: 14, max: 20},
-			residential: {min: 15, max: 20}
+			primary: {min: 13, max: 20},
+			secondary: {min: 14, max: 20},
+			tertiary: {min: 15, max: 20},
+			residential: {min: 16, max: 20}
 		}
 	},
 
@@ -214,8 +214,10 @@ module.exports = {
 	time: {
 		waitForFinishGettingWaterData: 500, // ms
 		waitForGettingData: 20, // ms
-		waitForGettingRoadData: 50, // ms
-		waitForGettingWaterData: 0, // ms
+		waitForGettingRoadData: 100, // ms // 50
+		waitForGettingWaterData: 100, // ms // 50
 	}
 	
 }
+
+//module.exports = TgData;

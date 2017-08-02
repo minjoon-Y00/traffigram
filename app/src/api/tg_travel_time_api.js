@@ -1,4 +1,4 @@
-class TgTavelTimeApi {
+class TgTravelTimeApi {
 	constructor(data) {
 		this.data = data;
 		this.centerLocation = {};
@@ -107,4 +107,4 @@ class TgTavelTimeApi {
 	}
 }	
 
-module.exports = TgTavelTimeApi;
+//module.exports = TgTravelTimeApi;

@@ -1,5 +1,5 @@
-const tgUtil = require('../tg_util');
-const TgNode = require('../node/tg_node');
+//const TgUtil = require('../tg_util');
+//const TgNode = require('../node/tg_node');
 
 class TgMapWater {
 	constructor(map, data, graph) {
@@ -12,7 +12,7 @@ class TgMapWater {
 		this.display = false;
 		this.layer = null;
 
-		this.simplify = false;
+		this.simplify = true;
   	this.dispNodeLayer = false;
 		this.nodeLayer = null;
 
@@ -105,7 +105,7 @@ class TgMapWater {
 			if (geoType === 'Polygon') {
 
 				if ((this.simplify)&&(this.map.simplify)) {
-					coords = tgUtil.RDPSimp2DLoop(coords, this.rdpThreshold);
+					coords = TgUtil.RDPSimp2DLoop(coords, this.rdpThreshold);
 				}
 
 				for(let i = 0; i < coords.length; i++) {
@@ -121,7 +121,7 @@ class TgMapWater {
 			else if (geoType == 'MultiPolygon') {
 
 				if ((this.simplify)&&(this.map.simplify)) {
-					coords = tgUtil.RDPSimp3DLoop(coords, this.rdpThreshold);
+					coords = TgUtil.RDPSimp3DLoop(coords, this.rdpThreshold);
 				}
 
 				for(let i = 0; i < coords.length; i++) {
@@ -469,7 +469,7 @@ class TgMapWater {
 				for(let i = 0; i < water.length; i++) {
 					for(let j = 0; j < water[i].length - 1; j++) {
 
-						if (tgUtil.intersects(
+						if (TgUtil.intersects(
 							original.lat, original.lng, 
 							point.original.lat, point.original.lng, 
 		        	water[i][j][1], water[i][j][0], 
@@ -484,7 +484,7 @@ class TgMapWater {
 					for(let j = 0; j < water[i].length; j++) {
 						for(let k = 0; k < water[i][j].length - 1; k++) {
 
-							if (tgUtil.intersects(
+							if (TgUtil.intersects(
 								original.lat, original.lng, 
 								point.original.lat, point.original.lng, 
 			        	water[i][j][k][1], water[i][j][k][0], 
@@ -641,4 +641,4 @@ class TgMapWater {
 	}
 }
 
-module.exports = TgMapWater;
+//module.exports = TgMapWater;

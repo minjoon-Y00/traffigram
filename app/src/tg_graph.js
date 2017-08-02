@@ -1,4 +1,4 @@
-const TgUtil = require('./tg_util');
+//const TgUtil = require('./tg_util');
 
 class TgGraph {
 	constructor(tg, data) {
@@ -235,4 +235,4 @@ class TgGraph {
 	}
 }
 
-module.exports = TgGraph;
+//module.exports = TgGraph;

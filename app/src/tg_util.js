@@ -1,4 +1,5 @@
-class TgUtil {
+class tgUtil {
+//class TgUtil {
 	constructor() {
 		// do nothing
 	}
@@ -341,4 +342,5 @@ class TgUtil {
 	}
 
 }
-module.exports = new TgUtil();
+var TgUtil = new tgUtil();
+//module.exports = new TgUtil();

@@ -1,7 +1,40 @@
-const TgApp = require('./tg_app');
+//const TgApp = require('./tg_app');
 
-// create the main app object
-const tg = new TgApp('ol_map');
+let tg;
+
+getCurrentLocation()
+.then((data) => {
+
+  // create the main app object
+  tg = new TgApp('ol_map');
+
+  console.log('got lat & lng from geolocation: ' + data.lat + ', ' + data.lng);
+
+  const seattle = {lat: 47.6115744, lng: -122.343777}
+
+  if ((data.lat > seattle.lat - 1) && (data.lat < seattle.lat + 1) &&
+      (data.lng > seattle.lng - 1) && (data.lng < seattle.lng + 1)) {
+    //console.log('ok. here is in seattle.');
+    tg.setOriginByOtherLatLng(data.lat, data.lng);
+  }
+  else {
+    tg.setOriginAsDefault();
+  }
+
+  // ui for origin setting
+  const otherAddress = '1000 4th Ave, Seattle, WA 98104';
+  $("#yourHomeInput").val(tg.data.origin.home.address);
+  $("#yourOfficeInput").val(tg.data.origin.office.address);
+  $("#otherPlaceInput").val(otherAddress);
+
+})
+.catch((error) => {
+  console.error(error);
+  tg = new TgApp('ol_map');
+  tg.setOriginAsDefault();
+});
+
+
 
 /*
  * For the origin setting
@@ -20,25 +53,48 @@ const otherPlace = {
 	address: '1000 4th Ave, Seattle, WA 98104',
 }*/
 
-const otherAddress = '1000 4th Ave, Seattle, WA 98104';
 
-const favorites = ["Tilikum Place Cafe", "Radiator Whiskey", "The Zig Zag CafÃ©",
-  "Pike Place Chowder", "Art of The Table", "SkyCity at the Needle", 
-  "Canlis", "Von's Gustobistro", "Purple CafÃ© and Wine Bar", "LecÅsho", "Olde 99 Pub"];
+//const favorites = ["Tilikum Place Cafe", "Radiator Whiskey", "The Zig Zag CafÃ©",
+//  "Pike Place Chowder", "Art of The Table", "SkyCity at the Needle", 
+//  "Canlis", "Von's Gustobistro", "Purple CafÃ© and Wine Bar", "LecÅsho", "Olde 99 Pub"];
 
-tg.map.tgLocs.setFavorites(favorites);
+//tg.map.tgLocs.setFavorites(favorites);
 
 
 // default: myHome
-tg.setOriginAsHome();
+//tg.setOriginAsHome();
 //tg.setOriginAsOffice();
 //tg.setOriginByAddress(otherAddress);
 
 
-// ui for origin setting
-$("#yourHomeInput").val(tg.data.origin.home.address);
-$("#yourOfficeInput").val(tg.data.origin.office.address);
-$("#otherPlaceInput").val(otherAddress);
+
+function getCurrentLocation() {
+  return new Promise((resolve, reject) => {
+    const timeOutForGettingLocation = 5000; // 2 sec
+    let timeOutTimer;
+
+    if (!navigator.geolocation) {
+      reject('Geolocation is not supported by this browser.');
+    }
+    else {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        clearTimeout(timeOutTimer);
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      });
+
+      timeOutTimer = setTimeout(() => {
+        reject('Time out for getting geolocation');
+      }, timeOutForGettingLocation);
+    }
+  });
+}
+
+
+
+
 
 $("#originYourHomeRB").change(function(ev){
   if (ev.target.checked) {
@@ -295,92 +351,105 @@ $("#tod_4_4").click((ev) => { tg.map.tgLocs.changeType(4, 4); });
 $("#tod_4_5").click((ev) => { tg.map.tgLocs.changeType(4, 5); });
 $("#tod_4_6").click((ev) => { tg.map.tgLocs.changeType(4, 6); });
 
-$("#ratingSlider").slider({ 
-  id: "ratingSlider", 
-  step: 1,
-  value: [4, 8],
-  ticks: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-  ticks_labels: ['1', '', '2', '', '3', '', '4', '', '5'],
-  tooltip: 'hide',
-  //min: 0, max: 5, step: 0.5, value: 3, 
-  //tooltip: 'always'
-});
+if ($("#ratingSlider")) {
+  $("#ratingSlider").slider({ 
+    id: "ratingSlider", 
+    step: 1,
+    value: [4, 8],
+    ticks: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+    ticks_labels: ['1', '', '2', '', '3', '', '4', '', '5'],
+    tooltip: 'hide',
+    //min: 0, max: 5, step: 0.5, value: 3, 
+    //tooltip: 'always'
+  });
+  $("#ratingSlider").on("change", function(e) {
+    if ((e.value.oldValue[0] !== e.value.newValue[0]) || 
+      (e.value.oldValue[1] !== e.value.newValue[1])) {
+
+      const low = e.value.newValue[0] / 2 + 1;
+      const high = e.value.newValue[1] / 2 + 1;
+      //console.log(low + ', ' + high);
+
+      tg.map.tgLocs.doFilter('ratings', low, high);
+    }
+  });
+}
+
+if ($("#numRatingSlider")) {
+  $("#numRatingSlider").slider({ 
+    id: "numRatingSlider", 
+    step: 1,
+    value: [1, 6],
+    ticks: [0, 1, 2, 3, 4, 5, 6],
+    ticks_labels: ['0', '5', '10', '50', '100', '500', '1000+'],
+    tooltip: 'hide',
+  });
+
+  $("#numRatingSlider").on("change", function(e) {
+    if ((e.value.oldValue[0] !== e.value.newValue[0]) || 
+      (e.value.oldValue[1] !== e.value.newValue[1])) {
+
+      const labels = [0, 5, 10, 50, 100, 500, 1000];
+      const low = labels[e.value.newValue[0]];
+      const high = labels[e.value.newValue[1]];
+      //console.log(low + ', ' + high);
+
+      tg.map.tgLocs.doFilter('numRatings', low, high);
+    }
+  });
+}
+
+if ($("#priceRangeSlider")) {
+  $("#priceRangeSlider").slider({ 
+    id: "priceRangeSlider", 
+    step: 1,
+    value: [0, 3],
+    ticks: [0, 1, 2, 3],
+    ticks_labels: ['$', '$$', '$$$', '$$$$'],
+    tooltip: 'hide',
+  });
 
 
-$("#ratingSlider").on("change", function(e) {
-  if ((e.value.oldValue[0] !== e.value.newValue[0]) || 
-    (e.value.oldValue[1] !== e.value.newValue[1])) {
+  $("#priceRangeSlider").on("change", function(e) {
+    if ((e.value.oldValue[0] !== e.value.newValue[0]) || 
+      (e.value.oldValue[1] !== e.value.newValue[1])) {
 
-    const low = e.value.newValue[0] / 2 + 1;
-    const high = e.value.newValue[1] / 2 + 1;
-    //console.log(low + ', ' + high);
+      const low = e.value.newValue[0] + 1;
+      const high = e.value.newValue[1] + 1;
+      //console.log(low + ', ' + high);
 
-    tg.map.tgLocs.doFilter('ratings', low, high);
-  }
-});
+      tg.map.tgLocs.doFilter('priceRange', low, high);
+    }
+  });
+}
 
+if ($("#maxLocsSlider")) {
+  $("#maxLocsSlider").slider({ 
+    id: "maxLocsSlider", 
+    step: 1,
+    value: 2,
+    ticks: [1, 2, 3, 4, 5],
+    ticks_labels: ['10', '20', '30', '40', '50+'],
+    tooltip: 'hide',
+  });
 
-$("#numRatingSlider").slider({ 
-  id: "numRatingSlider", 
-  step: 1,
-  value: [1, 6],
-  ticks: [0, 1, 2, 3, 4, 5, 6],
-  ticks_labels: ['0', '5', '10', '50', '100', '500', '1000+'],
-  tooltip: 'hide',
-});
+  $("#maxLocsSlider").on("change", function(e) {
+    if (e.value.oldValue !== e.value.newValue) {
+      const val = e.value.newValue * 10;
+      //console.log(val);
 
-$("#numRatingSlider").on("change", function(e) {
-  if ((e.value.oldValue[0] !== e.value.newValue[0]) || 
-    (e.value.oldValue[1] !== e.value.newValue[1])) {
-
-    const labels = [0, 5, 10, 50, 100, 500, 1000];
-    const low = labels[e.value.newValue[0]];
-    const high = labels[e.value.newValue[1]];
-    //console.log(low + ', ' + high);
-
-    tg.map.tgLocs.doFilter('numRatings', low, high);
-  }
-});
-
-$("#priceRangeSlider").slider({ 
-  id: "priceRangeSlider", 
-  step: 1,
-  value: [0, 3],
-  ticks: [0, 1, 2, 3],
-  ticks_labels: ['$', '$$', '$$$', '$$$$'],
-  tooltip: 'hide',
-});
+      tg.map.tgLocs.doFilter('maxLocs', val);
+    }
+  });
+}
 
 
-$("#priceRangeSlider").on("change", function(e) {
-  if ((e.value.oldValue[0] !== e.value.newValue[0]) || 
-    (e.value.oldValue[1] !== e.value.newValue[1])) {
 
-    const low = e.value.newValue[0] + 1;
-    const high = e.value.newValue[1] + 1;
-    //console.log(low + ', ' + high);
 
-    tg.map.tgLocs.doFilter('priceRange', low, high);
-  }
-});
 
-$("#maxLocsSlider").slider({ 
-  id: "maxLocsSlider", 
-  step: 1,
-  value: 2,
-  ticks: [1, 2, 3, 4, 5],
-  ticks_labels: ['10', '20', '30', '40', '50+'],
-  tooltip: 'hide',
-});
+  
 
-$("#maxLocsSlider").on("change", function(e) {
-  if (e.value.oldValue !== e.value.newValue) {
-    const val = e.value.newValue * 10;
-    //console.log(val);
-
-    tg.map.tgLocs.doFilter('maxLocs', val);
-  }
-});
+  
 
 
 

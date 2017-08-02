@@ -1,4 +1,4 @@
-const TgNode = require('../node/tg_node');
+//const TgNode = require('../node/tg_node');
 
 class TgMapOrigin {
 	constructor(map, data, graph) {
@@ -14,6 +14,13 @@ class TgMapOrigin {
 		this.origin = null;
 		this.bb = null;
 		this.type = 'home'; // 'office' // 'other'
+		this.origin = null;
+		this.presetType = ['home', 'office'];
+		this.preset = {};
+
+		for(let type of this.presetType) {
+			this.preset[type] = null;
+		}
 	}
 
 	turn(tf) {
@@ -48,8 +55,29 @@ class TgMapOrigin {
 	}
 
 	setOrigin(lat, lng) {
-		this.origin = new TgNode(lat, lng);
+		if (!this.origin) {
+			this.origin = new TgNode(lat, lng);
+		}
+		else {
+			this.origin.set(lat, lng);
+		}
+
 		this.BB = this.map.tgBB.calBBOfOrigin();
+	}
+
+	setPresets() {
+		for(let type of this.presetType) {
+			this.setPresetByType(type, this.data.origin[type].lat, this.data.origin[type].lng);
+		}
+	}
+
+	setPresetByType(type, lat, lng) {
+		if (!this.preset[type]) {
+			this.preset[type] = new TgNode(lat, lng);
+		}
+		else {
+			this.preset[type].set(lat, lng);
+		}
 	}
 
 	getOrigin() {
@@ -80,15 +108,15 @@ class TgMapOrigin {
 
 		// display home icon
 		if (this.type !== 'home') {
-			this.feature = this.mapUtil.addFeatureInFeatures(arr,
-				new ol.geom.Point([this.data.origin.home.lng, this.data.origin.home.lat]), 
+			this.mapUtil.addFeatureInFeatures(arr,
+				new ol.geom.Point([this.preset.home.disp.lng, this.preset.home.disp.lat]), 
 					this.mapUtil.imageStyleFunc(viz.image.origin.home, opacityOfPreset));
 		}
 
 		// display office icon
 		if (this.type !== 'office') {
-			this.feature = this.mapUtil.addFeatureInFeatures(arr,
-				new ol.geom.Point([this.data.origin.office.lng, this.data.origin.office.lat]), 
+			this.mapUtil.addFeatureInFeatures(arr,
+				new ol.geom.Point([this.preset.office.disp.lng, this.preset.office.disp.lat]), 
 					this.mapUtil.imageStyleFunc(viz.image.origin.office, opacityOfPreset));	
 		}
 
@@ -113,27 +141,61 @@ class TgMapOrigin {
 		else throw 'ERROR in calModifiedNodes()';
 
 		const transform = this.graph[transformFuncName].bind(this.graph);
-		const modified = transform(this.origin.original.lat, this.origin.original.lng);
+
+		// origin is not changed.
+		/*const modified = transform(this.origin.original.lat, this.origin.original.lng);
 		this.origin[kind].lat = modified.lat;
-		this.origin[kind].lng = modified.lng;
+		this.origin[kind].lng = modified.lng;*/
+
+		for(let type of this.presetType) {
+			const modified = 
+				transform(this.preset[type].original.lat, this.preset[type].original.lng);
+			this.preset[type][kind].lat = modified.lat;
+			this.preset[type][kind].lng = modified.lng;
+		}
 	}
 
 	calDispNodes(kind, value) {
 		if (kind === 'intermediateReal') {
-			this.origin.disp.lat = 
+			/*this.origin.disp.lat = 
 				(1 - value) * this.origin.original.lat + value * this.origin.real.lat;
 			this.origin.disp.lng = 
-				(1 - value) * this.origin.original.lng + value * this.origin.real.lng;
+				(1 - value) * this.origin.original.lng + value * this.origin.real.lng;*/
+
+			for(let type of this.presetType) {
+				this.preset[type].disp.lat = 
+						(1 - value) * this.preset[type].original.lat + 
+						value * this.preset[type].real.lat;
+				this.preset[type].disp.lng = 
+						(1 - value) * this.preset[type].original.lng + 
+						value * this.preset[type].real.lng;
+			}
+
+
 		}
 		else if (kind === 'intermediateTarget') {
-			this.origin.disp.lat = 
+			/*this.origin.disp.lat = 
 				(1 - value) * this.origin.original.lat + value * this.origin.target.lat;
 			this.origin.disp.lng = 
-				(1 - value) * this.origin.original.lng + value * this.origin.target.lng;
+				(1 - value) * this.origin.original.lng + value * this.origin.target.lng;*/
+
+			for(let type of this.presetType) {
+				this.preset[type].disp.lat = 
+						(1 - value) * this.preset[type].original.lat + 
+						value * this.preset[type].target.lat;
+				this.preset[type].disp.lng = 
+						(1 - value) * this.preset[type].original.lng + 
+						value * this.preset[type].target.lng;
+			}
 		}
 		else {
-			this.origin.disp.lat = this.origin[kind].lat;
-			this.origin.disp.lng = this.origin[kind].lng;
+			/*this.origin.disp.lat = this.origin[kind].lat;
+			this.origin.disp.lng = this.origin[kind].lng;*/
+
+			for(let type of this.presetType) {
+				this.preset[type].disp.lat = this.preset[type][kind].lat;
+				this.preset[type].disp.lng = this.preset[type][kind].lng;
+			}
 		}
 	}
 
@@ -190,6 +252,11 @@ class TgMapOrigin {
 		this.map.setCenter(this.data.origin.default.lat, this.data.origin.default.lng);
 	}
 
+	setOriginByOtherLatLng(lat, lng) {
+		this.type = 'other';
+		this.map.setCenter(lat, lng);
+	}
+
 	setOriginByLatLng(lat, lng) {
 		this.map.setCenter(lat, lng);
 	}
@@ -218,7 +285,7 @@ class TgMapOrigin {
 	}
 
 	setOriginByCurrentLocation() {
-  	this.tgOrigin.getCurrentLocation()
+  	this.getCurrentLocation()
   	.then((data) => {
   		console.log('got lat & lng from geolocation.');
 			this.type = 'other';
@@ -257,4 +324,4 @@ class TgMapOrigin {
 	}*/
 }
 
-module.exports = TgMapOrigin;
+//module.exports = TgMapOrigin;

@@ -1,5 +1,5 @@
-const TgUtil = require('../tg_util');
-const TgLocationNode = require('../node/tg_location_node');
+//const TgUtil = require('../tg_util');
+//const TgLocationNode = require('../node/tg_location_node');
 
 class TgMapLocations {
 	constructor(map, data, graph) {
@@ -143,7 +143,6 @@ class TgMapLocations {
 			if (loc.top) {
 				if ((countTops < maxTops) && (countTotal < maxNumLocs)) {
 					this.locations.push(loc);
-					console.log(loc);
 					countTops++;
 					countTotal++;
 				}
@@ -174,7 +173,11 @@ class TgMapLocations {
 		console.log('LOCS [' + numLocsInBox + ' -> ' + numLocsInStage1 + 
 				' -> ' + numLocs + ']');
 		console.log('LOCS Top(' + countTops + ') Hot(' + countHots + 
-				') Others(' + (countTotal - countTops - countHots) + ')')
+				') Others(' + (countTotal - countTops - countHots) + ')');
+
+		if (typeof data_loc != 'undefined') {
+			data_loc = this.locations;
+		}
 	}
 
 	filterByRating(rating) {
@@ -601,4 +604,4 @@ class TgMapLocations {
 	}
 }
 
-module.exports = TgMapLocations;
+//module.exports = TgMapLocations;

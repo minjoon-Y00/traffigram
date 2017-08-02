@@ -1,4 +1,4 @@
-const TgUtil = require('../tg_util');
+//const TgUtil = require('../tg_util');
 
 class TgMapInteraction extends ol.interaction.Pointer{
   constructor(map) {
@@ -47,7 +47,7 @@ class TgMapInteraction extends ol.interaction.Pointer{
 
     const feature = 
         evt.map.forEachFeatureAtPixel(evt.pixel, (feature) => {return feature;});
-
+    
     if (feature) {
 
       switch(feature.type) {
@@ -59,6 +59,9 @@ class TgMapInteraction extends ol.interaction.Pointer{
           this.feature_ = feature;
           this.timer = 
               setTimeout(this.longPress.bind(this), this.data.var.longPressTime);
+          return true;
+          break;
+
         case 'isochrone':
           if (this.map.currentMode === 'DC') {
             // if hightlight mode, start moving isochrone
@@ -76,13 +79,20 @@ class TgMapInteraction extends ol.interaction.Pointer{
               this.map.tgIsochrone.render();
             }
           }
+          return true;
           break;
         case 'loc':
           console.log(feature.source);
-          this.map.tgLocs.showModal(feature.source);
+          //this.map.tgLocs.showModal(feature.source);
+          return true;
           break;
         case 'cLoc':
-          console.log(feature.source);
+          //console.log(feature.source);
+          if (typeof data_currentset != 'undefined') {
+            data_currentset = feature.source.locs;
+            console.log(data_currentset);
+          }
+          return true;
           break;
         default:
           this.disableHighlightMode();
@@ -91,8 +101,8 @@ class TgMapInteraction extends ol.interaction.Pointer{
     else {
       this.disableHighlightMode();
     }
-
-    return !!feature;
+  
+    return false;
   };
 
   disableHighlightMode() {
@@ -150,6 +160,7 @@ class TgMapInteraction extends ol.interaction.Pointer{
   };
 
   handleMoveEvent(evt) {
+    /*
     if (this.cursor_) {
       const feature = 
           evt.map.forEachFeatureAtPixel(evt.pixel, (feature) => {return feature;});
@@ -194,6 +205,7 @@ class TgMapInteraction extends ol.interaction.Pointer{
         }
       }
     }
+    */
   };
 
   handleUpEvent(evt) {
@@ -224,4 +236,4 @@ class TgMapInteraction extends ol.interaction.Pointer{
   };
 }
 
-module.exports = TgMapInteraction;
+//module.exports = TgMapInteraction;

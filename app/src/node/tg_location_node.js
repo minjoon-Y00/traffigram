@@ -1,4 +1,4 @@
-const TgNode = require('./tg_node');
+//const TgNode = require('./tg_node');
 
 class TgLocationNode extends TgNode {
 	constructor(orgLat, orgLng) {
@@ -21,4 +21,4 @@ class TgLocationNode extends TgNode {
 	}
 }
 
-module.exports = TgLocationNode;
+//module.exports = TgLocationNode;

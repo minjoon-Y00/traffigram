@@ -1,5 +1,5 @@
-const tgUtil = require('../tg_util');
-const TgLocationNode = require('../node/tg_location_node');
+//const TgUtil = require('../tg_util');
+//const TgLocationNode = require('../node/tg_location_node');
 
 class TgMapBoundingBox {
 	constructor(map, data, graph) {
@@ -26,7 +26,7 @@ class TgMapBoundingBox {
 
 	/*getOverlappedBB(inBB) {
 		for(let bb of this.BBs) {
-			if (tgUtil.intersectRect(inBB, bb)) return bb;
+			if (TgUtil.intersectRect(inBB, bb)) return bb;
 		}
 		return null;
 	}*/
@@ -177,7 +177,7 @@ class TgMapBoundingBox {
 			for(let j = i + 1; j < locs.length; j++) {
 				distBetweenLocGrps.push({
 					loc1: locs[i], loc2: locs[j],
-					dist: tgUtil.D2_s(locs[i].node.dispLoc.lat, locs[i].node.dispLoc.lng, 
+					dist: TgUtil.D2_s(locs[i].node.dispLoc.lat, locs[i].node.dispLoc.lng, 
 						locs[j].node.dispLoc.lat, locs[j].node.dispLoc.lng)
 				});
 			}
@@ -187,7 +187,7 @@ class TgMapBoundingBox {
 
 		// make location group
 		for(let twoLocs of distBetweenLocGrps) {
-			if (tgUtil.intersectRect(twoLocs.loc1.bb, twoLocs.loc2.bb)) {
+			if (TgUtil.intersectRect(twoLocs.loc1.bb, twoLocs.loc2.bb)) {
 				this.addIntoGroupOrmakeNewGroup(locGrps, twoLocs.loc1, twoLocs.loc2);
 			}
 			else break;
@@ -200,7 +200,7 @@ class TgMapBoundingBox {
 			const targetLocGrp = locGrps.shift();
 			let overlapped = false;
 			for(let locGrp of locGrps) {
-				if (tgUtil.intersectRect(targetLocGrp.bb, locGrp.bb)) {
+				if (TgUtil.intersectRect(targetLocGrp.bb, locGrp.bb)) {
 					overlapped = true;
 					locGrp = this.mergeLocationGoup(locGrp, targetLocGrp);
 				}
@@ -215,7 +215,7 @@ class TgMapBoundingBox {
 		for(let locGrp of locGrps) {
 			for(let loc of locs) {
 				if (loc.group) continue;
-				if (tgUtil.intersectRect(locGrp.bb, loc.bb)) {
+				if (TgUtil.intersectRect(locGrp.bb, loc.bb)) {
 					locGrp.locs.push(loc);
 					loc.group = locGrp;
 					this.updateLocationGroup(locGrp);
@@ -301,12 +301,12 @@ class TgMapBoundingBox {
 
 	isItNotOverlappedByLocs(locations, locationClusters, inBB) {
 		for(let loc of locations) {
-			if ((loc.bb) && (tgUtil.intersectRect(inBB, loc.bb))) return false;
-			if ((loc.nameBB) && (tgUtil.intersectRect(inBB, loc.nameBB))) return false;
+			if ((loc.bb) && (TgUtil.intersectRect(inBB, loc.bb))) return false;
+			if ((loc.nameBB) && (TgUtil.intersectRect(inBB, loc.nameBB))) return false;
 		}
 
 		for(let cLoc of locationClusters) {
-			if ((cLoc.bb) && (tgUtil.intersectRect(inBB, cLoc.bb))) return false;
+			if ((cLoc.bb) && (TgUtil.intersectRect(inBB, cLoc.bb))) return false;
 		}
 		return true;
 	}
@@ -314,7 +314,7 @@ class TgMapBoundingBox {
 	isItNotOverlappedPlaces(places, inBB) {
 		for(let name in places) {
 			let bb = places[name].bb;
-			if (bb && (tgUtil.intersectRect(inBB, bb))) return false;
+			if (bb && (TgUtil.intersectRect(inBB, bb))) return false;
 		}
 		return true;
 	}
@@ -1040,4 +1040,4 @@ class TgMapBoundingBox {
 	}
 }
 
-module.exports = TgMapBoundingBox;
+//module.exports = TgMapBoundingBox;

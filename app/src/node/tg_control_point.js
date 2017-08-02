@@ -1,4 +1,4 @@
-const TgNode = require('./tg_node');
+//const TgNode = require('./tg_node');
 
 class TgControlPoint extends TgNode {
 	constructor(orgLat, orgLng) {
@@ -10,4 +10,4 @@ class TgControlPoint extends TgNode {
 	}
 }
 
-module.exports = TgControlPoint;
+//module.exports = TgControlPoint;

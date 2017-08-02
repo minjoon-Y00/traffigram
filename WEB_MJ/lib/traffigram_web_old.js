@@ -20,6 +20,8 @@ var height_UI_margin = 20;
 var time_screen_trans = 400;
 var time_interaction_buffer = 400;
 
+let tg;
+
 // Event handler
 $(document).ready(function(){
 
@@ -300,12 +302,38 @@ function load_TOD_list_subcat(subcat){
 			if(mode_debug){console.log(user_cat)};
 			//Load map
 			//MJ: load_Map  starts loading a map, at "#content_map"
-			load_Map()
+			load_Map();
 		});
 	}	
 }
 
 function load_Map(){
+
+	getCurrentLocation()
+	.then((data) => {
+
+	  // create the main app object
+	  tg = new TgApp('ol_map');
+
+	  console.log('got lat & lng from geolocation: ' + data.lat + ', ' + data.lng);
+
+	  const seattle = {lat: 47.6115744, lng: -122.343777}
+
+	  if ((data.lat > seattle.lat - 1) && (data.lat < seattle.lat + 1) &&
+	      (data.lng > seattle.lng - 1) && (data.lng < seattle.lng + 1)) {
+	    //console.log('ok. here is in seattle.');
+	    tg.setOriginByOtherLatLng(data.lat, data.lng);
+	  }
+	  else {
+	    tg.setOriginAsDefault();
+	  }
+	})
+	.catch((error) => {
+	  console.error(error);
+	  tg = new TgApp('ol_map');
+	  tg.setOriginAsDefault();
+	});
+
 
 	$("#main").append('<div id="content_new"></div>');
 	$("#content_new").css({
@@ -406,4 +434,28 @@ function load_UI_Map(){
 function validateEmail(email) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
+}
+
+function getCurrentLocation() {
+  return new Promise((resolve, reject) => {
+    const timeOutForGettingLocation = 2000; // 2 sec
+    let timeOutTimer;
+
+    if (!navigator.geolocation) {
+      reject('Geolocation is not supported by this browser.');
+    }
+    else {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        clearTimeout(timeOutTimer);
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      });
+
+      timeOutTimer = setTimeout(() => {
+        reject('Time out for getting geolocation');
+      }, timeOutForGettingLocation);
+    }
+  });
 }

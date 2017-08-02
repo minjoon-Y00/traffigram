@@ -1,4 +1,4 @@
-const TgNode = require('../node/tg_node');
+//const TgNode = require('../node/tg_node');
 
 class TgMapPlaces {
 	constructor(map, data, graph) {
@@ -309,4 +309,4 @@ class TgMapPlaces {
 	}
 }
 
-module.exports = TgMapPlaces;
+//module.exports = TgMapPlaces;

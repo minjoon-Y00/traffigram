@@ -143,4 +143,4 @@ class TgMapUtil {
 	}
 }
 
-module.exports = TgMapUtil;
+//module.exports = TgMapUtil;

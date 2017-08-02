@@ -1,9 +1,9 @@
 /**
  * Class for control points.
  */
-const TgUtil = require('../tg_util');
-const TgTravelTimeApi = require('../api/tg_travel_time_api');
-const TgControlPoint = require('../node/tg_control_point');
+//const TgUtil = require('../tg_util');
+//const TgTravelTimeApi = require('../api/tg_travel_time_api');
+//const TgControlPoint = require('../node/tg_control_point');
 
 
 class TgMapControl {
@@ -1004,4 +1004,4 @@ class TgMapControl {
 
 
 }
-module.exports = TgMapControl;
+//module.exports = TgMapControl;

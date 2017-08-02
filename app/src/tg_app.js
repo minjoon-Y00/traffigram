@@ -1,6 +1,6 @@
-const TgData = require('./tg_data');
-const TgMap = require('./tg_map');
-const TgGraph = require('./tg_graph');
+//const TgData = require('./tg_data');
+//const TgMap = require('./tg_map');
+//const TgGraph = require('./tg_graph');
 
 class TgApp {
 	constructor(map_id) {
@@ -30,6 +30,14 @@ class TgApp {
 		this.map.tgOrigin.setOriginByAddress(adress);
 	}
 
+	setOriginByOtherLatLng(lat, lng) {
+		this.map.tgOrigin.setOriginByOtherLatLng(lat, lng);
+	}
+
+	setOriginAsDefault() {
+		this.map.tgOrigin.setDefaultOrigin();
+	}
+
 	initMap() {
 		this.map.initMap();
 	}
@@ -57,4 +65,4 @@ class TgApp {
 	}
 }
 
-module.exports = TgApp;
+//module.exports = TgApp;

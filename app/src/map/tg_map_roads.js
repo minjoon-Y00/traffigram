@@ -1,5 +1,5 @@
-const tgUtil = require('../tg_util');
-const TgNode = require('../node/tg_node');
+//const TgUtil = require('../tg_util');
+//const TgNode = require('../node/tg_node');
 
 class TgMapRoads {
 	constructor(map, data, graph) {
@@ -106,7 +106,8 @@ class TgMapRoads {
 		if (geoType === 'LineString') {
 
 			if ((this.simplify)&&(this.map.simplify)) {
-				coords = tgUtil.RDPSimp1D(coords, this.rdpThreshold);
+				coords = TgUtil.RDPSimp1D(coords, this.rdpThreshold);
+				//console.log('simple.');
 			}
 			coords.minZoom = feature.get('min_zoom');
 			//coords.minZoom = minZoom;
@@ -125,7 +126,7 @@ class TgMapRoads {
 		else if (geoType === 'MultiLineString') {
 
 			if ((this.simplify)&&(this.map.simplify)) {
-				coords = tgUtil.RDPSimp2D(coords, this.rdpThreshold);
+				coords = TgUtil.RDPSimp2D(coords, this.rdpThreshold);
 			}
 			coords.minZoom = feature.get('min_zoom');
 			//coords.minZoom = minZoom;
@@ -277,6 +278,7 @@ class TgMapRoads {
 			layer.setZIndex(viz.z[type]);
 			this.mapUtil.addLayer(layer);
 			this.dispLayers.push(layer);
+			console.log('~~new roads: ' + arr.length);
 		}
 
 		if (this.dispNodeLayer) this.addNewNodeLayer();
@@ -549,4 +551,4 @@ class TgMapRoads {
 	}
 }
 
-module.exports = TgMapRoads;
+//module.exports = TgMapRoads;
