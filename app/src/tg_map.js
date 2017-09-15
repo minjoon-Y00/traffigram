@@ -30,7 +30,7 @@ class TgMap {
 		this.olMap = new ol.Map({
       interactions: ol.interaction.defaults().extend([this.tgInteraction]),
 	    target: map_id,
-	    //controls: [],
+	    controls: [],
 	    layers: [],
 	    view: this.olView,
 	  });
@@ -59,10 +59,10 @@ class TgMap {
 
 	  // initialization
 
-	  //this.tgWater.init();
+	  this.tgWater.init();
 	  this.tgRoads.init();
-	  //this.tgLanduse.init();
-	  //this.tgPlaces.init();
+	  this.tgLanduse.init();
+	  this.tgPlaces.init();
 	  this.tgOrigin.setPresets();
 
 	  // variables

@@ -291,6 +291,8 @@ class TgMapWater {
 		this.clearLayers();
 		this.updateDispWater();
 
+		console.log(this.dispWaterObjects);
+
 		for(let water of this.dispWaterObjects) {
 			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
 
@@ -303,6 +305,7 @@ class TgMapWater {
 					arr, new ol.geom.MultiPolygon(water), styleFunc);
 			}
 		}
+		console.log(arr.length);
 		this.layer = this.mapUtil.olVectorFromFeatures(arr);
 		this.layer.setZIndex(viz.z.water);
 		this.mapUtil.addLayer(this.layer);

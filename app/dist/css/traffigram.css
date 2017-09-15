@@ -6,7 +6,8 @@ html, body {
 }
 
 #ol_map {
-	background-color: #EAEAEA;
+  //background-color: #EAEAEA;
+	background-color: #FFF;
 }
 
 .ol_map {

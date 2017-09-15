@@ -384,7 +384,14 @@ class TgMapControl {
 		console.log(avgTimes);
 
 		const threshold = 0.3; // std * threshold, usually 1
-		const outlinerIndex = this.selectOutliner(avgTimes, threshold);
+		//const outlinerIndex = this.selectOutliner(avgTimes, threshold);
+
+		// temp;
+		let outlinerIndex = [0, 1, 5, 9];
+		console.log(this.currentSplitLevel);
+		if (this.currentSplitLevel === 1) outlinerIndex = [21, 22, 24, 26, 29];
+		//
+
 		console.log(outlinerIndex);
 		let str = '';
 		for(let index of outlinerIndex) {
@@ -411,6 +418,24 @@ class TgMapControl {
 		for(let point of newControlPoints) {
 			this.travelTimeApi.addEndLocation(point.original.lat, point.original.lng);
 		}
+
+		//temp;
+
+		for(let point of newControlPoints) {
+			point.travelTime = 0;
+		}
+
+		this.map.updateLayers();
+
+		this.currentSplitLevel++;
+		if (this.currentSplitLevel <  this.data.var.maxSplitLevel) {
+			this.map.tgWater.checkPointsInWater(newControlPoints);
+			this.checkGridSplit();
+		}
+		return;
+
+		// temp;
+
 
 		this.travelTimeApi.getTravelTime(times => {
 
