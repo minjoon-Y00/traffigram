@@ -14,12 +14,13 @@ class TgMapLocations {
 
 		this.dispNameLayer = true;
 		this.nameLayer = null;
+		this.favoriteLayer = null;
 
 		this.currentTOD = 0;
 		this.currentSubTOD = 0;
 		this.isHighlightMode = false;
-	  this.dispLocsAfterCalWarping = false;
-	  this.displayTimeOfLocs = false; // for debug
+		this.waitForTps = false;
+	  this.displayTimeOfLocs = true; // for debug
 	  this.highLightMode = false;
 		this.highLightTime = 0;
 
@@ -43,6 +44,7 @@ class TgMapLocations {
 		}
 		else {
 			this.updateLayer(param);
+			this.updateFavoriteLayer();
 			if (this.dispNameLayer) this.updateNameLayer();
 		}
 	}
@@ -50,6 +52,7 @@ class TgMapLocations {
 	discard() {
 		this.removeLayer();
 		this.removeNameLayer();
+		this.removeFavoriteLayer();
 	}
 
 	highLightMode(tf) {
@@ -67,14 +70,55 @@ class TgMapLocations {
 			const lng = loc.node.target.lng;
 			loc.time = this.map.calTimeFromLatLng(lat, lng);
 		}
+
+		// console.log('this.locations:');
+		// console.log(this.locations);
 	}
 
 	setTimeOfLocationGroups() {
 		this.map.tgBB.updateTimeOfLocationGroups(this.locationGroups);
 	}
 
-	setFavorites(favorites) {
-		this.favorites = favorites;
+	addFavorite(favoriteId) {
+		for(let loc of this.locations) {
+			if (loc.id === favoriteId) {
+				this.favorites.push(loc);
+				break;
+			}
+		}
+		this.updateFavoriteLayer();
+	}
+
+	removeFavorite(favoriteId) {
+		let removedIdx = -1;
+		for(let i = 0; i < this.favorites.length; i++) {
+			if (this.favorites[i].id === favoriteId[0]) {
+				removedIdx = i;
+				break;
+			}
+		}
+
+		if (removedIdx !== -1) this.favorites.splice(removedIdx, 1);
+		else console.log('could not remove a favorite.');
+
+		this.updateFavoriteLayer();
+	}
+
+	setFavorites(favoriteIds) {
+		for(let t of tod) {
+			for(let s of t) {
+				for(let loc of s) {
+					if (favoriteIds.indexOf(loc.id) >= 0) {
+						this.favorites.push(loc);
+					}
+				}
+			}
+		}
+		this.updateFavoriteLayer();
+	}
+
+	getFavorites() {
+		return this.favorites;
 	}
 
 	calLocsInBox() {
@@ -85,7 +129,20 @@ class TgMapLocations {
 
 		this.locationsInBox = [];
 
-		if (this.currentSubTOD >= 0) {
+		for(let locs of tod[this.currentTOD]) {
+			for(let loc of locs) {
+				const lat = loc.lng; // original data is wrong, should be fixed.
+				const lng = loc.lat; // original data is wrong, should be fixed.
+
+				if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
+					loc.node = new TgLocationNode(lat, lng);
+					//loc.time = 0;
+					this.locationsInBox.push(loc);
+				}
+			}
+		}
+
+		/*if (this.currentSubTOD >= 0) {
 			for(let loc of tod[this.currentTOD][this.currentSubTOD]) {
 				const lat = loc.lng; // original data is wrong, should be fixed.
 				const lng = loc.lat; // original data is wrong, should be fixed.
@@ -111,7 +168,7 @@ class TgMapLocations {
 					}
 				}
 			}
-		}
+		}*/
 	}
 
 	calFilteredLocs() {
@@ -131,10 +188,9 @@ class TgMapLocations {
 
 		// II. Filter by total number
 		this.locations = [];
-		const maxTops = 10; //100000;
-		const maxHots = 10; //100000;
-		const maxNumLocs = 30;
-		//const maxNumLocs = this.data.var.maxNumLocations;
+		const maxTops = this.data.var.maxNumTops;
+		const maxHots = this.data.var.maxNumHots;
+		const maxNumLocs = this.data.var.maxNumLocations;
 
 		let countTops = 0;
 		let countHots = 0;
@@ -175,9 +231,19 @@ class TgMapLocations {
 		console.log('LOCS Top(' + countTops + ') Hot(' + countHots + 
 				') Others(' + (countTotal - countTops - countHots) + ')');
 
-		if (typeof data_loc != 'undefined') {
-			data_loc = this.locations;
-		}
+		this.resetCurrentSet();
+	}
+
+	resetCurrentSet() {
+		if (typeof data_currentset != 'undefined') {
+      data_currentset = this.locations;
+    }
+
+    //console.log(data_currentset.length);
+
+    if (this.data.var.appMode === 'pc') {
+    	if (typeof openList != 'undefined') openList();
+    }
 	}
 
 	filterByRating(rating) {
@@ -234,23 +300,87 @@ class TgMapLocations {
 		}
 	}
 
+	assignTimes() {
+		const currentZoom = this.data.zoom.current;
+		let locs;
+		if (this.data.zoom.level[0].indexOf(currentZoom) >= 0) locs = locs_lv0;
+		if (this.data.zoom.level[1].indexOf(currentZoom) >= 0) locs = locs_lv1;
+	  if (this.data.zoom.level[2].indexOf(currentZoom) >= 0) locs = locs_lv2;
+
+	  const timeLocs = locs[this.map.currentOrigin];
+
+	  console.log('org: ' + this.map.currentOrigin);
+	  console.log('cal locations:', this.locations);
+		console.log('timeLocs: ', timeLocs);
+
+		let temp = [];
+		for(let i = 0; i < this.locations.length; ++i) {
+			temp.push({loc: this.locations[i].lng, locs_lv0: timeLocs[i + 1].lat});
+		}
+		console.log('temp: ', temp);
+
+		for(let loc of this.locations) {
+			let found = false;
+			for(let i = 1; i < timeLocs.length; i++) {
+
+				if (!timeLocs[i].time) {
+					console.log('time loc is not defined.');
+					continue;
+				}
+
+				if (TgUtil.same(loc.lng, timeLocs[i].lat) && 
+						TgUtil.same(loc.lat, timeLocs[i].lon)) {
+					loc.time = timeLocs[i].time;
+					found = true;
+					break;
+				}
+			}
+
+			if (!found) console.log('time of loc is not found...');
+		}
+	}
+
+	locByPreset() {
+		const currentZoom = this.data.zoom.current;
+		let locs;
+		if (this.data.zoom.level[0].indexOf(currentZoom) >= 0) locs = locs_lv0;
+		if (this.data.zoom.level[1].indexOf(currentZoom) >= 0) locs = locs_lv1;
+	  if (this.data.zoom.level[2].indexOf(currentZoom) >= 0) locs = locs_lv2;
+
+	  this.locations = [];
+	  locs = locs[this.map.currentOrigin];
+
+	  for(let i = 1; i < locs.length; ++i) {
+	  	let obj = {};
+	  	obj.lat = locs[i].lon;
+	  	obj.lng = locs[i].lat;
+	  	obj.node = new TgLocationNode(locs[i].lat, locs[i].lon);
+	  	obj.time = locs[i].time;
+	  	this.locations.push(obj);
+	  }
+	}
+
 	request(param) {
 		if ((!param) || (param.calLocsInBox)) {
 			this.calLocsInBox();
 		}
 
-		this.calFilteredLocs();
+		//this.calFilteredLocs();
+		this.locByPreset();
 
+		//this.assignTimes();
+
+		//console.log('this.locations:');
 		//console.log(this.locations);
 
 		// calculate BB of locations
 		this.map.tgBB.calBBOfLocations(this.locations);
 
 		// calculate clusters of locations
-		this.locationGroups = this.map.tgBB.calLocationGroup(this.locations);
+		//this.locationGroups = this.map.tgBB.calLocationGroup(this.locations);
 
 		// calculate non-overlapped location names
-		this.map.tgBB.calNonOverlappedLocationNames(this.locations, this.locationGroups);
+		//this.map.tgBB.calNonOverlappedLocationNames(this.locations, this.locationGroups);
 
 		//console.log(this.locationGroups);
 
@@ -259,8 +389,12 @@ class TgMapLocations {
 	  	this.map.tgBB.render();
 		}
 		else {
-			// displayLocsInDc will be called after
-			this.dispLocsAfterCalWarping = true;
+			if (this.map.tpsReady) {
+				this.displayLocsInDc();
+			}
+			else {
+				this.waitForTps = true;
+			}
 		}
 
 		this.data.var.readyLocation = true;
@@ -271,8 +405,13 @@ class TgMapLocations {
 	}
 
 	displayLocsInDc() {
+		console.log('displayLocsInDc()');
 		this.calTargetAndRealNodes();
 		this.calDispNodes(null, 1); // disp = real 
+
+		// calculate time of all locations
+		this.setTimeOfLocations();
+		this.setTimeOfLocationGroups();
 
 		//this.map.tgBB.cleanBB();
 		//this.map.tgBB.addBBOfLocations();
@@ -283,6 +422,7 @@ class TgMapLocations {
 	}
 
 	changeType(type, subType) {
+
 		if ((this.currentTOD === type) && (this.currentSubTOD === subType)) return;
 
 		this.currentTOD = type;
@@ -322,9 +462,6 @@ class TgMapLocations {
 		const locStyleFuncTranslucent = 
 			this.mapUtil.imageStyleFunc(viz.image.location[this.currentTOD], 0.3);
 
-		const favStyleFunc = this.mapUtil.imageStyleFunc(viz.image.favorite);
-		const favStyleFuncTranslucent = this.mapUtil.imageStyleFunc(viz.image.favorite, 0.3);
-
 		const cLocStyleFunc = 
 			this.mapUtil.imageStyleFunc(viz.image.locationCluster);
 		const cLocStyleFuncTranslucent = 
@@ -332,6 +469,8 @@ class TgMapLocations {
 
 		const lineStyleFunc = 
 			this.mapUtil.lineStyleFunc(viz.color.locationLine, viz.width.locationLine);
+
+		let highlightedLocs = [];
 
 		// display locationClusters
 		for(let cLocs of this.locationGroups) {
@@ -341,9 +480,15 @@ class TgMapLocations {
 			// for highlight mode
 			let imageStyleFunc = cLocStyleFunc;
 			let displayLinesAndAnchor = true;
-			if ((this.highLightMode) && (cLocs.time > this.highLightTime)) {
-				displayLinesAndAnchor = false;
-				imageStyleFunc = cLocStyleFuncTranslucent;
+
+			if (this.highLightMode) {
+				if ((cLocs.time > this.highLightTime)) {
+					displayLinesAndAnchor = false;
+					imageStyleFunc = cLocStyleFuncTranslucent;
+				}
+				else {
+					highlightedLocs = highlightedLocs.concat(cLocs.locs);
+				}
 			}
 
 			if (displayLinesAndAnchor) {
@@ -351,12 +496,12 @@ class TgMapLocations {
 				this.mapUtil.addFeatureInFeatures(
 					arr, new ol.geom.LineString(
 						[[dispAnchor.lng, dispAnchor.lat], [dispLoc.lng, dispLoc.lat]]), 
-					lineStyleFunc);
+					lineStyleFunc, 'cLocLine');
 
 				// anchor images
 				this.mapUtil.addFeatureInFeatures(
 					arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), 
-					anchorStyleFunc);
+					anchorStyleFunc, 'cLocAnchor');
 			}
 
 			// circle images
@@ -390,13 +535,16 @@ class TgMapLocations {
 
 			// for highlight mode
 			let imageStyleFunc = locStyleFunc;
-			let favImageStyleFunc = favStyleFunc;
 			let displayLinesAndAnchor = true;
 
-			if ((this.highLightMode) && (loc.time > this.highLightTime)) {
-				displayLinesAndAnchor = false;
-				imageStyleFunc = locStyleFuncTranslucent;
-				favImageStyleFunc = favStyleFuncTranslucent;
+			if (this.highLightMode) {
+				if ((loc.time > this.highLightTime)) {
+					displayLinesAndAnchor = false;
+					imageStyleFunc = locStyleFuncTranslucent;
+				}
+				else {
+					highlightedLocs.push(loc);
+				}
 			}
 
 			if (displayLinesAndAnchor) {
@@ -404,33 +552,30 @@ class TgMapLocations {
 				this.mapUtil.addFeatureInFeatures(
 					arr, new ol.geom.LineString(
 						[[dispAnchor.lng, dispAnchor.lat], [dispLoc.lng, dispLoc.lat]]), 
-					lineStyleFunc);
+					lineStyleFunc, 'locLine');
 
 				// anchor images
 				this.mapUtil.addFeatureInFeatures(
 					arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), 
-					anchorStyleFunc);
+					anchorStyleFunc, 'locAnchor');
 			}
 
 			// circle images
 			let circleImageStyleFunc = imageStyleFunc;
 
-			// one of favorites
-			if (this.favorites.indexOf(loc.name) >= 0) {
-				circleImageStyleFunc = favImageStyleFunc;
-			}
-		
 			this.mapUtil.addFeatureInFeatures(
 				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), circleImageStyleFunc,
 				'loc', loc);
 
 			// time display (for debugging)
 			if (this.displayTimeOfLocs) {
-				const timeStr = parseInt(loc.time/60) + '';
+				//const timeStr = parseInt(loc.time) + '';
+				//const timeStr = Number(loc.time / 60).toFixed(1);
+				const timeStr = loc.time.toFixed(0);
 				const timeStyleFunc = 
 					this.mapUtil.textStyle({text: timeStr, color: '#000', font: viz.font.text});
 				this.mapUtil.addFeatureInFeatures(
-					arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), timeStyleFunc);
+					arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), timeStyleFunc, 'loc');
 			}
 		}
 
@@ -439,7 +584,58 @@ class TgMapLocations {
 			this.layer = this.mapUtil.olVectorFromFeatures(arr);
 			this.layer.setZIndex(viz.z.location);
 		  this.mapUtil.addLayer(this.layer);
-			console.log('tgLocs.updateLayer():' + arr.length);
+			//console.log('tgLocs.updateLayer():' + arr.length);
+		}
+
+		if (this.highLightMode) {
+			if (typeof data_currentset != 'undefined') {
+				//console.log('highlightedLocs: ');
+				//console.log(highlightedLocs);
+	      data_currentset = highlightedLocs;
+
+	      if (this.data.var.appMode === 'pc') {
+          if (typeof openList != 'undefined') openList();
+        }
+	    }
+		}
+	}
+
+	updateFavoriteLayer() {
+		const viz = this.data.viz;
+		var arr = [];
+		const favStyleFunc = this.mapUtil.imageStyleFunc(viz.image.favorite);
+		const favStyleFuncTranslucent = this.mapUtil.imageStyleFunc(viz.image.favorite, 0.3);
+		let favImageStyleFunc = favStyleFunc;
+	
+		for(let loc of this.locations) {
+			for(let fav of this.favorites) {
+				if (fav.name === loc.name) {
+
+					if ((this.highLightMode) && (loc.time > this.highLightTime)) {
+						favImageStyleFunc = favStyleFuncTranslucent;
+					}
+					else {
+						favImageStyleFunc = favStyleFunc;
+					}
+
+					const dispLoc = loc.node.dispLoc;
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), favImageStyleFunc,
+						'loc', loc);
+				}
+			}
+		}
+
+		//console.log('num of this.favorites: ' + this.favorites.length);
+
+		//console.log(arr.length);
+
+		this.removeFavoriteLayer();
+		if (arr.length > 0) {
+			this.favoriteLayer = this.mapUtil.olVectorFromFeatures(arr);
+			this.favoriteLayer.setZIndex(viz.z.favorite);
+		  this.mapUtil.addLayer(this.favoriteLayer);
+		  console.log(this.favoriteLayer);
 		}
 	}
 
@@ -466,7 +662,7 @@ class TgMapLocations {
 
 					this.mapUtil.addFeatureInFeatures(arr,
 						new ol.geom.Point(
-							[loc.node.dispLoc.lng, loc.node.dispLoc.lat]), nameStyleFunc);
+							[loc.node.dispLoc.lng, loc.node.dispLoc.lat]), nameStyleFunc, 'locName');
 				}
 			}
 		}
@@ -486,6 +682,10 @@ class TgMapLocations {
 
 	removeNameLayer() {
 		this.mapUtil.removeLayer(this.nameLayer);
+	}
+
+	removeFavoriteLayer() {
+		this.mapUtil.removeLayer(this.favoriteLayer);
 	}
 
 	calRealNodes() {

@@ -20,6 +20,14 @@ class tgUtil {
 	  return d
 	}
 
+	degree(lat1, lng1, lat2, lng2) {
+		let deg = Math.atan((lng1 - lng2) / (lat1 - lat2));
+
+    if ((lat1 === lat2) && (lng1 === lng2)) deg = 0;
+    if ((lat1 - lat2) < 0) deg += Math.PI;
+    return deg;
+	}
+
 	D2(lat1, lng1, lat2, lng2) {
 	  return Math.sqrt((lat1 - lat2)*(lat1 - lat2) + (lng1 - lng2)*(lng1 - lng2))
 	}
@@ -339,6 +347,41 @@ class tgUtil {
 	    Math.randomGaussian.nextGaussian = v2 * multiplier;
 	    return (v1 * multiplier * standardDeviation) + mean;
 	  }
+	}
+
+	sum(arr) {
+		let s = 0;
+		for(let v of arr) {
+			if (v) s += v;
+		}
+		return s;
+	}
+
+	avg(arr) {
+		let s = 0;
+		let c = 0;
+		for(let v of arr) {
+			if (v) {
+				s += v;
+				c++;
+			}
+		}
+		if (c != 0) return s / c;
+		return undefined;
+	}
+
+	angle(p0, p1, p2) {
+    const b = Math.pow(p1.lat - p0.lat, 2) + Math.pow(p1.lng - p0.lng, 2);
+    const a = Math.pow(p1.lat - p2.lat, 2) + Math.pow(p1.lng - p2.lng, 2);
+    const c = Math.pow(p2.lat - p0.lat, 2) + Math.pow(p2.lng - p0.lng, 2);
+    return Math.acos( (a + b - c) / Math.sqrt(4 * a * b) );
+	}
+
+	same(val, val2) {
+		const eps = 0.0001;
+
+		if (Math.abs(val - val2) < eps) return true;
+		else return false;
 	}
 
 }

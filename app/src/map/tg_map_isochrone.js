@@ -83,6 +83,15 @@ class TgMapIsochrone {
 								font: viz.font.isochroneText,
 						}), 'isochrone');
 
+		// cancel button
+  	offsetLng = 47 * lngPerPx;
+		offsetLat = radiusPx * latPerPx
+		this.mapUtil.addFeatureInFeatures(
+				features, new ol.geom.Point(
+						[originLng + offsetLng, originLat + offsetLat]),
+						this.mapUtil.imageStyle(viz.image.cancelCustomIsochrone),
+						'cancelIsochrone');
+
 		this.removeHightLightLayer();
 		this.highLightLayer = this.mapUtil.olVectorFromFeatures(features);
 		this.highLightLayer.setZIndex(viz.z.isochrone + 1);
@@ -123,7 +132,7 @@ class TgMapIsochrone {
 		let numIsochrone = 0;
 		for(let time = 0; time < maxTime; time += minUnitTime) numIsochrone++;
 
-		while(numIsochrone > 8) {
+		while(numIsochrone > this.data.var.maxNumIsochrone) {
 			minUnitTime *= 2;
 			numIsochrone /= 2;
 		}
@@ -150,8 +159,7 @@ class TgMapIsochrone {
 							'isochrone', time);
 
 			// text
-			//offsetLng = (radiusPx - 13) * lngPerPx;
-			offsetLng = -17 * lngPerPx;
+			offsetLng = -this.data.var.isochroneTextPx * lngPerPx;
 			offsetLat = radiusPx * latPerPx;
 			const text = (time / 60) + '';
 			this.mapUtil.addFeatureInFeatures(

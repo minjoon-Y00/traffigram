@@ -27,27 +27,56 @@ class TgMap {
 
     this.tgInteraction = new TgMapInteraction(this);
 
-		this.olMap = new ol.Map({
-      interactions: ol.interaction.defaults().extend([this.tgInteraction]),
+	  this.olMap = new ol.Map({
+	  	interactions: ol.interaction.defaults().extend([this.tgInteraction]),
 	    target: map_id,
-	    //controls: [],
+	    controls: [], // don't show zoom buttons
 	    layers: [],
 	    view: this.olView,
 	  });
+  	this.tgInteraction.addOverlay();
 
-	  this.tgInteraction.addOverlay();
-
+  	//
 	  this.olMap.getInteractions().forEach((interaction) => {
-		  if (interaction instanceof ol.interaction.DragPan) {
-		  	this.olMap.dragPan = interaction;
+		  //if (interaction instanceof ol.interaction.DragPan) {
+		  	//this.olMap.dragPan = interaction;
+		  //}
+		  if (interaction instanceof ol.interaction.DoubleClickZoom) {
+		  	this.olMap.doubleClickZoom = interaction;
 		  }
+		  if (interaction instanceof ol.interaction.DragZoom) {
+		  	this.olMap.dragZoom = interaction;
+		  }
+		  if (interaction instanceof ol.interaction.KeyboardZoom) {
+		  	this.olMap.keyboardZoom = interaction;
+		  }
+		  if (interaction instanceof ol.interaction.PinchZoom) {
+		  	this.olMap.pinchZoom = interaction;
+		  }
+		  if (interaction instanceof ol.interaction.MouseWheelZoom) {
+		  	this.olMap.mouseWheelZoom = interaction;
+		  }
+
 		}, this);
+
+	  //if (this.data.var.appMode !== 'pc') {
+	  	this.olMap.doubleClickZoom.setActive(false);
+			this.olMap.dragZoom.setActive(false);
+			this.olMap.keyboardZoom.setActive(false);
+			this.olMap.pinchZoom.setActive(false);
+			this.olMap.mouseWheelZoom.setActive(false);
+	  //}
+
+
+
+
 
 		// modules
 
 		this.mapUtil = new TgMapUtil(this.data, this.olMap);
 	  this.tgWater = new TgMapWater(this, this.data, this.graph);
 	  this.tgRoads = new TgMapRoads(this, this.data, this.graph);
+	  this.tgSRC = new TgMapSRC(this, this.data, this.graph);
 	  this.tgLanduse = new TgMapLanduse(this, this.data, this.graph);
 	  this.tgLocs = new TgMapLocations(this, this.data, this.graph);
 	  this.tgControl = new TgMapControl(this, this.data, this.graph);
@@ -57,29 +86,59 @@ class TgMap {
 	  this.tgOrigin = new TgMapOrigin(this, this.data, this.graph);
 	  this.tgIsochrone = new TgMapIsochrone(this, this.data, this.graph);
 
-	  // initialization
+	  this.warpingMode = 'shapePreserving'; 
+	  this.needToCalWarping = false;
 
-	  //this.tgWater.init();
-	  this.tgRoads.init();
-	  //this.tgLanduse.init();
-	  //this.tgPlaces.init();
+	  this.currentMode = 'EM';
+		this.data.zoom.current = this.olMap.getView().getZoom();
+		this.data.zoom.previous = this.data.zoom.current;
+	  this.tgRoads.updateDisplayedRoadType(this.data.zoom.current);
+
+  	this.olMapHeightPX = $('#ol_map').css('height'); 
+  	this.olMapHeightPX = 
+  			Number(this.olMapHeightPX.slice(0, this.olMapHeightPX.length - 2)); // 900
+  	this.olMapWidthPX = $('#ol_map').css('width');  
+  	this.olMapWidthPX = 
+  			Number(this.olMapWidthPX.slice(0, this.olMapWidthPX.length - 2)); // 600
+
+	  // Event Handlers
+		this.olMap.on('moveend', this.onMoveEnd.bind(this));
+
+		this.frame = 0; // [0 (EM), 10 (DC)]
+		this.timerFrame = null;
+		this.deltaFrame = this.data.var.deltaFrame;
+		this.animationSpeed = this.data.var.animationSpeed;
+		this.tpsReady = false;
+		this.timerCheckGridSplitInTgMap = null;
+
+		this.readyControlPoints = false;
+		this.currentCenter = {lat :0, lng :0};
+
+		// initialization
+
+		if (this.data.elements.water.disp) this.tgWater.init();
+		if (this.data.elements.road.disp) this.tgRoads.init();
+		if (this.data.elements.landuse.disp) this.tgLanduse.init();
+		if (this.data.elements.place.disp) this.tgPlaces.init();
+	  
 	  this.tgOrigin.setPresets();
 
 	  // variables
 
-	  this.tgWater.turn(true);
-	  $('#dispWaterCB').prop('checked', true);
+  	this.tgWater.turn(this.data.elements.water.disp);
+  	$('#dispWaterCB').prop('checked', this.data.elements.water.disp);
 
-	  this.tgRoads.turn(true);
-	  $('#dispRoadsCB').prop('checked', true);
+	  this.tgRoads.turn(this.data.elements.road.disp);
+	  $('#dispRoadsCB').prop('checked', this.data.elements.road.disp);
+
+	  this.tgSRC.turn(this.data.elements.src.disp);
+	  $('#dispSRCCB').prop('checked', this.data.elements.src.disp);
 	  
-	  //this.tgLanduse.turn(true);
-	  this.tgLanduse.turn(false);
-	  $('#dispLanduseCB').prop('checked', false);
-	  //$('#dispLanduseCB').prop('checked', true);
+	  this.tgLanduse.turn(this.data.elements.landuse.disp);
+	  $('#dispLanduseCB').prop('checked', this.data.elements.landuse.disp);
 	  
-	  this.tgPlaces.turn(true);
-	  $('#dispPlaceCB').prop('checked', true);	  
+	  this.tgPlaces.turn(this.data.elements.place.disp);
+	  $('#dispPlaceCB').prop('checked', this.data.elements.place.disp);	  
 
 	  this.tgLocs.turn(true);
 	  $('#dispLocationCB').prop('checked', true);
@@ -96,158 +155,236 @@ class TgMap {
 	 	//this.tgBB.turn(true);
 	  //$('#dispBoundingBoxCB').prop('checked', true);
 
-	  this.warpingMode = 'shapePreserving'; 
-	  this.needToCalWarping = false;
-	  this.simplify = true;
+		this.currentOrigin = 0;
 
-	  this.currentMode = 'EM';
-		this.data.zoom.current = this.olMap.getView().getZoom();
-	  this.tgRoads.updateDisplayedRoadType(this.data.zoom.current);
 
-  	this.olMapHeightPX = $('#ol_map').css('height'); 
-  	this.olMapHeightPX = 
-  			Number(this.olMapHeightPX.slice(0, this.olMapHeightPX.length - 2)); // 900
-  	this.olMapWidthPX = $('#ol_map').css('width');  
-  	this.olMapWidthPX = 
-  			Number(this.olMapWidthPX.slice(0, this.olMapWidthPX.length - 2)); // 600
-
-	  // Event Handlers
-		this.olMap.on('moveend', this.onMoveEnd.bind(this));
-
-		this.times = {};
-		this.tempTimes = {};
-		this.frame = 0; // [0 (EM), 10 (DC)]
-		this.timerFrame = null;
-		this.animationSpeed = 50; // ms
-		this.tpsReady = false;
-		this.timerCheckGridSplitInTgMap = null;
-
-		this.readyControlPoints = false;
-
-		this.displayString = 
-				{roadLoadingTime: 'Road Loading:', 
-				waterLoadingTime: 'Water Loading:', 
-				landuseLoadingTime: 'Landuse Loading:', 
-				placeLoadingTime: 'Place Loading:',
-				travelTimeLoadingTime: 'Travel Time Loading:', 
-				locationLoadingTime: 'Location Loading:', 
-				controlPointWarpingTime: 'Control Points Warping:',
-				tpsCalculatingTime: 'TPS Calculating:',
-				elementsWarpingTime: 'Elements Warping (avg):',
-				waterWarpingTime: 'Water Warping (avg):',
-				roadWarpingTime: 'Road Warping (avg):',
-				placeWarpingTime: 'Place Warping (avg):',
-				landuseWarpingTime: 'Landuse Warping (avg):',
-				etcWarpingTime: 'Etc Warping (avg):',
-
-				numRoadLoading: '# of Road:',
-				numHighwayLoading: '# of Highway:',
-        numPrimaryLoading: '# of Primary Road:',
-        numSecondaryLoading: '# of Secondary Road:',
-        numTertiaryLoading: '# of Tertiary Road:',
-        numResidentialLoading: '# of Residential Road:',
-				numWaterLoading: '# of Water Loading:',
-				numLanduseLoading: '# of Landuse Loading:',
-				numPlaceLoading: '# of Place Loading:',
-				numNewTravelTime: '# of New Travel Time:',
-			};
-
-		this.resetTime();
-		this.resetTempTime();
-
+		if (this.data.zoom.init === 15) this.currentZoomLevel = 0;
+		else if (this.data.zoom.init === 13) this.currentZoomLevel = 1;
+		else if (this.data.zoom.init === 11) this.currentZoomLevel = 2;
+		
 	}
 
 	debug() {
-		//console.log(this.tgWater.waterLayer.getZIndex())
-		//console.log(this.tgRoads.roadLayer.getZIndex())
-		//console.log(this.tgControl.gridLayer.getZIndex())
 
-		//console.log(this.tgRoads.dispRoads);
-		//console.log(this.tgWater.dispWater);
+		let val = 0;
+		let val2 = 0;
 
-		//tg.util.saveTextAsFile(this.tgRoads.dispRoads, 'dispRoads.json');
-		//tg.util.saveTextAsFile(this.tgRoads.dispWater, 'dispWater.json');
+		for(let type of this.tgRoads.dispRoadTypes) {
+			for(let road of this.tgRoads.dispRoads[type]) {
+				if (road[0].node) { // LineString
+					for(let i = 0; i < road.length - 1; i++) {
 
-		//console.log(this.olMap.getLayers().clear());
-		//this.tgRoads.clearLayers();
+						const d1 = TgUtil.distance(
+							road[i].node.original.lat, 
+							road[i].node.original.lng,
+							road[i + 1].node.original.lat, 
+							road[i + 1].node.original.lng);
 
-		//this.tgWater.isPointInWater();
-		//this.tgWater.arePointsInWater();
+						const d2 = TgUtil.distance(
+							road[i].node.real.lat, 
+							road[i].node.real.lng,
+							road[i + 1].node.real.lat, 
+							road[i + 1].node.real.lng);
 
-		/*console.log('# of road node: ');
-		console.log(this.tgRoads.calNumberOfNode());
-		console.log('# of water node: ');
-		console.log(this.tgWater.calNumberOfNode());
-		console.log('# of landuse node: ');
-		console.log(this.tgLanduse.calNumberOfNode());
-		*/
+						val += Math.abs(d1 - d2);
 
-		//this.tgBB.repositionElements();
-		//console.log(this.calMaxDistance('lat'));
-		//console.log(this.calMaxDistance('lng'));
+						const deg1 = TgUtil.degree(
+							road[i].node.original.lat, 
+							road[i].node.original.lng,
+							road[i + 1].node.original.lat,
+							road[i + 1].node.original.lng);
+
+						const deg2 = TgUtil.degree(
+							road[i].node.real.lat, 
+							road[i].node.real.lng,
+							road[i + 1].node.real.lat,
+							road[i + 1].node.real.lng);
+
+						//console.log(deg1 + ',' + deg2);
+
+						val2 += Math.abs(deg1 - deg2);
+
+
+					}
+				}
+				else if (road[0][0].node) { // MultiLineString
+					for(let i = 0; i < road.length; i++) {
+						for(let j = 0; j < road[i].length - 1; j++) {
+
+							const d1 = TgUtil.distance(
+								road[i][j].node.original.lat, 
+								road[i][j].node.original.lng,
+								road[i][j + 1].node.original.lat, 
+								road[i][j + 1].node.original.lng);
+
+							const d2 = TgUtil.distance(
+								road[i][j].node.real.lat, 
+								road[i][j].node.real.lng,
+								road[i][j + 1].node.real.lat, 
+								road[i][j + 1].node.real.lng);
+
+							val += Math.abs(d1 - d2);
+
+							const deg1 = TgUtil.degree(
+								road[i][j].node.original.lat, 
+								road[i][j].node.original.lng,
+								road[i][j + 1].node.original.lat,
+								road[i][j + 1].node.original.lng);
+
+							const deg2 = TgUtil.degree(
+								road[i][j].node.real.lat, 
+								road[i][j].node.real.lng,
+								road[i][j + 1].node.real.lat,
+								road[i][j + 1].node.real.lng);
+
+							//console.log(deg1 + ',' + deg2);
+
+							val2 += Math.abs(deg1 - deg2);
+						}
+					}
+				}
+			}
+		}
+
+		console.log(val);
+		console.log(val2);
+
+
 	}
-
-
 
 	setCenter(lat, lng) {
 		this.olMap.getView().setCenter(ol.proj.fromLonLat([lng, lat]));
 		this.tgOrigin.setOrigin(lat, lng);
 		this.tgControl.setOrigin(lat, lng);
+		this.currentCenter.lat = lat;
+		this.currentCenter.lng = lng;
 		this.tgOrigin.render();
+
 		this.calBoundaryBox();
+
 		this.requestControlPoints();
 
 		this.tgPlaces.needToBeRedrawn();
 		this.tgLocs.request();
+
+    if (typeof user_currentloc != 'undefined') {
+    	user_currentloc.lng = lng;
+			user_currentloc.lat = lat;
+    }
+
+
 	}
 
 	//
 	// When finising the mouse move or zoom in/out
 	//
 	onMoveEnd(e) {
-		console.log(this.olMap.getView().getZoom());
+		//console.log(this.olMap.getView().getZoom());
+		
 		const intZoom = Math.round(this.olMap.getView().getZoom());
+		console.log(intZoom);
+
+		// zooming.
 		if (this.data.zoom.current != intZoom) {
-	    this.data.zoom.current = intZoom;
-	    this.onZoomEnd();
+
+			if (intZoom < this.data.zoom.min) {
+				this.olMap.getView().setZoom(this.data.zoom.min);
+
+				if (this.data.zoom.current !== this.data.zoom.min) {
+					this.data.zoom.previous = this.data.zoom.current;
+					this.data.zoom.current = this.data.zoom.min;
+					this.onZoomEnd();
+				}
+			}
+			else {
+				this.data.zoom.previous = this.data.zoom.current;
+	    	this.data.zoom.current = intZoom;
+	    	this.onZoomEnd();
+			}
 	  }
+		// panning.
 	  else {
+			this.data.zoom.previous = this.data.zoom.current;
 	  	this.onPanEnd();
 	  }
 	}
 
+	//type: zoom, pan
+
+	log(type) {
+		if (typeof user_log != 'undefined') {
+			if (this.currentMode === 'DC') {
+				user_log.mode_frequency.DC[type]++;
+				console.log('$ user_log.mode_frequency.DC.' + type + '(' + 
+					user_log.mode_frequency.DC[type] + ')');
+			}
+			else {
+				user_log.mode_frequency.WM[type]++;
+				console.log('$ user_log.mode_frequency.WM.' + type + '(' + 
+					user_log.mode_frequency.WM[type] + ')');
+			}
+		}
+	}
+
 	onZoomEnd() {
-    console.log('onZoomEnd : ' + this.data.zoom.current);
-
-    this.tgWater.tempCount = 0;
-
-		this.tgRoads.updateDisplayedRoadType(this.data.zoom.current);
 		this.calBoundaryBox();
-		this.tgPlaces.needToBeRedrawn();
-    this.tgLocs.request();
 
-		this.recalculateAndDraw();
+		if ((this.currentMode === 'DC') && (!this.tgOrigin.isOriginInTheBox())) {
+    	console.log('origin is out of bouding box, so recover the previous zoom.');
+    	this.olMap.getView().setZoom(this.data.zoom.previous);
+		}
+		else {
+			this.log('zoom'); // Logging
 
+	    console.log('onZoomEnd : ' + this.data.zoom.previous + '->' 
+	    		+ this.data.zoom.current);
 
+	    this.tpsReady = false;
+
+	    this.tgWater.tempCount = 0;
+
+			this.tgRoads.updateDisplayedRoadType(this.data.zoom.current);
+			this.tgPlaces.needToBeRedrawn();
+	    this.tgLocs.request();
+
+			this.recalculateAndDraw();
+		}
 	}
 
 	onPanEnd() {
-		console.log('onPanEnd.');
 		this.calBoundaryBox();
 
-		this.resetTime();
-		this.resetDataInfo();
+		if ((this.currentMode === 'DC') && (!this.tgOrigin.isOriginInTheBox())) {
+    	console.log('origin is out of bouding box, so recover the previous pan.');
 
-		this.tgRoads.calDispRoads();
-		this.tgWater.calDispWater();
-		this.tgLanduse.calDispLanduse();
+    	this.olMap.getView().setCenter(ol.proj.fromLonLat(
+    		[this.currentCenter.lng, this.currentCenter.lat]));
+			this.calBoundaryBox();
+    }
+    else {
+    	let pt = this.olMap.getView().getCenter();
+    	let pt2 = ol.proj.transform([pt[0], pt[1]], 'EPSG:3857', 'EPSG:4326');
 
-		this.tgRoads.render();
-		this.tgWater.render();
-		this.tgLanduse.render();
-		//this.recalculateAndDraw();
+    	this.currentCenter.lng = pt2[0];
+    	this.currentCenter.lat = pt2[1];
 
+    	this.log('pan'); // Logging
 
+			console.log('onPanEnd.');
+
+			this.tgRoads.calDispRoads();
+			this.tgSRC.calDispRoads();
+			this.tgWater.calDispWater();
+			this.tgLanduse.calDispLanduse();
+
+			this.tgRoads.render();
+			this.tgSRC.render();
+			this.tgWater.render();
+			this.tgLanduse.render();
+
+			this.tgPlaces.needToBeRedrawn();
+	    this.tgLocs.request();
+    }
 	}
 
 	//
@@ -257,13 +394,10 @@ class TgMap {
 
 		if (!this.tgOrigin.getOrigin()) return;
 
-		console.log('recalculateAndDraw');
-
-		//this.tpsReady = false;
-		this.resetTime();
-		this.resetDataInfo();
-
+		//console.log('recalculateAndDraw');
+		
 	  this.tgRoads.calDispRoads();
+	  this.tgSRC.calDispRoads();
 		this.tgWater.calDispWater();
 		this.tgLanduse.calDispLanduse();
 		//this.tgPlaces.calDispPlace();
@@ -277,10 +411,11 @@ class TgMap {
 
 			this.tgLocs.discard();
 			this.tgIsochrone.discard();
-			this.tgLocs.setHighLightMode(false, 0);
+			//this.tgLocs.setHighLightMode(false, 0);
 		}
 		else {
 			this.tgRoads.render();
+			this.tgSRC.render();
 			this.tgWater.render();
 			this.tgLanduse.render();
 			//this.tgPlaces.render();
@@ -303,14 +438,6 @@ class TgMap {
 						this.calSplittedGrid.bind(this), 
 						this.data.time.waitForFinishGettingWaterData);
 
-		  if (this.currentMode === 'DC') {
-		  	//if (this.tgLocs.readyLocs) this.goToDcAgain();
-		  	//this.goToDcAgain();
-		  }
-		  else if (this.currentMode === 'EM') {
-		  	//this.tgControl.calDispNodes('original');
-		  }
-
 		  this.updateLayers();
 			this.dispMapInfo();
 	  });	
@@ -329,42 +456,20 @@ class TgMap {
 			if (this.currentMode === 'DC') {
 				this.goToDcAgain(false);
 				//this.goToDcAgain(true);
+				console.log('hei');
 			}
 			else {
 				this.tgOrigin.render();
 			}
-
-
-			/*
-			if (this.currentMode === 'EM') {
-		  	this.tgControl.calDispNodes('original');
-		  }
-
-		  this.updateLayers();
-			this.dispMapInfo();
-			*/
-
 		});
 	}
 
 	goToDcAgain(noNeedToCalFactor = false) {
 		this.frame = 0;
-		this.moveElementsByValue('intermediateReal', 0.0, false);
 		this.currentMode = 'EM';
-		/*
-		this.tgBB.cleanBB();
-		this.tgBB.addBBOfLocations();
-		this.tgLocs.dispNameLayer = true;
-		this.tgLocs.updateNonOverlappedLocationNames();
-		this.tgLocs.render();
-		this.tgBB.render();
-		*/
-		this.goToDc(false, noNeedToCalFactor);
+		//this.moveElementsByValue('original', null, false);
 
-		if (this.tgLocs.dispLocsAfterCalWarping) {
-			this.tgLocs.displayLocsInDc();
-			this.tgLocs.dispLocsAfterCalWarping = false;
-		}
+		this.goToDc(false, noNeedToCalFactor);
 	}
 
 	calSplittedGrid() {
@@ -381,20 +486,6 @@ class TgMap {
   	const str = 'Map Level (' + this.data.zoom.current 
   		+ '), Center (' + centerLat.toPrecision(8) + ', ' + centerLng.toPrecision(9) + ')'
   	$("#mapInfo1").text(str)
-
-  	/*
-  	// Display the total number of nodes & roads
-		var orgN = this.tg.data.nodes.length
-		var orgR = this.tg.data.roads.length
-		var str = 'Total Nodes (' + orgN + '), Roads (' + orgR + ')'
-		$('#mapInfo2').text(str)
-
-		// Display the displayed number of nodes & roads
-		var localN = this.tg.data.localNodes.length
-		var localR = this.tg.data.localRoads.length
-		var str = 'Displayed Nodes (' + localN + '), Roads (' + localR + ')'
-		$('#mapInfo3').text(str)
-		*/
   }
 
 
@@ -452,20 +543,20 @@ class TgMap {
 		}
 		else {
 			this.frame = 0;
-			this.moveElementsByValue('intermediateReal', 0.0);
+			this.currentMode = 'EM'
+			this.moveElementsByValue('original', null);
 			this.reachEm();
 		}
 	}
 
 	goToDc(animation = true, noNeedToCalFactor = false) {
 
-		// move the center		
-		this.olView.setCenter(ol.proj.fromLonLat(
-				[this.tgOrigin.origin.original.lng, this.tgOrigin.origin.original.lat]));
-
-		//if (this.currentMode === 'DC') return;
-
-		//if ((this.needToCalWarping)||(!this.tpsReady)) {
+		if (!this.tgOrigin.isOriginInTheBox()) {
+			// move the center		
+			this.olView.setCenter(ol.proj.fromLonLat(
+					[this.tgOrigin.origin.original.lng, this.tgOrigin.origin.original.lat]));
+		}
+		
 		// cal warping
 		this.tg.graph.calWarping(noNeedToCalFactor);
 
@@ -495,15 +586,10 @@ class TgMap {
 			alert('fail: TPS...');
 		}
 
-
-
-		//this.needToCalWarping = false;
-
-		//this.tgLocs.calTargetNodes();
-
 		if (this.warpingMode === 'none') {
 			this.tgWater.calTargetNodes();
 	  	this.tgRoads.calTargetNodes();
+	  	this.tgSRC.calTargetNodes();
 	  	this.tgPlaces.calTargetNodes();
 	  	this.tgLanduse.calTargetNodes();
 	  	this.tgOrigin.calTargetNodes();
@@ -511,10 +597,26 @@ class TgMap {
 		else {
 			this.tgWater.calRealNodes();
 	  	this.tgRoads.calRealNodes();
+	  	this.tgSRC.calRealNodes();
 	  	this.tgPlaces.calRealNodes();
 	  	this.tgLanduse.calRealNodes();
 	  	this.tgLocs.calTargetAndRealNodes();
 	  	this.tgOrigin.calRealNodes();
+		}
+
+		if (this.tgRoads.waitForTps) {
+			this.tgRoads.processWatingRoadObjects();
+			this.tgRoads.waitForTps = false;
+		}
+
+		if (this.tgWater.waitForTps) {
+			this.tgWater.processWaitingWaterObjects();
+			this.tgWater.waitForTps = false;
+		}
+
+		if (this.tgLocs.waitForTps) {
+			this.tgLocs.displayLocsInDc();
+			this.tgLocs.waitForTps = false;
 		}
 
 		// calculate time of all locations
@@ -527,7 +629,8 @@ class TgMap {
 		}
 		else {
 			this.frame = 10;
-			this.moveElementsByValue('intermediateReal', 1.0);
+			this.currentMode = 'DC';
+			this.moveElementsByValue('real', null);
 			this.reachDc();
 		}
 
@@ -554,6 +657,7 @@ class TgMap {
 	moveElementsByValue(intermediate, value, render = true) {
 		this.tgWater.calDispNodes(intermediate, value);
 		this.tgRoads.calDispNodes(intermediate, value);
+		this.tgSRC.calDispNodes(intermediate, value);
   	this.tgLanduse.calDispNodes(intermediate, value);
   	this.tgOrigin.calDispNodes(intermediate, value);
 		this.tgLocs.calDispNodes(intermediate, value);
@@ -563,57 +667,48 @@ class TgMap {
 		if (render) {
 			this.tgWater.render();
 			this.tgRoads.render();
+			this.tgSRC.render();
   		this.tgLanduse.render();
   		this.tgOrigin.render();
 			this.tgLocs.render();
 			this.tgPlaces.render();
 			this.tgGrids.render();
 		}
-
-		/*if (this.dispPlaceLayer) {
-			this.tgPlaces.clearLayers();
-	  	this.tgPlaces.calDispNodes(intermediate, value);
-	  	this.tgPlaces.updateDispPlaces(true);
-	  	this.tgPlaces.addPlaceLayer();
-	  }*/
-
-
-		
-
-  	/*if ((this.dispGridLayer)||(this.dispControlPointLayer)) {
-  		this.tgControl.calDispNodes(intermediate, value);
-
-  		if (this.dispGridLayer) this.tgControl.drawGridLayer();
-  		if (this.dispControlPointLayer) this.tgControl.drawControlPointLayer();
-  	}*/
 	}
 
 	goToDcByFrame() {
-		this.frame += 1;
+		//this.frame += 1;
+		this.frame += this.deltaFrame;
 		const value = this.frame * 0.1;
-		this.moveElementsByValue('intermediateReal', value);
 
 		if (this.frame < 10) {
 			// intermediate mode
+			this.moveElementsByValue('intermediateReal', value);
 			this.betweenDcAndEm();
 		}
 		else {
 			// completely go to dc mode
+			this.currentMode = 'DC';
+			this.moveElementsByValue('real', value);
 			this.reachDc();
 		}
 	}
 
 	goToEmByFrame() {
-		this.frame -= 1;
-		const value = this.frame * 0.1;
-		this.moveElementsByValue('intermediateReal', value);
+		//this.frame -= 1;
+		this.frame -= this.deltaFrame;
 
-		if (this.frame > 1) {
+		const value = this.frame * 0.1;
+
+		if (this.frame > 0) {
 			// intermediate mode
+			this.moveElementsByValue('intermediateReal', value);
 			this.betweenDcAndEm();
 		}
 		else {
 			// completely go to em mode
+			this.currentMode = 'EM';
+			this.moveElementsByValue('original', value);
 			this.reachEm();
 		}
 	}
@@ -630,7 +725,7 @@ class TgMap {
 
 	reachDc() {
 		console.log('@reach DC');
-		this.currentMode = 'DC';
+		//this.currentMode = 'DC';
 		this.tgIsochrone.disabled(false);
 		this.tgIsochrone.render();
 		this.reachDcOrEm();
@@ -667,43 +762,6 @@ class TgMap {
 		$('#dcSGapModeRB').prop('disabled', tf);
 	}
 
-
-
-	/*moveElementsByFrame(direction) {
-		if (direction === 'forward') this.frame += 1;
-		else if (direction === 'backward') this.frame -= 1;
-
-		const value = this.frame * 0.1;
-
-		// let intermediate;
-		// if (this.warpingMode === 'none') intermediate = 'intermediateTarget';
-		// else intermediate = 'intermediateReal';
-
-		this.moveElementsByValue('intermediateReal', value);
-		
-		if ((direction === 'forward') && (this.frame >= 10)) {
-			// completely go to dc mode
-			this.currentMode = 'DC';
-			this.tgIsochrone.disabled(false);
-			this.tgIsochrone.render();
-			this.reachDCOrEM();
-			this.resetUI();
-		}
-		else if ((direction === 'backward') && (this.frame <= 0)) {
-			// completely go to em mode
-			this.currentMode = 'EM';
-			this.reachDCOrEM();
-			this.resetUI();
-		}
-		else {
-			
-		}
-	}*/
-
-
-
-
-
 	initMap() {
 		this.tgBB.cleanBB();
 		this.tgLocs.removeLayer();
@@ -731,81 +789,10 @@ class TgMap {
 	calAllDispNodeAsOriginal() {
   	this.tgWater.calDispNodes('original');
   	this.tgRoads.calDispNodes('original');
+  	this.tgSRC.calDispNodes('original');
   	this.tgLanduse.calDispNodes('original');
 	  this.tgPlaces.calDispNodes('original');
   	//this.tgGrids.calDispNodes('original');
-	}
-
-	resetTime() {
-		const currentTime = (new Date()).getTime();
-		this.times = 
-				{roadLoading: {start:currentTime, end:currentTime}, 
-				waterLoading: {start:currentTime, end:currentTime},
-				landuseLoading: {start:currentTime, end:currentTime},
-				placeLoading: {start:currentTime, end:currentTime},
-				travelTimeLoading: {start:0, end:0},
-				locationLoading: {start:0, end:0},
-				controlPointWarping: {start:0, end:0},
-				tpsCalculating: {start:0, end:0},
-				elementsWarping: {start:0, end:0},
-				waterWarping: {start:0, end:0},
-				roadWarping: {start:0, end:0},
-				placeWarping: {start:0, end:0},
-				landuseWarping: {start:0, end:0},
-				etcWarping: {start:0, end:0},
-			};
-
-		for(let time in this.times) {
-			$('#' + time + 'Time').html(this.displayString[time + 'Time'] + ' - ms');
-		}
-	}
-
-	resetTempTime() {
-		this.tempTimes = 
-			{totalWarping: [], waterWarping: [], roadWarping: [], placeWarping: [],
-				landuseWarping: [], etcWarping: []};
-	}
-
-	resetDataInfo() {
-		this.dataInfo = 
-				{numRoadLoading: 0, numHighwayLoading: 0, numPrimaryLoading: 0,
-					numSecondaryLoading: 0, numTertiaryLoading: 0, numResidentialLoading: 0,
-					numWaterLoading: 0, numLanduseLoading: 0,
-					numPlaceLoading: 0, numNewTravelTime: 0,
-				}; 
-
-		for(let info in this.dataInfo) {
-			$('#' + info).html(this.displayString[info] + ' -');
-		}
-	}
-
-	setTime(type, se, time) {
-		this.times[type][se] = time;
-
-		if (se === 'end') {
-			let str = this.displayString[type + 'Time'];
-			str += ' ' + (this.times[type].end - this.times[type].start) + ' ms';
-			$('#' + type + 'Time').html(str);			
-		}
-		else if (se === 'set') {
-			const str = this.displayString[type + 'Time'] + ' ' + time + ' ms';
-			$('#' + type + 'Time').html(str);		
-		}
-	}
-
-	setDataInfo(type, action, value) {
-		switch(action) {
-			case 'increase' :
-				this.dataInfo[type]++;
-			break; 
-			case 'set' :
-				this.dataInfo[type] = value;
-			break;
-		}
-
-		const str = this.displayString[type] + ' ' + this.dataInfo[type];
-		$('#' + type).html(str);
-
 	}
 
 	calLenFromLatLng(lat, lng) {

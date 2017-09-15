@@ -1,5 +1,79 @@
 //const TgApp = require('./tg_app');
 
+/*console.log(pts_lv0);
+console.log(pts_lv1);
+console.log(pts_lv2);
+console.log(locs_lv0);
+console.log(locs_lv1);
+console.log(locs_lv2);*/
+
+Module.TOTAL_MEMORY = 33554432 * 4;
+
+let tg = new TgApp('ol_map');
+tg.setCenter(0);
+
+
+$("#origin0RB").change((ev) => {
+  if (ev.target.checked) { tg.setCenter(0); }
+});
+
+$("#origin1RB").change((ev) => {
+  if (ev.target.checked) { tg.setCenter(1); }
+});
+
+$("#origin2RB").change((ev) => {
+  if (ev.target.checked) { tg.setCenter(2); }
+});
+
+$("#origin3RB").change((ev) => {
+  if (ev.target.checked) { tg.setCenter(3); }
+});
+
+$("#origin4RB").change((ev) => {
+  if (ev.target.checked) { tg.setCenter(4); }
+});
+
+$("#origin5RB").change((ev) => {
+  if (ev.target.checked) { tg.setCenter(5); }
+});
+
+$("#origin6RB").change((ev) => {
+  if (ev.target.checked) { tg.setCenter(6); }
+});
+
+$("#origin7RB").change((ev) => {
+  if (ev.target.checked) { tg.setCenter(7); }
+});
+
+$("#origin8RB").change((ev) => {
+  if (ev.target.checked) { tg.setCenter(8); }
+});
+
+$("#origin9RB").change((ev) => {
+  if (ev.target.checked) { tg.setCenter(9); }
+});
+
+$("#fineRB").change((ev) => {
+  if (ev.target.checked) { tg.setZoom(0); }
+});
+
+$("#mediumRB").change((ev) => {
+  if (ev.target.checked) { tg.setZoom(1); }
+});
+
+$("#coarseRB").change((ev) => {
+  if (ev.target.checked) { tg.setZoom(2); }
+});
+
+$("#debugBtn").click((ev) => {
+  tg.debug();
+});
+
+$("#debugBtn2").click((ev) => {
+  tg.debug2();
+});
+
+/*
 let tg;
 
 getCurrentLocation()
@@ -33,6 +107,7 @@ getCurrentLocation()
   tg = new TgApp('ol_map');
   tg.setOriginAsDefault();
 });
+*/
 
 
 
@@ -236,6 +311,11 @@ $("#dispRoadsCB").change(function(ev){
 	tg.map.tgRoads.render();
 });
 
+$("#dispSRCCB").change(function(ev){ 
+  tg.map.tgSRC.turn(ev.target.checked);
+  tg.map.tgSRC.render();
+});
+
 $("#dispLanduseCB").change(function(ev){ 
 	tg.map.tgLanduse.turn(ev.target.checked);
 	tg.map.tgLanduse.render();
@@ -295,11 +375,6 @@ $("#dispLanduseNodeCB").change(function(ev){
 	tg.map.dispLanduseNodeLayer = ev.target.checked;
 	tg.map.updateLayers();
 });*/
-
-
-function debug() {
-	//tg.map.debug()
-}
 
 $("#tod_0_all").click((ev) => { tg.map.tgLocs.changeType(0, -1); });
 $("#tod_0_0").click((ev) => { tg.map.tgLocs.changeType(0, 0); });

@@ -12,7 +12,7 @@ class TgMapLanduse {
 		this.display = false;
 		this.layer = null;
 
-		this.simplify = false;
+		this.simplify = this.data.elements.landuse.simplify;
   	this.dispNodeLayer = false;
 		this.nodeLayer = null;
 
@@ -137,7 +137,7 @@ class TgMapLanduse {
 
 		if (geoType === 'Polygon') {
 
-			if ((this.simplify)&&(this.map.simplify)) {
+			if (this.simplify) {
 				coords = TgUtil.RDPSimp2DLoop(coords, this.rdpThreshold);
 			}
 
@@ -155,9 +155,6 @@ class TgMapLanduse {
 	}
 
 	processNewLanduseObjects() {
-		this.map.setDataInfo('numLanduseLoading', 'increase');
-		this.map.setTime('landuseLoading', 'end', (new Date()).getTime());
-
 		if (this.map.currentMode === 'EM') {
 			this.addNewLayer();
 		}
@@ -231,7 +228,7 @@ class TgMapLanduse {
 			for(let landuse of this.newLanduseObjects[cl]) {
 				if (landuse[0][0].node) { // Polygon
 					this.mapUtil.addFeatureInFeatures(
-						arr, new ol.geom.Polygon(landuse), styleFunc);
+						arr, new ol.geom.Polygon(landuse), styleFunc, 'l');
 				}
 			}
 		}
@@ -259,7 +256,7 @@ class TgMapLanduse {
 			for(let landuse of this.dispLanduseObjects[cl]) {
 				if (landuse[0][0].node) { // Polygon
 					this.mapUtil.addFeatureInFeatures(
-						arr, new ol.geom.Polygon(landuse), styleFunc);
+						arr, new ol.geom.Polygon(landuse), styleFunc, 'l');
 				}
 			}
 		}
@@ -396,12 +393,12 @@ class TgMapLanduse {
 					for(let nodes of landuse) {
 						// edge
 						this.mapUtil.addFeatureInFeatures(
-							arr, new ol.geom.LineString(nodes), edgeStyleFunc);
+							arr, new ol.geom.LineString(nodes), edgeStyleFunc, 'e');
 
 						// node
 						for(let node of nodes) {
 							this.mapUtil.addFeatureInFeatures(
-								arr, new ol.geom.Point(node), nodeStyleFunc);
+								arr, new ol.geom.Point(node), nodeStyleFunc, 'n');
 						}
 					}
 				}
@@ -432,12 +429,12 @@ class TgMapLanduse {
 					for(let nodes of landuse) {
 						// edge
 						this.mapUtil.addFeatureInFeatures(
-							arr, new ol.geom.LineString(nodes), edgeStyleFunc);
+							arr, new ol.geom.LineString(nodes), edgeStyleFunc, 'e');
 
 						// node
 						for(let node of nodes) {
 							this.mapUtil.addFeatureInFeatures(
-								arr, new ol.geom.Point(node), nodeStyleFunc);
+								arr, new ol.geom.Point(node), nodeStyleFunc, 'n');
 						}
 					}
 				}
@@ -452,6 +449,78 @@ class TgMapLanduse {
 
 	removeNodeLayer() {
 		this.mapUtil.removeLayer(this.nodeLayer);
+	}
+
+	calSP() {
+		const numClass = this.data.var.numLanduseClasses;
+		let difEs = [], difAs = [];
+		let difE = 0, difA = 0;
+
+		for(let cl = 0; cl < numClass; cl++) {
+			//console.log(cl);
+			for(let landuse of this.dispLanduseObjects[cl]) {
+				//console.log('for');
+				if (landuse[0][0].node) { // Polygon
+					//console.log('here?');
+					for(let nodes of landuse) {
+						//console.log(difE);
+						difE = this.calDifE(nodes);
+						if (difE) difEs.push(difE);
+
+						difA = this.calDifA(nodes);
+						//console.log(difA);
+
+						if (difA) difAs.push(difA);
+					}
+				}
+			}
+		}
+		return {difEs: TgUtil.avg(difEs), difAs: TgUtil.avg(difAs)};
+	}
+
+	calDifE(ns) {
+		if (ns.length < 3) {
+			return 0;
+		}
+		else {
+			// [e0, e1, e2] [q0, q1, q2]
+			let difOrgArr = [];
+			let difRealArr = [];
+			for(let i = 0; i < ns.length - 1; i++) {
+				difOrgArr.push(TgUtil.distance(ns[i].node.original.lat, ns[i].node.original.lng,
+					ns[i + 1].node.original.lat, ns[i + 1].node.original.lng));
+				difRealArr.push(TgUtil.distance(ns[i].node.real.lat, ns[i].node.real.lng,
+					ns[i + 1].node.real.lat, ns[i + 1].node.real.lng));
+			}
+			const c = TgUtil.sum(difOrgArr) / TgUtil.sum(difRealArr);
+
+			let sum = 0;
+			for(let i = 0; i < difOrgArr.length; i++ ) {
+				sum += Math.abs(difOrgArr[i] - c * difRealArr[i]);
+			}
+			return sum / difOrgArr.length;
+		}
+	}
+
+	calDifA(ns) {
+		if (ns.length < 3) {
+			return 0;
+		}
+		else {
+			let difOrgArr = [];
+			let difRealArr = [];
+			for(let i = 0; i < ns.length - 2; i++) {
+				difOrgArr.push(TgUtil.angle(ns[i].node.original, ns[i + 1].node.original,
+					ns[i + 2].node.original));
+				difRealArr.push(TgUtil.angle(ns[i].node.real, ns[i + 1].node.real,
+					ns[i + 2].node.real));
+			}
+			let sum = 0;
+			for(let i = 0; i < difOrgArr.length; i++ ) {
+				sum += Math.abs(difOrgArr[i] - difRealArr[i]);
+			}
+			return sum / difOrgArr.length;
+		}
 	}
 }
 

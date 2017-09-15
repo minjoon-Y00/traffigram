@@ -47,8 +47,8 @@ class TgMapBoundingBox {
 	}
 
 	calBBOfLocations(locations) {
-		const iconLatPx = 30;
-		const iconLngPx = 30;
+		const iconLatPx = this.data.var.locBBPx;
+		const iconLngPx = this.data.var.locBBPx;
 		const dLat = (iconLatPx * this.data.var.latPerPx) / 2;
 		const dLng = (iconLngPx * this.data.var.lngPerPx) / 2;
 
@@ -119,8 +119,8 @@ class TgMapBoundingBox {
 	}
 
 	updateBBOfLocationGroup(locGrp) {
-		const locGrpLatPx = 45;
-		const locGrpLngPx = 45;
+		const locGrpLatPx = this.data.var.locGroupBBPx;
+		const locGrpLngPx = this.data.var.locGroupBBPx;
 		const cLat = (locGrpLatPx * this.data.var.latPerPx) / 2;
 		const cLng = (locGrpLngPx * this.data.var.lngPerPx) / 2;
 		const disp = locGrp.node.dispLoc;
@@ -281,6 +281,7 @@ class TgMapBoundingBox {
 						i, loc.node.dispLoc.lat, loc.node.dispLoc.lng, loc.name);
 
 				if (this.isItNotOverlappedByLocs(locations, locationClusters, ret.bb)) {
+				//if (true) {
 					loc.dispName = true;
 					loc.nameOffsetX = ret.offset.x;
 					loc.nameOffsetY = ret.offset.y;
@@ -483,7 +484,7 @@ class TgMapBoundingBox {
 
 
 
-	addBBOfLocations() {
+	/*addBBOfLocations() {
 		const locations = this.map.tgLocs.locations[this.map.tgLocs.currentType];
 
 		const iconLatPx = 30;
@@ -500,7 +501,7 @@ class TgMapBoundingBox {
 				type: 'location',
 			});
 		}
-	}
+	}*/
 
 	getCandidatePosition(index, lat, lng, name) {
 		const latPerPx = this.data.var.latPerPx;
@@ -509,8 +510,8 @@ class TgMapBoundingBox {
 		const widthPx = name.length * 8;
 		const heightPx = 14;
 
-		const lngMarginPx = 20; // left/right margin
-		const latMarginPx = 25; // top/bottom margin
+		const lngMarginPx = this.data.var.locTextLngMarginPx; // left/right margin
+		const latMarginPx = this.data.var.locTextLatMarginPx; // top/bottom margin
 		const extraLatMarginPx = 10;
 
 		const dLng = (widthPx * lngPerPx) / 2;
@@ -910,7 +911,7 @@ class TgMapBoundingBox {
 
 		for(let bb of BBPolygons) {
 			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.Polygon([bb]), styleFunc);
+				arr, new ol.geom.Polygon([bb]), styleFunc, 'bb');
 		}
 
 		this.mapUtil.removeLayer(this.boundingBoxLayer);
@@ -966,7 +967,7 @@ class TgMapBoundingBox {
 
 				this.mapUtil.addFeatureInFeatures(arr,
 					new ol.geom.Point(
-						[loc.lng, loc.lat]), nameStyleFunc);
+						[loc.lng, loc.lat]), nameStyleFunc, 'locName');
 		}
 
 		if (arr.length > 0) {
@@ -996,16 +997,18 @@ class TgMapBoundingBox {
 				this.mapUtil.addFeatureInFeatures(arr, 
 					new ol.geom.LineString(
 						[[loc.node.dispAnchor.lng, loc.node.dispAnchor.lat], 
-						[loc.node.dispLoc.lng, loc.node.dispLoc.lat]]), lineStyleFunc);
+						[loc.node.dispLoc.lng, loc.node.dispLoc.lat]]), lineStyleFunc, 'locLine');
 
 				// anchor images
 				this.mapUtil.addFeatureInFeatures(arr,
-					new ol.geom.Point([loc.node.dispAnchor.lng, loc.node.dispAnchor.lat]), anchorStyleFunc);
+					new ol.geom.Point([loc.node.dispAnchor.lng, loc.node.dispAnchor.lat]), 
+					anchorStyleFunc, 'locAnchor');
 			}
 
 			// circle images
 			this.mapUtil.addFeatureInFeatures(arr,
-				new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), locationStyleFunc);
+				new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), 
+					locationStyleFunc, 'loc');
 		}
 
 		if (arr.length > 0) {
@@ -1031,7 +1034,7 @@ class TgMapBoundingBox {
 				});
 
 			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.Point(place), styleFunc);
+				arr, new ol.geom.Point(place), styleFunc, 'place');
 		}
 
 		this.placeLayer = this.mapUtil.olVectorFromFeatures(arr);

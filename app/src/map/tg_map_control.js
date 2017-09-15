@@ -85,8 +85,8 @@ class TgMapControl {
 				lat: half.lat - (half.lat * marginRate), 
 				lng: half.lng - (half.lng * marginRate)};
 		const step = {
-				lat: apprHalf.lat / 2, 
-				lng: apprHalf.lng / 2};
+				lat: apprHalf.lat / this.data.var.latDivider, // 8, 4, 4, 2 latDivider = 2
+				lng: apprHalf.lng / this.data.var.lngDivider}; // 4, 4, 2, 2
 		const start = {
 				lat: center.lat - apprHalf.lat, 
 				lng: center.lng - apprHalf.lng};
@@ -212,8 +212,6 @@ class TgMapControl {
 
 		// if there is points of which we need travel time,
 		if (newPointsArray.length > 0) {
-			this.map.setTime('travelTimeLoading', 'start', (new Date()).getTime());
-
 			this.travelTimeApi.getTravelTime(this.currentTransport, (times) => {
 
 				if (times.length !== newPointsArray.length) {
@@ -229,10 +227,6 @@ class TgMapControl {
 					point.travelTime = times[index];
 					this.travelTimeCache[this.currentTransport].set(key, point.travelTime);
 				}
-
-				this.map.setDataInfo('numNewTravelTime', 'set', newPointsArray.length);
-				this.map.setTime('travelTimeLoading', 'end', (new Date()).getTime());
-				//this.checkGridSplit();
 
 				if (cb) cb();
 			});
@@ -251,8 +245,46 @@ class TgMapControl {
 		this.calGridLines();
 		this.calConnectedNodes();
 		this.calGrids();
-		this.getTravelTimeOfControlPoints(cb);
+		this.assignTimes();
+		//console.log('control points:');
+		//console.log(this.controlPoints);
+		if (cb) cb();
+		//this.getTravelTimeOfControlPoints(cb);
 	}
+
+	assignTimes() {
+		let pts;
+		if (this.map.currentZoomLevel === 0) pts = pts_lv0;
+		else if (this.map.currentZoomLevel === 1) pts = pts_lv1;
+		else if (this.map.currentZoomLevel === 2) pts = pts_lv2;
+
+
+		// console.log(this.map.currentZoomLevel);
+		// console.log(this.map.currentOrigin);
+		// console.log('pts_lv1:');
+		// console.log(pts[this.map.currentOrigin].ctlPt);
+
+		for(let tPt of pts[this.map.currentOrigin].ctlPt) {
+			let found = false;
+			for(let pt of this.controlPoints) {
+				if (this.same(tPt.lat, pt.original.lat) && 
+						this.same(tPt.lng, pt.original.lng)) {
+					pt.travelTime = tPt.time;
+					found = true;
+					break;
+				}
+			}
+			//if (!found) console.log('pts: not found.');
+		}
+	}
+
+	same(val, val2) {
+		const eps = 0.0001;
+
+		if (Math.abs(val - val2) < eps) return true;
+		else return false;
+	}
+
 
 	/*calculateAnglesOfControlPoints() {
 		for(let point of this.controlPoints) {
@@ -285,10 +317,21 @@ class TgMapControl {
 			if (this.map.currentMode === 'DC') {
 				this.map.goToDcAgain();
 			}
+
+			if (this.data.var.startMode === 'DC') {
+				this.map.goToDcAgain();
+				this.data.var.startMode = null;
+
+				if (typeof map_mode != 'undefined') {
+		      $("#s img").attr("src", 'img/switch_s_off.png');
+					$("#t img").attr("src", 'img/switch_t_on.png');
+					map_mode = 1;
+		    }
+			}
 			return;
 		}
 
-		console.log(this.grids);
+		//console.log(this.grids);
 
 		/* let sumTimes = [];
 		for(let grid of this.grids) {

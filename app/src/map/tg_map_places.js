@@ -125,26 +125,20 @@ class TgMapPlaces {
 	}
 
 	processPlaceObjects() {
+		if (this.data.var.readyLocation) {
+			//console.log('processPlaceObjects: loc ready so process places');
 
-		//console.log('p');
+			this.dispPlaceObjects = 
+					this.map.tgBB.getNonOverlappedPlaces(this.placeObjectsByZoom);
 
-		if (this.map.currentMode === 'EM') {
+			//console.log('dispPlaces: ');
+			//console.log(this.dispPlaceObjects);
 
-			if (this.data.var.readyLocation) {
-				console.log('processPlaceObjects: loc ready so process places');
+			this.updateLayer();
+			this.data.var.placeProcessed = true;
 
-				this.dispPlaceObjects = 
-						this.map.tgBB.getNonOverlappedPlaces(this.placeObjectsByZoom);
-
-				//console.log('dispPlaces: ');
-				//console.log(this.dispPlaceObjects);
-
-				this.updateLayer();
-				this.data.var.placeProcessed = true;
-
-			} else {
-				console.log('processPlaceObjects: loc is not ready so wait');
-			}
+		} else {
+			//console.log('processPlaceObjects: loc is not ready so wait');
 		}
 	}
 
@@ -232,7 +226,7 @@ class TgMapPlaces {
 				});
 
 			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.Point(place), styleFunc);
+				arr, new ol.geom.Point(place), styleFunc, 'p');
 		}
 
 		if (arr.length > 0) {
@@ -240,7 +234,7 @@ class TgMapPlaces {
 			this.placeLayer.setZIndex(viz.z.places);
 			this.mapUtil.addLayer(this.placeLayer);
 			this.dispLayers.push(this.placeLayer);
-			console.log('tgPlaces.updateLayer():' + arr.length);
+			//console.log('tgPlaces.updateLayer():' + arr.length);
 		}
 	}
 
