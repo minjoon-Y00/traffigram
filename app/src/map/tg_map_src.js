@@ -12,7 +12,7 @@ class TgMapSRC {
 		this.display = false;
 		this.layer = {};
 
-  	this.dispNodeLayer = true;
+  	this.dispNodeLayer = false;
 		this.nodeLayer = null;
 
 		this.roadObjects = {};
@@ -126,8 +126,15 @@ class TgMapSRC {
 		this.analysisDispRoads();
 		this.assignTimes();
 
+		console.log(this.dispRoads);
+
 		for(let type in this.dispRoads) {
 			let arr = [];
+
+			if (type === 'motorway') continue;
+			if (type === 'motorway_link') continue;
+
+
 
 			for(let road of this.dispRoads[type]) {
 				this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString(

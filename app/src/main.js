@@ -5,9 +5,34 @@ console.log(pts_lv1);
 console.log(pts_lv2);
 console.log(locs_lv0);
 console.log(locs_lv1);
-console.log(locs_lv2);*/
+console.log(locs_lv2);
+console.log(nodes_lv0);
+console.log(nodes_lv1);
+console.log(nodes_lv2);
+console.log(edges_lv0);
+console.log(edges_lv1);
+console.log(edges_lv2);
+console.log(nodes_lv0);
+console.log(nodes_lv1);
+console.log(nodes_lv2);
 
-Module.TOTAL_MEMORY = 33554432 * 4;
+let cnt = 0;
+for(let n of nodes_lv0) {
+  if (n.conIndexes) cnt++;
+}
+console.log(cnt);
+cnt = 0;
+for(let n of nodes_lv1) {
+  if (n.conIndexes) cnt++;
+}
+console.log(cnt);
+cnt = 0;
+for(let n of nodes_lv2) {
+  if (n.conIndexes) cnt++;
+}
+console.log(cnt);*/
+
+
 
 let tg = new TgApp('ol_map');
 tg.setCenter(0);

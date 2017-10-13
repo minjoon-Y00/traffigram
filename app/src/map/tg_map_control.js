@@ -253,6 +253,9 @@ class TgMapControl {
 	}
 
 	assignTimes() {
+		// temp;
+		//return;
+
 		let pts;
 		if (this.map.currentZoomLevel === 0) pts = pts_lv0;
 		else if (this.map.currentZoomLevel === 1) pts = pts_lv1;

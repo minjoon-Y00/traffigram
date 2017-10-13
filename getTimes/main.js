@@ -21,9 +21,9 @@ let queue = [];
 let startTimer = 0;
 
 //startTimer = setInterval(intervalStartFunc, 1000);
-setInterval(intervalFunc, 1000);
+//setInterval(intervalFunc, 1000);
 console.log('start.');
-//requestTimes();
+requestTimes();
 
 function requestTimes() {
   console.log('request all times.');
@@ -250,6 +250,7 @@ function requestPtTimes(q) {
 
 function savePtTimes(q) {
   saveTextAsFile(q.pts, q.filename);
+  console.log('savePtTimes: ' + q.filename);
 }
 
 function requestLocTimes(q) {
@@ -276,6 +277,7 @@ function requestLocTimes(q) {
 
 function saveLocTimes(q) {
   saveTextAsFile(q.locs, q.filename);
+  console.log('saveLocTimes: ' + q.filename);
 }
 
 function requestEdgeTimes(q) {
@@ -297,6 +299,7 @@ function requestEdgeTimes(q) {
 
 function saveEdgeTimes(q) {
   saveTextAsFile(q.nodes, q.filename);
+  console.log('saveEdgeTimes: ' + q.filename);
 }
 
 function saveTextAsFile(str, filename) {

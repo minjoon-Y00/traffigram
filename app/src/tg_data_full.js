@@ -2,7 +2,7 @@ var TgData = {
 	zoom: {
 		max: 18,
 		min: 11,
-		init: 15,
+		init: 13,
 		previos: 0,
 		current: 0,
 		level: [[17, 16, 15], [14, 13], [12, 11]],
@@ -62,16 +62,16 @@ var TgData = {
 			landuseNode: '#009245',
 			locationLine: 'rgba(0, 0, 0, 0.5)',
 			road: {
-				motorway: '#E6E6E6', //'rgb(254, 216, 157)',
-				trunk: '#E6E6E6', //'rgb(254, 241, 185)',
-				motorway_link: '#E6E6E6', //'#EEE',
-				trunk_link: '#E6E6E6', //'#EEE',
-				primary: '#E6E6E6', //'#FFF',
-				secondary: '#E6E6E6', //'#FFF',
-				tertiary: '#E6E6E6', //'#FFF',
-				residential: '#E6E6E6', //'#FFF',
+				motorway: '#E5E5E5', //'rgb(254, 216, 157)',
+				trunk: '#E5E5E5', //'rgb(254, 241, 185)',
+				motorway_link: '#E5E5E5', //'#EEE',
+				trunk_link: '#E5E5E5',  //'#EEE',
+				primary: '#E5E5E5',  //'#FFF',
+				secondary: '#E5E5E5',  //'#FFF',
+				tertiary: '#E5E5E5',  //'#FFF',
+				residential: '#E5E5E5',  //'#FFF',
 			},
-			roadNode: '#000', //'#E00B62',
+			roadNode: '#7C7C7C', //'#E00B62',
 			text: '#000', // '#686453',
 			textPlace: 'rgba(0, 0, 0, 0.5)', //'#000'
 			textPlaceStroke: 'rgba(255, 255, 255, 0.5)', //'#FFF',
@@ -102,7 +102,7 @@ var TgData = {
 		radius: {
 			anchor: 5,
 			controlPoint: 13,
-			node: 4,
+			node: 3,
 		},
 
 		image: {
@@ -138,8 +138,9 @@ var TgData = {
 
 		font: {
 			isochroneText: '24px PT Sans Narrow',
-			places: '14pt Source Sans Pro Regular',
-			text: '12pt Source Sans Pro Regular',
+			places: '14pt Source Sans Pro',
+			//places: '14pt Source Sans Pro Regular',
+			text: '12pt Source Sans Pro Regular', 
 		},
 	},
 

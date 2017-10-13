@@ -193,14 +193,15 @@ class TgApp {
 	}
 
 	debug() {
-	 //  this.results[this.data.zoom.current] = [];
-		// //this.calLocTimeByOrigin(0, 5);
-		// this.calLocTimeByOrigin(5, 10);
+	  /*this.results[this.data.zoom.current] = [];
+		//this.calLocTimeByOrigin(0, 5);
+		this.calLocTimeByOrigin(5, 10);
 
-		// console.log('results: ', this.results);
-		// TgUtil.saveTextAsFile(this.results, 'results_15b.js');
+		console.log('results: ', this.results);
+		TgUtil.saveTextAsFile(this.results, 'results_15b.js');
+		*/
 		
-
+		
 		let difEsRoad = [];
 	  let difAsRoad = [];
 	  let difEsWater = [];
@@ -245,11 +246,6 @@ class TgApp {
 		difAsLanduseObj.gap = ea.difAs;
 		difEsLanduse.push(difEsLanduseObj);
 		difAsLanduse.push(difAsLanduseObj);
-		
-
-
-		
-		
 
 		console.log('-- GAP <-> SGAP --');
 		console.log('difEsRoad.gap: ' + difEsRoad[0].gap * 1000);
@@ -266,6 +262,7 @@ class TgApp {
 		console.log('difEsLanduse.sgap: ' + difEsLanduse[0].sgap * 1000);
 		console.log('difAsLanduse.gap: ' + difAsLanduse[0].gap);
 		console.log('difAsLanduse.sgap: ' + difAsLanduse[0].sgap);
+		
 	}
 
 	resultAnalysis(result) {
