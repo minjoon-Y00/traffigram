@@ -232,12 +232,6 @@ class TgMap {
 	onZoomEnd() {
 		this.calBoundaryBox();
 
-		if ((this.currentMode === 'DC') && (this.tgLocs.getHighLightMode())) {
-			// return the normal isochrone mode
-			this.tgInteraction.disableHighlightMode();
-      this.tgLocs.resetCurrentSet();
-		}
-
 		if ((this.currentMode === 'DC') && (!this.tgOrigin.isOriginInTheBox())) {
     	console.log('origin is out of bouding box, so recover the previous zoom.');
     	this.olMap.getView().setZoom(this.data.zoom.previous);

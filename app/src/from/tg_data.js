@@ -123,16 +123,16 @@ var TgData = {
 		},
 
 		font: {
-			isochroneText: '18px Roboto Condensed',
-			places: '14pt Roboto Condensed',
-			text: '12pt Roboto Condensed',
+			isochroneText: '18px PT Sans Narrow',
+			places: '14pt Source Sans Pro Regular',
+			text: '12pt Source Sans Pro Regular',
 		},
 	},
 
 	origin: {
 		default: {
-			lat: 47.680275, //47.6631772,
-			lng: -122.327324, //-122.3104933,
+			lat: 47.6631772,
+			lng: -122.3104933,
 		},
 		home: {
 			address: '4225 24th Ave. NE, Seattle, WA',

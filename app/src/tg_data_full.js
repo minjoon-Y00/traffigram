@@ -2,11 +2,9 @@ var TgData = {
 	zoom: {
 		max: 18,
 		min: 11,
-		init: 13,
+		init: 14,
 		previos: 0,
 		current: 0,
-		level: [[17, 16, 15], [14, 13], [12, 11]],
-
 		disp: {
 			motorway: {min: 1, max: 20},
 			trunk: {min: 1, max: 20},
@@ -26,11 +24,9 @@ var TgData = {
 			tertiary: 5,
 			secondary: 5,
 			primary: 5,
-			motorway_link: 4,
-			trunk_link: 4,
 			trunk: 6,
 			motorway: 7,
-			roadNode: 40,
+			roadNode: 8,
 			presets: 9,
 			places: 10,
 			isochrone: 14,
@@ -62,22 +58,20 @@ var TgData = {
 			landuseNode: '#009245',
 			locationLine: 'rgba(0, 0, 0, 0.5)',
 			road: {
-				motorway: '#E5E5E5', //'rgb(254, 216, 157)',
-				trunk: '#E5E5E5', //'rgb(254, 241, 185)',
-				motorway_link: '#E5E5E5', //'#EEE',
-				trunk_link: '#E5E5E5',  //'#EEE',
-				primary: '#E5E5E5',  //'#FFF',
-				secondary: '#E5E5E5',  //'#FFF',
-				tertiary: '#E5E5E5',  //'#FFF',
-				residential: '#E5E5E5',  //'#FFF',
+				motorway: 'rgb(254, 216, 157)',
+				trunk: 'rgb(254, 241, 185)',
+				primary: '#FFF',
+				secondary: '#FFF',
+				tertiary: '#FFF',
+				residential: '#FFF',
 			},
-			roadNode: '#7C7C7C', //'#E00B62',
+			roadNode: '#E00B62',
 			text: '#000', // '#686453',
 			textPlace: 'rgba(0, 0, 0, 0.5)', //'#000'
 			textPlaceStroke: 'rgba(255, 255, 255, 0.5)', //'#FFF',
 			textLocation: '#000', //'rgb(122, 62, 44)', 
 			textNumberOfLocations: '#FFF',
-			water: '#A8D0F8', //'rgb(163, 204, 255)', 
+			water: 'rgb(163, 204, 255)',
 			waterNode: '#0071BC',
 		},
 
@@ -137,59 +131,16 @@ var TgData = {
 		},
 
 		font: {
-			isochroneText: '24px PT Sans Narrow',
-			places: '14pt Source Sans Pro',
-			//places: '14pt Source Sans Pro Regular',
-			text: '12pt Source Sans Pro Regular', 
+			isochroneText: '24px Roboto Condensed',
+			places: '14pt Roboto Condensed', //'Source Sans Pro Regular',
+			text: '12pt Roboto Condensed',
 		},
 	},
 
-	presetOrigin: [{
-		name: 'City Hall',
-		lat: 47.6038998,
-		lng: -122.3320382,
-	},{
-		name: 'Bellevue',
-    lat: 47.614384, 
-    lng: -122.202651,
-	},{
-		name: 'Mercer Island',
-		lat: 47.569846, 
-		lng: -122.222216,
-	},{
-		name: 'Redmond',
-		lat: 47.673169, 
-		lng: -122.121536,
-	},{
-		name: 'Kirkland',
-		lat: 47.677125, 
-		lng: -122.203785,
-	}, {
-		name: 'Mountlake Terrace',
-		lat: 47.787072, 
-		lng: -122.308459,
-	}, {
-		name: 'Burien',
-		lat: 47.466827, 
-		lng: -122.339007,
-	}, {
-		name: 'Tukwila',
-		lat: 47.473262, 
-		lng: -122.262174,
-	}, {
-		name: 'Shorline',
-		lat: 47.756807, 
-		lng: -122.345476,
-	}, {
-		name: 'Edmonds',
-		lat: 47.810278, 
-		lng: -122.377953,
-	}],
-
 	origin: {
 		default: {
-			lat: 47.6631772,
-			lng: -122.3104933,
+			lat: 47.680275, //47.6631772,
+			lng: -122.327324, //-122.3104933,
 		},
 		home: {
 			address: '4225 24th Ave. NE, Seattle, WA',
@@ -246,15 +197,12 @@ var TgData = {
 			disp: true,
 			simplify: false,
 		},
-		src: {
-			disp: true,
-		},
 		landuse: {
 			disp: true,
 			simplify: false,
 		},
 		place: {
-			disp: false,
+			disp: true,
 		}
 	},
 
@@ -267,16 +215,14 @@ var TgData = {
 		appMode: 'pc', // 'mobile'
 		appDispMode: 'normal',
 
-		locBBPx: 50,
-		locGroupBBPx: 45,
+		locBBPx: 20, //50,
+		locGroupBBPx: 30, //45,
 		locTextLngMarginPx: 27, // left/right margin
 		locTextLatMarginPx: 27, // top/bottom margin
 		isochroneTextPx: 14,
 
 
 		deltaFrame: 1,
-		latDivider: 2,
-		lngDivider: 2,
 		latPerPx: 0,
 		lngPerPx: 0,	
 		latMargin: 0,
@@ -286,9 +232,9 @@ var TgData = {
 		numLanduseClasses: 6,
 		numRatings: [0, 1000],
 		marginPercent: 3.0, 
-		maxNumTops: 30,
-		maxNumHots: 0,
-		maxNumLocations: 30,
+		maxNumTops: 10,
+		maxNumHots: 10,
+		maxNumLocations: 20,
 		maxNumIsochrone: 6,
 		maxSplitLevel: 0, 
 		placeProcessed: false,

@@ -47,8 +47,24 @@ class TgMapBoundingBox {
 	}
 
 	calBBOfLocations(locations) {
-		const iconLatPx = this.data.var.locBBPx;
-		const iconLngPx = this.data.var.locBBPx;
+		let iconLatPx = this.data.var.locBBPx; // 50
+		let iconLngPx = this.data.var.locBBPx; // 50
+
+		if (this.data.var.appMode === 'pc') {
+			const z = this.data.zoom.current;
+			// 14 -> 50
+			// 15 -> 45
+			// 16 -> 40
+			// 17 -> 35
+
+			if (z >= 14) {
+				iconLatPx = iconLatPx - 10 * (z - 14);
+				iconLngPx = iconLngPx - 10 * (z - 14);
+				console.log('iconLngPx: ' + iconLngPx);
+			}
+		}
+
+
 		const dLat = (iconLatPx * this.data.var.latPerPx) / 2;
 		const dLng = (iconLngPx * this.data.var.lngPerPx) / 2;
 
@@ -272,6 +288,7 @@ class TgMapBoundingBox {
 
 		// calculate non-overlapped location names
 		for(let loc of locations) {
+			loc.nameBB = null;
 			
 			if (loc.group) continue;
 

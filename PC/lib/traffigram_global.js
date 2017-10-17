@@ -239,7 +239,7 @@ var html_detail = hereDoc(function(){/*!
 var html_main_PC = hereDoc(function(){/*!
 <div id="header">
 	<div id="header_inside"> 
-		<div id="header_inside_left"><img src="img/image_main_logo.png" style="height:40px"/>&nbsp;Traffigram</span></div>
+		<div id="header_inside_left"><img src="img/image_main_logo.png" style="height:40px"/>&nbsp;Crossroads</span></div>
 		<div id="header_inside_right">Howdy, <span id="user_name" style="color:black"></span></div>
 	</div>
 </div>

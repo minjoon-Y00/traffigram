@@ -6,8 +6,7 @@ html, body {
 }
 
 #ol_map {
-  //background-color: #EAEAEA;
-	background-color: #FFF;
+	background-color: #EAEAEA;
 }
 
 .ol_map {
@@ -34,7 +33,6 @@ html, body {
 
 .ol-control.ol-zoom {
   left: calc(100% - 33px);
-  top: 50%;
 }
 
 .disabledText {

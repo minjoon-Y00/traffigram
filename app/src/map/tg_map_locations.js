@@ -20,7 +20,7 @@ class TgMapLocations {
 		this.currentSubTOD = 0;
 		this.isHighlightMode = false;
 		this.waitForTps = false;
-	  this.displayTimeOfLocs = true; // for debug
+	  this.displayTimeOfLocs = false; // for debug
 	  this.highLightMode = false;
 		this.highLightTime = 0;
 
@@ -70,9 +70,6 @@ class TgMapLocations {
 			const lng = loc.node.target.lng;
 			loc.time = this.map.calTimeFromLatLng(lat, lng);
 		}
-
-		// console.log('this.locations:');
-		// console.log(this.locations);
 	}
 
 	setTimeOfLocationGroups() {
@@ -129,20 +126,7 @@ class TgMapLocations {
 
 		this.locationsInBox = [];
 
-		for(let locs of tod[this.currentTOD]) {
-			for(let loc of locs) {
-				const lat = loc.lng; // original data is wrong, should be fixed.
-				const lng = loc.lat; // original data is wrong, should be fixed.
-
-				if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
-					loc.node = new TgLocationNode(lat, lng);
-					//loc.time = 0;
-					this.locationsInBox.push(loc);
-				}
-			}
-		}
-
-		/*if (this.currentSubTOD >= 0) {
+		if (this.currentSubTOD >= 0) {
 			for(let loc of tod[this.currentTOD][this.currentSubTOD]) {
 				const lat = loc.lng; // original data is wrong, should be fixed.
 				const lng = loc.lat; // original data is wrong, should be fixed.
@@ -168,7 +152,7 @@ class TgMapLocations {
 					}
 				}
 			}
-		}*/
+		}
 	}
 
 	calFilteredLocs() {
@@ -300,87 +284,23 @@ class TgMapLocations {
 		}
 	}
 
-	assignTimes() {
-		const currentZoom = this.data.zoom.current;
-		let locs;
-		if (this.data.zoom.level[0].indexOf(currentZoom) >= 0) locs = locs_lv0;
-		if (this.data.zoom.level[1].indexOf(currentZoom) >= 0) locs = locs_lv1;
-	  if (this.data.zoom.level[2].indexOf(currentZoom) >= 0) locs = locs_lv2;
-
-	  const timeLocs = locs[this.map.currentOrigin];
-
-	  console.log('org: ' + this.map.currentOrigin);
-	  console.log('cal locations:', this.locations);
-		console.log('timeLocs: ', timeLocs);
-
-		let temp = [];
-		for(let i = 0; i < this.locations.length; ++i) {
-			temp.push({loc: this.locations[i].lng, locs_lv0: timeLocs[i + 1].lat});
-		}
-		console.log('temp: ', temp);
-
-		for(let loc of this.locations) {
-			let found = false;
-			for(let i = 1; i < timeLocs.length; i++) {
-
-				if (!timeLocs[i].time) {
-					console.log('time loc is not defined.');
-					continue;
-				}
-
-				if (TgUtil.same(loc.lng, timeLocs[i].lat) && 
-						TgUtil.same(loc.lat, timeLocs[i].lon)) {
-					loc.time = timeLocs[i].time;
-					found = true;
-					break;
-				}
-			}
-
-			if (!found) console.log('time of loc is not found...');
-		}
-	}
-
-	locByPreset() {
-		const currentZoom = this.data.zoom.current;
-		let locs;
-		if (this.data.zoom.level[0].indexOf(currentZoom) >= 0) locs = locs_lv0;
-		if (this.data.zoom.level[1].indexOf(currentZoom) >= 0) locs = locs_lv1;
-	  if (this.data.zoom.level[2].indexOf(currentZoom) >= 0) locs = locs_lv2;
-
-	  this.locations = [];
-	  locs = locs[this.map.currentOrigin];
-
-	  for(let i = 1; i < locs.length; ++i) {
-	  	let obj = {};
-	  	obj.lat = locs[i].lon;
-	  	obj.lng = locs[i].lat;
-	  	obj.node = new TgLocationNode(locs[i].lat, locs[i].lon);
-	  	obj.time = locs[i].time;
-	  	this.locations.push(obj);
-	  }
-	}
-
 	request(param) {
 		if ((!param) || (param.calLocsInBox)) {
 			this.calLocsInBox();
 		}
 
-		//this.calFilteredLocs();
-		this.locByPreset();
+		this.calFilteredLocs();
 
-		//this.assignTimes();
-
-		//console.log('this.locations:');
 		//console.log(this.locations);
 
 		// calculate BB of locations
 		this.map.tgBB.calBBOfLocations(this.locations);
 
 		// calculate clusters of locations
-		//this.locationGroups = this.map.tgBB.calLocationGroup(this.locations);
+		this.locationGroups = this.map.tgBB.calLocationGroup(this.locations);
 
 		// calculate non-overlapped location names
-		//this.map.tgBB.calNonOverlappedLocationNames(this.locations, this.locationGroups);
+		this.map.tgBB.calNonOverlappedLocationNames(this.locations, this.locationGroups);
 
 		//console.log(this.locationGroups);
 
@@ -569,9 +489,7 @@ class TgMapLocations {
 
 			// time display (for debugging)
 			if (this.displayTimeOfLocs) {
-				//const timeStr = parseInt(loc.time) + '';
-				//const timeStr = Number(loc.time / 60).toFixed(1);
-				const timeStr = loc.time.toFixed(0);
+				const timeStr = parseInt(loc.time/60) + '';
 				const timeStyleFunc = 
 					this.mapUtil.textStyle({text: timeStr, color: '#000', font: viz.font.text});
 				this.mapUtil.addFeatureInFeatures(

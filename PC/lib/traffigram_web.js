@@ -68,6 +68,7 @@ var user_filter = [
 //some variables
 var width_screen;
 var height_screen;
+var height_screen_safe;
 var height_tap = 105;
 var height_transition_gap = 30;
 var width_UI_margin = 5;
@@ -119,11 +120,32 @@ $(document).ready(function(){
 			//Initial screen setting
 			width_screen = $(window).width();
 			height_screen = $(window).height();
+			height_screen_safe = 800;
+			if (height_screen - 65 < 800){
+				height_screen_safe = height_screen - 65;
+			}
+			console.log("&&&&&&&&&&&&&&&&&&&&&&");
+			console.log("&&&&&&&&&&&&&&&&&&&&&&");
+			console.log(height_screen);
+			console.log(height_screen_safe);
+			console.log("&&&&&&&&&&&&&&&&&&&&&&");
+			console.log("&&&&&&&&&&&&&&&&&&&&&&");
+
 			$("#main").css("width", width_screen);
 			$("#main").css("height", height_screen);
 			$(window).resize(function(){
 				width_screen = $(window).width();
 				height_screen = $(window).height();
+				//Set height_screen_safe
+				height_screen_safe = 800;
+				if (height_screen - 65 > 800){
+					height_screen_safe = height_screen - 65;
+				}
+				console.log("&&&&&&&&&&&&&&&&&&&&&&");
+				console.log("&&&&&&&&&&&&&&&&&&&&&&");
+				console.log(height_screen_safe);
+				console.log("&&&&&&&&&&&&&&&&&&&&&&");
+				console.log("&&&&&&&&&&&&&&&&&&&&&&");
 				$("#main").css("width", width_screen);
 				$("#main").css("height", height_screen);
 			});
@@ -143,29 +165,27 @@ $(document).ready(function(){
 //Load screen login1 
 //Main features: allow sign in / sign up
 function load_login1(){
+	$("#content").empty();
+	$("#content").append(html_login1);
+
+	//event handler
+	$("#login1_btn_signup").on("click", function(){
+		if(mode_debug){console.log("sign up");}
+		load_login2();
+	});
+
+	//Go to login7
+	$("#login1_btn_signin").on("click", function(){
+		$(this).css({cursor: "pointer"});
+		if(mode_debug){console.log("sign in - i.e., login7");}
+		load_login7();
+	});
 	//Auto login
 	if (getCookie("user_n")!="" && getCookie("user_p")!=""){
 		var user_name = getCookie("user_n");
 		var user_pw = getCookie("user_p");
 		proceed_login(user_name, user_pw);
-	}
-	else{
-		$("#content").empty();
-		$("#content").append(html_login1);
-
-		//event handler
-		$("#login1_btn_signup").on("click", function(){
-			if(mode_debug){console.log("sign up");}
-			load_login2();
-		});
-
-		//Go to login7
-		$("#login1_btn_signin").on("click", function(){
-			$(this).css({cursor: "pointer"});
-			if(mode_debug){console.log("sign in - i.e., login7");}
-			load_login7();
-		});
-	}
+	}	
 }
 
 function load_login2(){
@@ -444,7 +464,7 @@ function load_login4(user_id, user_name, user_passwd){
 
 							user_info.id = user_id;
 							user_info.name = user_name;
-							load_login6(user_name);
+							load_login6(user_name, user_passwd);
 							start_log();
 							console.log('Oh yeah~ Finally');
 						} else {
@@ -624,7 +644,7 @@ function load_login4_old(user_id, user_name, user_passwd){
 }
 
 //Finally!!
-function load_login6(name){
+function load_login6(name, pwpw){
 
 	console.log('load_login6: ' + name);
 
@@ -658,8 +678,9 @@ function load_login6(name){
 				$(this).remove();
 				$("#popup_blacklayer").remove();
 				setTimeout(function(){
-					load_TOD();
-					load_map();
+					//load_TOD();
+					//load_map();
+					proceed_login(name, pwpw);
 					isUnderAni = false;
 				},time_interaction_buffer);
 			});		
@@ -724,17 +745,6 @@ function load_login7(){
 		}
 	});
 
-	//Auto login
-//	if (getCookie("user_n")!="" && getCookie("user_p")!=""){
-//		var user_name = getCookie("user_n");
-//		var user_pw = getCookie("user_p");
-//		$("#input_email").attr("value", user_name);
-//		$("#input_pw").attr("value", user_pw);
-//		$("#login7_btn_signin").attr("class", "content_btn");
-//		console.log(user_name + " " + user_pw);
-//		proceed_login(user_name, user_pw);
-//	}
-
 	$("#login7_btn_signin").on("click", function(){
 		if (isUnderAni == false){
 			if($(this).attr("class")== "content_btn"){proceed_login(input_email, input_pw);}
@@ -748,6 +758,7 @@ function load_login7(){
 
 function proceed_login(input_email, input_pw){
 	isUnderAni = true
+	console.log(input_email + " " + input_pw);
 	$.ajax({
 		url: path_login7,
 		data:{user_id: input_email, user_pw: input_pw},
@@ -795,6 +806,11 @@ function proceed_login(input_email, input_pw){
 				}, time_interaction_buffer*1.5);
 
 			} else {
+				console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
+				console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
+				console.log(data);
+				console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
+				console.log("@@@@@@@@@@@@@@@@@@@@@@@@");
 				if(mode_debug){console.log("record does not match");}
 				$(".content_message").html("Your e-mail address and password does not match with our record. If you need a help, please e-mail traffigram@gmail.com.");
 				$(".content_message").css("color","red");
@@ -834,6 +850,7 @@ function load_TOD(){
 	load_TOD_construct_DOM();
 }
 function load_TOD_construct_DOM(){
+	$("#content_TOD").css("height", height_screen_safe);
 	$("#content_TOD").append(html_TOD);
 
 	//get information
@@ -847,7 +864,7 @@ function load_TOD_construct_DOM(){
 
 			//Step 1. Make a list
 			$(".content_main_heading_TOD").append('<div class="content_main_heading"> <img src="img/headicon_CAT.png"/> <span style = "padding-left:-10px"> Destination categories </span></div>');
-			$(".content_main_textarea_TOD").css({"height": "760px"});
+			$(".content_main_textarea_TOD").css({"height": (height_screen_safe - 40 )+ "px"});
 
 			for (i=0; i<data_cat.cat.length;i++){
 				this_cat_id = data_cat.cat[i]["cat_id"];
@@ -925,6 +942,7 @@ function load_TOD_list_subcat(subcat){
 
 function load_map(){
 	//Include position relative container
+	$("#content_map").css("height", height_screen_safe);
 	$("#content_map").append('<div id="content_map_wrapper" style = "position:relative"></div>')
 
 	//Set up a map container
@@ -935,8 +953,6 @@ function load_map(){
 		"top": 0 + "px", "left": 0 + "px", 
 		"background": "#EAEAEA"
 	});
-
-	console.log("attached map wrapper");
 
 	// Set up a ol_map
 	$("#content_map_inside").append('<div id="ol_map" class="ol_map"></div>');
@@ -949,7 +965,7 @@ function load_map(){
 		// create the main app object
 		tg = new TgApp('ol_map');
 
-		console.log('got lat & lng from geolocation: ' + data.lat + ', ' + data.lng);
+		//console.log('got lat & lng from geolocation: ' + data.lat + ', ' + data.lng);
 		const seattle = {lat: 47.6115744, lng: -122.343777}
 		if ((data.lat > seattle.lat - 1) && (data.lat < seattle.lat + 1) &&
 			(data.lng > seattle.lng - 1) && (data.lng < seattle.lng + 1)) {
@@ -958,7 +974,7 @@ function load_map(){
 			user_currentloc.lng = data.lng;
 			user_currentloc.lat = data.lat;
 
-			console.log('loc_fav:');
+			//console.log('loc_fav:');
 			user_info.loc_fav
 			console.log(user_info.loc_fav);
 			tg.setFavorites(user_info.loc_fav);
@@ -1233,7 +1249,7 @@ function openSettings(){
 	$("#content_settings").append(html_settings);
 	//Pull settings top to layer
 	$("#content_settings").css("z-index", 100);
-	$("#setting_heading").css("width", $("#content_map").width() - 30 + "px");
+	$("#setting_heading").css("width", $("#content_map").width() - 40 + "px");
 
 	$("#user_address_home").attr("placeholder", user_info.loc_home.address);
 	$("#user_address_office").attr("placeholder", user_info.loc_office.address);
@@ -1431,7 +1447,7 @@ function openFilter(){
 	$("#content_filter").append(html_filter);
 	//Pull settings top to layer
 	$("#content_filter").css("z-index", 100);
-	$("#filter_heading").css("width", $("#content_map").width() - 30 + "px");
+	$("#filter_heading").css("width", $("#content_map").width() - 40 + "px");
 
 	$("#content_main_filterarea").css({
 		"width": 710 + "px",
@@ -1616,7 +1632,7 @@ function closeFilter(){
 	});
 }
 function openList(){
-	console.log("started updating");
+	//console.log("started updating");
 
 	//remove_map_UI()
 
@@ -1629,10 +1645,10 @@ function openList(){
 	}
 	else {console.log("something weird happened while logging time...");}
 
-	console.log("Finished logging " + time_mode_current)
+	//console.log("Finished logging " + time_mode_current)
 	time_mode_current = 2;
 	time_mode_start = Math.floor(Date.now() / 1000);
-	console.log("Started logging " + time_mode_current)
+	//console.log("Started logging " + time_mode_current)
 
 	//Step 1. move buttons 
 	//Construct TOD
@@ -1641,6 +1657,7 @@ function openList(){
 
 function constructList(){
 	$("#content_list").empty(); 
+	$("#content_list").css("height", height_screen_safe);
 	$("#content_list").append(html_list); 
 	// ADD ICON IMAGE
 	var catid_1 = parseInt(map_TOD.split("_")[0]); //1 of 1_2
@@ -1648,7 +1665,7 @@ function constructList(){
 	$("#currentTOD").append('<img src="img/headicon_menu'+map_TOD.split("_")[0]+'.png"/>');
 	//Set text height
 	$(".content_main_textarea_list").css({
-		"height": /*height_screen - $(".content_main_heading").height() - 100 + "*/"770px"
+		"height": (height_screen_safe - 40) + "px"
 	});
 	//Add each item one by
 	$("#currentTOD").append(data_cat.cat[catid_1-1].cat_sub[catid_2-1].cat_name);
@@ -1846,7 +1863,7 @@ function openDetail(dest_id){
 
 				//overflow:auto thing - need to set DIV height
 				$("#content_settings .content_main_textarea_detail").css({
-					"height": "770px",
+					"height": (height_screen_safe - 40 )+ "px",
 					"overflow": "auto"
 				});
 				$("#content_settings .content_main_heading").css({

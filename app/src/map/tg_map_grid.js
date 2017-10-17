@@ -74,7 +74,7 @@ class TgMapGrid {
 					'cpLine');
 
 			// add text
-			let text = (point.travelTime != null) ? (point.travelTime / 60).toFixed(1) : '-';
+			let text = (point.travelTime != null) ? (point.travelTime/60).toFixed(1) : '-';
 			//let text = (point.travelTime != null) ? point.travelTime + '' : '-';
 			//text += ',' + point.index;
 			this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point(

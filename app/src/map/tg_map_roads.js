@@ -34,6 +34,8 @@ class TgMapRoads {
   	this.rdpThreshold = this.data.var.rdpThreshold.road;
   	this.styleFunc = {};
 
+  	this.mobile = (this.data.var.appMode === 'mobile');
+
   	for(let zoom = this.data.zoom.min; zoom <= this.data.zoom.max; zoom++) {
   		this.roadObjects[zoom] = {};
 	  	for(let type of this.roadTypes) this.roadObjects[zoom][type] = [];
@@ -71,6 +73,8 @@ class TgMapRoads {
     	maxZoom: 22, //this.data.zoom.max,
     	tileSize: [512, 512],
     });
+
+    console.log('3857');
 
 		const roadSource = new ol.source.VectorTile({
 	    format: new ol.format.TopoJSON(),
@@ -126,6 +130,8 @@ class TgMapRoads {
 
 		let coords = feature.getGeometry().getCoordinates();
 		coords.minZoom = feature.get('min_zoom');
+
+		if (!this.mobile) coords.name = feature.get('name');
 
 		if (geoType === 'LineString') {
 
@@ -370,6 +376,10 @@ class TgMapRoads {
 				}
 			}
 		}
+
+		//for(let type in this.dispRoads) {
+		//	console.log(type + ': ' + this.dispRoads[type].length);
+		//}
 	}
 
 	updateDispRoads() {
@@ -815,85 +825,6 @@ class TgMapRoads {
 
 	removeNodeLayer() {
 		this.mapUtil.removeLayer(this.nodeLayer);
-	}
-
-	calSP() {
-		let difEs = [], difAs = [];
-		let difE = 0, difA = 0;
-
-		for(let type of this.dispRoadTypes) {
-			for(let roads of this.dispRoads[type]) {
-
-				if (roads[0].node) { // LineString
-					difE = this.calDifE(roads);
-					if (difE) difEs.push(difE);
-
-					difA = this.calDifA(roads);
-					if (difA) difAs.push(difA);
-				}
-				else if (roads[0][0].node) { // MultiLineString
-					for(let nodes of roads) {
-						difE = this.calDifE(nodes);
-						if (difE) difEs.push(difE);
-
-						difA = this.calDifA(nodes);
-						if (difA) difAs.push(difA);
-					}
-				}
-			}
-		}
-
-		// console.log('difEs: ');
-		// console.log(difEs);
-		// console.log('difAs: ');
-		// console.log(difAs);
-
-		return {difEs: TgUtil.avg(difEs), difAs: TgUtil.avg(difAs)};
-	}
-
-	calDifE(ns) {
-		if (ns.length < 3) {
-			return 0;
-		}
-		else {
-			// [e0, e1, e2] [q0, q1, q2]
-			let difOrgArr = [];
-			let difRealArr = [];
-			for(let i = 0; i < ns.length - 1; i++) {
-				difOrgArr.push(TgUtil.distance(ns[i].node.original.lat, ns[i].node.original.lng,
-					ns[i + 1].node.original.lat, ns[i + 1].node.original.lng));
-				difRealArr.push(TgUtil.distance(ns[i].node.real.lat, ns[i].node.real.lng,
-					ns[i + 1].node.real.lat, ns[i + 1].node.real.lng));
-			}
-			const c = TgUtil.sum(difOrgArr) / TgUtil.sum(difRealArr);
-
-			let sum = 0;
-			for(let i = 0; i < difOrgArr.length; i++ ) {
-				sum += Math.abs(difOrgArr[i] - c * difRealArr[i]);
-			}
-			return sum / difOrgArr.length;
-		}
-	}
-
-	calDifA(ns) {
-		if (ns.length < 3) {
-			return 0;
-		}
-		else {
-			let difOrgArr = [];
-			let difRealArr = [];
-			for(let i = 0; i < ns.length - 2; i++) {
-				difOrgArr.push(TgUtil.angle(ns[i].node.original, ns[i + 1].node.original,
-					ns[i + 2].node.original));
-				difRealArr.push(TgUtil.angle(ns[i].node.real, ns[i + 1].node.real,
-					ns[i + 2].node.real));
-			}
-			let sum = 0;
-			for(let i = 0; i < difOrgArr.length; i++ ) {
-				sum += Math.abs(difOrgArr[i] - difRealArr[i]);
-			}
-			return sum / difOrgArr.length;
-		}
 	}
 }
 

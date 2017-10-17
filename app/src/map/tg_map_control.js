@@ -85,8 +85,8 @@ class TgMapControl {
 				lat: half.lat - (half.lat * marginRate), 
 				lng: half.lng - (half.lng * marginRate)};
 		const step = {
-				lat: apprHalf.lat / this.data.var.latDivider, // 8, 4, 4, 2 latDivider = 2
-				lng: apprHalf.lng / this.data.var.lngDivider}; // 4, 4, 2, 2
+				lat: apprHalf.lat / 2, 
+				lng: apprHalf.lng / 2};
 		const start = {
 				lat: center.lat - apprHalf.lat, 
 				lng: center.lng - apprHalf.lng};
@@ -245,49 +245,8 @@ class TgMapControl {
 		this.calGridLines();
 		this.calConnectedNodes();
 		this.calGrids();
-		this.assignTimes();
-		//console.log('control points:');
-		//console.log(this.controlPoints);
-		if (cb) cb();
-		//this.getTravelTimeOfControlPoints(cb);
+		this.getTravelTimeOfControlPoints(cb);
 	}
-
-	assignTimes() {
-		// temp;
-		//return;
-
-		let pts;
-		if (this.map.currentZoomLevel === 0) pts = pts_lv0;
-		else if (this.map.currentZoomLevel === 1) pts = pts_lv1;
-		else if (this.map.currentZoomLevel === 2) pts = pts_lv2;
-
-
-		// console.log(this.map.currentZoomLevel);
-		// console.log(this.map.currentOrigin);
-		// console.log('pts_lv1:');
-		// console.log(pts[this.map.currentOrigin].ctlPt);
-
-		for(let tPt of pts[this.map.currentOrigin].ctlPt) {
-			let found = false;
-			for(let pt of this.controlPoints) {
-				if (this.same(tPt.lat, pt.original.lat) && 
-						this.same(tPt.lng, pt.original.lng)) {
-					pt.travelTime = tPt.time;
-					found = true;
-					break;
-				}
-			}
-			//if (!found) console.log('pts: not found.');
-		}
-	}
-
-	same(val, val2) {
-		const eps = 0.0001;
-
-		if (Math.abs(val - val2) < eps) return true;
-		else return false;
-	}
-
 
 	/*calculateAnglesOfControlPoints() {
 		for(let point of this.controlPoints) {

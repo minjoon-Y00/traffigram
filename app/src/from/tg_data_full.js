@@ -11,13 +11,13 @@ var TgData = {
 			primary: {min: 11, max: 20},
 			secondary: {min: 13, max: 20},
 			tertiary: {min: 14, max: 20},
-			//residential: {min: 16, max: 20}
+			residential: {min: 15, max: 20}
 		}
 	},
 
 	viz: {
 		z: {
-			water: 0,
+			water: 3,
 			waterNode: 20,
 			landuse: 2,
 			residential: 5,
@@ -102,37 +102,45 @@ var TgData = {
 		image: {
 			anchor: 'img/anchor.png',
 			cancelCustomIsochrone: 'img/cancel_isochrone.png',
-			favorite: 'img/mapbtn_dest_favorite.png',
+			favorite: 'img/mapbtn_dest_favorite@2x.png',
 			location: [
-				'img/mapbtn_dest_menu1.png', // restaurant
-				'img/mapbtn_dest_menu2.png',
-				'img/mapbtn_dest_menu3.png', // travel attractions
-				'img/mapbtn_dest_menu4.png', // shopping
-				'img/mapbtn_dest_menu5.png' // night life
+				//'img/mapbtn_dest_menu1_big@2x.png', // restaurant
+				'img/mapbtn_dest_menu1_big.png', // restaurant
+				//'img/mapbtn_dest_menu2_big@2x.png', // cafe
+				'img/mapbtn_dest_menu2_big.png',
+				//'img/mapbtn_dest_menu3_big@2x.png', // travel attractions
+				'img/mapbtn_dest_menu3_big.png', // travel attractions
+				//'img/mapbtn_dest_menu4_big@2x.png', // shopping
+				'img/mapbtn_dest_menu4_big.png', // shopping
+				//'img/mapbtn_dest_menu5_big@2x.png' // night life
+				'img/mapbtn_dest_menu5_big.png' // night life
 			],
 			locationCluster: 'img/mapbtn_dest_cluster.png',
+				//'img/mapbtn_dest_cluster@2x.png',
 			origin: {
+				//auto: 'img/mapbtn_origin_vehicle_big@2x.png',
+				//auto: 'img/mapbtn_origin_vehicle@2x.png',
 				auto: 'img/mapbtn_origin_car.png',
-				bicycle: 'img/mapbtn_origin_bicycle.png',
-				pedestrian: 'img/mapbtn_origin_foot.png',
-				home: 'img/mapbtn_home.png',
-				office: 'img/mapbtn_office.png',
+				bicycle: 'img/mapbtn_origin_bicycle@2x.png',
+				pedestrian: 'img/mapbtn_origin_foot@2x.png',
+				home: 'img/loc_home.png', // 'img/mapbtn_home_big@2x.png',
+				office: 'img/loc_office.png', //'img/mapbtn_office_big@2x.png',
 			}, 
 			red10min: 'img/10min.png',
 			//red100min: 'img/100min.png',
 		},
 
 		font: {
-			isochroneText: '18px Roboto Condensed',
-			places: '14pt Roboto Condensed',
-			text: '12pt Roboto Condensed',
+			isochroneText: '24px PT Sans Narrow',
+			places: '14pt Source Sans Pro Regular',
+			text: '12pt Source Sans Pro Regular',
 		},
 	},
 
 	origin: {
 		default: {
-			lat: 47.680275, //47.6631772,
-			lng: -122.327324, //-122.3104933,
+			lat: 47.6631772,
+			lng: -122.3104933,
 		},
 		home: {
 			address: '4225 24th Ave. NE, Seattle, WA',
@@ -183,15 +191,15 @@ var TgData = {
 	elements: {
 		water: {
 			disp: true,
-			simplify: true,
+			simplify: false,
 		},
 		road: {
 			disp: true,
-			simplify: true,
+			simplify: false,
 		},
 		landuse: {
 			disp: true,
-			simplify: true,
+			simplify: false,
 		},
 		place: {
 			disp: true,
@@ -199,26 +207,27 @@ var TgData = {
 	},
 
 	var: {
-		animationSpeed: 0, // ms
+		animationSpeed: 50, // ms
 		//apiKeyVectorTile: 'vector-tiles-c1X4vZE', // mine
 		apiKeyVectorTile: 'mapzen-dKpzpj5', // Ray's
 		//apiKeyTimeMatrix: 'matrix-AGvGZKs', // mine
 		apiKeyTimeMatrix: 'matrix-qUpjg6W', // Ray's
-		appMode: 'mobile', // 'mobile'
+		appMode: 'pc', // 'mobile'
 		appDispMode: 'normal',
 
-		locBBPx: 40,
-		locGroupBBPx: 40,
-		locTextLngMarginPx: 25, // left/right margin
-		locTextLatMarginPx: 25, // top/bottom margin
+		locBBPx: 50,
+		locGroupBBPx: 45,
+		locTextLngMarginPx: 27, // left/right margin
+		locTextLatMarginPx: 27, // top/bottom margin
 		isochroneTextPx: 14,
 
-		deltaFrame: 2,
+
+		deltaFrame: 1,
 		latPerPx: 0,
 		lngPerPx: 0,	
 		latMargin: 0,
 		lngMargin: 0,
-		longPressTime: 300, // 0.3 sec
+		longPressTime: 1000, // 1 sec
 		longPressSensitivity: 100,
 		numLanduseClasses: 6,
 		numRatings: [0, 1000],
@@ -226,7 +235,7 @@ var TgData = {
 		maxNumTops: 10,
 		maxNumHots: 10,
 		maxNumLocations: 20,
-		maxNumIsochrone: 5,
+		maxNumIsochrone: 6,
 		maxSplitLevel: 0, 
 		placeProcessed: false,
 		priceRange: [0, 4], // 1 ~ 4
@@ -239,9 +248,9 @@ var TgData = {
 			gridLat: 8, // vertical resolution. even number is recommended
 		},
 		rdpThreshold: {
-			road: 0.0005, //0.0001 (about 10 meter)
-			water: 0.0001, //0.0003,
-			landuse: 0.0001,
+			road: 0.001, //0.0001 (about 10 meter)
+			water: 0.0003,
+			landuse: 0.001,
 		},
 
 	},
