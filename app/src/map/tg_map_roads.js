@@ -17,6 +17,7 @@ class TgMapRoads {
 		this.simplify = this.data.elements.road.simplify;
   	this.dispNodeLayer = false;
 		this.nodeLayer = null;
+		this.streetLayer = null;
 
 	  this.roadTypes = [];
 
@@ -28,8 +29,10 @@ class TgMapRoads {
 	  this.roadObjects = {};
 	  this.newRoadObjects = {};
 	  this.dispRoads = {};
+	  this.streetNames = {};
 	  this.dispRoadTypes = [];
   	this.timerGetRoadData = null;
+  	this.timerFinishGettingRoadData = null;
   	this.dispLayers = [];
   	this.rdpThreshold = this.data.var.rdpThreshold.road;
   	this.styleFunc = {};
@@ -238,12 +241,15 @@ class TgMapRoads {
 
 	processNewRoadObjects() {
 
-		/*for(let feature of this.features) {
-			this.processFeature(feature);
+		if (!this.mobile) {
+			if (this.timerFinishGettingRoadData) {
+				clearTimeout(this.timerFinishGettingRoadData);
+			}
+			this.timerFinishGettingRoadData = setTimeout(
+				this.finishGettingRoadObjects.bind(this), 
+				this.data.time.waitForFinishGettingRoadData);
+			console.log('SET NEW TIMEOUT.');
 		}
-		this.features = [];
-
-		console.log('.');*/
 
 		if (this.map.currentMode === 'EM') {
 			this.addNewLayer();
@@ -267,6 +273,135 @@ class TgMapRoads {
 		for(let type of this.roadTypes) {
 			this.newRoadObjects[type] = [];
 		}
+	}
+
+	finishGettingRoadObjects() {
+
+		console.log('#FIN GETTING ROADS');
+		this.addStreetLayer()
+
+		for(let type in this.dispRoads) {
+			console.log(type + ': ' + this.dispRoads[type].length);
+		}
+	}
+
+	addStreetLayer() {
+		this.mapUtil.removeLayer(this.streetLayer);
+
+		const viz = this.data.viz;
+		let arr = [];
+		const maxNumStreet = 20;
+		let dispNumStreet = 0;
+		let fin = false;
+
+	  this.streetNames = {};
+
+		for(let type of this.dispRoadTypes) {
+			this.streetNames[type] = {};
+
+			for(let road of this.dispRoads[type]) {
+
+				if (!road.name) continue;
+
+				const obj = this.getMaxLenObj(road);
+				if (!obj) continue;
+
+				if (!this.streetNames[type][road.name]) {
+					// if there is no obj with same street name,
+					this.streetNames[type][road.name] = obj;
+					obj.type = type;
+				}
+				else {
+					// if exists, the obj with longer len wins.
+					if (this.streetNames[type][road.name].len < obj.len) {
+						this.streetNames[type][road.name] = obj;
+						obj.type = type;
+					}
+				}
+			}
+		}
+
+		//this.map.tgBB.calBBOfStreetName();
+
+		for(let type in this.streetNames) {
+			for(let name in this.streetNames[type]) {
+				const obj = this.streetNames[type][name];
+
+				this.map.tgBB.calBBOfAStreetName(obj, name);
+
+				if (!this.map.tgBB.isItNotOverlappedWithLocsPlacesStreet(obj.bb, name)) {
+					obj.bb = null;
+					continue;
+				}
+				else {
+					const streetStyleFunc = 
+						this.mapUtil.textStyle({
+							text: name, 
+							color: viz.color.textStreet, 
+							font: viz.font.text, 
+						});
+
+					this.mapUtil.addFeatureInFeatures(arr,
+						new ol.geom.Point(obj.center), streetStyleFunc);
+
+					dispNumStreet++;
+					if (dispNumStreet > maxNumStreet) {
+						fin = true;
+						break;
+					}
+				}
+			}
+			if (fin) break;
+		}
+
+		this.streetLayer = this.mapUtil.olVectorFromFeatures(arr);
+		this.streetLayer.setZIndex(viz.z.street);
+		this.mapUtil.addLayer(this.streetLayer);
+		this.dispLayers.push(this.streetLayer);
+
+		this.map.tgBB.render();
+	}
+
+	removeStreetLayer() {
+		this.mapUtil.removeLayer(this.streetLayer);
+	}
+
+	getMaxLenObj(roads) {
+		const calMaxLen = function(rI, rJ) {
+			const d0 = Math.abs(rI[0] - rJ[0]);
+			const d1 = Math.abs(rI[1] - rJ[1]);
+			const len = d0 + d1;
+			if (len > maxLen) {
+				maxLen = len;
+				maxRI = rI;
+				maxRJ = rJ;
+				longLng = (d0 > d1);
+			}
+		}
+		let maxLen = 0;
+		let maxRI = null;
+		let maxRJ = null;
+		let longLng;
+
+		if (roads[0].node) { // LineString
+			for(let i = 0; i < roads.length - 1; i++) {
+				calMaxLen(roads[i], roads[i + 1]);
+			}
+		}
+		else if (roads[0][0].node) { // MultiLineString
+			for(let i = 0; i < roads.length; i++) {
+				for(let j = 0; j < roads[i].length - 1; j++) {
+					calMaxLen(roads[i][j], roads[i][j + 1]);
+				}
+			}
+		}
+
+		if ((maxRI === null)||(maxRJ === null)) return null;
+
+		return {
+			center: [(maxRI[0] + maxRJ[0]) / 2, (maxRI[1] + maxRJ[1]) / 2],
+			len: maxLen, longLng: longLng,
+		};
 	}
 
 	/*makeRealFeatureOfNewRoadObjects() {
@@ -380,6 +515,7 @@ class TgMapRoads {
 		//for(let type in this.dispRoads) {
 		//	console.log(type + ': ' + this.dispRoads[type].length);
 		//}
+		//console.log('####calDispRoads');
 	}
 
 	updateDispRoads() {
@@ -540,8 +676,8 @@ class TgMapRoads {
 			this.dispLayers.push(this.layer[type]);
 		}
 
-		let cnt = 0;
-		for(let type of this.dispRoadTypes) cnt += this.dispRoads[type].length;
+		//let cnt = 0;
+		//for(let type of this.dispRoadTypes) cnt += this.dispRoads[type].length;
 		//console.log('@ road dispRoad: ' + cnt);
 
 		/*console.log('@@@@@@@@');
@@ -565,6 +701,7 @@ class TgMapRoads {
 
 
 		if (this.dispNodeLayer) this.addNodeLayer();
+		if (!this.mobile) this.addStreetLayer();
 	}
 
 	removeLayer() {

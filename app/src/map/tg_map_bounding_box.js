@@ -79,6 +79,35 @@ class TgMapBoundingBox {
 		}
 	}
 
+	calBBOfStreetName() {
+		const streetNames = this.map.tgRoads.streetNames;
+
+		for(let type in streetNames) {
+			for(let name in streetNames[type]) {
+				this.calBBOfAStreetName(streetNames[type][name], name);
+			}
+		}
+	}
+
+	calBBOfAStreetName(obj, name) {
+		const latPerPx = this.data.var.latPerPx;
+		const lngPerPx = this.data.var.lngPerPx;
+
+		const widthPx = name.length * 6;
+		const heightPx = 12;
+		const lng = obj.center[0];
+		const lat = obj.center[1];
+			
+		obj.bb = {
+			left: lng - (widthPx * lngPerPx), 
+			right: lng + (widthPx * lngPerPx),
+			top: lat - (heightPx * latPerPx),
+			bottom: lat + (heightPx * latPerPx),
+		};
+	}
+
+	//isItNotOverlappedWithLocsAndPlaces(bb)
+
 	/*calBBOfClusterLocations(locationClusters) {
 		const clusterLatPx = 45;
 		const clusterLngPx = 45;
@@ -317,6 +346,26 @@ class TgMapBoundingBox {
 		}
 	}
 
+	isItNotOverlappedWithLocsPlacesStreet(inBB, streetName) {
+		const locations = this.map.tgLocs.getCurrentLocations();
+		const locationGroups = this.map.tgLocs.getCurrentLocationClusters();
+		const places = this.map.tgPlaces.dispPlaceObjects;
+		const streetNames = this.map.tgRoads.streetNames;
+
+		if (!this.isItNotOverlappedByLocs(locations, locationGroups, inBB)) return false;
+		if (!this.isItNotOverlappedPlaces(places, inBB)) return false;
+
+		for(let type in streetNames) {
+			for(let name in streetNames[type]) {
+				if (name === streetName) continue;
+
+				let bb = streetNames[type][name].bb;
+				if (bb && (TgUtil.intersectRect(inBB, bb))) return false;
+			}
+		}
+		return true;
+	}
+
 	isItNotOverlappedByLocs(locations, locationClusters, inBB) {
 		for(let loc of locations) {
 			if ((loc.bb) && (TgUtil.intersectRect(inBB, loc.bb))) return false;
@@ -366,7 +415,7 @@ class TgMapBoundingBox {
 				if (!((lat < top) && (lat > bottom) && (lng < right) && (lng > left))) continue;
 
 				//if (!place.bb) {
-					const widthPx = name.length * 8;
+					const widthPx = name.length * 7;
 					const heightPx = 14;
 					
 					const bb = {
@@ -524,7 +573,7 @@ class TgMapBoundingBox {
 		const latPerPx = this.data.var.latPerPx;
 		const lngPerPx = this.data.var.lngPerPx;
 
-		const widthPx = name.length * 8;
+		const widthPx = name.length * 7;
 		const heightPx = 14;
 
 		const lngMarginPx = this.data.var.locTextLngMarginPx; // left/right margin
@@ -873,52 +922,40 @@ class TgMapBoundingBox {
 	}
 
 	updateLayer() {
+		const addBBPolygons = function(bb) {
+			if (!bb) return;
+			BBPolygons.push([
+				[bb.right, bb.top], [bb.right, bb.bottom],
+				[bb.left, bb.bottom], [bb.left, bb.top],
+				[bb.right, bb.top]
+			]);
+		}
+
 		const BBPolygons = [];
 
 		// for locations
 		const locs = this.map.tgLocs.getCurrentLocations();
 		for(let loc of locs) {
-			let bb = loc.bb;
-			if (bb) {
-				BBPolygons.push([
-					[bb.right, bb.top], [bb.right, bb.bottom],
-					[bb.left, bb.bottom], [bb.left, bb.top],
-					[bb.right, bb.top]
-				]);
-			}
-
-			bb = loc.nameBB;
-			if (bb) {
-				BBPolygons.push([
-					[bb.right, bb.top], [bb.right, bb.bottom],
-					[bb.left, bb.bottom], [bb.left, bb.top],
-					[bb.right, bb.top]
-				]);
-			}
+			addBBPolygons(loc.bb);
+			addBBPolygons(loc.nameBB);
 		}
 
 		const cLocs = this.map.tgLocs.getCurrentLocationClusters();
 		for(let cLoc of cLocs) {
-			let bb = cLoc.bb;
-			if (bb) {
-				BBPolygons.push([
-					[bb.right, bb.top], [bb.right, bb.bottom],
-					[bb.left, bb.bottom], [bb.left, bb.top],
-					[bb.right, bb.top]
-				]);
-			}
+			addBBPolygons(cLoc.bb);
 		}
 
 		// for places
 		const places = this.map.tgPlaces.dispPlaceObjects;
 		for(let name in places) {
-			let bb = places[name].bb;
-			if (bb) {
-				BBPolygons.push([
-					[bb.right, bb.top], [bb.right, bb.bottom],
-					[bb.left, bb.bottom], [bb.left, bb.top],
-					[bb.right, bb.top]
-				]);
+			addBBPolygons(places[name].bb);
+		}
+
+		// for street name
+		const streetNames = this.map.tgRoads.streetNames;
+		for(let type in streetNames) {
+			for(let name in streetNames[type]) {
+				addBBPolygons(streetNames[type][name].bb);
 			}
 		}
 

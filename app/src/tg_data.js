@@ -70,6 +70,7 @@ var TgData = {
 			textPlace: 'rgba(0, 0, 0, 0.5)', //'#000'
 			textPlaceStroke: 'rgba(255, 255, 255, 0.5)', //'#FFF',
 			textLocation: '#000', //'rgb(122, 62, 44)', 
+			textStreet: 'rgba(0, 0, 0, 0.3)',
 			textNumberOfLocations: '#FFF',
 			water: 'rgb(163, 204, 255)',
 			waterNode: '#0071BC',
@@ -126,6 +127,7 @@ var TgData = {
 			isochroneText: '18px Roboto Condensed',
 			places: '14pt Roboto Condensed',
 			text: '12pt Roboto Condensed',
+			street: '10pt Roboto Condensed',
 		},
 	},
 
@@ -248,6 +250,7 @@ var TgData = {
 
 	time: {
 		waitForFinishGettingWaterData: 500, // ms
+		waitForFinishGettingRoadData: 1000, // ms
 		waitForGettingData: 20, // ms
 		waitForGettingRoadData: 100, // ms // 50
 		waitForGettingWaterData: 100, // ms // 50
