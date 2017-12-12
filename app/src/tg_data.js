@@ -2,15 +2,16 @@ var TgData = {
 	zoom: {
 		max: 18,
 		min: 11,
-		init: 15,
+		init: 14,
+		previos: 0,
 		current: 0,
 		disp: {
 			motorway: {min: 1, max: 20},
 			trunk: {min: 1, max: 20},
-			primary: {min: 13, max: 20},
-			secondary: {min: 14, max: 20},
-			tertiary: {min: 15, max: 20},
-			residential: {min: 16, max: 20}
+			primary: {min: 11, max: 20},
+			secondary: {min: 13, max: 20},
+			tertiary: {min: 14, max: 20},
+			//residential: {min: 16, max: 20}
 		}
 	},
 
@@ -28,9 +29,10 @@ var TgData = {
 			roadNode: 8,
 			presets: 9,
 			places: 10,
+			isochrone: 14,
 			origin: 15,
 			location: 20,
-			isochrone: 25,
+			favorite: 21,
 			boundingBox: 40,
 			grid: 50,
 			controlPoint: 51,
@@ -68,7 +70,8 @@ var TgData = {
 			textPlace: 'rgba(0, 0, 0, 0.5)', //'#000'
 			textPlaceStroke: 'rgba(255, 255, 255, 0.5)', //'#FFF',
 			textLocation: '#000', //'rgb(122, 62, 44)', 
-			textNumberOfLocations: '#000', //'#FFF',
+			textStreet: 'rgba(0, 0, 0, 0.3)',
+			textNumberOfLocations: '#FFF',
 			water: 'rgb(163, 204, 255)',
 			waterNode: '#0071BC',
 		},
@@ -99,37 +102,39 @@ var TgData = {
 
 		image: {
 			anchor: 'img/anchor.png',
-			favorite: 'img/mapbtn_dest_favorite@2x.png',
+			cancelCustomIsochrone: 'img/cancel_isochrone.png',
+			favorite: 'img/mapbtn_dest_favorite.png',
 			location: [
-				'img/mapbtn_dest_menu1_big@2x.png', // restaurant
-				'img/mapbtn_dest_menu2_big@2x.png', // cafe
-				'img/mapbtn_dest_menu3_big@2x.png', // travel attractions
-				'img/mapbtn_dest_menu4_big@2x.png', // shopping
-				'img/mapbtn_dest_menu5_big@2x.png' // night life
+				'img/mapbtn_dest_menu1.png', // restaurant
+				'img/mapbtn_dest_menu2.png',
+				'img/mapbtn_dest_menu3.png', // travel attractions
+				'img/mapbtn_dest_menu4.png', // shopping
+				'img/mapbtn_dest_menu5.png' // night life
 			],
-			locationCluster: 'img/mapbtn_dest_cluster@2x.png',
+			locationCluster: 'img/mapbtn_dest_cluster.png',
 			origin: {
-				auto: 'img/mapbtn_origin_vehicle@2x.png',
-				bicycle: 'img/mapbtn_origin_bicycles@2x.png',
-				pedestrian: 'img/mapbtn_origin_foot@2x.png',
-				home: 'img/mapbtn_dest_home@2x.png',
-				office: 'img/mapbtn_dest_office@2x.png',
+				auto: 'img/mapbtn_origin_car.png',
+				bicycle: 'img/mapbtn_origin_bicycle.png',
+				pedestrian: 'img/mapbtn_origin_foot.png',
+				home: 'img/mapbtn_home.png',
+				office: 'img/mapbtn_office.png',
 			}, 
 			red10min: 'img/10min.png',
 			//red100min: 'img/100min.png',
 		},
 
 		font: {
-			isochroneText: '24px PT Sans Narrow',
-			places: '14pt Source Sans Pro Regular',
-			text: '12pt Source Sans Pro Regular',
+			isochroneText: '18px Roboto Condensed',
+			places: '14pt Roboto',
+			text: '12pt Roboto Condensed',
+			street: '14pt Roboto',
 		},
 	},
 
 	origin: {
 		default: {
-			lat: 47.6631772,
-			lng: -122.3104933,
+			lat: 47.680275, //47.6631772,
+			lng: -122.327324, //-122.3104933,
 		},
 		home: {
 			address: '4225 24th Ave. NE, Seattle, WA',
@@ -177,42 +182,75 @@ var TgData = {
 		bottom: 0,
 	},
 
-	var: {
-		apiKeyVectorTile: 'vector-tiles-c1X4vZE', // mine
-		//apiKeyVectorTile: 'mapzen-dKpzpj5', // Ray's
-		apiKeyTimeMatrix: 'matrix-AGvGZKs', // mine
-		//apiKeyTimeMatrix: 'matrix-qUpjg6W', // Ray's
+	elements: {
+		water: {
+			disp: true,
+			simplify: true,
+		},
+		road: {
+			disp: true,
+			simplify: true,
+		},
+		landuse: {
+			disp: true,
+			simplify: true,
+		},
+		place: {
+			disp: true,
+		}
+	},
 
+	var: {
+		animationSpeed: 0, // ms
+		//apiKeyVectorTile: 'vector-tiles-c1X4vZE', // mine
+		apiKeyVectorTile: 'mapzen-dKpzpj5', // Ray's
+		//apiKeyTimeMatrix: 'matrix-AGvGZKs', // mine
+		apiKeyTimeMatrix: 'matrix-qUpjg6W', // Ray's
+		appMode: 'mobile', // 'mobile'
+		appDispMode: 'normal',
+
+		locBBPx: 40,
+		locGroupBBPx: 40,
+		locTextLngMarginPx: 25, // left/right margin
+		locTextLatMarginPx: 25, // top/bottom margin
+		isochroneTextPx: 14,
+
+		deltaFrame: 2,
 		latPerPx: 0,
 		lngPerPx: 0,	
 		latMargin: 0,
 		lngMargin: 0,
-		longPressTime: 1000, // 1 sec
+		longPressTime: 300, // 0.3 sec
 		longPressSensitivity: 100,
 		numLanduseClasses: 6,
-		numRatings: [5, 1000],
+		numRatings: [0, 1000],
 		marginPercent: 3.0, 
+		maxNumTops: 10,
+		maxNumHots: 10,
 		maxNumLocations: 20,
+		maxNumIsochrone: 5,
 		maxSplitLevel: 0, 
 		placeProcessed: false,
-		priceRange: [1, 4], // 1 ~ 4
+		priceRange: [0, 4], // 1 ~ 4
 		shapePreservingDegree: 1.0,
-		ratings: [3, 5], // 1 ~ 5
+		startMode: 'EM',
+		ratings: [0, 5], // 1 ~ 5
 		readyLocation: false,
 		resolution: {
 			gridLng: 4, // horiozontal resolution. even number is recommended
 			gridLat: 8, // vertical resolution. even number is recommended
 		},
 		rdpThreshold: {
-			road: 0.001, //0.0001 (about 10 meter)
-			water: 0.0005,
-			landuse: 0.001,
+			road: 0.0005, //0.0001 (about 10 meter)
+			water: 0.0001, //0.0003,
+			landuse: 0.0001,
 		},
 
 	},
 
 	time: {
 		waitForFinishGettingWaterData: 500, // ms
+		waitForFinishGettingRoadData: 1000, // ms
 		waitForGettingData: 20, // ms
 		waitForGettingRoadData: 100, // ms // 50
 		waitForGettingWaterData: 100, // ms // 50

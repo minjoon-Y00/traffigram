@@ -63,110 +63,149 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 0);
 /******/ })
 /************************************************************************/
-/******/ ({
-
-/***/ 3:
+/******/ ([
+/* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+//const TgApp = require('./tg_app');
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+console.log(pts_lv0);
+console.log(pts_lv1);
+console.log(pts_lv2);
+console.log(locs_lv0);
+console.log(locs_lv1);
+console.log(locs_lv2);
 
-//const TgData = require('./tg_data');
-//const TgMap = require('./tg_map');
-//const TgGraph = require('./tg_graph');
-
-var TgApp = function () {
-	function TgApp(map_id) {
-		_classCallCheck(this, TgApp);
-
-		this.data = TgData;
-		this.graph = new TgGraph(this, this.data);
-		this.map = new TgMap(this, map_id);
-
-		//this.map.setArea('seattleDowntown');
-		//this.map.setArea('seattleUw');
-		//this.map.setArea('nyNyu');
-		//this.map.setArea('sfLombard');
-	}
-
-	_createClass(TgApp, [{
-		key: 'setOriginAsHome',
-		value: function setOriginAsHome() {
-			this.map.tgOrigin.setOriginByPreset('home');
-		}
-	}, {
-		key: 'setOriginAsOffice',
-		value: function setOriginAsOffice() {
-			this.map.tgOrigin.setOriginByPreset('office');
-		}
-	}, {
-		key: 'setOriginAsCurrentLocation',
-		value: function setOriginAsCurrentLocation() {
-			this.map.tgOrigin.setOriginByCurrentLocation();
-		}
-	}, {
-		key: 'setOriginByAddress',
-		value: function setOriginByAddress(adress) {
-			this.map.tgOrigin.setOriginByAddress(adress);
-		}
-	}, {
-		key: 'initMap',
-		value: function initMap() {
-			this.map.initMap();
-		}
-	}, {
-		key: 'goToEm',
-		value: function goToEm() {
-			this.map.goToEm();
-		}
-	}, {
-		key: 'goToDc',
-		value: function goToDc(dcMode) {
-			this.map.warpingMode = dcMode;
-			if (this.map.currentMode !== 'DC') this.map.goToDc(true); // animation
-			else this.map.goToDc(false); // no animation
-		}
-	}, {
-		key: 'setTransportTypeAndGo',
-		value: function setTransportTypeAndGo(type) {
-			this.map.changeTransportType(type);
-		}
-	}, {
-		key: 'zoomIn',
-		value: function zoomIn() {
-			this.map.zoomIn();
-		}
-	}, {
-		key: 'zoomOut',
-		value: function zoomOut() {
-			this.map.zoomOut();
-		}
-	}]);
-
-	return TgApp;
-}();
-
-//module.exports = TgApp;
-
-/***/ }),
-
-/***/ 5:
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var TgApp = __webpack_require__(3);
-
-// create the main app object
 var tg = new TgApp('ol_map');
+tg.setCenter(0);
+
+$("#origin0RB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setCenter(0);
+  }
+});
+
+$("#origin1RB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setCenter(1);
+  }
+});
+
+$("#origin2RB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setCenter(2);
+  }
+});
+
+$("#origin3RB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setCenter(3);
+  }
+});
+
+$("#origin4RB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setCenter(4);
+  }
+});
+
+$("#origin5RB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setCenter(5);
+  }
+});
+
+$("#origin6RB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setCenter(6);
+  }
+});
+
+$("#origin7RB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setCenter(7);
+  }
+});
+
+$("#origin8RB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setCenter(8);
+  }
+});
+
+$("#origin9RB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setCenter(9);
+  }
+});
+
+$("#fineRB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setZoom(0);
+  }
+});
+
+$("#mediumRB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setZoom(1);
+  }
+});
+
+$("#coarseRB").change(function (ev) {
+  if (ev.target.checked) {
+    tg.setZoom(2);
+  }
+});
+
+$("#debugBtn").click(function (ev) {
+  tg.debug();
+});
+
+$("#debugBtn2").click(function (ev) {
+  tg.debug2();
+});
+
+/*
+let tg;
+
+getCurrentLocation()
+.then((data) => {
+
+  // create the main app object
+  tg = new TgApp('ol_map');
+
+  console.log('got lat & lng from geolocation: ' + data.lat + ', ' + data.lng);
+
+  const seattle = {lat: 47.6115744, lng: -122.343777}
+
+  if ((data.lat > seattle.lat - 1) && (data.lat < seattle.lat + 1) &&
+      (data.lng > seattle.lng - 1) && (data.lng < seattle.lng + 1)) {
+    //console.log('ok. here is in seattle.');
+    tg.setOriginByOtherLatLng(data.lat, data.lng);
+  }
+  else {
+    tg.setOriginAsDefault();
+  }
+
+  // ui for origin setting
+  const otherAddress = '1000 4th Ave, Seattle, WA 98104';
+  $("#yourHomeInput").val(tg.data.origin.home.address);
+  $("#yourOfficeInput").val(tg.data.origin.office.address);
+  $("#otherPlaceInput").val(otherAddress);
+
+})
+.catch((error) => {
+  console.error(error);
+  tg = new TgApp('ol_map');
+  tg.setOriginAsDefault();
+});
+*/
 
 /*
  * For the origin setting
@@ -185,22 +224,41 @@ const otherPlace = {
 	address: '1000 4th Ave, Seattle, WA 98104',
 }*/
 
-var otherAddress = '1000 4th Ave, Seattle, WA 98104';
+//const favorites = ["Tilikum Place Cafe", "Radiator Whiskey", "The Zig Zag CafÃ©",
+//  "Pike Place Chowder", "Art of The Table", "SkyCity at the Needle", 
+//  "Canlis", "Von's Gustobistro", "Purple CafÃ© and Wine Bar", "LecÅsho", "Olde 99 Pub"];
 
-var favorites = ["Tilikum Place Cafe", "Radiator Whiskey", "The Zig Zag CafÃ©", "Pike Place Chowder", "Art of The Table", "SkyCity at the Needle", "Canlis", "Von's Gustobistro", "Purple CafÃ© and Wine Bar", "LecÅsho", "Olde 99 Pub"];
+//tg.map.tgLocs.setFavorites(favorites);
 
-tg.map.tgLocs.setFavorites(favorites);
 
 // default: myHome
-tg.setOriginAsHome();
+//tg.setOriginAsHome();
 //tg.setOriginAsOffice();
 //tg.setOriginByAddress(otherAddress);
 
 
-// ui for origin setting
-$("#yourHomeInput").val(tg.data.origin.home.address);
-$("#yourOfficeInput").val(tg.data.origin.office.address);
-$("#otherPlaceInput").val(otherAddress);
+function getCurrentLocation() {
+  return new Promise(function (resolve, reject) {
+    var timeOutForGettingLocation = 5000; // 2 sec
+    var timeOutTimer = void 0;
+
+    if (!navigator.geolocation) {
+      reject('Geolocation is not supported by this browser.');
+    } else {
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        clearTimeout(timeOutTimer);
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        });
+      });
+
+      timeOutTimer = setTimeout(function () {
+        reject('Time out for getting geolocation');
+      }, timeOutForGettingLocation);
+    }
+  });
+}
 
 $("#originYourHomeRB").change(function (ev) {
   if (ev.target.checked) {
@@ -397,9 +455,9 @@ $("#dispLanduseNodeCB").change(function(ev){
 	tg.map.updateLayers();
 });*/
 
-function debug() {
-  //tg.map.debug()
-}
+$("#debugBtn").click(function () {
+  tg.map.debug();
+});
 
 $("#tod_0_all").click(function (ev) {
   tg.map.tgLocs.changeType(0, -1);
@@ -541,86 +599,93 @@ $("#tod_4_6").click(function (ev) {
   tg.map.tgLocs.changeType(4, 6);
 });
 
-$("#ratingSlider").slider({
-  id: "ratingSlider",
-  step: 1,
-  value: [4, 8],
-  ticks: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-  ticks_labels: ['1', '', '2', '', '3', '', '4', '', '5'],
-  tooltip: 'hide'
-  //min: 0, max: 5, step: 0.5, value: 3, 
-  //tooltip: 'always'
-});
+if ($("#ratingSlider")) {
+  $("#ratingSlider").slider({
+    id: "ratingSlider",
+    step: 1,
+    value: [4, 8],
+    ticks: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+    ticks_labels: ['1', '', '2', '', '3', '', '4', '', '5'],
+    tooltip: 'hide'
+    //min: 0, max: 5, step: 0.5, value: 3, 
+    //tooltip: 'always'
+  });
+  $("#ratingSlider").on("change", function (e) {
+    if (e.value.oldValue[0] !== e.value.newValue[0] || e.value.oldValue[1] !== e.value.newValue[1]) {
 
-$("#ratingSlider").on("change", function (e) {
-  if (e.value.oldValue[0] !== e.value.newValue[0] || e.value.oldValue[1] !== e.value.newValue[1]) {
+      var low = e.value.newValue[0] / 2 + 1;
+      var high = e.value.newValue[1] / 2 + 1;
+      //console.log(low + ', ' + high);
 
-    var low = e.value.newValue[0] / 2 + 1;
-    var high = e.value.newValue[1] / 2 + 1;
-    //console.log(low + ', ' + high);
+      tg.map.tgLocs.doFilter('ratings', low, high);
+    }
+  });
+}
 
-    tg.map.tgLocs.doFilter('ratings', low, high);
-  }
-});
+if ($("#numRatingSlider")) {
+  $("#numRatingSlider").slider({
+    id: "numRatingSlider",
+    step: 1,
+    value: [1, 6],
+    ticks: [0, 1, 2, 3, 4, 5, 6],
+    ticks_labels: ['0', '5', '10', '50', '100', '500', '1000+'],
+    tooltip: 'hide'
+  });
 
-$("#numRatingSlider").slider({
-  id: "numRatingSlider",
-  step: 1,
-  value: [1, 6],
-  ticks: [0, 1, 2, 3, 4, 5, 6],
-  ticks_labels: ['0', '5', '10', '50', '100', '500', '1000+'],
-  tooltip: 'hide'
-});
+  $("#numRatingSlider").on("change", function (e) {
+    if (e.value.oldValue[0] !== e.value.newValue[0] || e.value.oldValue[1] !== e.value.newValue[1]) {
 
-$("#numRatingSlider").on("change", function (e) {
-  if (e.value.oldValue[0] !== e.value.newValue[0] || e.value.oldValue[1] !== e.value.newValue[1]) {
+      var labels = [0, 5, 10, 50, 100, 500, 1000];
+      var low = labels[e.value.newValue[0]];
+      var high = labels[e.value.newValue[1]];
+      //console.log(low + ', ' + high);
 
-    var labels = [0, 5, 10, 50, 100, 500, 1000];
-    var low = labels[e.value.newValue[0]];
-    var high = labels[e.value.newValue[1]];
-    //console.log(low + ', ' + high);
+      tg.map.tgLocs.doFilter('numRatings', low, high);
+    }
+  });
+}
 
-    tg.map.tgLocs.doFilter('numRatings', low, high);
-  }
-});
+if ($("#priceRangeSlider")) {
+  $("#priceRangeSlider").slider({
+    id: "priceRangeSlider",
+    step: 1,
+    value: [0, 3],
+    ticks: [0, 1, 2, 3],
+    ticks_labels: ['$', '$$', '$$$', '$$$$'],
+    tooltip: 'hide'
+  });
 
-$("#priceRangeSlider").slider({
-  id: "priceRangeSlider",
-  step: 1,
-  value: [0, 3],
-  ticks: [0, 1, 2, 3],
-  ticks_labels: ['$', '$$', '$$$', '$$$$'],
-  tooltip: 'hide'
-});
+  $("#priceRangeSlider").on("change", function (e) {
+    if (e.value.oldValue[0] !== e.value.newValue[0] || e.value.oldValue[1] !== e.value.newValue[1]) {
 
-$("#priceRangeSlider").on("change", function (e) {
-  if (e.value.oldValue[0] !== e.value.newValue[0] || e.value.oldValue[1] !== e.value.newValue[1]) {
+      var low = e.value.newValue[0] + 1;
+      var high = e.value.newValue[1] + 1;
+      //console.log(low + ', ' + high);
 
-    var low = e.value.newValue[0] + 1;
-    var high = e.value.newValue[1] + 1;
-    //console.log(low + ', ' + high);
+      tg.map.tgLocs.doFilter('priceRange', low, high);
+    }
+  });
+}
 
-    tg.map.tgLocs.doFilter('priceRange', low, high);
-  }
-});
+if ($("#maxLocsSlider")) {
+  $("#maxLocsSlider").slider({
+    id: "maxLocsSlider",
+    step: 1,
+    value: 2,
+    ticks: [1, 2, 3, 4, 5],
+    ticks_labels: ['10', '20', '30', '40', '50+'],
+    tooltip: 'hide'
+  });
 
-$("#maxLocsSlider").slider({
-  id: "maxLocsSlider",
-  step: 1,
-  value: 2,
-  ticks: [1, 2, 3, 4, 5],
-  ticks_labels: ['10', '20', '30', '40', '50+'],
-  tooltip: 'hide'
-});
+  $("#maxLocsSlider").on("change", function (e) {
+    if (e.value.oldValue !== e.value.newValue) {
+      var val = e.value.newValue * 10;
+      //console.log(val);
 
-$("#maxLocsSlider").on("change", function (e) {
-  if (e.value.oldValue !== e.value.newValue) {
-    var val = e.value.newValue * 10;
-    //console.log(val);
-
-    tg.map.tgLocs.doFilter('maxLocs', val);
-  }
-});
+      tg.map.tgLocs.doFilter('maxLocs', val);
+    }
+  });
+}
 
 /*
 // Center Options
@@ -720,5 +785,4 @@ $("#randomSlider").on("slideStop", function(evt) {
 });*/
 
 /***/ })
-
-/******/ });
+/******/ ]);

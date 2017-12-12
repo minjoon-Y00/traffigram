@@ -12,7 +12,7 @@ class TgMapLanduse {
 		this.display = false;
 		this.layer = null;
 
-		this.simplify = false;
+		this.simplify = this.data.elements.landuse.simplify;
   	this.dispNodeLayer = false;
 		this.nodeLayer = null;
 
@@ -137,7 +137,7 @@ class TgMapLanduse {
 
 		if (geoType === 'Polygon') {
 
-			if ((this.simplify)&&(this.map.simplify)) {
+			if (this.simplify) {
 				coords = TgUtil.RDPSimp2DLoop(coords, this.rdpThreshold);
 			}
 
@@ -155,9 +155,6 @@ class TgMapLanduse {
 	}
 
 	processNewLanduseObjects() {
-		this.map.setDataInfo('numLanduseLoading', 'increase');
-		this.map.setTime('landuseLoading', 'end', (new Date()).getTime());
-
 		if (this.map.currentMode === 'EM') {
 			this.addNewLayer();
 		}
@@ -231,7 +228,7 @@ class TgMapLanduse {
 			for(let landuse of this.newLanduseObjects[cl]) {
 				if (landuse[0][0].node) { // Polygon
 					this.mapUtil.addFeatureInFeatures(
-						arr, new ol.geom.Polygon(landuse), styleFunc);
+						arr, new ol.geom.Polygon(landuse), styleFunc, 'l');
 				}
 			}
 		}
@@ -259,7 +256,7 @@ class TgMapLanduse {
 			for(let landuse of this.dispLanduseObjects[cl]) {
 				if (landuse[0][0].node) { // Polygon
 					this.mapUtil.addFeatureInFeatures(
-						arr, new ol.geom.Polygon(landuse), styleFunc);
+						arr, new ol.geom.Polygon(landuse), styleFunc, 'l');
 				}
 			}
 		}
@@ -396,12 +393,12 @@ class TgMapLanduse {
 					for(let nodes of landuse) {
 						// edge
 						this.mapUtil.addFeatureInFeatures(
-							arr, new ol.geom.LineString(nodes), edgeStyleFunc);
+							arr, new ol.geom.LineString(nodes), edgeStyleFunc, 'e');
 
 						// node
 						for(let node of nodes) {
 							this.mapUtil.addFeatureInFeatures(
-								arr, new ol.geom.Point(node), nodeStyleFunc);
+								arr, new ol.geom.Point(node), nodeStyleFunc, 'n');
 						}
 					}
 				}
@@ -432,12 +429,12 @@ class TgMapLanduse {
 					for(let nodes of landuse) {
 						// edge
 						this.mapUtil.addFeatureInFeatures(
-							arr, new ol.geom.LineString(nodes), edgeStyleFunc);
+							arr, new ol.geom.LineString(nodes), edgeStyleFunc, 'e');
 
 						// node
 						for(let node of nodes) {
 							this.mapUtil.addFeatureInFeatures(
-								arr, new ol.geom.Point(node), nodeStyleFunc);
+								arr, new ol.geom.Point(node), nodeStyleFunc, 'n');
 						}
 					}
 				}

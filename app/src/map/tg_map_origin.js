@@ -54,6 +54,34 @@ class TgMapOrigin {
 		this.mapUtil.removeLayer(this.presetLayer);
 	}
 
+	setHome(address, lat, lng) {
+		this.data.origin.home.address = address;
+		this.data.origin.home.lat = lat;
+		this.data.origin.home.lng = lng;
+		this.setPresets();
+		this.updatePresetLayer();
+	}
+
+	setOffice(address, lat, lng) {
+		this.data.origin.office.address = address;
+		this.data.origin.office.lat = lat;
+		this.data.origin.office.lng = lng;
+		this.setPresets();
+		this.updatePresetLayer();
+	}
+
+	setHomeAndOffice(hAddress, hLat, hLng, oAddress, oLat, oLng) {
+		this.data.origin.home.address = hAddress;
+		this.data.origin.home.lat = hLat;
+		this.data.origin.home.lng = hLng;
+		this.data.origin.office.address = oAddress;
+		this.data.origin.office.lat = oLat;
+		this.data.origin.office.lng = oLng;
+		this.setPresets();
+		this.updatePresetLayer();
+	}
+
+
 	setOrigin(lat, lng) {
 		if (!this.origin) {
 			this.origin = new TgNode(lat, lng);
@@ -84,6 +112,17 @@ class TgMapOrigin {
 		return this.origin;
 	}
 
+	isOriginInTheBox() {
+		const box = this.data.box;
+		const lat = this.origin.disp.lat;
+		const lng = this.origin.disp.lng;
+
+		if ((lat < box.top) && (lat > box.bottom) && (lng < box.right)	&& (lng > box.left))
+			return true;
+		else
+			return false;
+	}
+
 	updateLayer(param) {
 		const opacity = ((param) && (param.translucent)) ? 0.5 : 1.0;
 		const viz = this.data.viz;
@@ -110,14 +149,14 @@ class TgMapOrigin {
 		if (this.type !== 'home') {
 			this.mapUtil.addFeatureInFeatures(arr,
 				new ol.geom.Point([this.preset.home.disp.lng, this.preset.home.disp.lat]), 
-					this.mapUtil.imageStyleFunc(viz.image.origin.home, opacityOfPreset));
+					this.mapUtil.imageStyleFunc(viz.image.origin.home, opacityOfPreset), 'home');
 		}
 
 		// display office icon
 		if (this.type !== 'office') {
 			this.mapUtil.addFeatureInFeatures(arr,
 				new ol.geom.Point([this.preset.office.disp.lng, this.preset.office.disp.lat]), 
-					this.mapUtil.imageStyleFunc(viz.image.origin.office, opacityOfPreset));	
+					this.mapUtil.imageStyleFunc(viz.image.origin.office, opacityOfPreset), 'office');	
 		}
 
 		this.removePresetLayer();

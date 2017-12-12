@@ -38,6 +38,33 @@ class TgMapInteraction extends ol.interaction.Pointer{
     this.map.olMap.addOverlay(this.overlay);
   }
 
+  conv2x(evt) {
+    evt.pixel[0] = evt.pixel[0] / map_scale;
+    evt.pixel[1] = evt.pixel[1] / map_scale;
+
+    //console.log(evt.pixel[0] + ' ; ' + evt.pixel[1]);
+    //console.log(this.data.box.left);
+    //console.log(this.data.box.top);
+
+    let pt = ol.proj.transform([evt.coordinate[0], evt.coordinate[1]], 
+        'EPSG:3857', 'EPSG:4326');
+    //console.log('org:' + pt[0] + ' , ' + pt[1]);
+
+    const d0 = (pt[0] - this.data.box.left) / map_scale;
+    const d1 = (this.data.box.top - pt[1]) / map_scale;
+
+    pt[0] = this.data.box.left + d0;
+    pt[1] = this.data.box.top - d1;
+
+    //console.log('aft:' + pt[0] + ' , ' + pt[1]);
+
+    const pt2 = ol.proj.transform([pt[0], pt[1]], 'EPSG:4326', 'EPSG:3857');
+    evt.coordinate[0] = pt2[0];
+    evt.coordinate[1] = pt2[1];
+
+    return evt;
+  }
+
   handleDownEvent(evt) {
 
     /*const pt = ol.proj.transform([evt.coordinate[0], evt.coordinate[1]], 
@@ -45,10 +72,18 @@ class TgMapInteraction extends ol.interaction.Pointer{
     console.log(pt[1]);
     console.log(pt[0]);*/
 
+   // console.log(evt.pixel);
+
+    if (this.data.var.appDispMode === '2x') {
+      evt = this.conv2x(evt);
+    }
+
     const feature = 
         evt.map.forEachFeatureAtPixel(evt.pixel, (feature) => {return feature;});
     
     if (feature) {
+
+      //console.log('feature.type: ' + feature.type);
 
       switch(feature.type) {
         case 'origin':
@@ -57,10 +92,10 @@ class TgMapInteraction extends ol.interaction.Pointer{
           this.coordinate_ = evt.coordinate;
           this.downCoordinate = evt.coordinate;
           this.feature_ = feature;
+
           this.timer = 
-              setTimeout(this.longPress.bind(this), this.data.var.longPressTime);
+            setTimeout(this.longPress.bind(this), this.data.var.longPressTime);
           return true;
-          break;
 
         case 'isochrone':
           if (this.map.currentMode === 'DC') {
@@ -77,12 +112,24 @@ class TgMapInteraction extends ol.interaction.Pointer{
               this.map.tgLocs.setHighLightMode(true, time); // set highlight mode
               this.map.tgLocs.render();
               this.map.tgIsochrone.render();
+
+              this.map.log('highlight_isochrone'); // Logging
             }
           }
           return true;
-          break;
+
+        case 'cancelIsochrone':
+          this.disableHighlightMode();
+          this.map.tgLocs.resetCurrentSet();
+          return true;
+
         case 'loc':
           console.log(feature.source);
+
+          if (typeof openDetail != 'undefined') {
+            openDetail({simp: feature.source.id});
+          }
+          
           //this.map.tgLocs.showModal(feature.source);
           return true;
           break;
@@ -92,14 +139,18 @@ class TgMapInteraction extends ol.interaction.Pointer{
             data_currentset = feature.source.locs;
             console.log(data_currentset);
           }
+
+          //if (this.data.var.appMode === 'pc') {
+          //  if (typeof openList != 'undefined') openList();
+          //}
+
+          openList();
+
           return true;
-          break;
+
         default:
-          this.disableHighlightMode();
+          
       }
-    }
-    else {
-      this.disableHighlightMode();
     }
   
     return false;
@@ -116,13 +167,22 @@ class TgMapInteraction extends ol.interaction.Pointer{
 
   longPress() {
     console.log('long pressed');
-    this.originMoving = true;
-    this.map.tgOrigin.render({translucent: true}); // make it translucent
-    this.feature_ = this.map.tgOrigin.feature;
+    this.timer = null;
+
+    if (this.map.currentMode === 'EM') {
+      this.originMoving = true;
+      this.map.tgOrigin.render({translucent: true}); // make it translucent
+      this.feature_ = this.map.tgOrigin.feature;
+    }
   }
 
   handleDragEvent(evt) {
     if (this.dragging) {
+
+      if (this.data.var.appDispMode === '2x') {
+        evt = this.conv2x(evt);
+      }
+
       if (this.originMoving) {
 
         const deltaX = evt.coordinate[0] - this.coordinate_[0];
@@ -160,20 +220,26 @@ class TgMapInteraction extends ol.interaction.Pointer{
   };
 
   handleMoveEvent(evt) {
-    /*
+
+    if (this.data.var.appDispMode === '2x') {
+      evt.pixel[0] = evt.pixel[0] / 2;
+      evt.pixel[1] = evt.pixel[1] / 2;
+    }
+    
     if (this.cursor_) {
       const feature = 
           evt.map.forEachFeatureAtPixel(evt.pixel, (feature) => {return feature;});
 
-      if ((feature) && ((feature.type === 'loc') || (feature.type === 'cLoc')))
+      /*if ((feature) && ((feature.type === 'loc') || (feature.type === 'cLoc')))
         this.tooltip.style.display = '';
       else
         this.tooltip.style.display = 'none';
+      */
 
       if (feature) {
 
         // for tooltip
-        if (feature.type) {
+        /*if (feature.type) {
           this.overlay.setPosition(evt.coordinate);
 
           switch(feature.type) {
@@ -189,26 +255,39 @@ class TgMapInteraction extends ol.interaction.Pointer{
               this.tooltip.innerHTML = str;
               break;
           }
-        }
+        }*/
 
         // for cursor
         const element = evt.map.getTargetElement();
 
-        if ((feature.type === 'origin') || (feature.type === 'isochrone')) {
+        if ((feature.type === 'origin') || (feature.type === 'isochrone') || 
+            (feature.type === 'loc') || (feature.type === 'cLoc')) {
           if (element.style.cursor != this.cursor_) {
             this.previousCursor_ = element.style.cursor;
             element.style.cursor = this.cursor_;
           }
-        } else if (this.previousCursor_ !== undefined) {
+        } 
+        else if (this.previousCursor_ !== undefined) {
           element.style.cursor = this.previousCursor_;
           this.previousCursor_ = undefined;
         }
       }
     }
-    */
+    
   };
 
   handleUpEvent(evt) {
+    //console.log('& handleUpEvent');
+
+    if (this.data.var.appDispMode === '2x') {
+      evt = this.conv2x(evt);
+    }
+
+    if (this.data.var.appMode === 'mobile') {
+      evt.pixel[0] = evt.pixel[0] / 2;
+      evt.pixel[1] = evt.pixel[1] / 2;
+    }
+
     this.coordinate_ = null;
     this.feature_ = null;
 
@@ -223,6 +302,8 @@ class TgMapInteraction extends ol.interaction.Pointer{
         this.map.setCenter(pt[1], pt[0]);
         this.map.tgOrigin.render(); // make it opaque
         this.originMoving = false;
+
+        this.map.log('change_origin'); // Logging
       }
 
       // when handle up while moving isochrone
@@ -230,6 +311,8 @@ class TgMapInteraction extends ol.interaction.Pointer{
         this.isochroneMoving = false;
         this.map.tgLocs.setHighLightMode(true, this.curTime);
         this.map.tgLocs.render();
+
+        this.map.log('highlight_custom'); // Logging
       }
     }
     return false;

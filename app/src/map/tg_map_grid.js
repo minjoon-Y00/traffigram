@@ -49,7 +49,7 @@ class TgMapGrid {
 			this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString(
 				[[line.start.disp.lng, line.start.disp.lat], 
 				[line.end.disp.lng, line.end.disp.lat]]), 
-				this.mapUtil.lineStyle(viz.color.grid, viz.width.grid));
+				this.mapUtil.lineStyle(viz.color.grid, viz.width.grid), 'grid');
 		}
 
 		this.removeLayer();
@@ -67,12 +67,13 @@ class TgMapGrid {
 			// draw control points
 			this.mapUtil.addFeatureInFeatures(arr, new ol.geom.Point(
 					[point.disp.lng, point.disp.lat]), 
-					this.mapUtil.nodeStyle(viz.color.controlPoint, viz.radius.controlPoint));
+					this.mapUtil.nodeStyle(viz.color.controlPoint, viz.radius.controlPoint), 'cp');
 
 			// draw additional lines meaning difference between target and real.
 			this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString(
 					[[point.disp.lng, point.disp.lat], [point.target.lng, point.target.lat]]), 
-					this.mapUtil.lineStyle(viz.color.controlPointLine, viz.width.controlPointLine));
+					this.mapUtil.lineStyle(viz.color.controlPointLine, viz.width.controlPointLine), 
+					'cpLine');
 
 			// add text
 			let text = (point.travelTime != null) ? (point.travelTime/60).toFixed(1) : '-';
@@ -82,7 +83,7 @@ class TgMapGrid {
 					[point.disp.lng, point.disp.lat]), 
 					this.mapUtil.textStyle({
 						text: text, color: viz.color.text, font: viz.font.text
-					}));
+					}), 'cpText');
 		}
 
 		this.removeControlPointLayer();
@@ -115,9 +116,9 @@ class TgMapGrid {
 			}
 		}
 		else {
-			for(let point of this.controlPoints) {
-				point.disp.lat = point[type].lat;
-				point.disp.lng = point[type].lng;
+			for(let point of controlPoints) {
+				point.disp.lat = point[kind].lat;
+				point.disp.lng = point[kind].lng;
 			}
 		}
 	}

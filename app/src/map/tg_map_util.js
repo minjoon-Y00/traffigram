@@ -124,6 +124,7 @@ class TgMapUtil {
 		if (param.strokeWidth) strokeWidth = param.strokeWidth;
 		if (strokeColor) textOptions.stroke = 
 				new ol.style.Stroke({color: strokeColor, width: strokeWidth});
+		if (param.rotation) textOptions.rotation = param.rotation;
 
 	  return new ol.style.Style({
 	  	text: new ol.style.Text(textOptions)

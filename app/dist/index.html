@@ -33,7 +33,7 @@
 
           <!-- Origin -->
 
-          <h4>Origin</h4>
+          <!--<h4>Origin</h4>
 
           <div class="radio">
             <label><input type="radio" name="originRadio" id="originYourLocationRB" >Your current GPS location</label>
@@ -49,7 +49,7 @@
           <div class="radio">
             <label><input type="radio" name="originRadio" id="originOtherPlaceRB">Other place</label>
           </div>
-          <input type="text" id="otherPlaceInput" style="width:200px" placeholder="Enter Here">
+          <input type="text" id="otherPlaceInput" style="width:200px" placeholder="Enter Here">-->
 
 
 
@@ -100,7 +100,7 @@
 
           <!-- Transportation -->
 
-          <h4>Mode of Transportation</h4>
+          <!--<h4>Mode of Transportation</h4>
 
           <div class="radio">
             <label><input type="radio" name="transportRadio" id="transportVehiclesRB" checked>Vehicles</label>
@@ -111,7 +111,7 @@
           <div class="radio">
             <label><input type="radio" name="transportRadio" id="transportOnFootRB">On Foot</label>
           </div>
-          <hr>
+          <hr>-->
 
           <!-- Visual Elements representation -->
 
@@ -123,6 +123,10 @@
           <label class='marginR'>
             <input type="checkbox" id="dispRoadsCB"/>
             <span class='marginL'>Road</span>
+          </label>
+          <label class='marginR'>
+            <input type="checkbox" id="dispSRCCB"/>
+            <span class='marginL'>SRC</span>
           </label>
           <label class='marginR'>
             <input type="checkbox" id="dispLanduseCB"/>
@@ -182,9 +186,57 @@
 
         <div class="col-sm-2" style="width:250px">
 
+          <h4>Origin</h4>
+
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="origin0RB" checked>Seattle</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="origin1RB">Bellevue</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="origin2RB">Mercer Island</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="origin3RB">Redmond</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="origin4RB">Kirkland</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="origin5RB">Mountlake Terrace</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="origin6RB">Burien</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="origin7RB">Tukwila</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="origin8RB">Shorline</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="originRadio" id="origin9RB">Edmonds</label>
+          </div>
+
+          <h4>Zoom</h4>
+          <div class="radio">
+            <label><input type="radio" name="zoomRadio" id="fineRB" checked>Fine (15)</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="zoomRadio" id="mediumRB">Medium (13)</label>
+          </div>
+          <div class="radio">
+            <label><input type="radio" name="zoomRadio" id="coarseRB">Coarse (11)</label>
+          </div>
+
+          <button type="button" id="debugBtn" class="btn btn-warning btn-sm">
+            start</button>
+          <button type="button" id="debugBtn2" class="btn btn-warning btn-sm">
+            save</button>
           <!-- Locations -->
 
-          <h4>Type of Destination</h4>
+          <!--<h4>Type of Destination</h4>
 
           <div class="panel-group">
 
@@ -300,7 +352,8 @@
           <br/><input id="priceRangeSlider" type="text"/><br/>
           
 
-
+          <button type="button" id="debugBtn" class="btn btn-warning btn-sm">
+            debug</button>-->
           
 
 
@@ -442,8 +495,29 @@
     <script src="./vendor/bootstrap-slider.min.js"></script>
     <script src="./vendor/remodal.min.js"></script>
     <script src="./vendor/tps.js"></script>
+    <script src="./vendor/dijkstra.js"></script>
+
+    <script src="../src/tg_data.js"></script>
+    
     <script src="./data/tod_th.js"></script>
+    <script src="./data/unq_edges_lv0.js"></script>
+    <script src="./data/unq_edges_lv1.js"></script>
+    <script src="./data/unq_edges_lv2.js"></script>
+    <script src="./data/con_nodes_lv0.js"></script>
+    <script src="./data/con_nodes_lv1.js"></script>
+    <script src="./data/con_nodes_lv2.js"></script>
+
     <!--<script src="./app.js"></script>-->
+
+    <script src="./data/n/nodes_lv0_costs.js"></script>
+    <script src="./data/n/nodes_lv1_costs.js"></script>
+    <script src="./data/n/nodes_lv2_costs.js"></script>
+    <script src="./data/n/pts_lv0_costs.js"></script>
+    <script src="./data/n/pts_lv1_costs.js"></script>
+    <script src="./data/n/pts_lv2_costs.js"></script>
+    <script src="./data/n/locs_lv0_costs.js"></script>
+    <script src="./data/n/locs_lv1_costs.js"></script>
+    <script src="./data/n/locs_lv2_costs.js"></script>
 
     <script src="../src/tg_data_full.js"></script>
     <script src="../src/tg_util.js"></script>
@@ -456,6 +530,7 @@
 
     <script src="../src/map/tg_map_util.js"></script>
     <script src="../src/map/tg_map_roads.js"></script>
+    <script src="../src/map/tg_map_src.js"></script>
     <script src="../src/map/tg_map_water.js"></script>
     <script src="../src/map/tg_map_landuse.js"></script>
     <script src="../src/map/tg_map_places.js"></script>

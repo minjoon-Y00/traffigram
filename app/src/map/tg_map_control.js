@@ -212,8 +212,6 @@ class TgMapControl {
 
 		// if there is points of which we need travel time,
 		if (newPointsArray.length > 0) {
-			this.map.setTime('travelTimeLoading', 'start', (new Date()).getTime());
-
 			this.travelTimeApi.getTravelTime(this.currentTransport, (times) => {
 
 				if (times.length !== newPointsArray.length) {
@@ -229,10 +227,6 @@ class TgMapControl {
 					point.travelTime = times[index];
 					this.travelTimeCache[this.currentTransport].set(key, point.travelTime);
 				}
-
-				this.map.setDataInfo('numNewTravelTime', 'set', newPointsArray.length);
-				this.map.setTime('travelTimeLoading', 'end', (new Date()).getTime());
-				//this.checkGridSplit();
 
 				if (cb) cb();
 			});
@@ -285,10 +279,21 @@ class TgMapControl {
 			if (this.map.currentMode === 'DC') {
 				this.map.goToDcAgain();
 			}
+
+			if (this.data.var.startMode === 'DC') {
+				this.map.goToDcAgain();
+				this.data.var.startMode = null;
+
+				if (typeof map_mode != 'undefined') {
+		      $("#s img").attr("src", 'img/switch_s_off.png');
+					$("#t img").attr("src", 'img/switch_t_on.png');
+					map_mode = 1;
+		    }
+			}
 			return;
 		}
 
-		console.log(this.grids);
+		//console.log(this.grids);
 
 		/* let sumTimes = [];
 		for(let grid of this.grids) {

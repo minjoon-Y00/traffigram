@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title> Traffigram | web destination explorer </title>
+		<!-- utf-8 -->
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+		<!-- logo -->
+		<link href='img/logo.png' type='image/gif' rel='short icon'/>
+		<!-- CSS --> 
+		<link href='traffigram.css' type='text/css' rel='stylesheet'/>
+		<!-- Google font-->
+		<link href="https://fonts.googleapis.com/css?family=PT+Sans+Narrow|Roboto:100,300,300i,400,400i,500|" rel="stylesheet">
+		<!-- jQuery -->
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.12.0.min.js"></script>
+		<script type="text/javascript" src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<!-- temp -->
+		<script type="text/javascript" src="lib/temp.js"></script>
+	</head>
+	<body>
+		<div id="main">
+			<div id="content">
+				<div id="content_container_map" style="position: relative; top: 0px; left: 0px;">
+					<div id="content_settings" style="position: absolute; width: 891px; height: 1370px; top: 0px; left: 0px; background: rgb(255, 255, 255); color:black; z-index: 100;">
+						<div class="content_main_heading">
+							<img src="img/headericon_settings@2x.png"/> Settings <div class="content_main_heading_close"><img src="img/btn_window_close@2x.png"/></div>
+						</div>
+						<div class="content_main_textarea">
+							<div class="content_main_paragraph">
+								<div class="content_main_heading_subject">PRESENT TIME MAPS FROM</div>
+								<div class="content_main_heading_content">Tip: time map will present travel time to destinations based on the following departure point.</div>
+								<div style="margin-top:30px;">
+									<div class="radio_each_line"><label><input class="radio_big" type="radio" name="origin" value="0" id="origin_0">&nbsp;&nbsp;Your current GPS location</label></div>
+									<div class="radio_each_line"><label><input class="radio_big" type="radio" name="origin" value="1" id="origin_1">&nbsp;&nbsp;Your home</label></div>
+									<div class="radio_each_line"><label><input class="radio_big" type="radio" name="origin" value="2" id="origin_2">&nbsp;&nbsp;Your office</label></div>
+								</div>
+								<div class = "content_main_buttonline"> <span class="content_btn" id="set_origin"> RESET </span> </div>
+							</div>
+							<div class="content_main_paragraph">
+								<div class="content_main_heading_subject">YOUR PERSONAL INFORMATION</div>
+								<div style="margin-top:30px;">
+									<div><img src="img/icon_home@2x.png"/><input type="text" id="login2_input_email" class= "input_text_underline" name="user_address_home" placeholder="Your home address"/></div>
+									<div><img src="img/icon_office@2x.png"/><input type="text" id="login2_input_name" class= "input_text_underline" name="user_address_office" placeholder="Your office address"/></div>
+								</div>
+								<div class = "content_main_buttonline"> <span class="content_btn" id="set_origin"> RESET </span> </div>
+							</div>
+							<div class="content_main_paragraph">
+								<div class="content_main_heading_subject">YOUR FAVORITE LOCATIONS</div>
+								<div style="margin-top:30px;">
+									<div class="content_main_list_container">
+										<div class="content_main_list_each">T.B.D.</div>
+									</div>
+								</div>
+							</div>
+							<div class="content_main_paragraph">
+								<div class="content_main_heading_subject">SIGN OUT</div>
+								<div class = "content_main_buttonline"> <span class="content_btn" id="set_signout"> <img src="img/btnicon_signout@2x.png"/> SIGNOUT </span> </div>
+							</div>
+						</div>
+						</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

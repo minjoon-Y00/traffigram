@@ -47,8 +47,24 @@ class TgMapBoundingBox {
 	}
 
 	calBBOfLocations(locations) {
-		const iconLatPx = 30;
-		const iconLngPx = 30;
+		let iconLatPx = this.data.var.locBBPx; // 50
+		let iconLngPx = this.data.var.locBBPx; // 50
+
+		if (this.data.var.appMode === 'pc') {
+			const z = this.data.zoom.current;
+			// 14 -> 50
+			// 15 -> 45
+			// 16 -> 40
+			// 17 -> 35
+
+			if (z >= 14) {
+				iconLatPx = iconLatPx - 10 * (z - 14);
+				iconLngPx = iconLngPx - 10 * (z - 14);
+				console.log('iconLngPx: ' + iconLngPx);
+			}
+		}
+
+
 		const dLat = (iconLatPx * this.data.var.latPerPx) / 2;
 		const dLng = (iconLngPx * this.data.var.lngPerPx) / 2;
 
@@ -62,6 +78,47 @@ class TgMapBoundingBox {
 			};
 		}
 	}
+
+	calBBOfStreetName() {
+		const streetNames = this.map.tgRoads.streetNames;
+
+		for(let type in streetNames) {
+			for(let name in streetNames[type]) {
+				this.calBBOfAStreetName(streetNames[type][name], name);
+			}
+		}
+	}
+
+	calBBOfAStreetName(obj, name) {
+		const latPerPx = this.data.var.latPerPx;
+		const lngPerPx = this.data.var.lngPerPx;
+
+		let widthPx;
+		let heightPx;
+
+		console.log(obj.longLng);
+
+		if (obj.longLng) {
+			widthPx = name.length * 6;
+			heightPx = 12;
+		}
+		else {
+			widthPx = 12;
+			heightPx = name.length * 6;
+		}
+		
+		const lng = obj.center[0];
+		const lat = obj.center[1];
+			
+		obj.bb = {
+			left: lng - (widthPx * lngPerPx), 
+			right: lng + (widthPx * lngPerPx),
+			top: lat - (heightPx * latPerPx),
+			bottom: lat + (heightPx * latPerPx),
+		};
+	}
+
+	//isItNotOverlappedWithLocsAndPlaces(bb)
 
 	/*calBBOfClusterLocations(locationClusters) {
 		const clusterLatPx = 45;
@@ -119,8 +176,8 @@ class TgMapBoundingBox {
 	}
 
 	updateBBOfLocationGroup(locGrp) {
-		const locGrpLatPx = 45;
-		const locGrpLngPx = 45;
+		const locGrpLatPx = this.data.var.locGroupBBPx;
+		const locGrpLngPx = this.data.var.locGroupBBPx;
 		const cLat = (locGrpLatPx * this.data.var.latPerPx) / 2;
 		const cLng = (locGrpLngPx * this.data.var.lngPerPx) / 2;
 		const disp = locGrp.node.dispLoc;
@@ -272,6 +329,7 @@ class TgMapBoundingBox {
 
 		// calculate non-overlapped location names
 		for(let loc of locations) {
+			loc.nameBB = null;
 			
 			if (loc.group) continue;
 
@@ -281,6 +339,7 @@ class TgMapBoundingBox {
 						i, loc.node.dispLoc.lat, loc.node.dispLoc.lng, loc.name);
 
 				if (this.isItNotOverlappedByLocs(locations, locationClusters, ret.bb)) {
+				//if (true) {
 					loc.dispName = true;
 					loc.nameOffsetX = ret.offset.x;
 					loc.nameOffsetY = ret.offset.y;
@@ -297,6 +356,26 @@ class TgMapBoundingBox {
 				}
 			}
 		}
+	}
+
+	isItNotOverlappedWithLocsPlacesStreet(inBB, streetName) {
+		const locations = this.map.tgLocs.getCurrentLocations();
+		const locationGroups = this.map.tgLocs.getCurrentLocationClusters();
+		const places = this.map.tgPlaces.dispPlaceObjects;
+		const streetNames = this.map.tgRoads.streetNames;
+
+		if (!this.isItNotOverlappedByLocs(locations, locationGroups, inBB)) return false;
+		if (!this.isItNotOverlappedPlaces(places, inBB)) return false;
+
+		for(let type in streetNames) {
+			for(let name in streetNames[type]) {
+				if (name === streetName) continue;
+
+				let bb = streetNames[type][name].bb;
+				if (bb && (TgUtil.intersectRect(inBB, bb))) return false;
+			}
+		}
+		return true;
 	}
 
 	isItNotOverlappedByLocs(locations, locationClusters, inBB) {
@@ -348,7 +427,7 @@ class TgMapBoundingBox {
 				if (!((lat < top) && (lat > bottom) && (lng < right) && (lng > left))) continue;
 
 				//if (!place.bb) {
-					const widthPx = name.length * 8;
+					const widthPx = name.length * 7;
 					const heightPx = 14;
 					
 					const bb = {
@@ -483,7 +562,7 @@ class TgMapBoundingBox {
 
 
 
-	addBBOfLocations() {
+	/*addBBOfLocations() {
 		const locations = this.map.tgLocs.locations[this.map.tgLocs.currentType];
 
 		const iconLatPx = 30;
@@ -500,17 +579,17 @@ class TgMapBoundingBox {
 				type: 'location',
 			});
 		}
-	}
+	}*/
 
 	getCandidatePosition(index, lat, lng, name) {
 		const latPerPx = this.data.var.latPerPx;
 		const lngPerPx = this.data.var.lngPerPx;
 
-		const widthPx = name.length * 8;
+		const widthPx = name.length * 7;
 		const heightPx = 14;
 
-		const lngMarginPx = 20; // left/right margin
-		const latMarginPx = 25; // top/bottom margin
+		const lngMarginPx = this.data.var.locTextLngMarginPx; // left/right margin
+		const latMarginPx = this.data.var.locTextLatMarginPx; // top/bottom margin
 		const extraLatMarginPx = 10;
 
 		const dLng = (widthPx * lngPerPx) / 2;
@@ -855,52 +934,40 @@ class TgMapBoundingBox {
 	}
 
 	updateLayer() {
+		const addBBPolygons = function(bb) {
+			if (!bb) return;
+			BBPolygons.push([
+				[bb.right, bb.top], [bb.right, bb.bottom],
+				[bb.left, bb.bottom], [bb.left, bb.top],
+				[bb.right, bb.top]
+			]);
+		}
+
 		const BBPolygons = [];
 
 		// for locations
 		const locs = this.map.tgLocs.getCurrentLocations();
 		for(let loc of locs) {
-			let bb = loc.bb;
-			if (bb) {
-				BBPolygons.push([
-					[bb.right, bb.top], [bb.right, bb.bottom],
-					[bb.left, bb.bottom], [bb.left, bb.top],
-					[bb.right, bb.top]
-				]);
-			}
-
-			bb = loc.nameBB;
-			if (bb) {
-				BBPolygons.push([
-					[bb.right, bb.top], [bb.right, bb.bottom],
-					[bb.left, bb.bottom], [bb.left, bb.top],
-					[bb.right, bb.top]
-				]);
-			}
+			addBBPolygons(loc.bb);
+			addBBPolygons(loc.nameBB);
 		}
 
 		const cLocs = this.map.tgLocs.getCurrentLocationClusters();
 		for(let cLoc of cLocs) {
-			let bb = cLoc.bb;
-			if (bb) {
-				BBPolygons.push([
-					[bb.right, bb.top], [bb.right, bb.bottom],
-					[bb.left, bb.bottom], [bb.left, bb.top],
-					[bb.right, bb.top]
-				]);
-			}
+			addBBPolygons(cLoc.bb);
 		}
 
 		// for places
 		const places = this.map.tgPlaces.dispPlaceObjects;
 		for(let name in places) {
-			let bb = places[name].bb;
-			if (bb) {
-				BBPolygons.push([
-					[bb.right, bb.top], [bb.right, bb.bottom],
-					[bb.left, bb.bottom], [bb.left, bb.top],
-					[bb.right, bb.top]
-				]);
+			addBBPolygons(places[name].bb);
+		}
+
+		// for street name
+		const streetNames = this.map.tgRoads.streetNames;
+		for(let type in streetNames) {
+			for(let name in streetNames[type]) {
+				addBBPolygons(streetNames[type][name].bb);
 			}
 		}
 
@@ -910,7 +977,7 @@ class TgMapBoundingBox {
 
 		for(let bb of BBPolygons) {
 			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.Polygon([bb]), styleFunc);
+				arr, new ol.geom.Polygon([bb]), styleFunc, 'bb');
 		}
 
 		this.mapUtil.removeLayer(this.boundingBoxLayer);
@@ -966,7 +1033,7 @@ class TgMapBoundingBox {
 
 				this.mapUtil.addFeatureInFeatures(arr,
 					new ol.geom.Point(
-						[loc.lng, loc.lat]), nameStyleFunc);
+						[loc.lng, loc.lat]), nameStyleFunc, 'locName');
 		}
 
 		if (arr.length > 0) {
@@ -996,16 +1063,18 @@ class TgMapBoundingBox {
 				this.mapUtil.addFeatureInFeatures(arr, 
 					new ol.geom.LineString(
 						[[loc.node.dispAnchor.lng, loc.node.dispAnchor.lat], 
-						[loc.node.dispLoc.lng, loc.node.dispLoc.lat]]), lineStyleFunc);
+						[loc.node.dispLoc.lng, loc.node.dispLoc.lat]]), lineStyleFunc, 'locLine');
 
 				// anchor images
 				this.mapUtil.addFeatureInFeatures(arr,
-					new ol.geom.Point([loc.node.dispAnchor.lng, loc.node.dispAnchor.lat]), anchorStyleFunc);
+					new ol.geom.Point([loc.node.dispAnchor.lng, loc.node.dispAnchor.lat]), 
+					anchorStyleFunc, 'locAnchor');
 			}
 
 			// circle images
 			this.mapUtil.addFeatureInFeatures(arr,
-				new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), locationStyleFunc);
+				new ol.geom.Point([loc.node.dispLoc.lng, loc.node.dispLoc.lat]), 
+					locationStyleFunc, 'loc');
 		}
 
 		if (arr.length > 0) {
@@ -1031,7 +1100,7 @@ class TgMapBoundingBox {
 				});
 
 			this.mapUtil.addFeatureInFeatures(
-				arr, new ol.geom.Point(place), styleFunc);
+				arr, new ol.geom.Point(place), styleFunc, 'place');
 		}
 
 		this.placeLayer = this.mapUtil.olVectorFromFeatures(arr);

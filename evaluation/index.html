@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>TG Evaluation</title>
+	<link rel="stylesheet" href="https://openlayers.org/en/v3.20.0/css/ol.css" type="text/css">
+  <link rel="stylesheet" href="./css/bootstrap-darkly.min.css">
+  <link rel="stylesheet" href="./css/traffigram.css">
+</head>
+<body>
+	<div class="container" style="margin-top:20px; margin-bottom:20px">
+    <div class="row" style="width:1500px">
+
+      <!-- Map -->
+      <div class="col-sm-9" style="width:600px; height:900px">
+        <div id="ol_map" class="ol_map"></div>
+      </div>
+
+      <!-- Right Options Panel -->
+      <div class="col-sm-3" style="width:250px">
+
+        <!-- Origin -->
+
+        <h4>Origin</h4>
+
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin0RB" checked>Seattle</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin1RB">Bellevue</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin2RB">Mercer Island</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin3RB">Redmond</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin4RB">Kirkland</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin5RB">Mountlake Terrace</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin6RB">Burien</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin7RB">Tukwila</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin8RB">Shorline</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin9RB">Edmonds</label>
+        </div>
+
+        
+      
+        <hr>
+	      <h4>Zoom</h4>
+	      <div class="radio">
+	        <label><input type="radio" name="zoomRadio" id="fineRB">Fine</label>
+	      </div>
+	      <div class="radio">
+	        <label><input type="radio" name="zoomRadio" id="mediumRB">Medium</label>
+	      </div>
+	      <div class="radio">
+	        <label><input type="radio" name="zoomRadio" id="coarseRB">Coarse</label>
+	      </div>
+				<div class="radio">
+	        <label><input type="radio" name="zoomRadio" id="autoRB" checked>Auto</label>
+	      </div>
+
+	      <hr>
+	      <h6>Current Zoom: <span id='curZoom'>_</span></h6>
+	       <button type="button" id="debugBtn" class="btn btn-warning btn-sm">
+            debug</button>
+         <button type="button" id="debug2Btn" class="btn btn-warning btn-sm">
+            cal sp</button>
+         <button type="button" id="debug3Btn" class="btn btn-warning btn-sm">
+            add</button>
+    	</div>
+    </div>
+  </div>
+
+  <script src="https://openlayers.org/en/v3.20.0/build/ol.js" type="text/javascript"></script>
+
+  <script src="./vendor/jquery-2.2.3.min.js"></script>
+  <script src="./vendor/tps.js"></script>
+  <script src="./vendor/dijkstra.js"></script>
+
+  <script src="./data/tod.js"></script>
+  <script src="./data/unq_edges_lv0.js"></script>
+  <script src="./data/unq_edges_lv1.js"></script>
+  <script src="./data/unq_edges_lv2.js"></script>
+  <script src="./data/con_nodes_lv0.js"></script>
+  <script src="./data/con_nodes_lv1.js"></script>
+  <script src="./data/con_nodes_lv2.js"></script>
+  <script src="./data/locs_lv0.js"></script>
+  <script src="./data/locs_lv1.js"></script>
+  <script src="./data/locs_lv2.js"></script>
+  <script src="./data/ctlPt_lv0.js"></script>
+  <script src="./data/ctlPt_lv1.js"></script>
+  <script src="./data/ctlPt_lv2.js"></script>
+  <script src="./data/nodes_lv0_cost.js"></script>
+  <script src="./data/nodes_lv1_cost.js"></script>
+  <script src="./data/nodes_lv2_cost.js"></script>
+
+
+  <script src="./js/api/tg_travel_time_api.js"></script>
+  <script src="./js/node/tg_node.js"></script>
+  <script src="./js/node/tg_location_node.js"></script>
+  <script src="./js/node/tg_control_point.js"></script>
+  <script src="./js/eval_data.js"></script>
+  <script src="./js/eval_graph.js"></script>
+  <script src="./js/tg_util.js"></script>
+  <script src="./js/tg_map_util.js"></script>
+  <script src="./js/eval_core.js"></script>
+  <script src="./js/eval_control.js"></script>
+  <script src="./js/eval_grid.js"></script>
+  <script src="./js/eval_origin.js"></script>
+  <script src="./js/eval_water.js"></script>
+  <script src="./js/eval_roads.js"></script>
+  <script src="./js/eval_locations.js"></script>
+  <script src="./js/eval_map.js"></script>
+  <script src="./js/eval_app.js"></script>
+
+  <script>
+
+const eval = new EvalApp('ol_map');
+
+$("#origin0RB").change((ev) => {
+  if (ev.target.checked) { eval.setCenter(0); }
+});
+
+$("#origin1RB").change((ev) => {
+  if (ev.target.checked) { eval.setCenter(1); }
+});
+
+$("#origin2RB").change((ev) => {
+  if (ev.target.checked) { eval.setCenter(2); }
+});
+
+$("#origin3RB").change((ev) => {
+  if (ev.target.checked) { eval.setCenter(3); }
+});
+
+$("#origin4RB").change((ev) => {
+  if (ev.target.checked) { eval.setCenter(4); }
+});
+
+$("#origin5RB").change((ev) => {
+  if (ev.target.checked) { eval.setCenter(5); }
+});
+
+$("#origin6RB").change((ev) => {
+  if (ev.target.checked) { eval.setCenter(6); }
+});
+
+$("#origin7RB").change((ev) => {
+  if (ev.target.checked) { eval.setCenter(7); }
+});
+
+$("#origin8RB").change((ev) => {
+  if (ev.target.checked) { eval.setCenter(8); }
+});
+
+$("#origin9RB").change((ev) => {
+  if (ev.target.checked) { eval.setCenter(9); }
+});
+
+$("#fineRB").change((ev) => {
+  if (ev.target.checked) { 
+  	eval.map.tgRoads.dispLevel = 'fine';
+  	eval.map.tgRoads.updateLayer();
+  }
+});
+
+$("#mediumRB").change((ev) => {
+  if (ev.target.checked) { 
+  	eval.map.tgRoads.dispLevel = 'medium';
+  	eval.map.tgRoads.updateLayer();
+  }
+});
+
+$("#coarseRB").change((ev) => {
+  if (ev.target.checked) { 
+  	eval.map.tgRoads.dispLevel = 'coarse';
+  	eval.map.tgRoads.updateLayer();
+  }
+});
+
+$("#autoRB").change((ev) => {
+  if (ev.target.checked) { 
+  	eval.map.tgRoads.dispLevel = 'auto';
+  	eval.map.tgRoads.updateLayer();
+  }
+});
+
+$("#debugBtn").click((ev) => {
+  eval.debug();
+});
+
+$("#debug2Btn").click((ev) => {
+  eval.debug2();
+});
+
+$("#debug3Btn").click((ev) => {
+  eval.debug3();
+});
+
+
+
+  </script>
+</body>
+</html>
