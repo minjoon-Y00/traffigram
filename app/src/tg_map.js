@@ -465,6 +465,9 @@ class TgMap {
 		// cal warping
 		this.tg.graph.calWarping(noNeedToCalFactor);
 
+		//this.tgControl.makeOriginalDCGrid();
+
+
 		switch(this.warpingMode) {
 			case 'shapePreserving':
 				this.tgControl.makeShapePreservingGridByFFT();

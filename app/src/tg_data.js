@@ -125,9 +125,9 @@ var TgData = {
 
 		font: {
 			isochroneText: '18px Roboto Condensed',
-			places: '14pt Roboto Condensed',
+			places: '14pt Roboto',
 			text: '12pt Roboto Condensed',
-			street: '10pt Roboto Condensed',
+			street: '14pt Roboto',
 		},
 	},
 

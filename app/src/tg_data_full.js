@@ -2,7 +2,7 @@ var TgData = {
 	zoom: {
 		max: 18,
 		min: 11,
-		init: 14,
+		init: 14, //13,
 		previos: 0,
 		current: 0,
 		disp: {
@@ -134,16 +134,18 @@ var TgData = {
 
 		font: {
 			isochroneText: '24px Roboto Condensed',
-			places: '14pt Roboto Condensed', //'Source Sans Pro Regular',
+			places: '14pt Roboto',
 			text: '12pt Roboto Condensed',
-			street: '8pt Roboto Condensed',
+			street: '12pt Roboto',
 		},
 	},
 
 	origin: {
 		default: {
-			lat: 47.680275, //47.6631772,
-			lng: -122.327324, //-122.3104933,
+			lat: 47.680275, // green lake
+			lng: -122.327324, // gree lake
+			//lat: 47.681291, // sand point
+			//lng: -122.253665, // sand point
 		},
 		home: {
 			address: '4225 24th Ave. NE, Seattle, WA',

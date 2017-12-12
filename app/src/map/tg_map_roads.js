@@ -77,8 +77,6 @@ class TgMapRoads {
     	tileSize: [512, 512],
     });
 
-    console.log('3857');
-
 		const roadSource = new ol.source.VectorTile({
 	    format: new ol.format.TopoJSON(),
 	    //projection: 'EPSG:4326', // ?
@@ -286,11 +284,14 @@ class TgMapRoads {
 	}
 
 	addStreetLayer() {
+		const currentZoom = this.data.zoom.current;
+		if (currentZoom <= 14) return;
+
 		this.mapUtil.removeLayer(this.streetLayer);
 
 		const viz = this.data.viz;
 		let arr = [];
-		const maxNumStreet = 20;
+		const maxNumStreet = 15;
 		let dispNumStreet = 0;
 		let fin = false;
 
@@ -321,8 +322,6 @@ class TgMapRoads {
 			}
 		}
 
-		//this.map.tgBB.calBBOfStreetName();
-
 		for(let type in this.streetNames) {
 			for(let name in this.streetNames[type]) {
 				const obj = this.streetNames[type][name];
@@ -339,6 +338,7 @@ class TgMapRoads {
 							text: name, 
 							color: viz.color.textStreet, 
 							font: viz.font.text, 
+							rotation: (obj.longLng) ? 0 : Math.PI / 2,
 						});
 
 					this.mapUtil.addFeatureInFeatures(arr,

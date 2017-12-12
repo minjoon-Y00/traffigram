@@ -93,8 +93,20 @@ class TgMapBoundingBox {
 		const latPerPx = this.data.var.latPerPx;
 		const lngPerPx = this.data.var.lngPerPx;
 
-		const widthPx = name.length * 6;
-		const heightPx = 12;
+		let widthPx;
+		let heightPx;
+
+		console.log(obj.longLng);
+
+		if (obj.longLng) {
+			widthPx = name.length * 6;
+			heightPx = 12;
+		}
+		else {
+			widthPx = 12;
+			heightPx = name.length * 6;
+		}
+		
 		const lng = obj.center[0];
 		const lat = obj.center[1];
 			

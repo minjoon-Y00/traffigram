@@ -71,6 +71,10 @@ var height_tap = 105;
 var height_transition_gap = 30;
 var width_UI_margin = 15;
 var height_UI_margin = 20;
+var height_map = 650;
+var width_map;
+var map_scale;
+
 //transition
 var time_screen_trans = 400;
 var time_interaction_buffer = 400;
@@ -851,6 +855,15 @@ function load_TOD(direction){
 			isUnderAni = false;
 		});
 	}
+
+	$(window).resize(
+		function(){
+			$("#content_map").css({
+				"width": width_map + "px", "height": height_map + "px",
+				"top": 0 + "px", "left": 0 + "px"
+			});
+		}
+	);	
 }
 function load_TOD_construct_DOM(){
 	$("#content_new").append(html_TOD);
@@ -946,12 +959,15 @@ function load_TOD_list_subcat(subcat){
 }
 
 function load_map(){
-	var downscale = 0.5;
+	width_map = Math.round((height_map * width_screen) / height_screen);
+	map_scale = height_screen / height_map;
+
 	$("#main").append('<div id="content_new"></div>');
 	$("#content_new").css({
 		"position": "absolute", 
 		"width": width_screen + "px", "height": height_screen + "px",
-		"top": 0 + "px", "left": 0 + "px"
+		"top": 0 + "px", "left": 0 + "px",
+		"background": "#EAEAEA"
 	});
 	//Include position relative container
 	$("#content_new").append('<div id="content_container_map"></div>')
@@ -963,9 +979,8 @@ function load_map(){
 	$("#content_container_map").append('<div id="content_map"></div>')
 	$("#content_map").css({
 		"position": "absolute",
-		"width": width_screen*downscale + "px", "height": height_screen*downscale + "px",
-		"top": 0 + "px", "left": 0 + "px", 
-		"background": "#EAEAEA"
+		"width": width_map + "px", "height": height_map + "px",
+		"top": 0 + "px", "left": 0 + "px"
 	});
 
 	// Set up a ol_map
@@ -1101,7 +1116,9 @@ function display_map(){
 	}, time_screen_trans, function(){
 		$("#content").remove();
 		$("#content_new").attr("id", "content");
+		$("#content_map").css({"width": width_screen + "px", "height": height_screen + "px"});
 	});
+	//Set the size of
 }
 function openSettings(){
 	//Raise the position of filter div
@@ -1445,6 +1462,9 @@ function closeSettings(){
 		isDetailedOpen = false;
 		$("#content_settings").empty();
 	});	
+
+	//Set the size of
+	$("#content_map").css({"width": width_screen + "px", "height": height_screen + "px"});	
 }
 function openFilter(){
 
@@ -1725,13 +1745,14 @@ function create_map_UI(){
 				map_mode = 0;
 				$("#s img").attr("src", 'img/switch_s_on.png');
 				$("#t img").attr("src", 'img/switch_t_off.png');
+                        }
 			// MJ
 			tg.initMap();
 			tg.setOriginAsCurrentLocation();
 			doLog('change_origin');
 
-			}
-		});		
+			
+		});
 	}
 	//2. TOT
 	if ($("#btn_TOT").length == 0){
@@ -1847,6 +1868,15 @@ function openList(){
 			}
 		);
 	}, time_screen_trans*2);
+	//Reset window size
+	$(window).resize(
+		function(){
+			$("#content_map").css({
+				"width": width_map + "px", "height": height_map + "px",
+				"top": 0 + "px", "left": 0 + "px"
+			});
+		}
+	);	
 }
 
 function constructList(){
@@ -2075,7 +2105,8 @@ function closeList(){
 	//Reset
 	tg.resetCurrentSet();
 
-
+	//Set the size of
+	$("#content_map").css({"width": width_screen + "px", "height": height_screen + "px"});
 }
 
 function openDetail(dest_id){	
@@ -2334,6 +2365,8 @@ function openDetail(dest_id){
 									});
 									$("#content_settings").empty();
 							});
+							//Set the size of
+							$("#content_map").css({"width": width_screen + "px", "height": height_screen + "px"});
 						});					
 				}
 			}
