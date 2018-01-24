@@ -456,11 +456,11 @@ class TgMap {
 
 	goToDc(animation = true, noNeedToCalFactor = false) {
 
-		if (!this.tgOrigin.isOriginInTheBox()) {
+		/*if (!this.tgOrigin.isOriginInTheBox()) {
 			// move the center		
 			this.olView.setCenter(ol.proj.fromLonLat(
 					[this.tgOrigin.origin.original.lng, this.tgOrigin.origin.original.lat]));
-		}
+		}*/
 		
 		// cal warping
 		this.tg.graph.calWarping(noNeedToCalFactor);

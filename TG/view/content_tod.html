@@ -1,0 +1,35 @@
+<div id="content_TOD" ng-show="showCat">
+
+	<div class="content_main_heading">
+		<img src="img/headicon_CAT.png"/>
+		<span> Destination categories </span>
+	</div>
+
+	<div ng-repeat="cat in categories">
+		<div class="content_main_cat" ng-click="selectCat($index)">
+			<div class="content_main_cat_image"> <img ng-src="img/TOD_menu{{cat.cat_id}}.png"/></div> 
+			<div class="content_main_cat_text">{{cat.cat_name}}</div>
+			<div class="content_main_cat_circle">
+				<img src="img/TOD_arrow_down.png" ng-show="!isSelectedCat($index)"/>
+				<img src="img/TOD_arrow_up.png" ng-show="isSelectedCat($index)"/>
+			</div>
+		</div>
+		<div ng-show="isSelectedCat($index)">
+			<div ng-repeat="subcat in cat.cat_sub">
+				<div class="content_main_subcat" ng-click="selectSubCat($parent.$index, $index)">
+					<div class="content_main_subcat_image">
+						<img ng-src="{{subcat.cat_img}}"/>
+					</div>
+					<div class="content_main_subcat_image_mask">
+						<img src="img/TOD_mask_safe.png"/>
+					</div>
+					<div class="content_main_subcat_text">{{subcat.cat_name.toUpperCase()}}
+						<div class="content_main_subcat_text_sub">({{subcat.cat_num}} locations)</div>
+					</div>
+					<div class="content_main_subcat_circle"><img src="img/TOD_arrow_next.png"/></div>
+				</div>
+			</div>
+		</div>
+	</div>
+		
+</div>

@@ -119,8 +119,8 @@ $(document).ready(function(){
 		async: true,
 		success: function(){
 			//Initial screen setting
-			width_screen = $(window).width();
-			height_screen = $(window).height();
+			//width_screen = $(window).width();
+			//height_screen = $(window).height();
 			height_screen_safe = 800;
 			if (height_screen - 65 < 800){
 				height_screen_safe = height_screen - 65;
@@ -827,14 +827,14 @@ function proceed_login(input_email, input_pw){
 
 //Load screen TOD
 //allows a user to browse TOD
-function load_TOD(){
+//function load_TOD(){
 	//Content empty and reload
-	$("#user_name").css("font-weight", 700);
-	$("#user_name").append(user_info["name"]);
-	$("#header_inside_right").append('<span style="padding-left:20px; padding-right:20px vertical-align:middle" id="to_my_fav"> My favorite</span>');
-	$("#header_inside_right").append('<span style="padding-left:20px; padding-right:20px vertical-align:middle" id="to_signout"> Sign out </span>');
-	$("#to_my_fav").on("mouseover", function(){$(this).css("cursor","pointer");});
-	$("#to_signout").on("mouseover", function(){$(this).css("cursor","pointer");});
+	//$("#user_name").css("font-weight", 700);
+	//$("#user_name").append(user_info["name"]);
+	//$("#header_inside_right").append('<span style="padding-left:20px; padding-right:20px vertical-align:middle" id="to_my_fav"> My favorite</span>');
+	//$("#header_inside_right").append('<span style="padding-left:20px; padding-right:20px vertical-align:middle" id="to_signout"> Sign out </span>');
+	//$("#to_my_fav").on("mouseover", function(){$(this).css("cursor","pointer");});
+	//$("#to_signout").on("mouseover", function(){$(this).css("cursor","pointer");});
 
 	//Event handling
 	$("#to_my_fav").on("click", function(){
@@ -848,10 +848,10 @@ function load_TOD(){
 	});	
 	//Sort of hack: NEVERMIND
 	//$("#content_new").css("top", + height_transition_gap*(-1) + "px");
-	load_TOD_construct_DOM();
+	//load_TOD_construct_DOM();
 }
-function load_TOD_construct_DOM(){
-	$("#content_TOD").css("height", height_screen_safe);
+/*function load_TOD_construct_DOM(){
+	//$("#content_TOD").css("height", height_screen_safe);
 	$("#content_TOD").append(html_TOD);
 
 	//get information
@@ -868,8 +868,8 @@ function load_TOD_construct_DOM(){
 			$(".content_main_textarea_TOD").css({"height": (height_screen_safe - 40 )+ "px"});
 
 			for (i=0; i<data_cat.cat.length;i++){
-				this_cat_id = data_cat.cat[i]["cat_id"];
-				this_cat_name = data_cat.cat[i]["cat_name"];
+				//this_cat_id = data_cat.cat[i]["cat_id"];
+				//this_cat_name = data_cat.cat[i]["cat_name"];
 				//Add each column .list_down = closed .list_up = opened
 				$(".content_main_textarea_TOD").append('<div id="cat_'+ this_cat_id +'" class="content_main_cat"> </div>');
 				$("#cat_"+this_cat_id).css("cursor", "pointer");
@@ -905,8 +905,8 @@ function load_TOD_construct_DOM(){
 			if(mode_debug){console.log(error);}
 		}				
 	});
-}
-function load_TOD_list_subcat(subcat){
+}*/
+/*function load_TOD_list_subcat(subcat){
 	if(mode_debug){console.log(subcat);}
 	var idx = subcat.split("_")[1]-1;
 	//Step 1. Make a list
@@ -939,29 +939,29 @@ function load_TOD_list_subcat(subcat){
 			tg.map.tgLocs.changeType(numCat, numSubcat);
 		});
 	}
-}
+}*/
 
-function load_map(){
+//function load_map(){
 	//Include position relative container
-	$("#content_map").css("height", height_screen_safe);
-	$("#content_map").append('<div id="content_map_wrapper" style = "position:relative"></div>')
+	//$("#content_map").css("height", height_screen_safe);
+	//$("#content_map").append('<div id="content_map_wrapper" style = "position:relative"></div>')
 
 	//Set up a map container
-	$("#content_map_wrapper").append('<div id="content_map_inside"></div>')
-	$("#content_map_inside").css({
-		"position": "absolute",
-		"width": $("#content_map").width() + "px", "height": $("#content_map").height() + "px",
-		"top": 0 + "px", "left": 0 + "px", 
-		"background": "#EAEAEA"
-	});
+	//$("#content_map_wrapper").append('<div id="content_map_inside"></div>')
+	//$("#content_map_inside").css({
+	//	"position": "absolute",
+	//	"width": $("#content_map").width() + "px", "height": $("#content_map").height() + "px",
+	//	"top": 0 + "px", "left": 0 + "px", 
+	//	"background": "#EAEAEA"
+	//});
 
 	// Set up a ol_map
-	$("#content_map_inside").append('<div id="ol_map" class="ol_map"></div>');
-	$("#ol_map").css({
-		"width": "100%", "height": "100%"
-	});
+	//$("#content_map_inside").append('<div id="ol_map" class="ol_map"></div>');
+	//$("#ol_map").css({
+	//	"width": "100%", "height": "100%"
+	//});
 
-	getCurrentLocation()
+	/*getCurrentLocation()
 	.then((data) => {
 		// create the main app object
 		tg = new TgApp('ol_map');
@@ -993,11 +993,12 @@ function load_map(){
 		tg = new TgApp('ol_map');
 		tg.setOriginAsDefault();
 	});
+	*/
 
 	//TIME_LOGGING START
-	time_mode_start = Math.floor(Date.now() / 1000);
-	console.log("started logging the first mode");
-	console.log("current mode: "+ time_mode_current);
+	//time_mode_start = Math.floor(Date.now() / 1000);
+	//console.log("started logging the first mode");
+	//console.log("current mode: "+ time_mode_current);
 
 	//Set up an empty filter container (from bottom to top)
 	$("#content_map_inside").append('<div id="content_filter"></div>')
@@ -1019,28 +1020,28 @@ function load_map(){
 
 	//UI: TOP RIGHT SIDE
 	//1. gotoSet
-	var width_button = 58;
+	/*var width_button = 58;
 	$("#content_map_inside").append('<div id="btn_gotoSet"><img src="img/btn_settings.png"/></div>');
 	$("#btn_gotoSet").css({
 		"position": "absolute",
 		"top": height_UI_margin + "px", "right": width_UI_margin*2 + width_button + "px"
 	});
 	$("#btn_gotoSet").on("mouseover", function(){$(this).css({cursor:"pointer"})});
-	$("#btn_gotoSet").on("click", function(){openSettings();});
+	$("#btn_gotoSet").on("click", function(){openSettings();});*/
 	//3. gotoFilter
-	$("#content_map_inside").append('<div id="btn_gotoFilter"><img src="img/btn_gotoFilter.png"/></div>');
+	/*$("#content_map_inside").append('<div id="btn_gotoFilter"><img src="img/btn_gotoFilter.png"/></div>');
 	$("#btn_gotoFilter").css({ //switch
 		"position": "absolute", 
 		"top": height_UI_margin + "px", "right": width_UI_margin + "px"
 	});
 	//Event - gotoFilter T.B.D.
 	$("#btn_gotoFilter").on("mouseover", function(){$(this).css({cursor:"pointer"})});
-	$("#btn_gotoFilter").on("click", function(){openFilter();});
+	$("#btn_gotoFilter").on("click", function(){openFilter();});*/
 
-	create_map_UI(); //For buttons at the bottom
+	//create_map_UI(); //For buttons at the bottom
 
 	//Add search bar
-	$("#content_map_inside").append('<div id="map_search"> <input type="text" id="search_orig" class= "input_text_underline" name="orig" placeholder="Type where you are now!"/></div>'); 
+	/*$("#content_map_inside").append('<div id="map_search"> <input type="text" id="search_orig" class= "input_text_underline" name="orig" placeholder="Type where you are now!"/></div>'); 
 	//$("#map_search").append('<span class="content_btn_disabled" id="loc_search"> <img src="img/POINT.png"/></span>');
 
 	// J Y's address setting
@@ -1091,11 +1092,11 @@ function load_map(){
 			
 		}
 	});
-}
+}*/
 
-function create_map_UI(){
+//function create_map_UI(){
 	//UI BOTTOM LEFT SIDE - Switch
-	$("#content_map_inside").append('<div id="btn_switch"></div>');
+	/*$("#content_map_inside").append('<div id="btn_switch"></div>');
 	if(map_mode ==0){ //WM mode
 		$("#btn_switch").append('<span id="s"><img src="img/switch_s_on.png"/></span>');
 		$("#btn_switch").append('<span id="t"><img src="img/switch_t_off.png"/></span>');
@@ -1163,10 +1164,10 @@ function create_map_UI(){
 			}			
 		}
 		
-	});
+	});*/
 
 	//UI UP RIGHT SIDE 
-	var width_button = 58;
+	/*var width_button = 58;
 	var width_switch = 198;
 	//1. resetOrigin
 	$("#content_map_inside").append('<div id="btn_resetOrigin"><img src="img/btn_resetOrigin.png"/></div>');
@@ -1179,9 +1180,9 @@ function create_map_UI(){
 	$("#btn_resetOrigin").on("click", function(){
 		tg.initMap();
 		tg.setOriginAsCurrentLocation();
-	});
+	});*/
 	//2. TOT
-	$("#content_map_inside").append('<div id="btn_TOT"><img src="'+'img/btn_TOT_'+map_TOT+'.png"/></div>');
+	/*$("#content_map_inside").append('<div id="btn_TOT"><img src="'+'img/btn_TOT_'+map_TOT+'.png"/></div>');
 	$("#btn_TOT").on("mouseover", function(){$(this).css({cursor:"pointer"})});
 	$("#btn_TOT").css({ //switch
 		"position": "absolute", 
@@ -1189,11 +1190,11 @@ function create_map_UI(){
 	});
 	$("#btn_TOT").on("click", function(){
 		constructPopup("MODE OF TRANSPORTATION", html_popup_TOT, "TOT");
-	}); 
+	});*/ 
 
 	//UI_TOP SIDE
 	//3 Zoom in and out
-	if ($("#btn_zoom").length == 0){
+	/*if ($("#btn_zoom").length == 0){
 		$("#content_map_inside").append('<div id="btn_zoom"></div>');
 		$("#btn_zoom").append('<div id="zoomin"><img style = "display: block;" src="img/btn_zoomin.png"/></div>');
 		$("#btn_zoom").append('<div id="zoomout"><img style = "display: block;" src="img/btn_zoomout.png"/></div>');
@@ -1237,7 +1238,7 @@ function create_map_UI(){
 				tg.zoomOut();
 			}							
 		});
-	}	
+	}	*/
 }
 function remove_map_UI(){
 	$("#btn_switch").remove();

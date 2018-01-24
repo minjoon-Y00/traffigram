@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html ng-app="traffigramApp" ng-cloak>
+	<head>
+		<title>Traffigram</title>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+		<link href='./css/traffigram.css' type='text/css' rel='stylesheet'/>
+		<link href="https://fonts.googleapis.com/css?family=PT+Sans+Narrow|Roboto+Condensed|Roboto:100,300,300i,400,400i,500,700|" rel="stylesheet">
+		<link rel="stylesheet" href="https://openlayers.org/en/v3.20.0/css/ol.css" type="text/css">
+		<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">-->
+
+	</head>
+
+	<body ng-controller="tgController">
+		<div id="main">
+
+			<div id="content_map">
+				<!-- map -->
+				<div id="ol_map" class="ol_map"></div>
+
+	  		<!-- top-left -->
+	  		<div id="btn_gotoCat" ng-click="goToCat()"><img src="img/btn_gotoCat.png"/></div>
+	  		<div id="map_search"> <input type="text" id="search_orig" class="tg_input_style" placeholder="Type where you are now!"/></div>
+	  		<div ng-include="'./view/content_tod.html'"></div>
+
+	  		<!-- top-right -->
+	  		
+
+	  		<div id="btn_sign_in">
+	  			<a href="#signInModal" data-backdrop="false" data-toggle="modal">
+	  				<img src="img/btn_sign_in.png"/>
+	  			</a>
+	  		
+	  		</div>
+	  		<div id="btn_sign_up" ng-click="signUp()"><img src="img/btn_sign_up.png"/></div>
+	  		<div id="howdy_text"> <input type="text" id="howdy_input" class="tg_input_style" placeholder="Howdy, {{userName}}!"/></div>
+	  		<div id="btn_gotoSet" ng-click="openSetting()"><img src="img/btn_settings.png"/></div>
+
+				<!-- bottom-left -->
+	  		<div id="btn_switch">
+	  			<span id="s">
+	  				<img src="img/switch_s_on.png" class="cursorDefault" ng-show="!isDC"/>
+						<img src="img/switch_s_off.png" ng-show="isDC" ng-click="goToEM()"/>
+	  			</span>
+	  			<span id="t" style="margin-left:-5px">
+	  				<img src="img/switch_t_off.png" ng-show="!isDC" ng-click="goToDC()"/>
+						<img src="img/switch_t_on.png" class="cursorDefault" ng-show="isDC"/>
+	  			</span>
+	  		</div>
+
+	  		<div id="btn_TOT" ng-show="!showAllTOT" ng-click="onTOT()"><img ng-src="img/btn_TOT_{{TOT}}.png"/></div>
+
+	  		<div id="btn_all_TOT" ng-show="showAllTOT">
+	  			<div id="btn_all_TOT0" ng-click="selectTOT(0)">
+	  				<img ng-src="img/btn_TOT_0.png" ng-show="isTOT(0)"/>
+	  				<img ng-src="img/btn_TOT_0_disabled.png" ng-show="!isTOT(0)"/>
+	  			</div>
+	  			<div id="btn_all_TOT1" ng-click="selectTOT(1)">
+	  				<img ng-src="img/btn_TOT_1.png" ng-show="isTOT(1)"/>
+	  				<img ng-src="img/btn_TOT_1_disabled.png" ng-show="!isTOT(1)"/>
+	  			</div>
+	  			<div id="btn_all_TOT2" ng-click="selectTOT(2)">
+						<img ng-src="img/btn_TOT_2.png" ng-show="isTOT(2)"/>
+	  				<img ng-src="img/btn_TOT_2_disabled.png" ng-show="!isTOT(2)"/>
+	  			</div>	
+	  		</div>
+	  		
+	  		<div id="btn_gotoList" ng-click="goToList()"><img ng-src="img/btn_gotoList.png"/></div>
+
+				<!-- bottom-right -->
+	  		<div id="btn_resetOrigin" ng-click="resetOrigin()"><img src="img/btn_resetOrigin.png"/></div>
+	  		<div id="btn_zoom">
+	  			<div ng-click="zoom('in')"><img style = "display: block;" src="img/btn_zoomin.png"/></div>
+	  			<div ng-click="zoom('out')"><img style = "display: block;" src="img/btn_zoomout.png"/></div>
+	  		</div>
+
+  		</div>
+			
+		</div>
+
+		<div id="right_panel">
+			<div id="content_list" ng-show="showList">
+				<div class="content_main_heading">
+					<span id="currentTOD">
+						<img ng-src="img/headicon_menu{{catIdx + 1}}.png"/>
+						{{categoryName}}
+					</span>
+				</div>
+				<div id="content_list_textarea" class="content_main_textarea_list">
+				</div>
+			</div>
+
+	  	<div ng-include="'./view/content_filter.html'"></div>
+
+		</div>
+
+		
+		<div id="signInModal" class="modal fade modeless">
+		    <div class="modal-dialog">
+		        <div class="modal-content">
+		            <div class="modal-header">
+		                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		                 <h4 class="modal-title">Settings</h4>
+
+		            </div>
+		            <div class="modal-body">
+		                <p>Settings</p>
+		            </div>
+		            <div class="modal-footer">
+		                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		                <button type="button" class="btn btn-primary">Save changes</button>
+		            </div>
+		        </div>
+		        <!-- /.modal-content -->
+		    </div>
+		    <!-- /.modal-dialog -->
+		</div>
+		<!-- /.modal -->
+
+
+
+
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAafQHcRi3Zoi6JV0PDlNJPoVt2iqx_Fc&libraries=places&language=en"></script>
+		<script src="https://openlayers.org/en/v3.20.0/build/ol.js"></script>
+		<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+		<script type="text/javascript" src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<!--<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js" type="text/javascript"></script>-->
+		<script src="./vendor/angular.min.js"></script>
+		<script src="./vendor/bootstrap.min.js"></script>
+		<script src="./vendor/quantCDQ.js"></script>
+		<script src="./vendor/ordCDQ.js"></script>	
+
+		<!--<script src="./getParameters.js"></script>
+		<script src="./vendor/tps.js"></script>
+		<script src="./data/tod_th.js"></script>
+
+		<script src="../app/src/tg_data_full.js"></script>
+		<script src="../app/src/tg_util.js"></script>
+		<script src="../app/src/tg_graph.js"></script>
+
+		<script src="../app/src/node/tg_node.js"></script>
+		<script src="../app/src/node/tg_location_node.js"></script>
+		<script src="../app/src/node/tg_control_point.js"></script>
+		<script src="../app/src/api/tg_travel_time_api.js"></script>
+
+		<script src="../app/src/map/tg_map_util.js"></script>
+		<script src="../app/src/map/tg_map_roads.js"></script>
+		<script src="../app/src/map/tg_map_water.js"></script>
+		<script src="../app/src/map/tg_map_landuse.js"></script>
+		<script src="../app/src/map/tg_map_places.js"></script>
+		<script src="../app/src/map/tg_map_locations.js"></script>
+		<script src="../app/src/map/tg_map_isochrone.js"></script>
+		<script src="../app/src/map/tg_map_bounding_box.js"></script>
+		<script src="../app/src/map/tg_map_origin.js"></script>
+		<script src="../app/src/map/tg_map_grid.js"></script>
+		<script src="../app/src/map/tg_map_control.js"></script>
+		<script src="../app/src/map/tg_map_interactions.js"></script>
+		<script src="../app/src/tg_map.js"></script>
+		<script src="../app/src/tg_app.js"></script>-->
+
+
+		<script src="./js/tg_controller.js"></script>
+		<script src="./js/tg_filter_controller.js"></script>
+		<script src="./js/tg.js"></script>
+	</body>
+</html>

@@ -4,6 +4,7 @@
 
 class TgApp {
 	constructor(map_id) {
+		console.log(TgData);
 		this.data = TgData;
 		this.graph = new TgGraph(this, this.data);
 		this.map = new TgMap(this, map_id);

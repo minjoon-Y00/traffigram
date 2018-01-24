@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html ng-app="infovis18Test1App" ng-cloak>
+	<head>
+		<title>Test1</title>
+		<link href="https://fonts.googleapis.com/css?family=PT+Sans+Narrow|Roboto+Condensed|Roboto:100,300,300i,400,400i,500,700|" rel="stylesheet">
+		<link rel="stylesheet" href="https://openlayers.org/en/v3.20.0/css/ol.css" type="text/css">
+    <link rel="stylesheet" href="../../vendor/bootstrap-darkly.min.css">
+		<link rel="stylesheet" href="./test1.css"/>
+
+	</head>
+
+	<body ng-controller="infovis18Test1Controller">
+		<div id="main">
+			<div id="ol_map" class="ol_map"></div>
+		</div>
+
+				
+		<div id="right_panel">
+			<h4>Layers</h4>
+        <label class='marginR'>
+          <input type="checkbox" id="dispWaterCB"/>
+          <span class='marginL'>Water</span>
+        </label>
+        <label class='marginR'>
+          <input type="checkbox" id="dispRoadsCB"/>
+          <span class='marginL'>Road</span>
+        </label>
+        <label class='marginR'>
+          <input type="checkbox" id="dispLanduseCB"/>
+          <span class='marginL'>Landuse</span>
+        </label>
+        <label class='marginR'>
+          <input type="checkbox" id="dispLocationCB" checked/>
+          <span class='marginL'>Location</span>
+        </label> 
+        <label class='marginR'>
+          <input type="checkbox" id="dispPlaceCB"/>
+          <span class='marginL'>Place(name)</span>
+        </label>
+        <label class='marginR'>
+          <input type="checkbox" id="dispOriginCB"/>
+          <span class='marginL'>Origin</span>
+        </label>
+        <label class='marginR'>
+          <input type="checkbox" id="dispIsochroneCB" disabled/>
+          <span class='marginL'>Isochrone</span>
+        </label>
+
+      <h4>Origin</h4>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin0RB" checked>Seattle</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin1RB">Bellevue</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin2RB">Mercer Island</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin3RB">Redmond</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin4RB">Kirkland</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin5RB">Mountlake Terrace</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin6RB">Burien</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin7RB">Tukwila</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin8RB">Shorline</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="originRadio" id="origin9RB">Edmonds</label>
+        </div>
+
+      <h4>Zoom</h4>
+        <button type="button" id="debugBtn" class="btn btn-primary btn-sm">Zoom In</button>
+        <button type="button" id="debugBtn" class="btn btn-primary btn-sm">Zoom Out</button>
+
+		</div>
+
+
+
+		<script src="https://openlayers.org/en/v3.20.0/build/ol.js"></script>
+		<script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+		<script src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="../../vendor/angular.min.js"></script>
+		<script src="../../vendor/bootstrap.min.js"></script>
+		<script src="../../vendor/tps.js"></script>
+
+		<script src="./config.js"></script>
+		<script src="./data/tod_th.js"></script>
+
+		<script src="../../app/src/tg_util.js"></script>
+		<script src="../../app/src/tg_graph.js"></script>
+
+		<script src="../../app/src/node/tg_node.js"></script>
+		<script src="../../app/src/node/tg_location_node.js"></script>
+		<script src="../../app/src/node/tg_control_point.js"></script>
+		<script src="../../app/src/api/tg_travel_time_api.js"></script>
+
+		<script src="../../app/src/map/tg_map_util.js"></script>
+		<script src="../../app/src/map/tg_map_roads.js"></script>
+		<script src="../../app/src/map/tg_map_water.js"></script>
+		<script src="../../app/src/map/tg_map_landuse.js"></script>
+		<script src="../../app/src/map/tg_map_places.js"></script>
+		<script src="../../app/src/map/tg_map_locations.js"></script>
+		<script src="../../app/src/map/tg_map_isochrone.js"></script>
+		<script src="../../app/src/map/tg_map_bounding_box.js"></script>
+		<script src="../../app/src/map/tg_map_origin.js"></script>
+		<script src="../../app/src/map/tg_map_grid.js"></script>
+		<script src="../../app/src/map/tg_map_control.js"></script>
+		<script src="../../app/src/map/tg_map_interactions.js"></script>
+		<script src="../../app/src/tg_map.js"></script>
+		<script src="../../app/src/tg_app.js"></script>
+
+
+		<script src="./js/test1_controller.js"></script>
+		<script src="./js/test1.js"></script>
+	</body>
+</html>
