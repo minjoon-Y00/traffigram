@@ -214,8 +214,10 @@ var TgData = {
 	var: {
 		animationSpeed: 50, // ms
 		//apiKeyVectorTile: 'vector-tiles-c1X4vZE', // mine
-		apiKeyVectorTile: 'mapzen-dKpzpj5', // Ray's
+		//apiKeyVectorTile: 'mapzen-dKpzpj5', // Ray's
 		//apiKeyTimeMatrix: 'matrix-AGvGZKs', // mine
+		apiKeyVectorTile: 'pk.eyJ1IjoiYmFzc3QiLCJhIjoiY2pjamY0Y2RwMnk0cDJ3dDVqNHM4aWNqcCJ9.6_wLvPhbNLT_x4npXkWO2A',
+
 		apiKeyTimeMatrix: 'matrix-qUpjg6W', // Ray's
 		appMode: 'pc', // 'mobile'
 		appDispMode: 'normal',
@@ -263,6 +265,7 @@ var TgData = {
 	time: {
 		waitForFinishGettingWaterData: 500, // ms
 		waitForFinishGettingRoadData: 1000, // ms
+		waitForGettingVectorTile: 20, // ms
 		waitForGettingData: 20, // ms
 		waitForGettingRoadData: 100, // ms // 50
 		waitForGettingWaterData: 100, // ms // 50

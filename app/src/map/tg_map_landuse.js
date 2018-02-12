@@ -51,26 +51,40 @@ class TgMapLanduse {
 		return outArray;
 	}
 
-	init() {
-		const source = new ol.source.VectorTile({
-		  format: new ol.format.TopoJSON(),
-		  projection: 'EPSG:3857',
-		  tileGrid: new ol.tilegrid.createXYZ({maxZoom: 22}),
-		  url: 'https://tile.mapzen.com/mapzen/vector/v1/landuse/{z}/{x}/{y}.topojson?' 
-	    	+ 'api_key=' + this.data.var.apiKeyVectorTile
-		  //url: 'https://tile.mapzen.com/mapzen/vector/v1/landuse/{z}/{x}/{y}.topojson?' 
-	    //	+ 'api_key=vector-tiles-c1X4vZE'
-	    //url: 'https://tile.mapzen.com/mapzen/vector/v1/landuse/{z}/{x}/{y}.topojson?' 
-	    //	+ 'api_key=mapzen-dKpzpj5'
-		});
+	addObject(type, coords) {
 
-		this.mapUtil.addLayer(new ol.layer.VectorTile({
-		  source: source,
-		  style: this.addToLanduseObject.bind(this),
-		}));
+		// TODO: needed?
+		coords.type = 'l';
+
+		let landuseClass = -1;
+
+		switch(type) {
+			case 'park':
+				landuseClass = 0;
+				break;
+			case 'cemetery':
+				landuseClass = 1;
+				break;	
+			case 'hospital':
+				landuseClass = 2;
+				break;	
+			case 'school':
+				landuseClass = 3;
+				break;
+			case 'wood':
+				landuseClass = 4;
+				break;
+		}
+
+		if (landuseClass >= 0) {
+			this.landuseObjects[landuseClass].push(coords);
+			this.newLanduseObjects[landuseClass].push(coords);
+			this.dispLanduseObjects[landuseClass].push(coords);
+		}
 	}
 
-	addToLanduseObject(feature, resolution) {
+
+	/*addToLanduseObject(feature, resolution) {
 		if (this.timerGetLanduseData) clearTimeout(this.timerGetLanduseData);
 		this.timerGetLanduseData = 
 				setTimeout(
@@ -152,7 +166,7 @@ class TgMapLanduse {
 			this.dispLanduseObjects[landuseClass].push(coords);
 		}
 		return null;
-	}
+	}*/
 
 	processNewLanduseObjects() {
 		if (this.map.currentMode === 'EM') {
@@ -178,7 +192,7 @@ class TgMapLanduse {
 				}
 				
 				let isIn = false;
-				if (landuse[0][0].node) { // Polygon
+				if (landuse.geo === 'p') { // Polygon
 					for(let i = 0; i < landuse.length; i++) {
 						for(let j = 0; j < landuse[i].length; j++) {
 							const lat = landuse[i][j].node.original.lat;
@@ -205,7 +219,7 @@ class TgMapLanduse {
 
 		for(let cl = 0; cl < numClass; cl++) {
 			for(let landuse of this.dispLanduseObjects[cl]) {
-				if (landuse[0][0].node) { // Polygon
+				if (landuse.geo === 'p') { // Polygon
 					for(let i = 0; i < landuse.length; i++) {
 						for(let j = 0; j < landuse[i].length; j++) {
 							landuse[i][j][0] = landuse[i][j].node.disp.lng; 
@@ -226,7 +240,7 @@ class TgMapLanduse {
 			const styleFunc = this.mapUtil.polygonStyleFunc(viz.color.landuse[cl]);
 
 			for(let landuse of this.newLanduseObjects[cl]) {
-				if (landuse[0][0].node) { // Polygon
+				if (landuse.geo === 'p') { // Polygon
 					this.mapUtil.addFeatureInFeatures(
 						arr, new ol.geom.Polygon(landuse), styleFunc, 'l');
 				}
@@ -254,7 +268,7 @@ class TgMapLanduse {
 			const styleFunc = this.mapUtil.polygonStyleFunc(viz.color.landuse[cl]);
 
 			for(let landuse of this.dispLanduseObjects[cl]) {
-				if (landuse[0][0].node) { // Polygon
+				if (landuse.geo === 'p') { // Polygon
 					this.mapUtil.addFeatureInFeatures(
 						arr, new ol.geom.Polygon(landuse), styleFunc, 'l');
 				}
@@ -300,7 +314,7 @@ class TgMapLanduse {
 			for(let landuse of this.dispLanduseObjects[cl]) {
 				let modified;
 
-				if (landuse[0][0].node) { // Polygon
+				if (landuse.geo === 'p') { // Polygon
 					for(let i = 0; i < landuse.length; i++) {
 						for(let j = 0; j < landuse[i].length; j++) {
 							modified = 
@@ -320,7 +334,7 @@ class TgMapLanduse {
 		for(let cl = 0; cl < numClass; cl++) {
 			for(let landuse of this.dispLanduseObjects[cl]) {
 
-				if (landuse[0][0].node) { // Polygon
+				if (landuse.geo === 'p') { // Polygon
 					if (kind === 'intermediateReal') {
 						for(let i = 0; i < landuse.length; i++) {
 							for(let j = 0; j < landuse[i].length; j++) {
@@ -389,7 +403,7 @@ class TgMapLanduse {
 
 		for(let cl = 0; cl < numClass; cl++) {
 			for(let landuse of this.newLanduseObjects[cl]) {
-				if (landuse[0][0].node) { // Polygon
+				if (landuse.geo === 'p') { // Polygon
 					for(let nodes of landuse) {
 						// edge
 						this.mapUtil.addFeatureInFeatures(
@@ -425,7 +439,7 @@ class TgMapLanduse {
 
 		for(let cl = 0; cl < numClass; cl++) {
 			for(let landuse of this.dispLanduseObjects[cl]) {
-				if (landuse[0][0].node) { // Polygon
+				if (landuse.geo === 'p') { // Polygon
 					for(let nodes of landuse) {
 						// edge
 						this.mapUtil.addFeatureInFeatures(

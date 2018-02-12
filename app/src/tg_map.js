@@ -74,6 +74,7 @@ class TgMap {
 		// modules
 
 		this.mapUtil = new TgMapUtil(this.data, this.olMap);
+	  this.tgVecTile = new TgMapVectorTile(this, this.data);
 	  this.tgWater = new TgMapWater(this, this.data, this.graph);
 	  this.tgRoads = new TgMapRoads(this, this.data, this.graph);
 	  this.tgLanduse = new TgMapLanduse(this, this.data, this.graph);
@@ -115,10 +116,12 @@ class TgMap {
 
 		// initialization
 
-		if (this.data.elements.water.disp) this.tgWater.init();
-		if (this.data.elements.road.disp) this.tgRoads.init();
-		if (this.data.elements.landuse.disp) this.tgLanduse.init();
-		if (this.data.elements.place.disp) this.tgPlaces.init();
+		this.tgVecTile.init();
+
+		//if (this.data.elements.water.disp) this.tgWater.init();
+		//if (this.data.elements.road.disp) this.tgRoads.init();
+		//if (this.data.elements.landuse.disp) this.tgLanduse.init();
+		//if (this.data.elements.place.disp) this.tgPlaces.init();
 	  
 	  this.tgOrigin.setPresets();
 
@@ -127,24 +130,29 @@ class TgMap {
   	this.tgWater.turn(this.data.elements.water.disp);
   	$('#dispWaterCB').prop('checked', this.data.elements.water.disp);
 
+  	this.tgOrigin.turn(true);
+	  $('#dispOriginCB').prop('checked', true);
+  	
 	  this.tgRoads.turn(this.data.elements.road.disp);
 	  $('#dispRoadsCB').prop('checked', this.data.elements.road.disp);
 	  
 	  this.tgLanduse.turn(this.data.elements.landuse.disp);
 	  $('#dispLanduseCB').prop('checked', this.data.elements.landuse.disp);
-	  
+
+		this.tgLocs.turn(true);
+	  $('#dispLocationCB').prop('checked', true);
+
+	  /*
 	  this.tgPlaces.turn(this.data.elements.place.disp);
 	  $('#dispPlaceCB').prop('checked', this.data.elements.place.disp);	  
 
-	  this.tgLocs.turn(true);
-	  $('#dispLocationCB').prop('checked', true);
+	  
 
-	  this.tgOrigin.turn(true);
-	  $('#dispOriginCB').prop('checked', true);
+	  
 
 	  this.tgIsochrone.turn(true);
 	  $('#dispIsochroneCB').prop('checked', true);
-
+*/
 	  //this.tgGrids.turn(true);
 	  //$('#dispGridCB').prop('checked', true);
 
@@ -431,8 +439,16 @@ class TgMap {
 	// Redraw all layers of displayed elements
 	//		
 	updateLayers() {
-		var s = (new Date()).getTime();
+		//var s = (new Date()).getTime();
 
+
+		this.tgWater.render();
+		this.tgRoads.render();
+		this.tgLanduse.render();
+		this.tgOrigin.render();
+		this.tgLocs.render();
+		this.tgPlaces.render();
+		this.tgGrids.render();
 		
 		this.tgBB.render();
 

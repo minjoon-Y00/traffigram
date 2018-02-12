@@ -93,12 +93,42 @@ class TgApp {
 		this.map.changeTransportType(type);
 	}
 
+	setCenter(obj) {
+		this.map.setCenter(obj.lat, obj.lng);
+	}
+
 	zoomIn() {
 		this.map.zoomIn();
 	}
 
 	zoomOut() {
 		this.map.zoomOut();
+	}
+
+	turn(type, on) {
+		console.log(type + ' ' + on);
+
+		switch(type) {
+			case 'water':
+  			this.map.tgWater.turn(on);
+  			break;
+  		case 'road':
+  			this.map.tgRoads.turn(on);
+  			break;
+  		case 'landuse':
+  			this.map.tgLanduse.turn(on);
+  			break;
+  		case 'location':
+  			this.map.tgLocs.turn(on);
+  			break;
+  		case 'origin':
+  			this.map.tgOrigin.turn(on);
+  			break;
+		}
+	}
+
+	updateLayer() {
+		this.map.updateLayers();
 	}
 }
 

@@ -27,11 +27,14 @@ class TgMapWater {
   	this.rdpThreshold = this.data.var.rdpThreshold.water;
   	this.timeInterval = 0;
   	this.timeIntervalArray = [];
-  	this.styleFunc = this.mapUtil.polygonStyleFunc(this.data.viz.color.water);
+  	this.polyStyleFunc = this.mapUtil.polygonStyleFunc(this.data.viz.color.water);
+  	this.lineStyleFunc = this.mapUtil.lineStyleFunc(this.data.viz.color.water, 1);
 
   	for(let zoom = this.data.zoom.min; zoom <= this.data.zoom.max; zoom++) {
   		this.waterObjects[zoom] = [];
   	}
+
+  	this.temp = false;
 	}
 
 	turn(tf) {
@@ -51,7 +54,41 @@ class TgMapWater {
 		this.clearLayers();
 	}
 
+	addWaterObjects(zoom, coords) {
+
+		if (coords.geo === 'p') {
+			coords.orgFeature.setStyle(this.polyStyleFunc);
+		}
+		else if ((coords.geo === 'ls')||(coords.geo === 'mls')) {
+			coords.orgFeature.setStyle(this.lineStyleFunc);
+		}
+
+		// TODO: needed?
+		coords.type = 'w';
+
+		this.waterObjects[zoom].push(coords);
+		this.newWaterObjects.push(coords);
+		this.dispWaterObjects.push(coords);
+	}
+
 	init() {
+		return;
+
+		var key = 'pk.eyJ1IjoiYmFzc3QiLCJhIjoiY2pjamY0Y2RwMnk0cDJ3dDVqNHM4aWNqcCJ9.6_wLvPhbNLT_x4npXkWO2A';
+
+		const waterSource = new ol.source.VectorTile({
+			/*attributions: '© <a href="https://www.mapbox.com/map-feedback/">Mapbox</a> ' +
+        '© <a href="https://www.openstreetmap.org/copyright">' +
+        'OpenStreetMap contributors</a>',*/
+      format: new ol.format.MVT(),
+      url: 'https://{a-d}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/' +
+          '{z}/{x}/{y}.vector.pbf?access_token=' + key
+      //url: 'https://{a-d}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/' +
+      //    '{z}/{x}/{y}.mvt?access_token=' + key
+    });
+
+    // "https://tile.mapzen.com/mapzen/vector/v1/all/{z}/{x}/{y}.mvt?
+		/*
 		const waterSource = new ol.source.VectorTile({
 		  format: new ol.format.TopoJSON(),
 		  projection: 'EPSG:3857',
@@ -60,19 +97,144 @@ class TgMapWater {
 	    tileSize: [256, 256], //[512, 512],
 		  url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
 	    	+ 'api_key=' + this.data.var.apiKeyVectorTile
-		  //url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
-	    //	+ 'api_key=vector-tiles-c1X4vZE'
-	    //url: 'https://tile.mapzen.com/mapzen/vector/v1/water/{z}/{x}/{y}.topojson?' 
-	    //	+ 'api_key=mapzen-dKpzpj5'
 		})
+		*/
 
 		this.mapUtil.addLayer(new ol.layer.VectorTile({
+      //declutter: true,
 		  source: waterSource,
 		  style: this.addToWaterObject.bind(this)
-		}))
+		}));
+	}
+
+	calCoords(arr) {
+		const len = arr.length / 2;
+		let coords = new Array(len);
+		for(let i = 0; i < len; ++i) {
+			coords[i] = ol.proj.transform(
+				[arr[2 * i], arr[2 * i + 1]], 'EPSG:3857', 'EPSG:4326'
+			);
+		}
+		return coords;
+	}
+
+	calMultiCoords(feature) {
+		const len = feature.g.length;
+		let coords = new Array(len);
+		for(let i = 0; i < len; ++i) {
+			//feature.g[i] // [20, 28]
+			const s = (i === 0) ? 0 : feature.g[i - 1];
+			coords[i] = this.calCoords(feature.b.slice(s, feature.g[i]));
+		}		
+		return coords;
 	}
 
 	addToWaterObject(feature, resolution) {
+
+    const layer = feature.get('layer');
+    if ((layer !== 'water')&&(layer !== 'waterway')) return;
+    //if (layer !== 'waterway') return;
+    //if (layer !== 'road') return;
+    //if (layer !== 'landuse') return;
+
+		const geoType = feature.getGeometry().getType();
+		const zoom = this.data.zoom.current;
+		let coords;
+
+		//if (this.temp) return null;
+
+		//console.log(geoType);
+
+		if (geoType === 'Polygon') {
+			//this.temp = true;
+			//console.log(feature);
+			
+			if (feature.g.length === 1) {
+				coords = [this.calCoords(feature.b)];
+			}
+			else {
+				coords = this.calMultiCoords(feature);
+			}
+
+			for(let i = 0; i < coords.length; i++) {
+				for(let j = 0; j < coords[i].length; j++) {
+					coords[i][j].node = new TgNode(coords[i][j][1], coords[i][j][0]);
+				}
+			}
+
+			//const g = new ol.geom.Polygon(coords);
+			//console.log(g);
+			//console.log(g.getCoordinates());
+
+			coords.orgFeature = 
+				new ol.Feature({geometry: new ol.geom.Polygon(coords)});
+			coords.orgFeature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+			coords.orgFeature.setStyle(this.polyStyleFunc);
+			coords.geo = 'p';
+			coords.type = 'w';
+			coords.dispMode = 1; // original
+			//coords.realFeature = null;
+			
+			this.waterObjects[zoom].push(coords);
+			this.newWaterObjects.push(coords);
+			this.dispWaterObjects.push(coords);
+    }
+
+    if (geoType === 'MultiLineString') {
+    	//console.log('MultiLineString!!!');
+			//console.log(feature);
+
+			coords = this.calMultiCoords(feature);
+
+			for(let i = 0; i < coords.length; i++) {
+				for(let j = 0; j < coords[i].length; j++) {
+					coords[i][j].node = new TgNode(coords[i][j][1], coords[i][j][0]);
+				}
+			}
+
+			coords.orgFeature = 
+				new ol.Feature({geometry: new ol.geom.MultiLineString(coords)});
+			coords.orgFeature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+			coords.orgFeature.setStyle(this.lineStyleFunc);
+			coords.geo = 'mls'
+			coords.type = 'w';
+			coords.dispMode = 1; // original
+			//coords.realFeature = null;
+			
+			this.waterObjects[zoom].push(coords);
+			this.newWaterObjects.push(coords);
+			this.dispWaterObjects.push(coords);
+
+
+    }
+
+    if (geoType === 'LineString') {
+    	//console.log('LineString!!!');
+			//console.log(feature);
+
+			coords = this.calCoords(feature.b);
+
+			for(let i = 0; i < coords.length; i++) {
+				coords[i].node = new TgNode(coords[i][1], coords[i][0]);
+			}
+
+			coords.orgFeature = 
+				new ol.Feature({geometry: new ol.geom.LineString(coords)});
+			coords.orgFeature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+			coords.orgFeature.setStyle(this.lineStyleFunc);
+			coords.geo = 'ls'
+			coords.type = 'w';
+			coords.dispMode = 1; // original
+			//coords.realFeature = null;
+			
+			this.waterObjects[zoom].push(coords);
+			this.newWaterObjects.push(coords);
+			this.dispWaterObjects.push(coords);
+
+    }
+
+
+
 
 		if (this.timerGetWaterData) clearTimeout(this.timerGetWaterData);
 		this.timerGetWaterData = 
@@ -84,9 +246,10 @@ class TgMapWater {
 			clearTimeout(this.map.timerCheckGridSplitInTgMap);
 		}
 
-		const geoType = feature.getGeometry().getType();
-		const zoom = this.data.zoom.current;
 
+
+		return null;
+		/*
 		// ignores LineString, Point, ...
 		if ((geoType == 'Polygon')||(geoType == 'MultiPolygon')) {
 
@@ -96,7 +259,7 @@ class TgMapWater {
 			// so water, ocean, riverbank, and lake are considered.
 			if ((kind === 'dock')||(kind === 'swimming_pool')) return null;
 
-			feature.getGeometry().transform('EPSG:3857', 'EPSG:4326');
+			//feature.getGeometry().transform('EPSG:3857', 'EPSG:4326');
 
 			let coords = feature.getGeometry().getCoordinates();
 			coords.minZoom = feature.get('min_zoom');
@@ -121,7 +284,7 @@ class TgMapWater {
 				coords.orgFeature = 
 					new ol.Feature({geometry: new ol.geom.Polygon(coords)});
 				coords.orgFeature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
-				coords.orgFeature.setStyle(this.styleFunc);
+				coords.orgFeature.setStyle(this.polyStyleFunc);
 				coords.type = 'w';
 				coords.dispMode = 1; // original
 				//coords.realFeature = null;
@@ -146,8 +309,8 @@ class TgMapWater {
 
 				coords.orgFeature = 
 					new ol.Feature({geometry: new ol.geom.MultiPolygon(coords)});
-				coords.orgFeature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
-				coords.orgFeature.setStyle(this.styleFunc);
+				//coords.orgFeature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+				coords.orgFeature.setStyle(this.polyStyleFunc);
 				coords.type = 'w';
 				coords.dispMode = 1; // original
 				//coords.realFeature = null;
@@ -158,11 +321,12 @@ class TgMapWater {
 			}			
 		}
 		return null;
+		*/
 	}
 
 	processNewWaterObjects() {
 		
-		//console.log('w');
+		console.log('w');
 
 		if (this.timerFinishGettingWaterData) {
 			clearTimeout(this.timerFinishGettingWaterData);
@@ -270,11 +434,11 @@ class TgMapWater {
 			}
 			
 			let isIn = false;
-			if (water[0].length === 0) continue;
+			//if (water[0].length === 0) continue;
 
 			water.dispMode = dispMode;
 
-			if (water[0][0].node) { // Polygon
+			if ((water.geo === 'p')||(water.geo === 'mls')) { // Polygon, MultiLineString
 				for(let i = 0; i < water.length; i++) {
 					for(let j = 0; j < water[i].length; j++) {
 						const lat = water[i][j].node.original.lat;
@@ -288,21 +452,15 @@ class TgMapWater {
 					if (isIn) break;
 				}
 			}
-			else if (water[0][0][0].node) { // MultiPolygon
+			else if (water.geo === 'ls') { // LineString
 				for(let i = 0; i < water.length; i++) {
-					for(let j = 0; j < water[i].length; j++) {
-						for(let k = 0; k < water[i][j].length; k++) {
-							const lat = water[i][j][k].node.original.lat;
-							const lng = water[i][j][k].node.original.lng;
-							if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
-								this.dispWaterObjects.push(water);
-								isIn = true;
-								break;
-							}
-						}
-						if (isIn) break;
+					const lat = water[i].node.original.lat;
+					const lng = water[i].node.original.lng;
+					if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
+						this.dispWaterObjects.push(water);
+						isIn = true;
+						break;
 					}
-					if (isIn) break;
 				}
 			}
 		}
@@ -319,9 +477,9 @@ class TgMapWater {
 		else mode = 'disp';
 
 		for(let water of this.dispWaterObjects) {
-			if (water[0].length === 0) continue;
+			//if (water[0].length === 0) continue;
 
-			if (water[0][0].node) { // Polygon
+			if ((water.geo === 'p')||(water.geo === 'mls')) { // Polygon, MultiLineString
 				for(let i = 0; i < water.length; i++) {
 					for(let j = 0; j < water[i].length; j++) {
 						water[i][j][0] = water[i][j].node[mode].lng;
@@ -337,26 +495,11 @@ class TgMapWater {
 					//console.log('made realFeature');
 				}*/
 			}
-			else if (water[0][0][0].node) { // MultiPolygon
+			else if (water.geo === 'ls') { // LineString
 				for(let i = 0; i < water.length; i++) {
-					for(let j = 0; j < water[i].length; j++) {
-						for(let k = 0; k < water[i][j].length; k++) {
-							water[i][j][k][0] = water[i][j][k].node[mode].lng;
-							water[i][j][k][1]	= water[i][j][k].node[mode].lat;
-						}
-					}
+					water[i][0] = water[i].node[mode].lng;
+					water[i][1]	= water[i].node[mode].lat;
 				}
-
-				/*if ((mode === 'real') && (!water.realFeature)) {
-					water.realFeature = new ol.Feature({geometry: new ol.geom.MultiPolygon(water)});
-					water.realFeature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
-					water.realFeature.setStyle(this.styleFunc);
-					water.realFeature.type = 'w';
-					//console.log('made realFeature');
-				}*/
-			}
-			else {
-				console.log('not known geotype in createDispRoas()');
 			}
 		}
 	}
@@ -368,13 +511,13 @@ class TgMapWater {
 
 		for(let water of this.newWaterObjects) {
 
-			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
+			//if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
 
 			if (this.map.currentMode === 'EM') {
 				arr.push(water.orgFeature);
 			}
 			else if (this.map.currentMode === 'DC') {
-	  		if (water[0][0].node) { // Polygon
+				if ((water.geo === 'p')||(water.geo === 'mls')) { // Polygon, MultiLineString
 					for(let i = 0; i < water.length; i++) {
 						for(let j = 0; j < water[i].length; j++) {
 							const modified = 
@@ -385,33 +528,39 @@ class TgMapWater {
 							water[i][j][0] = modified.lng;
 						}
 					}
-					water.realFeature = 
-							new ol.Feature({geometry: new ol.geom.Polygon(water)});
+
+					if (water.geo === 'p') {
+						water.realFeature = 
+								new ol.Feature({geometry: new ol.geom.Polygon(water)});
+						water.realFeature.setStyle(this.polyStyleFunc);
+					}
+					else if (water.geo === 'mls') {
+						water.realFeature = 
+								new ol.Feature({geometry: new ol.geom.MultiLineString(water)});
+						water.realFeature.setStyle(this.lineStyleFunc);
+					}
+
 					water.realFeature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
-					water.realFeature.setStyle(this.styleFunc);
 					water.type = 'w';
 					water.dispMode = 2; // real
 	  		}
-	  		else if (water[0][0][0].node) { // MultiPolygon
-	  			for(let i = 0; i < water.length; i++) {
-						for(let j = 0; j < water[i].length; j++) {
-							for(let k = 0; k < water[i][j].length; k++) {
-								const modified = 
-										transform(water[i][j][k].node.original.lat, water[i][j][k].node.original.lng);
-								water[i][j][k].node.real.lat = modified.lat;
-								water[i][j][k].node.real.lng = modified.lng;
-								water[i][j][k][1] = modified.lat;
-								water[i][j][k][0] = modified.lng;
-							}
-						}
+				else if (water.geo === 'ls') { // LineString
+					for(let i = 0; i < water.length; i++) {
+						const modified = 
+								transform(water[i].node.original.lat, water[i].node.original.lng);
+						water[i].node.real.lat = modified.lat;
+						water[i].node.real.lng = modified.lng;
+						water[i][1] = modified.lat;
+						water[i][0] = modified.lng;
 					}
 					water.realFeature = 
-							new ol.Feature({geometry: new ol.geom.MultiPolygon(water)});
+							new ol.Feature({geometry: new ol.geom.LineString(water)});
+					water.realFeature.setStyle(this.lineStyleFunc);
 					water.realFeature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
-					water.realFeature.setStyle(this.styleFunc);
 					water.type = 'w';
 					water.dispMode = 2; // real
-	  		}
+				}
+	  		
 				arr.push(water.realFeature);
 			}
 		}
@@ -437,9 +586,8 @@ class TgMapWater {
 		let arr = [];
 
 		for(let water of this.dispWaterObjects) {
-			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
+			//if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
 
-			//if (false) {
 			if (water.dispMode === 1) { // original
 				//console.log('skipped1.');
 				arr.push(water.orgFeature);
@@ -449,20 +597,22 @@ class TgMapWater {
 				arr.push(water.realFeature);
 			}*/
 			else {
-				if (water[0][0].node) { // Polygon
+				if (water.geo === 'p') { // Polygon
 					this.mapUtil.addFeatureInFeatures(
-						arr, new ol.geom.Polygon(water), this.styleFunc, 'w');
+						arr, new ol.geom.Polygon(water), this.polyStyleFunc, 'w');
 				}
-				else if (water[0][0][0].node) { // MultiPolygon
+				else if (water.geo === 'ls') { // LineString
 					this.mapUtil.addFeatureInFeatures(
-						arr, new ol.geom.MultiPolygon(water), this.styleFunc, 'w');
+						arr, new ol.geom.LineString(water), this.lineStyleFunc, 'w');
 				}
-				else {
-					console.log('not known geotype in createDispRoas()');
+				else if (water.geo === 'mls') { // MultiLineString
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.MultiLineString(water), this.lineStyleFunc, 'w');
 				}
+					
 			}
 		}
-		console.log(arr.length);
+		//console.log(arr.length);
 		this.layer = this.mapUtil.olVectorFromFeatures(arr);
 		this.layer.setZIndex(viz.z.water);
 		this.mapUtil.addLayer(this.layer);
@@ -472,10 +622,10 @@ class TgMapWater {
 
 		if (this.dispNodeLayer) this.addNodeLayer();
 
-		let cnt = 0;
+		/*let cnt = 0;
 		for(let zoom = this.data.zoom.min; zoom <= this.data.zoom.max; zoom++) {
   		cnt += this.waterObjects[zoom].length;
-  	}
+  	}*/
 
   	//console.log('@ waterObjects: ' + cnt);
 	}
@@ -510,9 +660,7 @@ class TgMapWater {
 		for(let water of this.dispWaterObjects) {
 			let modified;
 
-			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
-
-			if (water[0][0].node) { // Polygon
+			if ((water.geo === 'p')||(water.geo === 'mls')) { // Polygon, MultiLineString
 				for(let i = 0; i < water.length; i++) {
 					for(let j = 0; j < water[i].length; j++) {
 						modified = 
@@ -522,16 +670,12 @@ class TgMapWater {
 					}
 				}
 			}
-			else if (water[0][0][0].node) { // MultiPolygon
+			else if (water.geo === 'ls') { // LineString
 				for(let i = 0; i < water.length; i++) {
-					for(let j = 0; j < water[i].length; j++) {
-						for(let k = 0; k < water[i][j].length; k++) {
-							modified = transform(
-									water[i][j][k].node.original.lat, water[i][j][k].node.original.lng);
-							water[i][j][k].node[kind].lat = modified.lat;
-							water[i][j][k].node[kind].lng = modified.lng;
-						}
-					}
+					modified = 
+						transform(water[i].node.original.lat, water[i].node.original.lng);
+					water[i].node[kind].lat = modified.lat;
+					water[i].node[kind].lng = modified.lng;
 				}
 			}
 		}
@@ -547,11 +691,9 @@ class TgMapWater {
 
 		for(let water of this.dispWaterObjects) {
 
-			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
-
 			water.dispMode = dispMode;
 
-			if (water[0][0].node) { // Polygon
+			if ((water.geo === 'p')||(water.geo === 'mls')) { // Polygon, MultiLineString
 				if (kind === 'intermediateReal') {
 					for(let i = 0; i < water.length; i++) {
 						for(let j = 0; j < water[i].length; j++) {
@@ -585,43 +727,31 @@ class TgMapWater {
 					}
 				}
 			}
-			else if (water[0][0][0].node) { // MultiPolygon
+			else if (water.geo === 'ls') { // LineString
 				if (kind === 'intermediateReal') {
 					for(let i = 0; i < water.length; i++) {
-						for(let j = 0; j < water[i].length; j++) {
-							for(let k = 0; k < water[i][j].length; k++) {
-								water[i][j][k].node.disp.lat = 
-									(1 - value) * water[i][j][k].node.original.lat +
-									value * water[i][j][k].node.real.lat;
-								water[i][j][k].node.disp.lng = 
-									(1 - value) * water[i][j][k].node.original.lng + 
-									value * water[i][j][k].node.real.lng;
-							}
-						}
+						water[i].node.disp.lat = 
+							(1 - value) * water[i].node.original.lat + 
+							value * water[i].node.real.lat;
+						water[i].node.disp.lng = 
+							(1 - value) * water[i].node.original.lng +
+							value * water[i].node.real.lng;
 					}
 				}
 				else if (kind === 'intermediateTarget') {
 					for(let i = 0; i < water.length; i++) {
-						for(let j = 0; j < water[i].length; j++) {
-							for(let k = 0; k < water[i][j].length; k++) {
-								water[i][j][k].node.disp.lat = 
-									(1 - value) * water[i][j][k].node.original.lat +
-									value * water[i][j][k].node.target.lat;
-								water[i][j][k].node.disp.lng = 
-									(1 - value) * water[i][j][k].node.original.lng + 
-									value * water[i][j][k].node.target.lng;
-							}
-						}
+						water[i].node.disp.lat = 
+							(1 - value) * water[i].node.original.lat + 
+							value * water[i].node.target.lat;
+						water[i].node.disp.lng = 
+							(1 - value) * water[i].node.original.lng +
+							value * water[i].node.target.lng;
 					}
 				}
 				else {
 					for(let i = 0; i < water.length; i++) {
-						for(let j = 0; j < water[i].length; j++) {
-							for(let k = 0; k < water[i][j].length; k++) {
-								water[i][j][k].node.disp.lat = water[i][j][k].node[kind].lat;
-								water[i][j][k].node.disp.lng = water[i][j][k].node[kind].lng;
-							}
-						}
+						water[i].node.disp.lat = water[i].node[kind].lat;
+						water[i].node.disp.lng = water[i].node[kind].lng;
 					}
 				}
 			}
@@ -641,9 +771,9 @@ class TgMapWater {
 		let countIntersection = 0;
 		for(let water of this.dispWaterObjects) {
 			
-			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
+			//if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
 
-			if (water[0][0].node) { // Polygon
+			if (water.geo === 'p') { // Polygon
 				for(let i = 0; i < water.length; i++) {
 					for(let j = 0; j < water[i].length - 1; j++) {
 
@@ -653,22 +783,6 @@ class TgMapWater {
 		        	water[i][j][1], water[i][j][0], 
 		        	water[i][j + 1][1], water[i][j + 1][0])) {
 							countIntersection++;
-						}
-					}
-				}
-			}
-			else if (water[0][0][0].node) { // MultiPolygon
-				for(let i = 0; i < water.length; i++) {
-					for(let j = 0; j < water[i].length; j++) {
-						for(let k = 0; k < water[i][j].length - 1; k++) {
-
-							if (TgUtil.intersects(
-								original.lat, original.lng, 
-								point.original.lat, point.original.lng, 
-			        	water[i][j][k][1], water[i][j][k][0], 
-			        	water[i][j][k + 1][1], water[i][j][k + 1][0])) {
-								countIntersection++;
-							}
 						}
 					}
 				}
@@ -691,13 +805,6 @@ class TgMapWater {
 			if (water[0][0].node) { // Polygon
 				for(let water2 of water) {
 					count += water2.length;
-				}
-			}
-			else if (water[0][0][0].node) { // MultiPolygon
-				for(let water2 of water) {
-					for(let water3 of water2) {
-						count += water3.length;
-					}
 				}
 			}
 		}
@@ -729,9 +836,7 @@ class TgMapWater {
 			this.mapUtil.nodeStyleFunc(viz.color.waterNode, viz.radius.node);
 
 		for(let water of this.newWaterObjects) {
-			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
-
-			if (water[0][0].node) { // Polygon
+			if ((water.geo === 'p')||(water.geo === 'mls')) { // Polygon, MultiLineString
 				for(let nodes of water) {
 					// edge
 					this.mapUtil.addFeatureInFeatures(
@@ -744,19 +849,15 @@ class TgMapWater {
 					}
 				}
 			}
-			else if (water[0][0][0].node) { // MultiPolygon
-				for(let water2 of water) {
-					for(let nodes of water2) {
-						// edge
-							this.mapUtil.addFeatureInFeatures(
-								arr, new ol.geom.LineString(nodes), edgeStyleFunc, 'e');
+			else if (water.geo === 'ls') { // LineString
+				// edge
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.LineString(water), edgeStyleFunc, 'e');
 
-						// node
-						for(let node of nodes) {
-							this.mapUtil.addFeatureInFeatures(
-								arr, new ol.geom.Point(node), nodeStyleFunc, 'n');
-						}
-					}
+				// node
+				for(let node of water) {
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.Point(node), nodeStyleFunc, 'n');
 				}
 			}
 		}
@@ -779,9 +880,7 @@ class TgMapWater {
 			this.mapUtil.nodeStyleFunc(viz.color.waterNode, viz.radius.node);
 
 		for(let water of this.dispWaterObjects) {
-			if ((water[0].length === 0)||(water[0][0].length === 0)) continue;
-
-			if (water[0][0].node) { // Polygon
+			if ((water.geo === 'p')||(water.geo === 'mls')) { // Polygon, MultiLineString
 				for(let nodes of water) {
 					// edge
 					this.mapUtil.addFeatureInFeatures(
@@ -794,19 +893,15 @@ class TgMapWater {
 					}
 				}
 			}
-			else if (water[0][0][0].node) { // MultiPolygon
-				for(let water2 of water) {
-					for(let nodes of water2) {
-						// edge
-							this.mapUtil.addFeatureInFeatures(
-								arr, new ol.geom.LineString(nodes), edgeStyleFunc, 'e');
+			else if (water.geo === 'ls') { // LineString
+				// edge
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.LineString(water), edgeStyleFunc, 'e');
 
-						// node
-						for(let node of nodes) {
-							this.mapUtil.addFeatureInFeatures(
-								arr, new ol.geom.Point(node), nodeStyleFunc, 'n');
-						}
-					}
+				// node
+				for(let node of water) {
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.Point(node), nodeStyleFunc, 'n');
 				}
 			}
 		}

@@ -128,6 +128,31 @@ class TgMapOrigin {
 		const viz = this.data.viz;
 		let arr = [];
 
+  	/*const styleFunc = this.mapUtil.polygonStyleFunc(this.data.viz.color.water);
+		const coords = [
+			[this.origin.disp.lng, this.origin.disp.lat], 
+			[this.origin.disp.lng + 0.1, this.origin.disp.lat + 0.1],
+			[this.origin.disp.lng , this.origin.disp.lat + 0.1],
+			[this.origin.disp.lng, this.origin.disp.lat]
+		];
+
+		console.log('coords', [coords]);
+
+		this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.Polygon([coords]), styleFunc, 'e');
+*/
+		//
+		/*const edgeStyleFunc = 
+				this.mapUtil.lineStyleFunc(viz.color.edge, viz.width.edge);
+
+		const coords = [[this.origin.disp.lng, this.origin.disp.lat], 
+			[this.origin.disp.lng + 0.1, this.origin.disp.lat + 0.1]];
+
+		this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.LineString(coords), edgeStyleFunc, 'e');
+*/
+		//
+
 		this.feature = this.mapUtil.addFeatureInFeatures(arr,
 			new ol.geom.Point([this.origin.disp.lng, this.origin.disp.lat]), 
 				this.mapUtil.imageStyleFunc(

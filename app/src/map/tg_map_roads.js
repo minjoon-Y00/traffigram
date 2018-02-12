@@ -22,7 +22,7 @@ class TgMapRoads {
 	  this.roadTypes = [];
 
 	  for(let type in this.data.zoom.disp) {
-	  	//['motorway', 'trunk', 'primary', 'secondary', 'tertiary', ['residential']];
+	  	//[motorway, motorway_link, main, street, street_limited];
 	  	this.roadTypes.push(type);
 	  }
 
@@ -47,6 +47,7 @@ class TgMapRoads {
 	  for(let type of this.roadTypes) {
 	  	this.layer[type] = null;
 	  	this.newRoadObjects[type] = [];
+	  	this.dispRoads[type] = [];
 	  	this.styleFunc[type] = this.mapUtil.lineStyleFunc(
 				this.data.viz.color.road[type], this.data.viz.width.road[type]
 			);
@@ -70,48 +71,32 @@ class TgMapRoads {
 		this.clearLayers();
 	}
 
-	init() {
-		const tileGrid = new ol.tilegrid.createXYZ({
-    	minZoom: 0, //this.data.zoom.min,
-    	maxZoom: 22, //this.data.zoom.max,
-    	tileSize: [512, 512],
-    });
+	addRoadObjects(type, zoom, coords) {
 
-		const roadSource = new ol.source.VectorTile({
-	    format: new ol.format.TopoJSON(),
-	    //projection: 'EPSG:4326', // ?
-	    projection: 'EPSG:3857', // [-13616698.846117498, 6054334.236855057]
-	    tileGrid: tileGrid,
-	    //tileGrid: new ol.tilegrid.createXYZ({
-	    //	minZoom: this.data.zoom.min,
-	    //	tileSize: [256, 256], //[512, 512],
-	    //}),
-	    url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' 
-	    	+ 'api_key=' + this.data.var.apiKeyVectorTile
-	    //url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' 
-	    // 	+ 'api_key=vector-tiles-c1X4vZE'
-	    //url: 'https://tile.mapzen.com/mapzen/vector/v1/roads/{z}/{x}/{y}.topojson?' 
-	    //	+ 'api_key=mapzen-dKpzpj5'
-	  });
+		if (this.roadTypes.indexOf(type) < 0) return null;
 
-		this.mapUtil.addLayer(new ol.layer.VectorTile({
-		  source: roadSource,
-		  style: this.addToRoadObject.bind(this)
-		}))
+		coords.orgFeature.setStyle(this.styleFunc[type]);
 
-		this.features = [];
+		// TODO: needed?
+		coords.type = 'r';
+
+		this.roadObjects[zoom][type].push(coords);
+		this.newRoadObjects[type].push(coords);
+
+		// TODO: Check
+		if (this.dispRoadTypes.indexOf(type) >= 0) {
+			if (!this.dispRoads[type]) {
+				console.log(type);
+				console.log(this.dispRoads[type]);
+			}
+			else {
+				this.dispRoads[type].push(coords);
+			}
+			
+		}
 	}
 
 	/*addToRoadObject(feature) {
-		this.features.push(feature);
-		if (this.timerGetRoadData) clearTimeout(this.timerGetRoadData);
-		this.timerGetRoadData = setTimeout(
-			this.processNewRoadObjects.bind(this), 
-			this.data.time.waitForGettingRoadData);
-		return null;
-	}*/
-
-	addToRoadObject(feature) {
 
 		//console.log('.');
 
@@ -179,9 +164,9 @@ class TgMapRoads {
 		}
 
 		return null;
-	}
+	}*/
 
-	processFeature(feature) {
+	/*processFeature(feature) {
 		const kind_detail = feature.get('kind_detail');
 		//if (this.roadTypes.indexOf(kind_detail) < 0) return null;
 		if (this.dispRoadTypes.indexOf(kind_detail) < 0) return null;
@@ -235,7 +220,7 @@ class TgMapRoads {
 		if (this.dispRoadTypes.indexOf(kind_detail) >= 0) {
 			this.dispRoads[kind_detail].push(coords);
 		}
-	}
+	}*/
 
 	processNewRoadObjects() {
 
@@ -484,7 +469,7 @@ class TgMapRoads {
 
 				road.dispMode = dispMode;
 				
-				if (road[0].node) { // LineString
+				if (road.geo === 'ls') { // LineString
 					for(let i = 0; i < road.length; i++) {
 						const lat = road[i].node.original.lat;
 						const lng = road[i].node.original.lng;
@@ -494,7 +479,7 @@ class TgMapRoads {
 						}
 					}
 				}
-				else if (road[0][0].node) { // MultiLineString
+				else if ((road.geo === 'mls')||(road.geo === 'p')) { // MultiLineString, Polygon
 					let isIn = false;
 					for(let i = 0; i < road.length; i++) {
 						for(let j = 0; j < road[i].length; j++) {
@@ -527,7 +512,7 @@ class TgMapRoads {
 
 		for(let type of this.dispRoadTypes) {
 			for(let road of this.dispRoads[type]) {
-				if (road[0].node) { // LineString
+				if (road.geo === 'ls') { // LineString
 					for(let i = 0; i < road.length; i++) {
 						road[i][0] = road[i].node[mode].lng;
 						road[i][1] = road[i].node[mode].lat;
@@ -540,7 +525,7 @@ class TgMapRoads {
 						//console.log('made realFeature');
 					}*/
 				}
-				else if (road[0][0].node) { // MultiLineString
+				else if ((road.geo === 'mls')||(road.geo === 'p')) { // MultiLineString, Polygon
 					for(let i = 0; i < road.length; i++) {
 						for(let j = 0; j < road[i].length; j++) {
 							road[i][j][0] = road[i][j].node[mode].lng;
@@ -657,16 +642,17 @@ class TgMapRoads {
 					arr.push(road.realFeature);
 				}*/
 				else {
-					if (road[0].node) { // LineString
+					if (road.geo === 'ls') { // LineString
 						this.mapUtil.addFeatureInFeatures(
 							arr, new ol.geom.LineString(road), this.styleFunc[type], 'r');
 					}
-					else if (road[0][0].node) { // MultiLineString
+					else if (road.geo === 'mls') { // MultiLineString
 						this.mapUtil.addFeatureInFeatures(
 							arr, new ol.geom.MultiLineString(road), this.styleFunc[type], 'r');
 					}
-					else {
-						console.log('not known geotype in createDispRoas()');
+					else if (road.geo === 'p') { // Polygon
+						this.mapUtil.addFeatureInFeatures(
+							arr, new ol.geom.Polygon(road), this.styleFunc[type], 'r');
 					}
 				}
 			}
@@ -737,14 +723,14 @@ class TgMapRoads {
 			for(let road of this.dispRoads[type]) {
 				let modified;
 
-				if (road[0].node) { // LineString
+				if (road.geo === 'ls') { // LineString
 					for(let i = 0; i < road.length; i++) {
 						modified = transform(road[i].node.original.lat, road[i].node.original.lng);
 						road[i].node[kind].lat = modified.lat;
 						road[i].node[kind].lng = modified.lng;
 					}
 				} 
-				else if (road[0][0].node) { // MultiLineString
+				else if ((road.geo === 'mls')||(road.geo === 'p')) { // MultiLineString, Polygon
 					for(let i = 0; i < road.length; i++) {
 						for(let j = 0; j < road[i].length; j++) {
 							modified = 
@@ -791,7 +777,7 @@ class TgMapRoads {
 
 				road.dispMode = dispMode;
 
-				if (road[0].node) { // LineString {
+				if (road.geo === 'ls') { // LineString
 					if (kind === 'intermediateReal') {
 						for(let i = 0; i < road.length; i++) {
 							road[i].node.disp.lat = 
@@ -815,7 +801,7 @@ class TgMapRoads {
 						}
 					}
 				} 
-				else if (road[0][0].node) { // MultiLineString
+				else if ((road.geo === 'mls')||(road.geo === 'p')) { // MultiLineString, Polygon
 					if (kind === 'intermediateReal') {
 						for(let i = 0; i < road.length; i++) {
 							for(let j = 0; j < road[i].length; j++) {
@@ -882,7 +868,7 @@ class TgMapRoads {
 		for(let type of this.dispRoadTypes) {
 			for(let roads of this.newRoadObjects[type]) {
 
-				if (roads[0].node) { // LineString
+				if (road.geo === 'ls') { // LineString
 					// edge
 					this.mapUtil.addFeatureInFeatures(
 						arr, new ol.geom.LineString(roads), edgeStyleFunc, 'e');
@@ -893,7 +879,7 @@ class TgMapRoads {
 							arr, new ol.geom.Point(node), nodeStyleFunc, 'n');
 					}
 				}
-				else if (roads[0][0].node) { // MultiLineString
+				else if ((road.geo === 'mls')||(road.geo === 'p')) { // MultiLineString, Polygon
 					for(let nodes of roads) {
 						// edge
 						this.mapUtil.addFeatureInFeatures(
@@ -928,7 +914,7 @@ class TgMapRoads {
 
 		for(let type of this.dispRoadTypes) {
 			for(let roads of this.dispRoads[type]) {
-				if (roads[0].node) { // LineString
+				if (road.geo === 'ls') { // LineString
 					// edge
 					this.mapUtil.addFeatureInFeatures(
 						arr, new ol.geom.LineString(roads), edgeStyleFunc, 'e');
@@ -939,7 +925,7 @@ class TgMapRoads {
 							arr, new ol.geom.Point(node), nodeStyleFunc, 'n');
 					}
 				}
-				else if (roads[0][0].node) { // MultiLineString
+				else if ((road.geo === 'mls')||(road.geo === 'p')) { // MultiLineString, Polygon
 					for(let nodes of roads) {
 						// edge
 						this.mapUtil.addFeatureInFeatures(
