@@ -122,9 +122,10 @@ var TgData = {
 			origin: {
 				//auto: 'img/mapbtn_origin_vehicle_big@2x.png',
 				//auto: 'img/mapbtn_origin_vehicle@2x.png',
-				auto: 'img/mapbtn_origin_car.png',
-				bicycle: 'img/mapbtn_origin_bicycle@2x.png',
-				pedestrian: 'img/mapbtn_origin_foot@2x.png',
+				driving: 'img/mapbtn_origin_car.png',
+				traffic: 'img/mapbtn_origin_car.png',
+				cycling: 'img/mapbtn_origin_bicycle@2x.png',
+				walking: 'img/mapbtn_origin_foot@2x.png',
 				home: 'img/loc_home.png', // 'img/mapbtn_home_big@2x.png',
 				office: 'img/loc_office.png', //'img/mapbtn_office_big@2x.png',
 			}, 

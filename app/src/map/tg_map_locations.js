@@ -322,6 +322,8 @@ class TgMapLocations {
 		if (!this.data.var.placeProcessed) {
 			this.map.tgPlaces.processPlaceObjects();
 		}
+
+		this.map.tgPerc.render();
 	}
 
 	displayLocsInDc() {
@@ -339,6 +341,8 @@ class TgMapLocations {
 
 		this.render();
   	this.map.tgBB.render();
+
+  	this.map.tgPerc.render();
 	}
 
 	changeType(type, subType) {

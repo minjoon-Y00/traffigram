@@ -11,7 +11,7 @@ class TgMapGrid {
 		this.display = false;
 		this.layer = null;
 
-		this.displayControlPoints = false; //true
+		this.displayControlPoints = true;
 		this.controlPointLayer = null;
 	}
 
@@ -43,8 +43,6 @@ class TgMapGrid {
 		const viz = this.data.viz;
 		let arr = [];
 
-		console.log(gridLines);
-
 		for(let line of gridLines) {
 			this.mapUtil.addFeatureInFeatures(arr, new ol.geom.LineString(
 				[[line.start.disp.lng, line.start.disp.lat], 
@@ -62,6 +60,8 @@ class TgMapGrid {
 		const controlPoints = this.map.tgControl.controlPoints;
 		const viz = this.data.viz;
 		let arr = [];
+
+		//console.log('controlPoints', controlPoints);
 
 		for(let point of controlPoints) {
 			// draw control points

@@ -85,6 +85,7 @@ class TgMap {
 	  this.tgBB = new TgMapBoundingBox(this, this.data, this.graph);
 	  this.tgOrigin = new TgMapOrigin(this, this.data, this.graph);
 	  this.tgIsochrone = new TgMapIsochrone(this, this.data, this.graph);
+	  this.tgPerc = new TgMapPerc(this, this.data, this.graph);
 
 	  this.warpingMode = 'shapePreserving'; 
 	  this.needToCalWarping = false;
@@ -139,8 +140,16 @@ class TgMap {
 	  this.tgLanduse.turn(this.data.elements.landuse.disp);
 	  $('#dispLanduseCB').prop('checked', this.data.elements.landuse.disp);
 
-		this.tgLocs.turn(true);
-	  $('#dispLocationCB').prop('checked', true);
+		this.tgLocs.turn(false);
+		// this.tgLocs.turn(true);
+	  // $('#dispLocationCB').prop('checked', true);
+
+	  this.tgIsochrone.turn(false);
+	  // this.tgIsochrone.turn(true);
+	  // $('#dispIsochroneCB').prop('checked', true);
+
+		//this.tgPerc.turn(true);
+
 
 	  /*
 	  this.tgPlaces.turn(this.data.elements.place.disp);
@@ -150,10 +159,9 @@ class TgMap {
 
 	  
 
-	  this.tgIsochrone.turn(true);
-	  $('#dispIsochroneCB').prop('checked', true);
+	  
 */
-	  //this.tgGrids.turn(true);
+	  this.tgGrids.turn(true);
 	  //$('#dispGridCB').prop('checked', true);
 
 	 	//this.tgBB.turn(true);
@@ -342,18 +350,13 @@ class TgMap {
 		this.readyControlPoints = false;
 		this.disableSGapAndGapButtons(true);
 
-	  this.tgControl.calculateControlPoints(() => {
-
+	  this.tgControl.calculateControlPoints()
+	  .then(() => {
 	  	console.log('received: control points.');
-
-	  	this.timerCheckGridSplitInTgMap = 
-				setTimeout(
-						this.calSplittedGrid.bind(this), 
-						this.data.time.waitForFinishGettingWaterData);
-
-		  this.updateLayers();
+	  	this.updateLayers();
 			this.dispMapInfo();
-	  });	
+	  })
+	  .catch(console.log);
 	}
 
 	changeTransportType(type) {
@@ -369,7 +372,6 @@ class TgMap {
 			if (this.currentMode === 'DC') {
 				this.goToDcAgain(false);
 				//this.goToDcAgain(true);
-				console.log('hei');
 			}
 			else {
 				this.tgOrigin.render();
@@ -447,8 +449,10 @@ class TgMap {
 		this.tgLanduse.render();
 		this.tgOrigin.render();
 		this.tgLocs.render();
+		this.tgPerc.render();
 		this.tgPlaces.render();
 		this.tgGrids.render();
+		this.tgPerc.render();
 		
 		this.tgBB.render();
 
@@ -515,6 +519,7 @@ class TgMap {
 	  	this.tgRoads.calTargetNodes();
 	  	this.tgPlaces.calTargetNodes();
 	  	this.tgLanduse.calTargetNodes();
+	  	this.tgPerc.calTargetNodes();
 	  	this.tgOrigin.calTargetNodes();
 		}
 		else {
@@ -522,6 +527,7 @@ class TgMap {
 	  	this.tgRoads.calRealNodes();
 	  	this.tgPlaces.calRealNodes();
 	  	this.tgLanduse.calRealNodes();
+	  	this.tgPerc.calRealNodes();
 	  	this.tgLocs.calTargetAndRealNodes();
 	  	this.tgOrigin.calRealNodes();
 		}
@@ -580,6 +586,7 @@ class TgMap {
 		this.tgWater.calDispNodes(intermediate, value);
 		this.tgRoads.calDispNodes(intermediate, value);
   	this.tgLanduse.calDispNodes(intermediate, value);
+  	this.tgPerc.calDispNodes(intermediate, value);
   	this.tgOrigin.calDispNodes(intermediate, value);
 		this.tgLocs.calDispNodes(intermediate, value);
 		this.tgPlaces.calDispNodes(intermediate, value);
@@ -589,6 +596,7 @@ class TgMap {
 			this.tgWater.render();
 			this.tgRoads.render();
   		this.tgLanduse.render();
+  		this.tgPerc.render();
   		this.tgOrigin.render();
 			this.tgLocs.render();
 			this.tgPlaces.render();
@@ -666,6 +674,7 @@ class TgMap {
 		this.tgLocs.dispNameLayer = true;
 		//this.tgLocs.updateNonOverlappedLocationNames();
 		this.tgLocs.render();
+		this.tgPerc.render();
 		this.tgBB.render();
 
 	}
@@ -687,6 +696,9 @@ class TgMap {
 		this.tgLocs.removeLayer();
 		this.tgLocs.removeNameLayer();
 		this.tgLocs.render();
+		this.tgPerc.removeLayer();
+		this.tgPerc.render();
+
 
 		console.log('init locs.');
 
@@ -710,6 +722,7 @@ class TgMap {
   	this.tgWater.calDispNodes('original');
   	this.tgRoads.calDispNodes('original');
   	this.tgLanduse.calDispNodes('original');
+  	this.tgPerc.calDispNodes('original');
 	  this.tgPlaces.calDispNodes('original');
   	//this.tgGrids.calDispNodes('original');
 	}

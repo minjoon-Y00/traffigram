@@ -1,0 +1,58 @@
+html, body {
+	//width: 1300px;
+	//height: 1000px;
+}
+
+#main{
+	background-color: #EAEAEA;
+	height: 1000px;
+	width: 100%;
+
+	//min-width: 300px;
+	//min-height: 300px;
+	//width: 1000px;
+	//height: 1000px;
+	//position: absolute;
+	//left: 0;
+	//top: 0;
+}
+
+#ol_map {
+	height: 100%;
+	width: 100%;
+}
+
+.ol-control.ol-zoom {
+  left: calc(100% - 50px);
+}
+
+#right_panel {
+	background-color: #FFF;
+	opacity: 0.8;
+	padding: 10px 10px 10px 10px;
+	position: absolute;
+	right: 10px;
+	top: 80px;
+	width: 300px;
+}
+
+/* Buttons */
+#btn_settings, #btn_reset_origin, #btn_zoom {
+	position: absolute; 
+	cursor: pointer;
+}
+
+#btn_settings {
+	right: 10px;
+	top: 10px;
+}
+
+#btn_reset_origin {
+	bottom: 10px;
+	right: 80px;
+}
+
+#btn_zoom {
+	bottom: 10px;
+	right: 10px;
+}

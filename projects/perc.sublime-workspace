@@ -1,0 +1,527 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"backgrou",
+				"background-color"
+			],
+			[
+				"exc",
+				"excerpt"
+			],
+			[
+				"padd",
+				"paddingTime"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "/Users/elska/Sites/TG/tg/harlan/test1/index.html",
+			"settings":
+			{
+				"buffer_size": 6412,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/harlan/test1/config.js",
+			"settings":
+			{
+				"buffer_size": 6252,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/harlan/test1/js/test1.js",
+			"settings":
+			{
+				"buffer_size": 543,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/harlan/test1/js/test1_controller.js",
+			"settings":
+			{
+				"buffer_size": 2048,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/elska/Sites/TG/tg/harlan/test1/test1.css",
+		"/Users/elska/Sites/TG/old/tg/js/main.js",
+		"/Users/elska/Sites/TG/old/tg/nido.html",
+		"/Users/elska/Sites/TG/old/tg/index.html",
+		"/Users/elska/Sites/TG/tg/test/mapbox_test.html",
+		"/Users/elska/Desktop/Hackers.txt",
+		"/Users/elska/Sites/patrickmyoo/data/eng/369 - Dialog/3 21-30.studie",
+		"/Users/elska/Sites/patrickmyoo/data/eng/369 - Dialog/4 31-40.studie",
+		"/Users/elska/Sites/patrickmyoo/data/english_books.json",
+		"/Users/elska/Sites/patrickmyoo/data/eng/369/_chapters.js",
+		"/Users/elska/Sites/TG/tg/app/dist/data/tod_th.js",
+		"/Users/elska/Sites/patrickmyoo/data/eng/EBSE 1-100/_chapters.js",
+		"/Users/elska/Sites/patrickmyoo/vendor/angular-route.min.js",
+		"/Users/elska/Sites/patrickmyoo/css/freelancer.css",
+		"/Users/elska/Sites/patrickmyoo/js/studie.js",
+		"/Users/elska/Sites/patrickmyoo/js/english_controller.js",
+		"/Users/elska/Sites/patrickmyoo_old/index.html",
+		"/Users/elska/Sites/patrickmyoo/modals/english_listview.html",
+		"/Users/elska/Sites/patrickmyoo/css/studie.css",
+		"/Users/elska/Sites/patrickmyoo/data/untitled.json",
+		"/Users/elska/Sites/patrickmyoo/js/studieApp.js",
+		"/Users/elska/Sites/langone/js/main.js",
+		"/Users/elska/Sites/patrickmyoo/js/studies_server_module.js",
+		"/Users/elska/Sites/patrickmyoo/studies_server.js",
+		"/Users/elska/Sites/patrickmyoo/index.html",
+		"/Users/elska/Sites/patrickmyoo/js/computer_controller.js",
+		"/Users/elska/Sites/langone/refreshFiles.js",
+		"/Users/elska/Sites/patrickmyoo/js/todays_controller.js",
+		"/Users/elska/Sites/patrickmyoo/modals/word_edit.html",
+		"/Users/elska/Sites/langone/view/bottomview.html",
+		"/Users/elska/Sites/langone/view/lectureview.html",
+		"/Users/elska/Sites/langone/view/listview.html",
+		"/Users/elska/Sites/langone/vendor/BufferLoader.js",
+		"/Users/elska/Sites/langone/index.html",
+		"/Users/elska/Sites/patrickmyoo/server.js",
+		"/Users/elska/Sites/patrickmyoo/js/langModule.js",
+		"/Users/elska/Sites/patrickmyoo/modals/wordEdit.html",
+		"/Users/elska/Sites/patrickmyoo/modals/engListView.html",
+		"/Users/elska/Sites/patrickmyoo/js/computerCtrl.js",
+		"/Users/elska/Sites/patrickmyoo/js/englishCtrl.js",
+		"/Users/elska/Sites/patrickmyoo/js/todaysCtrl.js",
+		"/Users/elska/Sites/patrickmyoo/js/app.js",
+		"/Users/elska/Library/Application Support/Sublime Text 3/Packages/User/SublimeLinter.sublime-settings",
+		"/Users/elska/Sites/patrickmyoo/js/untitled.js",
+		"/Users/elska/Sites/patrickmyoo/data/todaysWord.js",
+		"/Users/elska/Sites/patrickmyoo/js/freelancer.js",
+		"/Users/elska/Downloads/b007.ann",
+		"/Users/elska/Downloads/b033.ann",
+		"/Users/elska/Downloads/data_tt.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/modules/dir.conf",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/modules/dir.load",
+		"/Users/elska/Sites/TG/tg/data/data_0_39_3pm.js",
+		"/Users/elska/Sites/TG/tg/data/data_40_79_3pm.js",
+		"/Users/elska/Sites/TG/tg/data/data_80_99_3pm.js",
+		"/Users/elska/Downloads/data_40_69_11am.js",
+		"/Users/elska/Downloads/data_70_99_11am.js",
+		"/Users/elska/Downloads/data_0_39_11am.js",
+		"/Users/elska/Downloads/data_0_49.js",
+		"/Users/elska/Sites/TG/tg/data/rawData_seattle.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_22.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_21.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_13.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_12.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_11.js",
+		"/Users/elska/Downloads/nr_seattle_cluster_1_2.js",
+		"/Users/elska/Downloads/nr_seattle_merge.js",
+		"/Users/elska/Downloads/nr_seattle_el2.js",
+		"/Users/elska/Downloads/nr_seattle_el1.js",
+		"/Users/elska/Downloads/nr_seattle_rdp.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_rdp.js"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"cbPerc",
+			"randTimeSlider",
+			"slide",
+			"info",
+			"initstudy",
+			"saveExcerpts",
+			"openAnnotator",
+			"excerpts",
+			"saveExcerpts",
+			"selectBookDlg",
+			"btn_sign_in",
+			"modal",
+			"getChapters",
+			"removeElementFromArray",
+			"saveChapterList",
+			"/_chapters.js",
+			"saveChapters",
+			"_chapters.js",
+			"openAnnotator",
+			"selectChapterToMain",
+			"playSoundInTheList",
+			"classofex",
+			"displayedChapterList",
+			"saveExcerpts",
+			"selectChapter",
+			"displayedexcerpts",
+			"$scope.displayedExcerpts",
+			"displaytime",
+			"changeTimeOfExcerpt",
+			"processQueue",
+			"playRecordedSound",
+			"isProcessing",
+			"changetimeof",
+			"playRecordedSound",
+			"changeTimeOfExcerpt",
+			"indexSelectedExcerpt",
+			"selectedchapter",
+			"eachPlaymode",
+			"displaytime",
+			"changeTimeOfExcerpt",
+			"saveChapterList",
+			"getEnglishChapterList",
+			"studieUrl",
+			"selectedChapter",
+			"displayStar",
+			"setIsChapterView",
+			"$scope.calDisplayedExcerpts",
+			"calDisplayedExcerpts",
+			"indexOfSelectedExcerpt",
+			"editChapter",
+			"stararray",
+			"url",
+			"openAnnotator",
+			"folder",
+			"indexOfSelectedChapter",
+			"calDisplayedExcerpts",
+			"getSoundFile",
+			"folder",
+			"currentChapterTitle",
+			"getstudie",
+			"displayedChapterList",
+			"getStudieFile",
+			"studieData",
+			"sort",
+			"folder",
+			"chapterList",
+			"saveChapterList",
+			"savebookl",
+			"editChapterOk",
+			"hidemodal",
+			"showmodal",
+			"gly",
+			"indexSelectedBook",
+			"recalEngChapters",
+			"$scope.currentBook",
+			"getChaptersOfBook",
+			"selectBookModal",
+			"gettime",
+			"displayedExcerpts",
+			"playmode",
+			"playSoundInTheList",
+			"processqueue",
+			"startRecord",
+			"processQueue",
+			"fileApi",
+			"getChaptersOfEnglishBook",
+			"getEngChapters",
+			"initEngChapters",
+			"then(",
+			"#",
+			"then",
+			"chapterView",
+			"indexOfSelectedEnglishBook",
+			"then",
+			"success",
+			"recorder",
+			"caldisplay",
+			"textMode",
+			"displayedExcerpts",
+			"title",
+			"displayedex",
+			"currentTitleMode",
+			"TitleMode",
+			"currentTitleMode",
+			"isTitleModeEdit",
+			"chapterList",
+			"chapterlist",
+			"getStudieFile",
+			"currentBook.folder",
+			"save",
+			"displayedchapterlist",
+			"chapterlist",
+			"indexOfSelectedChapter",
+			"chapterlist",
+			"indexOfSelectedEnglishChapter",
+			"getChaptersOfBook",
+			"chapterList",
+			"context",
+			"AudioContext",
+			"context",
+			"chapterList",
+			"displayedChapterList",
+			"folder",
+			"currentBook",
+			"$scope.currentBook",
+			"indexOfSelectedChapter",
+			"getSelectedEnglishBookIndex",
+			"goToStudyView"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "/Users/elska/Sites/TG/tg/harlan/test1/index.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6412,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								577,
+								577
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/Users/elska/Sites/TG/tg/harlan/test1/config.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6252,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3190,
+								3190
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1596.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/Users/elska/Sites/TG/tg/harlan/test1/js/test1.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 543,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								153,
+								153
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/Users/elska/Sites/TG/tg/harlan/test1/js/test1_controller.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2048,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1790,
+								1790
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 34.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "perc.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

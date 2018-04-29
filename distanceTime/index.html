@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Distance - Time</title>
+  <!-- <link rel="stylesheet" href="https://openlayers.org/en/v3.20.0/css/ol.css" type="text/css"> -->
+  <link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+  <link rel="stylesheet" href="../vendor/bootstrap-darkly.min.css">
+  <link rel="stylesheet" href="./distance_time.css">
+</head>
+<body>
+	<div class="container" style="margin-top:20px; margin-bottom:20px">
+    <div class="row" style="width:1500px">
+
+      <div class="col-sm-10" style="width:1000px; height:1000px">
+      <!-- <div class="col-sm-10"> -->
+        <div id="ol_map" class="ol_map"></div>
+      </div>
+
+      <!-- <div class="col-sm-2" style="width:250px"> -->
+      <div class="col-sm-2">
+      	<button type="button" id="calBtn" class="btn btn-primary btn-sm">
+        Calculation</button><br/>
+        <button type="button" id="runBtn" class="btn btn-primary btn-sm">
+        Run</button>
+      </div>
+    </div>
+	<script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+  <script src="https://openlayers.org/en/v4.6.5/build/ol.js"></script>
+  <script src="../app/src/tg_util.js"></script>
+  <script src="../app/src/node/tg_node.js"></script>
+  <script src="../app/src/map/tg_map_util.js"></script>
+  <script src="../app/src/map/tg_map_vector_tile.js"></script>
+  <script src="../app/src/map/tg_map_roads.js"></script>
+  <script src="../app/src/map/tg_map_water.js"></script>
+  <script src="../app/src/map/tg_map_landuse.js"></script>
+
+  <script src="./js/tg_map_dist_time.js"></script>
+  <script src="./js/tg_map.js"></script>
+	<script src="./js/tg_data.js"></script>
+  <script src="./js/tg_app.js"></script>
+  <script src="./js/main.js"></script>
+</body>
+</html>

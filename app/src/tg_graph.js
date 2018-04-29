@@ -73,8 +73,8 @@ class TgGraph {
 			if (nodes[i].travelTime) {
 				const len = nodes[i].travelTime / factor;
 	  		target[i].lat = cLat + len * Math.cos(nodes[i].deg);
-	  		target[i].lng = cLng + len * Math.sin(nodes[i].deg) * this.magnify();
-	  		//target[i].lng = cLng + len * Math.sin(nodes[i].deg);
+	  		// target[i].lng = cLng + len * Math.sin(nodes[i].deg) * this.magnify();
+	  		target[i].lng = cLng + len * Math.sin(nodes[i].deg);
 	  	}
 		}
 
@@ -100,8 +100,8 @@ class TgGraph {
 				node.len = node.travelTime / this.factor;
 				//node.len = tgUtil.D2(cLat, cLng, node.original.lat, node.original.lng);
 				node.target.lat = cLat + node.len * Math.cos(node.deg);
-				node.target.lng = cLng + node.len * Math.sin(node.deg) * this.magnify();
-				//node.target.lng = cLng + node.len * Math.sin(node.deg);
+				//node.target.lng = cLng + node.len * Math.sin(node.deg) * this.magnify();
+				node.target.lng = cLng + node.len * Math.sin(node.deg);
 			}
 			else {
 				node.target.lat = node.original.lat

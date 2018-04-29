@@ -232,6 +232,8 @@ class TgMapLanduse {
 	}
 
 	addNewLayer() {
+		if (!this.display) return;
+		
 		const viz = this.data.viz;
 		let arr = [];
 		const numClass = this.data.var.numLanduseClasses;

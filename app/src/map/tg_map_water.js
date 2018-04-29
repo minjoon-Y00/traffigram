@@ -505,9 +505,12 @@ class TgMapWater {
 	}
 
 	addNewLayer() {
+		if (!this.display) return;
+		
 		const viz = this.data.viz;
 		let arr = [];
-		const transform = this.graph.transformReal.bind(this.graph);
+		let transform;
+		if (this.graph) transform = this.graph.transformReal.bind(this.graph);
 
 		for(let water of this.newWaterObjects) {
 
@@ -578,6 +581,8 @@ class TgMapWater {
 
 	//
 	updateLayer() {
+		console.log('update layer');
+
 
 		const viz = this.data.viz;
 		this.clearLayers();

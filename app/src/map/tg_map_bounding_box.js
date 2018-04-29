@@ -60,7 +60,7 @@ class TgMapBoundingBox {
 			if (z >= 14) {
 				iconLatPx = iconLatPx - 10 * (z - 14);
 				iconLngPx = iconLngPx - 10 * (z - 14);
-				console.log('iconLngPx: ' + iconLngPx);
+				//console.log('iconLngPx: ' + iconLngPx);
 			}
 		}
 

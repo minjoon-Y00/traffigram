@@ -1,0 +1,828 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"background-",
+				"background-color"
+			],
+			[
+				"con",
+				"continue"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "/Users/elska/Sites/TG/tg/PC/index.html",
+			"settings":
+			{
+				"buffer_size": 3219,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/PC/lib/traffigram_global.js",
+			"settings":
+			{
+				"buffer_size": 11298,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "var mode_debug = true;\n//Data\nvar data_cat;\nvar data_loc;\nvar data_currentset = [];\n//API paths\n//var path_js = \"lib/traffigram_global.js\";\nvar path_js = \"https://citygramsound.com:4349/PC/lib/traffigram_global.js\";\nvar path_login2 = \"https://citygramsound.com:4349/signup_check\";\nvar path_login4 = \"https://citygramsound.com:4349/signup\";\nvar path_login7 = \"https://citygramsound.com:4349/sign_in\";\nvar path_cat = \"https://citygramsound.com:4349/tod_get_cat\";\nvar path_resetAddress = \"https://citygramsound.com:4349/reset_addresses\";\nvar path_dest_detail = \"https://citygramsound.com:4349/dest_detail\";\nvar path_save_log = \"https://citygramsound.com:4349/save_log\";\nvar path_save_favorite = \"https://citygramsound.com:4349/save_favorite\";\n\n//User log\nvar user_info = {\n\t\"id\":\"\",\n\t\"name\":\"\",\n\t\"loc_home\":{lng:0, lat:0, address:\"\"},\n\t\"loc_office\":{lng:0, lat:0, address:\"\"},\n\t\"loc_fav\":[]\n};\nvar user_log = {\n\t//\"user_id\": \"\",\n\t\"type\" : \"PC\", //Mobile & PC\n\t\"date\": null,\n\t\"mode_duration\":{\n\t\t\"DC\":0, //Done\n\t\t\"WM\":0, //Done\n\t\t\"List\":0 //Done\n\t},\n\t\"mode_frequency\":{\n\t\t\"DC\": {\n\t\t\t\"zoom\":0,\n\t\t\t\"pan\":0,\n\t\t\t\"change_origin\":0,\n\t\t\t\"change_transportation\":0,\n\t\t\t\"highlight_isochrone\":0,\n\t\t\t\"highlight_custom\":0,\n\t\t\t\"filter\":0,\n\t\t\t\"see_loc_detail\":0,\n\t\t\t\"do_navigate\":0\n\t\t},\n\t\t\"WM\": {\n\t\t\t\"zoom\":0,\n\t\t\t\"pan\":0,\n\t\t\t\"change_origin\":0,\n\t\t\t\"change_transportation\":0,\n\t\t\t\"filter\":0,\n\t\t\t\"see_loc_detail\":0,\n\t\t\t\"do_navigate\":0\n\t\t},\n\t\t\"switching\":0 //Done\n\t}\n}\n\nvar user_currentloc = {\n\t\"lng\":0, \"lat\":0\n};\n\nvar user_filter = [\n\t{\"name\": \"ratings\",\"0\":0,\"1\":5},\n\t{\"name\": \"numRatings\",\"0\":0,\"1\":1000},\n\t{\"name\": \"priceRange\",\"0\":0,\"1\":4}\n];\n//some variables\nvar width_screen;\nvar height_screen;\nvar height_screen_safe;\nvar height_tap = 105;\nvar height_transition_gap = 30;\nvar width_UI_margin = 5;\nvar height_UI_margin = 5;\n//transition\nvar time_screen_trans = 400;\nvar time_interaction_buffer = 400;\n//Map related\nvar map_TOT = 0; //Type of transportation 0: car 1: bicycle 2: on foot\nvar map_TOT_temp;\nvar map_TOD = \"1_1\" //Type of destination\nvar map_mode = 0; //map mode 0: WM 1:DC\nvar map_originType = 0 //Type of origin 0: GPS 1: Home 2: Office\nvar map_originType_temp; //Type of origin 0: GPS 1: Home 2: Office\n//UI related\nvar isListOpened = false;\nvar isFilterOpened = false;\nvar isOriginTypeChanged = false;\nvar isUnderAni = false;\nvar isDetailedOpen = false;\nvar whichDetailedID = \"\"\n\nvar dest_IDS=[];\n\nlet tg;\n\nvar time\nvar time_day;\nvar time_month;\nvar time_mode_current = map_mode; // 0: WM 1:DC 2: List & Initialize\nvar time_mode_start = 0;\nvar time_mode_end = 0;\n\nconst saveLogInterval = 10 * 1000; // 10 sec\nlet logTimer = null;\n\n// Event handler\n$(document).ready(function(){\n\ttime = new Date();\n\ttime_day = time.getDate();\n\ttime_month = time.getMonth();\n\tconsole.log(time_month + ' ' + time_day);\n\n\t$.ajax({\n\t\turl: path_js,\n\t\tdataType: 'script',\n\t\tasync: true,\n\t\tsuccess: function(){\n\t\t\t//Initial screen setting\n\t\t\t//width_screen = $(window).width();\n\t\t\t//height_screen = $(window).height();\n\t\t\theight_screen_safe = 800;\n\t\t\tif (height_screen - 65 < 800){\n\t\t\t\theight_screen_safe = height_screen - 65;\n\t\t\t}\n\t\t\tconsole.log(\"&&&&&&&&&&&&&&&&&&&&&&\");\n\t\t\tconsole.log(\"&&&&&&&&&&&&&&&&&&&&&&\");\n\t\t\tconsole.log(height_screen);\n\t\t\tconsole.log(height_screen_safe);\n\t\t\tconsole.log(\"&&&&&&&&&&&&&&&&&&&&&&\");\n\t\t\tconsole.log(\"&&&&&&&&&&&&&&&&&&&&&&\");\n\n\t\t\t$(\"#main\").css(\"width\", width_screen);\n\t\t\t$(\"#main\").css(\"height\", height_screen);\n\t\t\t$(window).resize(function(){\n\t\t\t\twidth_screen = $(window).width();\n\t\t\t\theight_screen = $(window).height();\n\t\t\t\t//Set height_screen_safe\n\t\t\t\theight_screen_safe = 800;\n\t\t\t\tif (height_screen - 65 > 800){\n\t\t\t\t\theight_screen_safe = height_screen - 65;\n\t\t\t\t}\n\t\t\t\tconsole.log(\"&&&&&&&&&&&&&&&&&&&&&&\");\n\t\t\t\tconsole.log(\"&&&&&&&&&&&&&&&&&&&&&&\");\n\t\t\t\tconsole.log(height_screen_safe);\n\t\t\t\tconsole.log(\"&&&&&&&&&&&&&&&&&&&&&&\");\n\t\t\t\tconsole.log(\"&&&&&&&&&&&&&&&&&&&&&&\");\n\t\t\t\t$(\"#main\").css(\"width\", width_screen);\n\t\t\t\t$(\"#main\").css(\"height\", height_screen);\n\t\t\t});\n\n\t\t\t//Load the first screen\n\t\t\tload_login1();\n\t\t\t//Change this later\n\t\t\t//load_TOD(\"left\");\n\n\t\t},\n\t\terror: function(request, error){\n\t\t\tconsole.log(error);\n\t\t}\n\t});\n});\n\n//Load screen login1 \n//Main features: allow sign in / sign up\nfunction load_login1(){\n\t$(\"#content\").empty();\n\t$(\"#content\").append(html_login1);\n\n\t//event handler\n\t$(\"#login1_btn_signup\").on(\"click\", function(){\n\t\tif(mode_debug){console.log(\"sign up\");}\n\t\tload_login2();\n\t});\n\n\t//Go to login7\n\t$(\"#login1_btn_signin\").on(\"click\", function(){\n\t\t$(this).css({cursor: \"pointer\"});\n\t\tif(mode_debug){console.log(\"sign in - i.e., login7\");}\n\t\tload_login7();\n\t});\n\t//Auto login\n\tif (getCookie(\"user_n\")!=\"\" && getCookie(\"user_p\")!=\"\"){\n\t\tvar user_name = getCookie(\"user_n\");\n\t\tvar user_pw = getCookie(\"user_p\");\n\t\tproceed_login(user_name, user_pw);\n\t}\t\n}\n\nfunction load_login2(){\n\t$(\"#content\").empty();\n\t$(\"#content\").append(html_login2);\n\t//code here\n\t  //Key up material\n\tvar input_email=\"\";\n\tvar input_name=\"\";\n\tvar input_pw=\"\";\n\tvar input_pw_confirm=\"\";\n\tvar is_email_true = false;\n\tvar is_name_true = false;\n\tvar is_pw_true = false;\n\tvar is_pw_confirm_true = false;\n\n\tvar is_format_done = function() {\n\t\treturn is_email_true && is_name_true && is_pw_true && is_pw_confirm_true && ($('#login2_input_pw').attr('value') === $('#login2_input_pw_confirm').attr('value'));\n\t};\n\n\t$(\"#login2_input_email\").on(\"keyup\", function(){\n\t\tinput_email = $(this).attr(\"value\");\n\t\tif (validateEmail(input_email)){\n\t\t\tis_email_true = true;\n\t\t\t//$(\"#go_next\").attr(\"class\",\"content_btn\");\n\t\t\tif (is_format_done()){\n\t\t\t\t$(\"#login2_btn_signin\").attr(\"class\", \"content_btn\");\n\t\t\t}\n\t\t}\n\t\telse{\n\t\t\tis_email_true = false;\n\t\t\t$(\"#login2_btn_signin\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\t$(\"#login2_input_name\").on(\"keyup\", function(){\n\t\tinput_name = $(this).attr(\"value\");\n\t\tif (input_name !== '' && input_name !== null){\n\t\t  is_name_true = true;\n\t\t\t//$(\"#go_next\").attr(\"class\",\"content_btn\");\n\t\t\tif (is_format_done()){\n\t\t\t\t$(\"#login2_btn_signin\").attr(\"class\", \"content_btn\");\n\t\t\t}\n\t\t}\n\t\telse{\n\t\t\tis_name_true = false;\n\t\t\t$(\"#login2_btn_signin\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\t$(\"#login2_input_pw\").on(\"keyup\", function(){\n\t  input_pw = $(this).attr(\"value\");\n\t\tif (input_pw!=='' && input_pw!==null){\n\t\t  is_pw_true = true;\n\t\t\t//$(\"#go_next\").attr(\"class\",\"content_btn\");\n\t\t\tif (is_format_done()){\n\t\t\t\t$(\"#login2_btn_signin\").attr(\"class\", \"content_btn\");\n\t\t\t} else {\n\t\t\t  $(\"#login2_btn_signin\").attr(\"class\", \"content_btn_disabled\");\n\t\t\t}\n\t\t}\n\t\telse{\n\t\t\tis_pw_true = false;\n\t\t\t$(\"#login2_btn_signin\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\n\t\tif($(\"#login2_input_pw_confirm\").val() === $(\"#login2_input_pw\").val()) {\n\t\t\t$(\".content_message\").html(\"\");\n\t\t}\n\t});\n\t$(\"#login2_input_pw_confirm\").on(\"keyup\", function(){\n\t  input_pw_confirm = $(this).attr(\"value\");\n\t\tif (input_pw_confirm!=='' && input_pw_confirm!==null){\n\t\t  is_pw_confirm_true = true;\n\t\t\t//$(\"#go_next\").attr(\"class\",\"content_btn\");\n\t\t\tif (is_format_done()){\n\t\t\t\t$(\"#login2_btn_signin\").attr(\"class\", \"content_btn\");\n\t\t\t} else {\n\t\t\t  $(\"#login2_btn_signin\").attr(\"class\", \"content_btn_disabled\");\n\t\t\t}\n\t\t}\n\t\telse{\n\t\t\tis_pw_confirm_true = false;\n\t\t\t$(\"#login2_btn_signin\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t\tif($(\"#login2_input_pw_confirm\").val() !== $(\"#login2_input_pw\").val()) {\n\t\t\t$(\".content_message\").html(\"Passwords don't match. Please check again.\");\n\t\t\t$(\".content_message\").css(\"color\",\"red\");\n\t\t} else {\n\t\t  $(\".content_message\").html(\"\");\n\t\t}\n\t});\n\n\t$(\"#login2_btn_cancel\").on(\"click\", function(){\n\t\tload_login1();\n\t});\n\n\t$(\"#login2_btn_signin\").on(\"click\", function(){\n\t\tif (isUnderAni == false){\n\t\t\tif(input_pw_confirm.length < 4 || input_pw.length <4){\n\t\t\t\t$(\".content_message\").html(\"Your password should be at least more than four characters.\");\n\t\t\t\t$(\".content_message\").css(\"color\",\"red\");\n\t\t\t}\n\t\t\telse{\n\t\t\t\tif($(this).attr(\"class\")=== \"content_btn\"){\n\t\t\t\t\tisUnderAni = true;\n\t\t\t\t\t$.ajax({\n\t\t\t\t\t\turl: path_login2,\n\t\t\t\t\t\tdata:{user_id: input_email},\n\t\t\t\t\t\ttype: 'POST',\n\t\t\t\t\t\tdataType: 'json',\n\t\t\t\t\t\tasync: true,\n\t\t\t\t\t\tsuccess: function(data){\n\t\t\t\t\t\t\tif(data[\"res\"] == true) {\n\t\t\t\t\t\t\t  load_login4(input_email, input_name, input_pw);\n\t\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\t\tif(mode_debug){console.log(\"record does not match\");}\n\t\t\t\t\t\t\t\t$(\".content_message\").html(\"The e-mail address is already being used, please try with a different address.\");\n\t\t\t\t\t\t\t\t$(\".content_message\").css(\"color\",\"red\");\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\tisUnderAni = false;\n\t\t\t\t\t\t},\n\t\t\t\t\t\terror: function(request, error){\n\t\t\t\t\t\t\tif(mode_debug){console.log(error);}\n\t\t\t\t\t\t\tisUnderAni = false;\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t});\n}\n\n\nfunction load_login4(user_id, user_name, user_passwd){\n\tvar home_address_true = false;\n\tvar home_address = \"N/A\";\n\tvar home_address_long = -10000;\n\tvar home_address_lat = -10000;\n\tvar office_address_true = false;\n\tvar office_address = \"N/A\";\n\tvar office_address_long = -10000;\n\tvar office_address_lat = -10000;\n\n\n\t$(\"#content\").empty();\n\t$(\"#content\").append(html_login4);\n\n\tvar home_checkbox = document.getElementById('login4_checkbox_home_addr');\n\tvar office_checkbox = document.getElementById('login4_checkbox_office_addr');\n\n\tvar check_done = function() {\n\t\treturn home_address_true && office_address_true;\n\t};\n\n\t$('#login4_checkbox_home_addr').change(function() {\n\t\tif(this.checked) {\n\t\t  $(\"#login4_input_home_addr\").val('');\n\t\t  $(\"#login4_input_home_addr\").prop('disabled', true);\n\t\t  home_address_true = true;\n\t\t  home_address = \"N/A\";\n\t\t  home_address_long = -10000;\n\t\t  home_address_lat = -10000;\n\t\t} else {\n\t\t  $(\"#login4_input_home_addr\").prop('disabled', false);\n\t\t  home_address_true = false;\n\t\t}\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\t$('#login4_checkbox_office_addr').change(function() {\n\t\tif(this.checked) {\n\t\t\t$(\"#login4_input_office_addr\").val('');\n\t\t\t$(\"#login4_input_office_addr\").prop('disabled', true);\n\t\t\toffice_address_true = true;\n\t\t\toffice_address = \"N/A\";\n\t\t\toffice_address_long = -10000;\n\t\t\toffice_address_lat = -10000;\n\t\t} else {\n\t\t\t$(\"#login4_input_office_addr\").prop('disabled', false);\n\t\t\thome_address_true = false;\n\t\t}\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\n\t$('#login4_input_home_addr').focus(function() {\n\t\thome_address_true = false;\n\t\t$('#login4_input_home_addr').val('');\n\t\t$('#login4_input_home_addr').prop('disabled', false);\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\t$('#login4_input_office_addr').focus(function() {\n\t\toffice_address_true = false;\n\t\t$('#login4_input_office_addr').val('');\n\t\t$('#login4_input_office_addr').prop('disabled', false);\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\n\tvar input1 = document.getElementById('login4_input_home_addr');\n\tvar input2 = document.getElementById('login4_input_office_addr');\n\tvar options = {\n\t\ttypes: ['geocode']\n\t};\n\n\tvar autocomplete1 = new google.maps.places.Autocomplete(input1, options);\n\tvar autocomplete2 = new google.maps.places.Autocomplete(input2, options);\n\n\tvar place_callback_home = function() {\n\t\tif(autocomplete1.getPlace().geometry && autocomplete1.getPlace()) {\n\t\t  home_address_true = true;\n\t\t  home_address = autocomplete1.getPlace().formatted_address;\n\t\t  home_address_long = autocomplete1.getPlace().geometry.location.lng();\n\t\t  home_address_lat = autocomplete1.getPlace().geometry.location.lat();\n\t\t} else {\n\t\t  home_address_true = false;\n\t\t  home_address = \"N/A\";\n\t\t  home_address_long = -10000;\n\t\t  home_address_lat = -10000;\n\t\t}\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t};\n\tvar place_callback_office = function() {\n\t\tif(autocomplete2.getPlace().geometry && autocomplete2.getPlace()) {\n\t\t\toffice_address_true = true;\n\t\t\toffice_address = autocomplete2.getPlace().formatted_address;\n\t\t\toffice_address_long = autocomplete2.getPlace().geometry.location.lng();\n\t\t\toffice_address_lat = autocomplete2.getPlace().geometry.location.lat();\n\t\t} else {\n\t\t\toffice_address_true = false;\n\t\t\toffice_address = \"N/A\";\n\t\t\toffice_address_long = -10000;\n\t\t\toffice_address_lat = -10000;\n\t\t}\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t};\n\n\tgoogle.maps.event.addListener(autocomplete1, 'place_changed', place_callback_home);\n\tgoogle.maps.event.addListener(autocomplete2, 'place_changed', place_callback_office);\n\n\t$(\"#login4_btn_submit\").on(\"click\", function(){\n\t\tif (isUnderAni == false){\n\t\t\tif($(this).attr(\"class\")=== \"content_btn\"){\n\t\t\t\tisUnderAni = true;\n\t\t\t\t$.ajax({\n\t\t\t\t\turl: path_login4,\n\t\t\t\t\tdata:{user_id: user_id, user_pw: user_passwd, user_name: user_name, \n\t\t\t\t\t\tuser_home: home_address, user_home_lng: home_address_long, \n\t\t\t\t\t\tuser_home_lat: home_address_lat, user_office: office_address, \n\t\t\t\t\t\tuser_office_lng: office_address_long, user_office_lat: office_address_lat},\n\t\t\t\t\ttype: 'POST',\n\t\t\t\t\tdataType: 'json',\n\t\t\t\t\tasync: true,\n\t\t\t\t\tsuccess: function(data){\n\t\t\t\t\t\tif(data[\"res\"] == true) {\n\n\t\t\t\t\t\t\tuser_info.id = user_id;\n\t\t\t\t\t\t\tuser_info.name = user_name;\n\t\t\t\t\t\t\tload_login6(user_name, user_passwd);\n\t\t\t\t\t\t\tstart_log();\n\t\t\t\t\t\t\tconsole.log('Oh yeah~ Finally');\n\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\tif(mode_debug){console.log(\"somethings wrong\");}\n\t\t\t\t\t\t\t$(\".content_message\").html(\"Sign up failed! Please try again.\");\n\t\t\t\t\t\t\t$(\".content_message\").css(\"color\",\"red\");\n\t\t\t\t\t\t}\n\t\t\t\t\t\tisUnderAni = false;\n\t\t\t\t\t},\n\t\t\t\t\terror: function(request, error){\n\t\t\t\t\t\tif(mode_debug){console.log(error);}\n\t\t\t\t\t\tisUnderAni = false;\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t}\n\t\t}\n\t});\n}\n\nfunction load_login4_old(user_id, user_name, user_passwd){\n\tvar home_address_true = false;\n\tvar home_address = \"N/A\";\n\tvar home_address_long = -10000;\n\tvar home_address_lat = -10000;\n\tvar office_address_true = false;\n\tvar office_address = \"N/A\";\n\tvar office_address_long = -10000;\n\tvar office_address_lat = -10000;\n\n\t$(\"#content\").empty();\n\t$(\"#content\").append(html_login4);\n\n\tvar home_checkbox = document.getElementById('login4_checkbox_home_addr');\n\tvar office_checkbox = document.getElementById('login4_checkbox_office_addr');\n\tvar check_done = function() {\n\t\treturn home_address_true && office_address_true;\n\t};\n\n\t$('#login4_checkbox_home_addr').change(function() {\n\t\tif(this.checked) {\n\t\t\t$(\"#login4_input_home_addr\").val('');\n\t\t\t$(\"#login4_input_home_addr\").prop('disabled', true);\n\t\t\thome_address_true = true;\n\t\t\thome_address = \"N/A\";\n\t\t\thome_address_long = -10000;\n\t\t\thome_address_lat = -10000;\n\t\t} else {\n\t\t\t$(\"#login4_input_home_addr\").prop('disabled', false);\n\t\t\thome_address_true = false;\n\t\t}\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\t$('#login4_checkbox_office_addr').change(function() {\n\t\tif(this.checked) {\n\t\t\t$(\"#login4_input_office_addr\").val('');\n\t\t\t$(\"#login4_input_office_addr\").prop('disabled', true);\n\t\t\toffice_address_true = true;\n\t\t\toffice_address = \"N/A\";\n\t\t\toffice_address_long = -10000;\n\t\t\toffice_address_lat = -10000;\n\t\t} else {\n\t\t\t$(\"#login4_input_office_addr\").prop('disabled', false);\n\t\t\thome_address_true = false;\n\t\t}\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\n\t$('#login4_input_home_addr').focus(function() {\n\t\thome_address_true = false;\n\t\t$('#login4_input_home_addr').val('');\n\t\t$('#login4_input_home_addr').prop('disabled', false);\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\t$('#login4_input_office_addr').focus(function() {\n\t\toffice_address_true = false;\n\t\t$('#login4_input_office_addr').val('');\n\t\t$('#login4_input_office_addr').prop('disabled', false);\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\t//code here\n\tvar defaultBounds = new google.maps.LatLngBounds(\n\t\tnew google.maps.LatLng(-33.8902, 151.1759),\n\t\tnew google.maps.LatLng(-33.8474, 151.2631));\n\n\tvar input1 = document.getElementById('login4_input_home_addr');\n\tvar input2 = document.getElementById('login4_input_office_addr');\n\tvar options = {\n\t\tbounds: defaultBounds,\n\t\ttypes: ['establishment']\n\t};\n\n\tvar autocomplete1 = new google.maps.places.Autocomplete(input1, options);\n\tvar autocomplete2 = new google.maps.places.Autocomplete(input2, options);\n\n\tvar place_callback_home = function() {\n\t\tif(autocomplete1.getPlace().geometry && autocomplete1.getPlace()) {\n\t\t  home_address_true = true;\n\t\t  home_address = autocomplete1.getPlace().formatted_address;\n\t\t  home_address_long = autocomplete1.getPlace().geometry.location.lng();\n\t\t  home_address_lat = autocomplete1.getPlace().geometry.location.lat();\n\t\t} else {\n\t\t  home_address_true = false;\n\t\t  home_address = \"N/A\";\n\t\t  home_address_long = -10000;\n\t\t  home_address_lat = -10000;\n\t\t}\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t};\n\tvar place_callback_office = function() {\n\t\tif(autocomplete2.getPlace().geometry && autocomplete2.getPlace()) {\n\t\t\toffice_address_true = true;\n\t\t\toffice_address = autocomplete2.getPlace().formatted_address;\n\t\t\toffice_address_long = autocomplete2.getPlace().geometry.location.lng();\n\t\t\toffice_address_lat = autocomplete2.getPlace().geometry.location.lat();\n\t\t} else {\n\t\t\toffice_address_true = false;\n\t\t\toffice_address = \"N/A\";\n\t\t\toffice_address_long = -10000;\n\t\t\toffice_address_lat = -10000;\n\t\t}\n\t\tif(check_done()) {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn\");\n\t\t} else {\n\t\t\t$(\"#login4_btn_submit\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t};\n\tgoogle.maps.event.addListener(autocomplete1, 'place_changed', place_callback_home);\n\tgoogle.maps.event.addListener(autocomplete2, 'place_changed', place_callback_office);\n\n\t$(\"#login4_btn_submit\").on(\"click\", function(){\n\t\tif($(this).attr(\"class\")=== \"content_btn\"){\n\t\t\t$.ajax({\n\t\t\t\turl: path_login4,\n\t\t\t\tdata:{user_id: user_id, user_pw: user_passwd, user_name: user_name, \n\t\t\t\t\t\tuser_home: home_address, user_home_lng: home_address_long, \n\t\t\t\t\t\tuser_home_lat: home_address_lat, user_office: office_address, \n\t\t\t\t\t\tuser_office_lng: office_address_long, user_office_lat: office_address_lat},\n\t\t\t\ttype: 'POST',\n\t\t\t\tdataType: 'json',\n\t\t\t\tasync: true,\n\t\t\t\tsuccess: function(data){\n\t\t\t\t\tif(data[\"res\"] == true) {\n\t\t\t\t\t\tload_login6(user_name);\n\t\t\t\t\t\tconsole.log('Oh yeah~ Finally');\n\t\t\t\t\t} else {\n\t\t\t\t\t\tif(mode_debug){console.log(\"somethings wrong\");}\n\t\t\t\t\t\t$(\".content_message\").html(\"Sign up failed! Please try again.\");\n\t\t\t\t\t\t$(\".content_message\").css(\"color\",\"red\");\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\terror: function(request, error){\n\t\t\t\t\tif(mode_debug){console.log(error);}\n\t\t\t\t}\n\t\t\t});\n\t\t}\n\t});\n}\n\n//Finally!!\nfunction load_login6(name, pwpw){\n\n\tconsole.log('load_login6: ' + name);\n\n\t$(\"#main\").append(html_popup);\n\t//Include black layer\n\t$(\"#popup_blacklayer\").css({\n\t\t\"position\": \"absolute\", \n\t\t\"height\": height_screen + \"px\", \"width\": width_screen + \"px\", \n\t\t\"top\": 0 + \"px\", \"left\": 0 + \"px\", background: \"rgba(0,0,0,0.5)\"});\n\n\t//Include subject and text\n\t$(\"#popup_heading\").append(\"SIGN-UP SUCCESSFUL\");\n\t$(\"#popup_content\").append(\"<div>Welcome, \"+name+\"! Thanks for choosing using Traffigram. We hope you enjoy using this application.</div>\");\n\t$(\"#popup_content\").append('<div class=\"content_paragraph\"><span class=\"content_btn\" id=\"login6_btn_continue\"> <img src=\"img/btnicon_check@2x.png\"/> CONTINUE </span></div>');\n\n\t//Set popup\n\t$(\"#popup\").css({\n\t\t\"position\": \"absolute\", \n\t\t\"height\": height_screen*0.4 + \"px\", \"width\": width_screen*0.6 + \"px\", \n\t\t\"top\": height_screen*0.3, \"left\": width_screen*0.2 + \"px\", background: \"white\"});\n\t$(\"#popup_content\").css({\"height\": height_screen*0.7 - 150 + \"px\"});\n\n\t//Present popup\n\t$(\"#popup\").animate({opacity:1},time_screen_trans);\n\n\t//Closing popup #1 \n\t$(\"#login6_btn_continue\").on(\"click\", function(){\n\t\tif (isUnderAni == false){\n\t\t\tisUnderAni = true;\n\t\t\t$(\"#popup\").animate({opacity:0},time_screen_trans, function(){\n\t\t\t\t$(this).remove();\n\t\t\t\t$(\"#popup_blacklayer\").remove();\n\t\t\t\tsetTimeout(function(){\n\t\t\t\t\t//load_TOD();\n\t\t\t\t\t//load_map();\n\t\t\t\t\tproceed_login(name, pwpw);\n\t\t\t\t\tisUnderAni = false;\n\t\t\t\t},time_interaction_buffer);\n\t\t\t});\t\t\n\t\t}\n\t})\n\n\t//Close popup #2\n\t$(\"#popup_close\").on(\"click\", function(){\n\t\tif (isUnderAni == false){\n\t\t\t$(\"#popup\").animate({opacity:0},time_screen_trans, function(){\n\t\t\t\t$(this).remove();\n\t\t\t\t$(\"#popup_blacklayer\").remove();\n\t\t\t\tsetTimeout(function(){\n\t\t\t\t\tload_TOD();\n\t\t\t\t\tload_map();\n\t\t\t\t\tisUnderAni = false;\n\t\t\t\t},time_interaction_buffer);\n\t\t\t});\n\t\t}\n\t});\n}\n\n//Load screen login7\n//Main features: check e-mail and password and login\nfunction load_login7(){\n\t//Content empty and reload\n\t$(\"#content\").empty();\n\t$(\"#content\").append(html_login7);\n\n\t//Key up material\n\tvar input_email=\"\";\n\tvar input_pw=\"\";\n\tvar is_email_true = false;\n\tvar is_pw_true = false;\n\n\t$(\"#input_email\").on(\"keyup\", function(){\n\t\tinput_email = $(this).attr(\"value\");\n\t\tif (validateEmail(input_email)){\n\t\t\tis_email_true = true;\n\t\t\t//$(\"#go_next\").attr(\"class\",\"content_btn\");\n\t\t\tif (is_pw_true){\n\t\t\t\t$(\"#login7_btn_signin\").attr(\"class\", \"content_btn\");\n\t\t\t}\n\t\t}\n\t\telse{\n\t\t\tis_email_true = false;\n\t\t\t$(\"#login7_btn_signin\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\t$(\"#input_pw\").on(\"keyup\", function(){\n\t\tinput_pw = $(this).attr(\"value\");\n\t\tif (input_pw!=\"\"){\n\t\t\tis_pw_true = true;\n\t\t\t//$(\"#go_next\").attr(\"class\",\"content_btn\");\n\t\t\tif (is_email_true){\n\t\t\t\t$(\"#login7_btn_signin\").attr(\"class\", \"content_btn\");\n\t\t\t}\n\t\t}\n\t\telse{\n\t\t\tis_pw_true = false;\n\t\t\t$(\"#login7_btn_signin\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t});\n\n\t$(\"#login7_btn_signin\").on(\"click\", function(){\n\t\tif (isUnderAni == false){\n\t\t\tif($(this).attr(\"class\")== \"content_btn\"){proceed_login(input_email, input_pw);}\n\t\t}\n\t});\t\n\n\t$(\"#login7_btn_cancel\").on(\"click\", function(){\n\t\tload_login1();\n\t});\n}\n\nfunction proceed_login(input_email, input_pw){\n\tisUnderAni = true\n\tconsole.log(input_email + \" \" + input_pw);\n\t$.ajax({\n\t\turl: path_login7,\n\t\tdata:{user_id: input_email, user_pw: input_pw},\n\t\ttype: 'POST',\n\t\tdataType: 'json',\n\t\tasync: true,\n\t\tsuccess: function(data){\n\t\t\t//Set cookie once a user logged in successfully\n\t\t\t//console.log(\"before setting cookies:\" + document.cookie);\n\t\t\tdocument.cookie = \"user_n=\" + input_email;\n\t\t\tdocument.cookie  = (\"user_p=\" + input_pw);\n\t\t\t//console.log(\"after setting cookies:\" + document.cookie);\n\n\t\t\tif(data[\"res\"] == true){\n\t\t\t\t//user_info[\"id\"] = data[\"user_id\"];\n\t\t\t\tuser_info.id = input_email;\n\t\t\t\tuser_info[\"loc_home\"].address = data[\"user_home\"];\n\t\t\t\tuser_info[\"loc_home\"].lng = data[\"user_home_lng\"];\n\t\t\t\tuser_info[\"loc_home\"].lat = data[\"user_home_lat\"];\n\t\t\t\tuser_info[\"loc_office\"].address = data[\"user_office\"];\n\t\t\t\tuser_info[\"loc_office\"].lng = data[\"user_office_lng\"];\n\t\t\t\tuser_info[\"loc_office\"].lat = data[\"user_office_lat\"];\n\t\t\t\tuser_info[\"loc_fav\"] = data[\"user_fav\"];\n\t\t\t\tuser_info[\"name\"] = data[\"user_name\"];\n\n\t\t\t\tif (typeof data[\"user_fav\"] === 'string') {\n\t\t\t\t\tuser_info.loc_fav = JSON.parse(data[\"user_fav\"]);\n\t\t\t\t}\n\t\t\t\telse{\n\t\t\t\t\tuser_info.loc_fav = [];\t\n\t\t\t\t}\n\n\t\t\t\tif(mode_debug){console.log(\"user_info\");}\n\n\t\t\t\tstart_log();\n\n\t\t\t\t$(\"#main\").remove();\n\t\t\t\t$(\"body\").append(html_main_PC);\n\t\t\t\t$(\"#bottom\").css({\"opacity\":\"0\"});\n\t\t\t\tload_TOD();\n\t\t\t\tload_map();\n\t\t\t\tsetTimeout(function(){\n\t\t\t\t\t$(\"#bottom\").animate({\"opacity\":\"1\"}, time_interaction_buffer*2);\n\t\t\t\t\tisUnderAni = false;\n\t\t\t\t}, time_interaction_buffer*1.5);\n\n\t\t\t} else {\n\t\t\t\tconsole.log(\"@@@@@@@@@@@@@@@@@@@@@@@@\");\n\t\t\t\tconsole.log(\"@@@@@@@@@@@@@@@@@@@@@@@@\");\n\t\t\t\tconsole.log(data);\n\t\t\t\tconsole.log(\"@@@@@@@@@@@@@@@@@@@@@@@@\");\n\t\t\t\tconsole.log(\"@@@@@@@@@@@@@@@@@@@@@@@@\");\n\t\t\t\tif(mode_debug){console.log(\"record does not match\");}\n\t\t\t\t$(\".content_message\").html(\"Your e-mail address and password does not match with our record. If you need a help, please e-mail traffigram@gmail.com.\");\n\t\t\t\t$(\".content_message\").css(\"color\",\"red\");\n\t\t\t\tisUnderAni = false;\n\t\t\t}\n\t\t},\n\t\terror: function(request, error){\n\t\t\tif(mode_debug){console.log(error);}\n\t\t\tisUnderAni = false;\n\t\t}\t\t\t\t\n\t});\n}\n\n//Load screen TOD\n//allows a user to browse TOD\n//function load_TOD(){\n\t//Content empty and reload\n\t//$(\"#user_name\").css(\"font-weight\", 700);\n\t//$(\"#user_name\").append(user_info[\"name\"]);\n\t//$(\"#header_inside_right\").append('<span style=\"padding-left:20px; padding-right:20px vertical-align:middle\" id=\"to_my_fav\"> My favorite</span>');\n\t//$(\"#header_inside_right\").append('<span style=\"padding-left:20px; padding-right:20px vertical-align:middle\" id=\"to_signout\"> Sign out </span>');\n\t//$(\"#to_my_fav\").on(\"mouseover\", function(){$(this).css(\"cursor\",\"pointer\");});\n\t//$(\"#to_signout\").on(\"mouseover\", function(){$(this).css(\"cursor\",\"pointer\");});\n\n\t//Event handling\n\t$(\"#to_my_fav\").on(\"click\", function(){\n\t\tdata_currentset = tg.getFavorites();\n\t\tconsole.log(data_currentset);\n\t\topenList();\n\t});\n\t$(\"#to_signout\").on(\"click\", function(){\n\t\tconstructPopup(\"Sign out\", html_popup_SignOut,\"signout\");\n\t\tend_log();\n\t});\t\n\t//Sort of hack: NEVERMIND\n\t//$(\"#content_new\").css(\"top\", + height_transition_gap*(-1) + \"px\");\n\t//load_TOD_construct_DOM();\n}\n/*function load_TOD_construct_DOM(){\n\t//$(\"#content_TOD\").css(\"height\", height_screen_safe);\n\t$(\"#content_TOD\").append(html_TOD);\n\n\t//get information\n\t$.ajax({\n\t\turl: path_cat,\n\t\ttype: 'POST',\n\t\tdataType: 'json',\n\t\tasync: true,\n\t\tsuccess: function(data){\n\t\t\tdata_cat = data;\n\n\t\t\t//Step 1. Make a list\n\t\t\t$(\".content_main_heading_TOD\").append('<div class=\"content_main_heading\"> <img src=\"img/headicon_CAT.png\"/> <span style = \"padding-left:-10px\"> Destination categories </span></div>');\n\t\t\t$(\".content_main_textarea_TOD\").css({\"height\": (height_screen_safe - 40 )+ \"px\"});\n\n\t\t\tfor (i=0; i<data_cat.cat.length;i++){\n\t\t\t\t//this_cat_id = data_cat.cat[i][\"cat_id\"];\n\t\t\t\t//this_cat_name = data_cat.cat[i][\"cat_name\"];\n\t\t\t\t//Add each column .list_down = closed .list_up = opened\n\t\t\t\t$(\".content_main_textarea_TOD\").append('<div id=\"cat_'+ this_cat_id +'\" class=\"content_main_cat\"> </div>');\n\t\t\t\t$(\"#cat_\"+this_cat_id).css(\"cursor\", \"pointer\");\n\t\t\t\t//Add an image and cat name\n\t\t\t\t$(\"#cat_\"+this_cat_id).append('<div class=\"content_main_cat_image\"> <img src=\"img/TOD_menu'+this_cat_id+'@2x.png\"/></div>');\n\t\t\t\t$(\"#cat_\"+this_cat_id).append('<div class=\"content_main_cat_text\">'+this_cat_name+'</div>');\n\t\t\t\t$(\"#cat_\"+this_cat_id).append('<div class=\"content_main_cat_circle\"><img src=\"img/TOD_arrow_down@2x.png\"/></div>');\n\t\t\t\t$(\".content_main_textarea_TOD\").append('<div id=\"subcat_'+this_cat_id+'\"></div>');\n\t\t\t}\n\t\t\t//Step 2. Add event\n\t\t\tfor (i=0; i<data_cat.cat.length;i++){\n\t\t\t\t$(\"#cat_\"+data_cat.cat[i][\"cat_id\"]).on(\"click\", function(){\n\t\t\t\t\tvar selector = \"#\" + $(this).attr(\"id\") + \" .content_main_cat_circle img\";\n\t\t\t\t\tvar char_ = $(selector).attr(\"src\").split(\"_\")[2][0];\n\t\t\t\t\t//If closed -> open\n\t\t\t\t\tvar subcat = \"#sub\" + $(this).attr(\"id\");\n\t\t\t\t\tif(char_ == \"d\"){\n\t\t\t\t\t\t$(selector).attr(\"src\", \"img/TOD_arrow_up@2x.png\");\n\t\t\t\t\t\t//Include sub cats\n\t\t\t\t\t\tload_TOD_list_subcat(subcat);\n\t\t\t\t\t}\n\t\t\t\t\t//If opened -> close\n\t\t\t\t\telse{\n\t\t\t\t\t\t$(selector).attr(\"src\", \"img/TOD_arrow_down@2x.png\");\n\t\t\t\t\t\t//Empty sub cats\n\t\t\t\t\t\tconsole.log(subcat);\n\t\t\t\t\t\t$(subcat).empty();\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t}\n\t\t},\n\t\terror: function(request, error){\n\t\t\tif(mode_debug){console.log(error);}\n\t\t}\t\t\t\t\n\t});\n}*/\n/*function load_TOD_list_subcat(subcat){\n\tif(mode_debug){console.log(subcat);}\n\tvar idx = subcat.split(\"_\")[1]-1;\n\t//Step 1. Make a list\n\tfor (i=0; i<data_cat.cat[idx].cat_sub.length;i++){\n\t\tvar subcat_id = data_cat.cat[idx].cat_sub[i].cat_id;\n\t\tvar subcat_img = data_cat.cat[idx].cat_sub[i].cat_img;\n\t\tvar subcat_name = data_cat.cat[idx].cat_sub[i].cat_name.toUpperCase();\n\t\tvar subcat_num = data_cat.cat[idx].cat_sub[i].cat_num;\n\t\t//Add each column .list_down = closed .list_up = opened\n\t\t$(subcat).append('<div id=\"cat_'+ subcat_id +'\" class=\"content_main_subcat\"> </div>');\n\t\t//Add an image and cat name\n\t\t$(\"#cat_\"+subcat_id).append('<div class=\"content_main_subcat_image\"> <img src=\"'+subcat_img+'\"/></div>');\n\t\t$(\"#cat_\"+subcat_id).append('<div class=\"content_main_subcat_image_mask\"><img src=\"img/TOD_mask_safe.png\"/></div>');\t\t\n\t\t$(\"#cat_\"+subcat_id).append('<div class=\"content_main_subcat_text\">'+subcat_name+' <div class=\"content_main_subcat_text_sub\">('+subcat_num+' locations)</div></div>');\n\t\t$(\"#cat_\"+subcat_id).append('<div class=\"content_main_subcat_circle\"><img src=\"img/TOD_arrow_next@2x.png\"/></div>');\n\t}\n\t//Step 2. Add event\n\tfor (i=0; i<data_cat.cat[idx].cat_sub.length;i++){\n\t\tvar cat_id = data_cat.cat[idx].cat_sub[i].cat_id;\n\t\t$(\"#cat_\" + cat_id).on(\"mouseover\", function(){$(this).css(\"cursor\",\"pointer\");});\n\t\t$(\"#cat_\" + cat_id).on(\"click\", function(){\n\t\t\tvar array_temp = $(this).attr(\"id\").split(\"_\");\n\t\t\t//SAVE CAT / TOD\n\t\t\tmap_TOD = array_temp.splice(1, array_temp.length).join(\"_\");\n\t\t\tif(mode_debug){console.log(map_TOD)};\n\t\t\t\n\t\t\tconst catSubcat = map_TOD.split('_'); //map_TOD = 1_1\n\t\t\tconst numCat = parseInt(catSubcat[0]) - 1;\n\t\t\tconst numSubcat = parseInt(catSubcat[1]) - 1;\n\t\t\ttg.map.tgLocs.changeType(numCat, numSubcat);\n\t\t});\n\t}\n}*/\n\n//function load_map(){\n\t//Include position relative container\n\t//$(\"#content_map\").css(\"height\", height_screen_safe);\n\t//$(\"#content_map\").append('<div id=\"content_map_wrapper\" style = \"position:relative\"></div>')\n\n\t//Set up a map container\n\t//$(\"#content_map_wrapper\").append('<div id=\"content_map_inside\"></div>')\n\t//$(\"#content_map_inside\").css({\n\t//\t\"position\": \"absolute\",\n\t//\t\"width\": $(\"#content_map\").width() + \"px\", \"height\": $(\"#content_map\").height() + \"px\",\n\t//\t\"top\": 0 + \"px\", \"left\": 0 + \"px\", \n\t//\t\"background\": \"#EAEAEA\"\n\t//});\n\n\t// Set up a ol_map\n\t//$(\"#content_map_inside\").append('<div id=\"ol_map\" class=\"ol_map\"></div>');\n\t//$(\"#ol_map\").css({\n\t//\t\"width\": \"100%\", \"height\": \"100%\"\n\t//});\n\n\t/*getCurrentLocation()\n\t.then((data) => {\n\t\t// create the main app object\n\t\ttg = new TgApp('ol_map');\n\n\t\t//console.log('got lat & lng from geolocation: ' + data.lat + ', ' + data.lng);\n\t\tconst seattle = {lat: 47.6115744, lng: -122.343777}\n\t\tif ((data.lat > seattle.lat - 1) && (data.lat < seattle.lat + 1) &&\n\t\t\t(data.lng > seattle.lng - 1) && (data.lng < seattle.lng + 1)) {\n\t\t\t//console.log('ok. here is in seattle.');\n\t\t\ttg.setOriginByOtherLatLng(data.lat, data.lng);\n\t\t\tuser_currentloc.lng = data.lng;\n\t\t\tuser_currentloc.lat = data.lat;\n\n\t\t\t//console.log('loc_fav:');\n\t\t\tuser_info.loc_fav\n\t\t\tconsole.log(user_info.loc_fav);\n\t\t\ttg.setFavorites(user_info.loc_fav);\n\n\t\t\ttg.setHomeAndOffice(user_info.loc_home.address, user_info.loc_home.lat, \n\t\t\t\tuser_info.loc_home.lng, user_info.loc_home.address, user_info.loc_office.lat, \n\t\t\t\tuser_info.loc_office.lng);\n\t\t}\n\t\telse {\n\t\t\ttg.setOriginAsDefault();\n\t\t}\n\t})\n\t.catch((error) => {\n\t\tconsole.error(error);\n\t\ttg = new TgApp('ol_map');\n\t\ttg.setOriginAsDefault();\n\t});\n\t*/\n\n\t//TIME_LOGGING START\n\t//time_mode_start = Math.floor(Date.now() / 1000);\n\t//console.log(\"started logging the first mode\");\n\t//console.log(\"current mode: \"+ time_mode_current);\n\n\t//Set up an empty filter container (from bottom to top)\n\t/*$(\"#content_map_inside\").append('<div id=\"content_filter\"></div>')\n\t$(\"#content_filter\").css({\n\t\t\"position\": \"absolute\",\n\t\t\"width\": 0 + \"px\", \"height\": 200 + \"px\",\n\t\t\"top\": 0 + \"px\", \"left\": $(\"#content_map\").width() + \"px\",\n\t\t\"background\": \"rgb(255,255,255)\",\n\t\t\"z-index\": 10\n\t});*/\n\t//Set up an empty setting container (from bottom to top)\n\t$(\"#content_map_inside\").append('<div id=\"content_settings\"></div>')\n\t$(\"#content_settings\").css({\n\t\t\"position\": \"absolute\",\n\t\t\"width\": 0 + \"px\", \"height\":  $(\"#content_map\").height() + \"px\",\n\t\t\"top\": 0 + \"px\", \"left\": $(\"#content_map\").width() + \"px\", \n\t\t\"background\": \"rgb(255,255,255)\"\n\t});\t\n\n\t//UI: TOP RIGHT SIDE\n\t//1. gotoSet\n\t/*var width_button = 58;\n\t$(\"#content_map_inside\").append('<div id=\"btn_gotoSet\"><img src=\"img/btn_settings.png\"/></div>');\n\t$(\"#btn_gotoSet\").css({\n\t\t\"position\": \"absolute\",\n\t\t\"top\": height_UI_margin + \"px\", \"right\": width_UI_margin*2 + width_button + \"px\"\n\t});\n\t$(\"#btn_gotoSet\").on(\"mouseover\", function(){$(this).css({cursor:\"pointer\"})});\n\t$(\"#btn_gotoSet\").on(\"click\", function(){openSettings();});*/\n\t//3. gotoFilter\n\t/*$(\"#content_map_inside\").append('<div id=\"btn_gotoFilter\"><img src=\"img/btn_gotoFilter.png\"/></div>');\n\t$(\"#btn_gotoFilter\").css({ //switch\n\t\t\"position\": \"absolute\", \n\t\t\"top\": height_UI_margin + \"px\", \"right\": width_UI_margin + \"px\"\n\t});\n\t//Event - gotoFilter T.B.D.\n\t$(\"#btn_gotoFilter\").on(\"mouseover\", function(){$(this).css({cursor:\"pointer\"})});\n\t$(\"#btn_gotoFilter\").on(\"click\", function(){openFilter();});*/\n\n\t//create_map_UI(); //For buttons at the bottom\n\n\t//Add search bar\n\t/*$(\"#content_map_inside\").append('<div id=\"map_search\"> <input type=\"text\" id=\"search_orig\" class= \"input_text_underline\" name=\"orig\" placeholder=\"Type where you are now!\"/></div>'); \n\t//$(\"#map_search\").append('<span class=\"content_btn_disabled\" id=\"loc_search\"> <img src=\"img/POINT.png\"/></span>');\n\n\t// J Y's address setting\n\tvar your_address_true = false;\n\tvar your_address = \"N/A\";\n\tvar your_address_long = -10000;\n\tvar your_address_lat = -10000;\t\n\n\tvar input1 = document.getElementById('search_orig');\n\tvar options = {types: ['geocode']};\n\n\tvar autocomplete = new google.maps.places.Autocomplete(input1, options);\n\n\tvar place_callback_whereami = function() {\n\t\tif(autocomplete.getPlace().geometry && autocomplete.getPlace()) {\n\t\t\tyour_address_true = true;\n\t\t\tyour_address = autocomplete.getPlace().formatted_address;\n\t\t\tyour_address_long = autocomplete.getPlace().geometry.location.lng();\n\t\t\tyour_address_lat = autocomplete.getPlace().geometry.location.lat();\n\t\t\t$(\"#loc_search\").attr(\"class\", \"content_btn\");\n\t\t\t$(\"#loc_search\").css(\"background\", \"#66CBE6\");\n\n\t\t\tuser_currentloc.lng = your_address_long;\n\t\t\tuser_currentloc.lat = your_address_lat;\n\t\t\t$(\"#loc_search\").attr(\"class\", \"content_btn_disabled\");\n\n\t\t\ttg.initMap();\n\t\ttg.setOriginByOtherLatLng(user_currentloc.lat, user_currentloc.lng);\n\n\t\t$(\"#s img\").attr(\"src\", 'img/switch_s_on.png');\n\t\t\t$(\"#t img\").attr(\"src\", 'img/switch_t_off.png');\n\t\t\tmap_mode = 0;\n\n\t\t\tdoLog('change_origin');\n\n\t\t} else {\n\t\t\tyour_address_true = false;\n\t\t\tyour_address = \"N/A\";\n\t\t\tyour_address_long = -10000;\n\t\t\tyour_address_lat = -10000;\n\t\t\t$(\"#loc_search\").attr(\"class\", \"content_btn_disabled\");\n\t\t}\n\t};\n\tgoogle.maps.event.addListener(autocomplete, 'place_changed', place_callback_whereami);\n\n\t$(\"#loc_search\").on(\"click\", function(){\n\t\tif($(\"#loc_search\").attr(\"class\") == \"content_btn\"){\n\t\t\t\n\t\t}\n\t});\n}*/\n\n//function create_map_UI(){\n\t//UI BOTTOM LEFT SIDE - Switch\n\t/*$(\"#content_map_inside\").append('<div id=\"btn_switch\"></div>');\n\tif(map_mode ==0){ //WM mode\n\t\t$(\"#btn_switch\").append('<span id=\"s\"><img src=\"img/switch_s_on.png\"/></span>');\n\t\t$(\"#btn_switch\").append('<span id=\"t\"><img src=\"img/switch_t_off.png\"/></span>');\n\t}\n\telse{ //DC mode\n\t\t$(\"#btn_switch\").append('<span id=\"s\"><img src=\"img/switch_s_off.png\"/></span>');\n\t\t$(\"#btn_switch\").append('<span id=\"t\"><img src=\"img/switch_t_on.png\"/></span>');\n\t}\n\t$(\"#btn_switch\").css({ //switch\n\t\t\"position\": \"absolute\", \n\t\t\"bottom\": height_UI_margin + \"px\", \"left\":  width_UI_margin + \"px\"\n\t});\n\t//Event - Switch\n\t$(\"#s\").on(\"mouseover\", function(){\n\t\tif (map_mode == 1){$(this).css({cursor:\"pointer\"});}\n\t\telse{$(this).css({cursor:\"default\"});}\n\t});\n\t$(\"#t\").on(\"mouseover\", function(){\n\t\tif (map_mode == 0){$(this).css({cursor:\"pointer\"});}\n\t\telse{$(this).css({cursor:\"default\"});}\n\t});\n\n\t$(\"#s\").on(\"click\", function(){\n\t\tif (isUnderAni == false){\n\t\t\tif (map_mode == 1){ //work only if the current mode is DC\n\t\t\t\tisUnderAni = true;\n\t\t\t\t$(\"#s img\").attr(\"src\", 'img/switch_s_on.png');\n\t\t\t\t$(\"#t img\").attr(\"src\", 'img/switch_t_off.png');\n\t\t\t\tmap_mode = 0;\n\t\t\t\ttg.goToEm();\n\t\t\t\t//Time logging\n\t\t\t\ttime_mode_end = Math.floor(Date.now() / 1000);\n\t\t\t\tuser_log.mode_duration.DC += time_mode_end - time_mode_start;\n\t\t\t\tconsole.log(\"Finished logging \" + time_mode_current + \" which should be DC\");\n\n\t\t\t\ttime_mode_current = 1;\n\t\t\t\ttime_mode_start = Math.floor(Date.now() / 1000);\n\t\t\t\tconsole.log(\"Started logging \" + time_mode_current +  \" which should be WM\");\n\t\t\t\tuser_log.mode_frequency.switching += 1;\n\t\t\t\tsetTimeout(function(){isUnderAni = false}, 1000);\n\t\t\t}\t\t\t\n\t\t}\n\t\t\n\t});\n\t$(\"#t\").on(\"click\", function(){\n\t\tif (isUnderAni == false){\n\t\t\tif (map_mode == 0){ //work only if the current mode is DC\n\t\t\t\tisUnderAni = true;\n\t\t\t\t$(\"#s img\").attr(\"src\", 'img/switch_s_off.png');\n\t\t\t\t$(\"#t img\").attr(\"src\", 'img/switch_t_on.png');\n\t\t\t\tmap_mode = 1;\n\t\t\t\ttg.goToDc('shapePreserving');\n\n\t\t\t\t//Time logging\n\t\t\t\ttime_mode_end = Math.floor(Date.now() / 1000);\n\t\t\t\tuser_log.mode_duration.WM += time_mode_end - time_mode_start;\n\t\t\t\tconsole.log(\"Finished logging \" + time_mode_current + \" which should be WM\");\n\n\t\t\t\ttime_mode_current = 0;\n\t\t\t\ttime_mode_start = Math.floor(Date.now() / 1000);\n\t\t\t\tconsole.log(\"Started logging \" + time_mode_current +  \" which should be DC\");\n\t\t\t\t//switching++\n\t\t\t\tuser_log.mode_frequency.switching += 1;\n\t\t\t\tsetTimeout(function(){isUnderAni = false}, 1000);\n\t\t\t}\t\t\t\n\t\t}\n\t\t\n\t});*/\n\n\t//UI UP RIGHT SIDE \n\t/*var width_button = 58;\n\tvar width_switch = 198;\n\t//1. resetOrigin\n\t$(\"#content_map_inside\").append('<div id=\"btn_resetOrigin\"><img src=\"img/btn_resetOrigin.png\"/></div>');\n\t$(\"#btn_resetOrigin\").on(\"mouseover\", function(){$(this).css({cursor:\"pointer\"})});\n\t$(\"#btn_resetOrigin\").css({ //switch\n\t\t\"position\": \"absolute\", \n\t\t\"bottom\": height_UI_margin + \"px\", \"left\": (width_UI_margin * 2) + width_switch + \"px\"\n\t});\n\t//Event - resetOrigin MJ T.B.D.\n\t$(\"#btn_resetOrigin\").on(\"click\", function(){\n\t\ttg.initMap();\n\t\ttg.setOriginAsCurrentLocation();\n\t});*/\n\t//2. TOT\n\t/*$(\"#content_map_inside\").append('<div id=\"btn_TOT\"><img src=\"'+'img/btn_TOT_'+map_TOT+'.png\"/></div>');\n\t$(\"#btn_TOT\").on(\"mouseover\", function(){$(this).css({cursor:\"pointer\"})});\n\t$(\"#btn_TOT\").css({ //switch\n\t\t\"position\": \"absolute\", \n\t\t\"bottom\": height_UI_margin + \"px\", \"left\": (width_UI_margin * 3) + width_switch + width_button + \"px\"\n\t});\n\t$(\"#btn_TOT\").on(\"click\", function(){\n\t\tconstructPopup(\"MODE OF TRANSPORTATION\", html_popup_TOT, \"TOT\");\n\t});*/ \n\n\t//UI_TOP SIDE\n\t//3 Zoom in and out\n\t/*if ($(\"#btn_zoom\").length == 0){\n\t\t$(\"#content_map_inside\").append('<div id=\"btn_zoom\"></div>');\n\t\t$(\"#btn_zoom\").append('<div id=\"zoomin\"><img style = \"display: block;\" src=\"img/btn_zoomin.png\"/></div>');\n\t\t$(\"#btn_zoom\").append('<div id=\"zoomout\"><img style = \"display: block;\" src=\"img/btn_zoomout.png\"/></div>');\n\t\t$(\"#btn_zoom\").css({ //switch\n\t\t\t\"position\": \"absolute\", \n\t\t\t\"bottom\": height_UI_margin + \"px\", \"right\":  width_UI_margin + \"px\" \n\t\t});\n\t\t//Event - Zoom\n\t\t$(\"#zoomin\").on(\"mouseover\", function(){$(this).css({cursor:\"pointer\"})});\n\t\t$(\"#zoomin\").on(\"mousedown\", function(){\n\t\t\tif (isUnderAni == false){\n\t\t\t\t$(\"#zoomin img\").attr(\"src\", 'img/btn_zoomin_onpress.png');\n\t\t\t}\n\t\t});\n\n\t\t$(\"#zoomin\").on(\"mouseup\", function(){\n\t\t\tif (isUnderAni == false){\n\t\t\t\tisUnderAni = true;\n\t\t\t\t$(\"#zoomin img\").attr(\"src\", 'img/btn_zoomin.png');\n\t\t\t\tconsole.log(\"zoom in!!!\");\n\t\t\t\tsetTimeout(function(){isUnderAni = false}, 700);\n\t\t\t\t//MJ: ADD ZOOM IN CODE HERE\n\t\t\t\ttg.zoomIn();\n\t\t\t}\t\t\t\n\t\t});\n\t\t//Event - Zoom\n\t\t$(\"#zoomout\").on(\"mouseover\", function(){$(this).css({cursor:\"pointer\"})});\n\t\t$(\"#zoomout\").on(\"mousedown\", function(){\n\t\t\tif (isUnderAni == false){\n\t\t\t\t$(\"#zoomout img\").attr(\"src\", 'img/btn_zoomout_onpress.png');\n\t\t\t}\n\t\t});\n\n\t\t$(\"#zoomout\").on(\"mouseup\", function(){\n\t\t\tif (isUnderAni == false){\n\t\t\t\tisUnderAni = true;\t\t\t\n\t\t\t\t$(\"#zoomout img\").attr(\"src\", 'img/btn_zoomout.png');\n\t\t\t\tconsole.log(\"zoom out!!!\");\n\t\t\t\tsetTimeout(function(){isUnderAni = false}, 700);\n\t\t\t\t//MJ: ADD ZOOM OUT CODE HERE\n\t\t\t\ttg.zoomOut();\n\t\t\t}\t\t\t\t\t\t\t\n\t\t});\n\t}\t*/\n}\nfunction remove_map_UI(){\n\t$(\"#btn_switch\").remove();\n\t$(\"#btn_resetOrigin\").remove();\n\t$(\"#btn_TOT\").remove();\n}\nfunction openSettings(){\n\t//Raise the position of filter div\n\t$(\"#content_settings\").empty();\n\t$(\"#content_settings\").append(html_settings);\n\t//Pull settings top to layer\n\t$(\"#content_settings\").css(\"z-index\", 100);\n\t$(\"#setting_heading\").css(\"width\", $(\"#content_map\").width() - 40 + \"px\");\n\n\t$(\"#user_address_home\").attr(\"placeholder\", user_info.loc_home.address);\n\t$(\"#user_address_office\").attr(\"placeholder\", user_info.loc_office.address);\n\t//overflow:auto thing - need to set DIV height\n\t$(\".content_main_textarea\").css({\n\t\t\"height\": $(\"#content_map\").height() - $(\".content_main_heading\").height() - 100 + \"px\"\n\t});\n\t$(\"#content_settings\").animate({\n\t\tleft: 0 + \"px\", \n\t\twidth: $(\"#content_map\").width() + \"px\"\n\t}, function(){\n\t\t//Origin type setting\n\t\t$('input[name=originType]').on(\"change\", function(){\n\t\t\t//Set value\n\t\t\tmap_originType_temp = $(this).attr(\"value\");\n\t\t\tmap_originType != map_originType_temp ? $(\"#set_originType\").attr(\"class\",\"content_btn\"): $(\"#set_originType\").attr(\"class\",\"content_btn_disabled\");\n\t\t});\n\t\t$(\"#origin_\"+map_originType).prop(\"checked\", \"true\");\n\n\t\t$(\"#set_originType\").on(\"click\", function(){\n\t\t\tif (map_originType != map_originType_temp){\n\t\t\t\tmap_originType = map_originType_temp;\n\t\t\t\tisOriginTypeChanged = true;\n\n\t\t\t\t// MJ\n\t\t\t\tswitch(parseInt(map_originType)) {\n\t\t\t\t\tcase 0: // current pos\n\t\t\t\t\t\ttg.initMap();\n\t\t\t\t\ttg.setOriginAsCurrentLocation();\n\t\t\t\t\t\tbreak;\n\t\t\t\t\tcase 1: // home\n\t\t\t\t\t\ttg.initMap();\n\t\t\t\t\ttg.setOriginAsHome();\n\t\t\t\t\t\tbreak;\n\t\t\t\t\tcase 2: // office\n\t\t\t\t\t\ttg.initMap();\n\t\t\t\t\ttg.setOriginAsOffice();\n\t\t\t\t\t\tbreak;\n\t\t\t\t}\n\t\t\t\t// MJ\n\n\t\t\t\t$(\"#s img\").attr(\"src\", 'img/switch_s_on.png');\n\t\t\t\t$(\"#t img\").attr(\"src\", 'img/switch_t_off.png');\n\t\t\t\tmap_mode = 0;\n\n\t\t\t\tdoLog('change_origin');\n\n\t\t\t}\n\t\t\telse{isOriginTypeChanged = false;}\n\t\t});\n\t\t\n\t\t// J Y's address setting\n\t\tvar home_address_true = false;\n\t\tvar home_address = \"N/A\";\n\t\tvar home_address_long = -10000;\n\t\tvar home_address_lat = -10000;\n\t\tvar office_address_true = false;\n\t\tvar office_address = \"N/A\";\n\t\tvar office_address_long = -10000;\n\t\tvar office_address_lat = -10000;\n\n\t\tvar input1 = document.getElementById('user_address_home');\n\t\tvar input2 = document.getElementById('user_address_office');\n\t\tvar options = {\n\t\t\ttypes: ['geocode']\n\t\t};\n\n\t\tvar autocomplete1 = new google.maps.places.Autocomplete(input1, options);\n\t\tvar autocomplete2 = new google.maps.places.Autocomplete(input2, options);\n\n\t\tvar place_callback_home = function() {\n\t\t\tif(autocomplete1.getPlace().geometry && autocomplete1.getPlace()) {\n\t\t\t\thome_address_true = true;\n\t\t\t\thome_address = autocomplete1.getPlace().formatted_address;\n\t\t\t\thome_address_long = autocomplete1.getPlace().geometry.location.lng();\n\t\t\t\thome_address_lat = autocomplete1.getPlace().geometry.location.lat();\n\t\t\t\t$(\"#set_addresses\").attr(\"class\", \"content_btn\");\n\t\t\t\tconsole.log(\"auto!!\");\n\t\t\t} else {\n\t\t\t\thome_address_true = false;\n\t\t\t\thome_address = \"N/A\";\n\t\t\t\thome_address_long = -10000;\n\t\t\t\thome_address_lat = -10000;\n\t\t\t\tif (office_address_true == false){\n\t\t\t\t\t$(\"#set_addresses\").attr(\"class\", \"content_btn_disabled\");\n\t\t\t\t}\n\t\t\t}\n\t\t};\n\t\tvar place_callback_office = function() {\n\t\t\tif(autocomplete2.getPlace().geometry && autocomplete2.getPlace()) {\n\t\t\t\toffice_address_true = true;\n\t\t\t\toffice_address = autocomplete2.getPlace().formatted_address;\n\t\t\t\toffice_address_long = autocomplete2.getPlace().geometry.location.lng();\n\t\t\t\toffice_address_lat = autocomplete2.getPlace().geometry.location.lat();\n\t\t\t\t$(\"#set_addresses\").attr(\"class\", \"content_btn\");\n\t\t\t\tconsole.log(\"auto!!\");\n\t\t\t} else {\n\t\t\t\toffice_address_true = false;\n\t\t\t\toffice_address = \"N/A\";\n\t\t\t\toffice_address_long = -10000;\n\t\t\t\toffice_address_lat = -10000;\n\t\t\t\tif (home_address_true == false){\n\t\t\t\t\t$(\"#set_addresses\").attr(\"class\", \"content_btn_disabled\");\n\t\t\t\t}\n\t\t\t}\n\t\t\tif(home_address_true == true || office_address_true == true) {\n\t\t\t\t$(\"#set_addresses\").attr(\"class\", \"content_btn\");\n\t\t\t} else {\n\t\t\t\t$(\"#set_addresses\").attr(\"class\", \"content_btn_disabled\");\n\t\t\t}\n\t\t};\n\n\t\tgoogle.maps.event.addListener(autocomplete1, 'place_changed', place_callback_home);\n\t\tgoogle.maps.event.addListener(autocomplete2, 'place_changed', place_callback_office);\n\n\t\t$(\"#set_addresses\").on(\"click\", function(){\n\t\t\tif($(\"#set_addresses\").attr(\"class\") == \"content_btn\"){\n\t\t\t\tif(home_address_true){\n\t\t\t\t\tuser_info.loc_home.address = home_address;\n\t\t\t\t\tuser_info.loc_home.lng = home_address_long;\n\t\t\t\t\tuser_info.loc_home.lat = home_address_lat;\n\t\t\t\t}\n\t\t\t\tif(office_address_true){\n\t\t\t\t\tuser_info.loc_office.address = office_address;\n\t\t\t\t\tuser_info.loc_office.lng = office_address_long;\n\t\t\t\t\tuser_info.loc_office.lat = office_address_lat;\n\t\t\t\t}\n\t\t\t\tconsole.log(user_info.loc_home.address + user_info.loc_home.lng + user_info.loc_home.lat + user_info.loc_office.address + user_info.loc_office.lng + user_info.loc_office.lat);\n\t\t\t\t//Ask update\n\t\t\t\t$.ajax({\n\t\t\t\t\turl: path_resetAddress,\n\t\t\t\t\tdata:{ user_id: user_info.id, \n\t\t\t\t\t\tuser_home: user_info.loc_home.address, \n\t\t\t\t\t\tuser_home_lng: user_info.loc_home.lng, \n\t\t\t\t\t\tuser_home_lat: user_info.loc_home.lat, \n\t\t\t\t\t\tuser_office: user_info.loc_office.address, \n\t\t\t\t\t\tuser_office_lng: user_info.loc_office.lng, \n\t\t\t\t\t\tuser_office_lat: user_info.loc_office.lat\n\t\t\t\t\t},\n\t\t\t\t\ttype: 'POST',\n\t\t\t\t\tdataType: 'json',\n\t\t\t\t\tasync: true,\n\t\t\t\t\tsuccess: function(data){\n\t\t\t\t\t\tif(data[\"res\"] == true) {\n\t\t\t\t\t\t\t//load_login6(user_name);\n\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\tif(mode_debug){console.log(\"somethings wrong\");}\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\terror: function(request, error){\n\t\t\t\t\t\tif(mode_debug){console.log(error);}\n\t\t\t\t\t}\n\t\t\t\t});\t\t\n\n\t\t\t\t// MJ\n\t\t\t\ttg.setHomeAndOffice(user_info.loc_home.address, user_info.loc_home.lat, \n\t\t\t\t\tuser_info.loc_home.lng, user_info.loc_home.address, user_info.loc_office.lat, \n\t\t\t\t\tuser_info.loc_office.lng);\n\t\t\t\t// MJ\t\t\t\n\t\t\t}\n\t\t});\n\n\t\t$(\"#set_signout\").on(\"click\", function(){\n\t\t\tconsole.log(\"hello\");\n\t\t\tconstructPopup(\"Sign out\", html_popup_SignOut,\"signout\")\n\t\t})\n\n\t\t//Close\n\t\t$(\".content_main_heading_close\").on(\"click\", function(){\n\t\t\tif (isOriginTypeChanged){\n\t\t\t\tif(mode_debug){console.log(\"origin type changed\");}\n\t\t\t}\n\t\t\tcloseSettings();\n\t\t});\n\t});\n}\nfunction closeSettings(){\n\t//Raise the position of filter div\n\t$(\"#content_settings\").animate({\n\t\t\"width\": 0 + \"px\", \"height\":  $(\"#content_map\").height() + \"px\",\n\t\t\"top\": 0 + \"px\", \"left\": $(\"#content_map\").width() + \"px\", \n\t}, function(){\n\t\tisDetailedOpen = false;\n\t\t$(\"#content_settings\").empty();\n\t});\t\t\t\n}\n/*function openFilter(){\n\n\tisFilterOpened = true;\n\t//remove_map_UI();\n\n\tvar height_offSet = 200;\n\n\t//$(\"#content_filter\").empty();\n\t//$(\"#content_filter\").append(html_filter);\n\t//Pull settings top to layer\n\t//$(\"#content_filter\").css(\"z-index\", 100);\n\t$(\"#filter_heading\").css(\"width\", $(\"#content_map\").width() - 40 + \"px\");\n\n\t$(\"#content_main_filterarea\").css({\n\t\t\"width\": 710 + \"px\",\n\t\t\"height\": height_offSet + \"px\"\n\t});\n\t$(\"#content_filter\").animate({\n\t\tleft: 0 + \"px\", \n\t\twidth: $(\"#content_map\").width() + \"px\"\n\t}, function(){\n\t\t//3. C-DQ\n\n\t\t$(\"#content_main_filterarea\").append(\"<div id='rating_root'></div>\");\n\t\t$(\"#rating_root\").css({\n\t\t\tposition: \"absolute\",\n\t\t\ttop:\"30px\",\n\t\t\tleft: \"10px\",\n\t\t\theight: \"150px\",\n\t\t\twidth: \"230px\",\n\t\t});\n\t\t$(\"#content_main_filterarea\").append(\"<div id='rating_num_root'></div>\");\n\t\t$(\"#rating_num_root\").css({\n\t\t\tposition: \"absolute\",\n\t\t\ttop:\"30px\",\n\t\t\tleft: \"250px\",\n\t\t\theight: \"150px\",\n\t\t\twidth: \"230px\",\n\t\t});\t\t\n\t\t$(\"#content_main_filterarea\").append(\"<div id='price_root'></div>\");\t\t\n\t\t$(\"#price_root\").css({\n\t\t\tposition: \"absolute\",\n\t\t\ttop:\"30px\",\n\t\t\tleft: \"490px\",\n\t\t\theight: \"150px\",\n\t\t\twidth: \"230px\",\n\t\t});\n\n\t\tvar width = 230;\t\t\n\t\tconst rating_conf = {\n\t\t\tcriterion_name: \"Ratings\",\n\t\t\tcriterion_id: \"ratings\",\n\t\t\tinterval: 0.5,\n\t\t\ttick_interval: 0.5,\n\t\t\trange: [0, 5],\n\t\t\trange_MinMax: [true, false],\n\t\t\tdefault_selection: [user_filter[0][\"0\"], user_filter[0][\"1\"]], //[3, 5],\n\t\t\tanonymize: false\n\t\t};\n\t\tconst rating_metrics = {\n\t\t\th_space_top: 20,\n\t\t\th_subject: 16,\n\t\t\th_space_subject_txt: 10,\n\t\t\th_txt: 15,\n\t\t\th_tick: 12,\n\t\t\th_space_between: 5,\n\t\t\th_me: 16,\n\t\t\th_space_me_others: 20,\n\t\t\th_other: 25,\n\t\t\th_space_bottom: 20,\n\t\t\tw_space_padding: 20,\n\t\t\tw_range: width - 2 * 20,\n\t\t\tbar_radius : 10,\n\t\t\thandle_radius : 5,\n\t\t\thandle_width: 10\n\t\t};\n\t\tconst rating_pref = [\n\t\t];\n\t\tconst rating_handler = {\n\t\t\tonSelectChange: function (val){\n\t\t\t\tconstructList();\n\t\t\t\tuser_filter[0][\"0\"] = val[0];\n\t\t\t\tuser_filter[0][\"1\"] = val[1];\n\t\t\t\ttg.filter('ratings', val[0], val[1]);\n\t\t\t\tdoLog('filter');\n\t\t\t},\n\t\t\tsocketHandler: function (setPreference, initialSelection) {\n\t\t\t}\n\t\t};\n\t\tQuantCDQInit('rating_root', rating_conf, rating_metrics, rating_pref, rating_handler);\n\n\t\tconst rating_num_conf = {\n\t\t\tcriterion_name: \"Number of ratings\",\n\t\t\tcriterion_id: \"num_rating\",\n\t\t\tinterval: 200,\n\t\t\ttick_interval: 200,\n\t\t\trange: [0, 1000],\n\t\t\trange_MinMax: [true, true],\n\t\t\tdefault_selection: [user_filter[1][\"0\"], user_filter[1][\"1\"]], //[200, 600],\n\t\t\tanonymize: false\n\t\t};\n\t\tconst rating_num_metrics = {\n\t\t\th_space_top: 20,\n\t\t\th_subject: 16,\n\t\t\th_space_subject_txt: 10,\n\t\t\th_txt: 15,\n\t\t\th_tick: 12,\n\t\t\th_space_between: 5,\n\t\t\th_me: 16,\n\t\t\th_space_me_others: 20,\n\t\t\th_other: 25,\n\t\t\th_space_bottom: 20,\n\t\t\tw_space_padding: 20,\n\t\t\tw_range: width - 2 * 20,\n\t\t\tbar_radius : 10,\n\t\t\thandle_radius : 5,\n\t\t\thandle_width: 10\n\t\t};\n\t\tconst rating_num_pref = [\n\t\t];\n\t\tconst rating_num_handler = {\n\t\t\tonSelectChange: function (val){\n\t\t\t\tconstructList();\n\t\t\t\tuser_filter[1][\"0\"] = val[0];\n\t\t\t\tuser_filter[1][\"1\"] = val[1];\t\t\t\t\n\t\t\t\ttg.filter('numRatings', val[0], val[1]);\n\t\t\t\tdoLog('filter');\n\t\t\t},\n\t\t\tsocketHandler: function (setPreference, initialSelection) {\n\t\t\t}\n\t\t};\n\t\tQuantCDQInit('rating_num_root', rating_num_conf, rating_num_metrics, rating_num_pref, rating_num_handler);\n\n\t\tconst price_conf = {\n\t\t\tcriterion_name: \"Price Range\",\n\t\t\tcriterion_id: \"price_range\",\n\t\t\ttick_num: 5,\n\t\t\tlabel: [\"$\", \"$$\", \"$$$\", \"$$$$\"],\n\t\t\trange_MinMax: [true, true],\n\t\t\tdefault_selection: [user_filter[2][\"0\"], user_filter[2][\"1\"]], //[1, 2],\n\t\t\tanonymize: false\n\t\t};\n\t\tconst price_metrics = {\n\t\t\th_space_top : 20,\n\t\t\th_subject: 16,\n\t\t\th_space_subject_txt: 10,\n\t\t\th_txt: 15,\n\t\t\th_tick: 12,\n\t\t\th_space_between: 5,\n\t\t\th_me: 16,\n\t\t\th_space_me_others: 20,\n\t\t\th_other: 25,\n\t\t\th_space_bottom: 20,\n\t\t\tw_space_padding: 20,\n\t\t\tw_between_tick: (width - 2*20)/4,\n\t\t\tbar_radius : 10,\n\t\t\thandle_radius : 5,\n\t\t\thandle_width: 10\n\t\t};\n\t\tconst price_pref = [\n\t\t];\n\t\tconst price_handler = {\n\t\t\tonSelectChange: function (val){\n\t\t\t\tconstructList();\n\t\t\t\tuser_filter[2][\"0\"] = val[0];\n\t\t\t\tuser_filter[2][\"1\"] = val[1];\n\t\t\t\ttg.filter('priceRange', val[0], val[1]);\n\t\t\t\tdoLog('filter');\n\t\t\t},\n\t\t\tsocketHandler: function (setPreference, initialSelection) {\n\t\t\t}\n\t\t};\n\t\tOrdCDQInit('price_root', price_conf, price_metrics, price_pref, price_handler);\n\n\n\n\t});\n\t$(\"#content_filter\").append('<div id=\"window_close\" style=\"position: absolute; right:20px; top:20px;\"><img src=\"img/window_close.png\"/></div>')\n\t$(\"#window_close\").on(\"click\", function(){closeFilter();})\n}*/\n/*\nfunction closeFilter(){\n\n\tisFilterOpened = false;\n\t$(\"#content_filter\").empty();\n//\tif (isListOpened){\n//\t\t//1. Raise the position of UI buttons\n//\t\tvar height_temp = $(\"#btn_gotoCAT\").height();\n//\t\t$(\"#btn_gotoCAT\").animate({top: height_screen-height_temp + \"px\"}, time_screen_trans);\n//\t\t$(\"#btn_gotoSet\").animate({top: height_screen-height_temp + \"px\"}, time_screen_trans);\n//\t\t$(\"#btn_gotoFilter\").animate({top: height_screen-height_temp + \"px\"}, time_screen_trans);\n//\t}\n\t//2. Raise the position of filter div\n\t$(\"#content_filter\").animate({\n\t\t\"width\": 0 + \"px\", \"height\": 200 + \"px\",\n\t\t\"top\": 0 + \"px\", \"left\": $(\"#content_map\").width() + \"px\",\n\t});\n}\n*/\nfunction openList(){\n\t//console.log(\"started updating\");\n\n\t//remove_map_UI()\n\n\ttime_mode_end = Math.floor(Date.now() / 1000);\n\tif (time_mode_current == 0){\n\t\tuser_log.mode_duration.WM += time_mode_end - time_mode_start;\n\t}\n\telse if (time_mode_current == 1){\n\t\tuser_log.mode_duration.DC += time_mode_end - time_mode_start;\n\t}\n\telse {console.log(\"something weird happened while logging time...\");}\n\n\t//console.log(\"Finished logging \" + time_mode_current)\n\ttime_mode_current = 2;\n\ttime_mode_start = Math.floor(Date.now() / 1000);\n\t//console.log(\"Started logging \" + time_mode_current)\n\n\t//Step 1. move buttons \n\t//Construct TOD\n\tconstructList();\n}\n\nfunction constructList(){\n\t$(\"#content_list\").empty(); \n\t$(\"#content_list\").css(\"height\", height_screen_safe);\n\t$(\"#content_list\").append(html_list); \n\t// ADD ICON IMAGE\n\tvar catid_1 = parseInt(map_TOD.split(\"_\")[0]); //1 of 1_2\n\tvar catid_2 = parseInt(map_TOD.split(\"_\")[1]); //2 of 1_2\n\t$(\"#currentTOD\").append('<img src=\"img/headicon_menu'+map_TOD.split(\"_\")[0]+'.png\"/>');\n\t//Set text height\n\t$(\".content_main_textarea_list\").css({\n\t\t\"height\": (height_screen_safe - 40) + \"px\"\n\t});\n\t//Add each item one by\n\t$(\"#currentTOD\").append(data_cat.cat[catid_1-1].cat_sub[catid_2-1].cat_name);\n\n\t//console.log(data_currentset);\n\n\tfor (var i=0; i<data_currentset.length; i++){\n\t\t//console.log(data_currentset[i]);\n\t\tvar isPriceAvailable = true;\n\t\tvar dest_id = {orig:\"\", simp:\"\"};\n\t\tdest_id.orig = data_currentset[i].id;\n\t\tdest_id.simp = checkDestID(data_currentset[i].id); //Use checkDestID(str) to FIND IDs\n\t\t//console.log(dest_id);\n\t\t//console.log(dest_IDS);\n\t\tdest_IDS.push(dest_id);\n\t\tvar dest_hours = data_currentset[i].hours;\n\t\t//Name\n\t\tvar dest_name = data_currentset[i].name;\n\t\tif(dest_name.length>=30){dest_name = dest_name.slice(0,30)+\"...\";}\n\t\t//Price\n\t\tvar dest_price_range = data_currentset[i].price_range;\n\t\tvar dest_price_word = \"\";\n\t\tvar dest_price_range = data_currentset[i].price_range;\n\t\tif (dest_price_range == 1){\n\t\t\tdest_price_word = \"Inexpensive\";\n\t\t\tdest_price_range = \"$\";\n\t\t}\n\t\telse if (dest_price_range == 2){\n\t\t\tdest_price_word = \"Moderate\";\n\t\t\tdest_price_range = \"$$\";\n\t\t}\n\t\telse if (dest_price_range == 3){\n\t\t\tdest_price_word = \"Expensive\";\n\t\t\tdest_price_range = \"$$$\";\n\t\t}\n\t\telse if (dest_price_range == 4){\n\t\t\tdest_price_word = \"Super luxurious\";\n\t\t\tdest_price_range = \"$$$$\";\n\t\t}\n\t\telse {\n\t\t\tisPriceAvailable = false;\n\t\t}\n\t\tvar dest_price = data_currentset[i].price.toLowerCase();\n\t\t//Ratings\n\t\tvar dest_rating = data_currentset[i].rating;\n\t\tvar dest_rating_cnt = data_currentset[i].rating_cnt;\n\t\tvar dest_rating_cnt_word = \"\";\n\t\tif (dest_rating_cnt <= 49){dest_rating_cnt_word = \"Less known\";}\n\t\telse if (dest_rating_cnt <= 499){dest_rating_cnt_word = \"Known\";}\n\t\telse if (dest_rating_cnt <= 999){dest_rating_cnt_word = \"Famous\";}\n\t\telse if (dest_rating_cnt > 1000){dest_rating_cnt_word = \"Super famous\";}\n\n\t\tvar dest_path = data_currentset[i].path;\n\t\tif(dest_path == \"N/A\"){ dest_path = \"img/INA.png\"}\n\n\t\t//Times\n\t\tvar dest_time = Math.round(Math.round(data_currentset[i].time)/60);\n\t\t\n\t\t$(\".content_main_textarea_list\").append('<div class = \"content_eachdest\" id=\"'+dest_id.simp+'\"></div>');\n\t\t//image\n\t\t$(\"#\"+dest_id.simp).append('<div class = \"content_eachdest_img\"><img src=\"'+dest_path+'\"/></div>');\n\t\tvar str_temp = '<div class=\"content_eachdest_txt\"></div>';\n\t\t$(\"#\"+dest_id.simp).append(str_temp);\n\t\tstr_temp = '<div class=\"content_eachdest_line1\">';\n\t\tstr_temp += dest_name + '<span class=\"content_eachdest_rating\"></div></div>';\n\n\t\tvar rating = dest_rating;\n\t\tvar cnt = 0;\n\t\twhile (rating>0){\n\t\t\tcnt++;\n\t\t\tif (rating >= 1.5){str_temp += '<img src = \"img/icon_star_1.png\"/>&nbsp;'}\n\t\t\telse if (rating == 1){str_temp += '<img src = \"img/icon_star_1.png\"/>'}\n\t\t\telse if (rating == 0.5){str_temp += '<img src = \"img/icon_star_point5.png\"/>'}\n\t\t\trating = rating -1;\n\t\t}\n\t\tif (cnt<=5){\n\t\t\tfor (j=cnt; j<5; j++){\n\t\t\t\tstr_temp += '&nbsp;<img src = \"img/icon_star_0.png\"/>'\n\t\t\t}\n\t\t}\n\t\tstr_temp += '</span></div>';\n\t\tstr_temp += '<div class=\"content_eachdest_line2\">'\n\t\tif (isPriceAvailable){\n\t\t\tstr_temp += '<div><span class=\"stress\">' + dest_price_word + '</span> (' + dest_price_range + ')</br> ';\n\t\t}\n\t\tstr_temp += '<span class=\"stress\">' + dest_rating_cnt_word + '</span> (' + dest_rating_cnt + ' ratings) </div>';\n\t\t//str_temp += '<span class=\"stress\">' + dest_time + '</span> minutes to get here';\n\t\t$(\"#\"+dest_id.simp + \" .content_eachdest_txt\").append(str_temp);\n\n\t\t//console.log(\"#\"+dest_id).css(\"background\", \"black\");\n\t\t$(\"#\"+dest_id.simp + \" .content_eachdest_img\").on(\"mouseover\", function(){$(this).css(\"cursor\",\"pointer\");});\t\n\t\t$(\"#\"+dest_id.simp + \" .content_eachdest_img\").on(\"click\", function(){\n\t\t\tvar this_id = $(this).parent().attr(\"id\");\n\t\t\tif (isDetailedOpen == false || this_id != whichDetailedID){\n\t\t\t\tfor (var j=0; j<dest_IDS.length; j++){\n\t\t\t\t\tif ($(this).parent().attr(\"id\") == dest_IDS[j].simp){\n\t\t\t\t\t\tisDetailedOpen = true;\n\t\t\t\t\t\twhichDetailedID = $(this).parent().attr(\"id\");\n\t\t\t\t\t\topenDetail(dest_IDS[j]);\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t});\n\n\t\t//Favorite related: \n\t\t//check if this is fav\n\t\tvar is_this_fav = false;\n\t\tfor (var j=0; j<user_info.loc_fav.length; j++){\n\t\t\tif(dest_id.simp == user_info.loc_fav[j]){\n\t\t\t\tis_this_fav = true;\n\t\t\t}\n\t\t}\n\t\tvar fav_path;\n\t\t//include fav icon\n\t\tif (is_this_fav){\n\t\t\tfav_path = \"img/icon_fav_on.png\";\n\t\t}\n\t\telse{\n\t\t\tfav_path = \"img/icon_fav_off.png\";\n\t\t}\n\t\t$(\"#\"+dest_id.simp).append(\"<div style='position:absolute; top:0px; right:0px; z-index:20'; id = 'fav_\" + dest_id.simp + \"'><img src='\" + fav_path +\"'/></div>\");\n\t\t//add event - add to fav \n\t\t$(\"#fav_\"+dest_id.simp).on(\"mouseover\", function(){ $(this).css(\"cursor\", \"pointer\");});\n\t\t$(\"#fav_\"+dest_id.simp).on(\"click\", function(){\n\t\t\t//console.log(\"hello there, \");\n\t\t\tvar this_id = $(this).attr(\"id\").split(\"_\")[1];\n\t\t\t//console.log(this_id);\n\t\t\tis_this_fav = false;\n\t\t\tfor (var j=0; j<user_info.loc_fav.length; j++){\n\t\t\t\tif(this_id == user_info.loc_fav[j]){\n\t\t\t\t\tis_this_fav = true;\n\t\t\t\t\t//should now remove this\n\t\t\t\t\tconst removedFav = user_info.loc_fav.splice(j, 1);\n\t\t\t\t\t$(\"#fav_\"+this_id + \" img\").attr(\"src\", \"img/icon_fav_off.png\");\n\t\t\t\t\t$(\"#fav_detail_\"+this_id + \" img\").attr(\"src\", \"img/icon_fav_off.png\");\n\t\t\t\t\ttg.removeFavorite(removedFav);\n\t\t\t\t\tsaveFavorite();\n\t\t\t\t}\n\t\t\t}\n\t\t\tif(is_this_fav == false){\n\t\t\t\t//should add this now\n\t\t\t\tuser_info.loc_fav.push(this_id);\n\t\t\t\t$(\"#fav_\"+this_id + \" img\").attr(\"src\", \"img/icon_fav_on.png\");\n\t\t\t\t$(\"#fav_detail_\"+this_id + \" img\").attr(\"src\", \"img/icon_fav_on.png\");\n\t\t\t\ttg.addFavorite(this_id);\n\t\t\t\tsaveFavorite();\n\t\t\t}\n\t\t});\n\t}\t\n}\n\nfunction saveFavorite() {\n\tconsole.log('request saveFavorite');\n\t$.ajax({\n\t\turl: path_save_favorite,\n\t\tdata:{ user_id: user_info.id, \n\t\t\tuser_fav: JSON.stringify(user_info.loc_fav), \n\t\t},\n\t\ttype: 'POST',\n\t\tdataType: 'json',\n\t\tasync: true,\n\t\tsuccess: function(data){\n\t\t\tif(data[\"res\"] === true) {\n\t\t\t\tconsole.log('saved favorite.');\n\t\t\t} else {\n\t\t\t\tconsole.log(\"somethings wrong\");\n\t\t\t}\n\t\t},\n\t\terror: function(request, error){\n\t\t\tif(mode_debug){console.log(error);}\n\t\t}\n\t});\n}\n\nfunction openDetail(dest_id){\t\n\n\tdoLog('see_loc_detail');\n\n\t$.ajax({\n\t\turl: path_dest_detail,\n\t\tdata:{dest_id: dest_id.simp},\n\t\ttype: 'POST',\n\t\tdataType: 'json',\n\t\tasync: true,\n\t\tsuccess: function(data){\n\n\t\t\t//console.log(dest_id.simp);\n\t\t\t//console.log(data);\n\t\t\tif(data[\"detail\"][\"dest_id\"] != null){\n\t\t\t\t//Raise the position of filter div\n\t\t\t\t$(\"#content_settings\").empty();\n\t\t\t\t$(\"#content_settings\").append(html_detail);\n\t\t\t\t//Pull settings top to layer\n\t\t\t\t$(\"#content_settings\").css(\"z-index\", 100);\n\n\t\t\t\t//overflow:auto thing - need to set DIV height\n\t\t\t\t$(\"#content_settings .content_main_textarea_detail\").css({\n\t\t\t\t\t\"height\": (height_screen_safe - 40 )+ \"px\",\n\t\t\t\t\t\"overflow\": \"auto\"\n\t\t\t\t});\n\t\t\t\t$(\"#content_settings .content_main_heading\").css({\n\t\t\t\t\t\"width\" : $(\"#content_map\").width()\n\t\t\t\t});\n\t\t\t\t$(\"#content_settings\").css({\n\t\t\t\t\t\"left-padding\" : \"20px\"\n\t\t\t\t})\n\t\t\t\t$(\"#content_settings\").css({\n\t\t\t\t\topacity: 0\n\t\t\t\t});\n\t\t\t\t//Step 1. Get full information of this location\n\t\t\t\t$(\"#content_settings\").animate({\n\t\t\t\t\topacity: 1,\n\t\t\t\t\tleft: 0 + \"px\",\n\t\t\t\t\twidth: $(\"#content_map\").width()\n\t\t\t\t});\n\n\t\t\t\t//if(mode_debug){console.log(data);}\n\t\t\t\t//cat 1. Info 1\n\t\t\t\tprice_range = data.detail.dest_price_range;\n\t\t\t\tprice = data.detail.dest_price;\n\t\t\t\trating = data.detail.dest_rating;\n\t\t\t\trating_cnt = data.detail.dest_rating_cnt;\n\t\t\t\tname = data.detail.dest_name;\n\t\t\t\tcat = data.detail.dest_cat;\n\t\t\t\tcats = data.detail.dest_cats;\n\t\t\t\t//cat 2. Info 2\n\t\t\t\tphone = data.detail.dest_info_phone;\n\t\t\t\taddress = data.detail.dest_info_address;\n\t\t\t\t// cat 3. Img\n\t\t\t\timgs = data.detail.dest_imgs;\n\t\t\t\t//Highlights\n\t\t\t\thighlights = data.detail.dest_highlights;\n\t\t\t\t//Full review\n\t\t\t\tfullrev = data.detail.dest_fullrev;\n\t\t\t\t//Additional\n\t\t\t\tlng = data.detail.dest_lng;\n\t\t\t\tlat = data.detail.dest_lat;\n\t\t\t\turl_mobile = data.detail.dest_url_mobile;\n\n\t\t\t\t//CAT 1 processing \n\t\t\t\t//Name\n\t\t\t\tvar name_word = name;\n\t\t\t\t//Rating\n\t\t\t\tvar rating_word = \"<span>\";\n\t\t\t\tvar cnt = 0;\n\t\t\t\twhile (rating>0){\n\t\t\t\t\tcnt++;\n\t\t\t\t\tif (rating >= 1.5){rating_word += '<img src = \"img/icon_star_1.png\"/>&nbsp;'}\n\t\t\t\t\telse if (rating == 1){rating_word += '<img src = \"img/icon_star_1.png\"/>'}\n\t\t\t\t\telse if (rating == 0.5){rating_word += '<img src = \"img/icon_star_point5.png\"/>'}\n\t\t\t\t\trating = rating -1;\n\t\t\t\t}\n\t\t\t\tif (cnt<=5){\n\t\t\t\t\tfor (j=cnt; j<5; j++){\n\t\t\t\t\t\trating_word += '&nbsp;<img src = \"img/icon_star_0.png\"/>'\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\tvar rating_cnt_word = \"\";\n\t\t\t\tif (rating_cnt <= 49){rating_cnt_word = \"Less known\";}\n\t\t\t\telse if (rating_cnt <= 499){rating_cnt_word = \"Known\";}\n\t\t\t\telse if (rating_cnt <=999){rating_cnt_word = \"Famous\";}\n\t\t\t\telse if (rating_cnt > 1000){rating_cnt_word = \"Super famous\";}\n\n\t\t\t\tvar rating_word_temp = '<span> &nbsp; ('+ rating_cnt_word +': '+ rating_cnt +' ratings)</span>';\n\t\t\t\tvar rating_word = rating_word + rating_word_temp;\n\t\t\t\t//Cat\n\t\t\t\tvar cat_word = \"\";\n\t\t\t\t//console.log(cat);\n\t\t\t\t//console.log(cats.toLowerCase().split(\"#\").join(\"&nbsp;\"));\n\t\t\t\tif (cats!= null){\n\t\t\t\t\tcat_word = '<span>' + cat + \", \" + cats.toLowerCase().split(\"#\").join(\", \") + '</span>';\n\t\t\t\t}\n\t\t\t\telse{ cat_word = '<span>' + cat + '</span>'}\n\t\t\t\t \n\t\t\t\t//Price\n\t\t\t\tvar price_word = \"\";\n\t\t\t\tif (price_range == \"$\"){price_word = 'Inexpensive ($)';}\n\t\t\t\telse if (price_range == \"$$\"){price_word = 'Moderate ($$)';}\n\t\t\t\telse if (price_range == \"$$$\"){price_word = 'Expensive ($$$)';}\n\t\t\t\telse if (price_range == \"$$$$\"){price_word = 'Super luxurious ($$$$)';}\n\t\t\t\telse {price_word = \"Price information is not available.\"}\n\t\t\t\t\n\t\t\t\t$(\"#dest_name\").append(name_word);\n\t\t\t\t$(\"#dest_name_title\").append(name_word.toUpperCase());\n\t\t\t\t$(\"#detail_basic1\").append('<div><span class=\"stress\">Ratings</span>: ' + rating_word + '</div>');\n\t\t\t\t$(\"#detail_basic1\").append('<div><span class=\"stress\">Category</span>: ' + cat_word + '</div>');\n\t\t\t\t$(\"#detail_basic1\").append('<div><span class=\"stress\">Price</span>: ' + price_word + '</div>');\n\t\t\t\t$(\"#detail_basic2\").append('<div><span class=\"stress\">Contact Informatio<n/span>:</br>' + phone + ', '+ address + '</div>');\n\n\t\t\t\tvar isImageAvailable = true;\n\t\t\t\tvar img_word = '<div class=\"content_images_wraper\">'\n\t\t\t\timg_links = imgs.split(\"|*|\");\n\t\t\t\tfor (i=0;i<img_links.length;i++){\n\t\t\t\t\tif (img_links[i] ==\"N/A\"){isImageAvailable = false}\n\t\t\t\t\timg_word += '<img src=\"' + img_links[i] + '\"/>';\n\t\t\t\t}\n\t\t\t\timg_word += '</div>';\n\n\t\t\t\tif(isImageAvailable == true){\n\t\t\t\t\t$(\"#detail_img\").append(\n\t\t\t\t\t\timg_word\n\t\t\t\t\t);\n\t\t\t\t}\n\n\t\t\t\tvar highlights_word = '';\n\t\t\t\thl_links = highlights.split(\"|*|\");\n\t\t\t\tvar is_hightlight_available = true;\n\t\t\t\tfor (i=0; i<hl_links.length; i++){\n\t\t\t\t\thl_links_sub = hl_links[i].split(\"||\")[1];\n\t\t\t\t\tif (hl_links_sub == \"N/A\"){\n\t\t\t\t\t\tis_hightlight_available = false;\n\t\t\t\t\t}\n\t\t\t\t\telse{\n\t\t\t\t\t\thl_sentence = '<div style=\"font-style:italic;margin-bottom:30px;\">' +  hl_links_sub.slice(hl_links_sub.indexOf('“'), hl_links_sub.indexOf('”')+1) + '</div>';\n\t\t\t\t\t\thighlights_word += hl_sentence;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\tif (is_hightlight_available){\n\t\t\t\t\t$(\"#detail_highlights\").append(highlights_word);\n\t\t\t\t}\n\t\t\t\telse{\n\t\t\t\t\t$(\"#detail_highlights\").append(\"Highlight information is not available.\");\n\t\t\t\t}\n\n\t\t\t\tvar review_word = '';\n\t\t\t\trv_each = fullrev.split(\"|*|\");\n\t\t\t\tvar is_reiview_available = true;\n\t\t\t\tfor (i=0; i< rv_each.length; i++){\n\t\t\t\t\trv_each_author = rv_each[i].split(\"||\")[0];\n\t\t\t\t\trv_each_date = rv_each[i].split(\"||\")[3];\n\t\t\t\t\trv_each_rv = rv_each[i].split(\"||\")[4];\n\t\t\t\t\tif (rv_each_rv == \"N/A\"){\n\t\t\t\t\t\tis_reiview_available = false;\n\t\t\t\t\t}\n\t\t\t\t\telse{\n\t\t\t\t\t\trv_sentence = '<div>' + rv_each_rv + '</div>';\n\t\t\t\t\t\trv_sentence += '<div style=\"font-style:italic; margin-bottom:30px;\">' + rv_each_author + ', on ' + rv_each_date + '</div>';\n\t\t\t\t\t\treview_word += rv_sentence;\n\t\t\t\t\t}\n\t\t\t\t}\t\t\t\n\t\t\t\t\n\t\t\t\t$(\"#detail_review\").append(\n\t\t\t\t\treview_word + '<div style=\"font-size:30px\">&nbsp;</div>'\n\t\t\t\t);\n\n\t\t\t\t//Favorite related: \n\t\t\t\t//check if this is fav\n\t\t\t\tvar fav_path = \"img/icon_fav_off.png\";\n\t\t\t\tconsole.log(\"check \" + dest_id.simp);\n\t\t\t\tfor (var j=0; j<user_info.loc_fav.length; j++){\n\t\t\t\t\t(j + \" \" + user_info.loc_fav[j]);\n\t\t\t\t\tif(dest_id.simp == user_info.loc_fav[j]){\n\t\t\t\t\t\tfav_path = \"img/icon_fav_on.png\";\n\t\t\t\t\t}\n\t\t\t\t}\n\n\t\t\t\t//include fav icon\n\t\t\t\t$(\"#dest_name_title\").append(\"<span id = 'fav_detail_\" + dest_id.simp + \"'><img src='\" + fav_path +\"'/></div>\");\n\t\t\t\t//add event - add to fav \n\t\t\t\t$(\"#fav_detail_\"+dest_id.simp).on(\"click\", function(){\n\t\t\t\t\tvar this_id = $(this).attr(\"id\").split(\"_\")[2];\n\n\t\t\t\t\tis_this_fav = false;\n\t\t\t\t\tfor (var j=0; j<user_info.loc_fav.length; j++){\n\t\t\t\t\t\tif(this_id == user_info.loc_fav[j]){\n\t\t\t\t\t\t\tis_this_fav = true;\n\t\t\t\t\t\t\t//should now remove this\n\t\t\t\t\t\t\tuser_info.loc_fav.splice(j, 1);\n\t\t\t\t\t\t\t$(\"#fav_detail_\"+this_id + \" img\").attr(\"src\", \"img/icon_fav_off.png\");\n\t\t\t\t\t\t\t$(\"#fav_\"+this_id + \" img\").attr(\"src\", \"img/icon_fav_off.png\");\n\t\t\t\t\t\t\ttg.removeFavorite(removedFav);\n\t\t\t\t\t\t\tsaveFavorite();\t\t\t\t\t\t\t\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\tif(is_this_fav == false){\n\t\t\t\t\t\t//should add this now\n\t\t\t\t\t\tuser_info.loc_fav.push(this_id);\n\t\t\t\t\t\t$(\"#fav_detail_\"+this_id + \" img\").attr(\"src\", \"img/icon_fav_on.png\");\n\t\t\t\t\t\t$(\"#fav_\"+this_id + \" img\").attr(\"src\", \"img/icon_fav_on.png\");\n\t\t\t\t\t\ttg.addFavorite(this_id);\n\t\t\t\t\t\tsaveFavorite();\t\t\t\t\t\t\n\t\t\t\t\t}\n\t\t\t\t\t////CALL \n\t\t\t\t});\n\n\t\t\t\t//Add UI buttons\n\t\t\t\t//UI: TOP LEFT SIDE \n\t\t\t\t//1. goto Google Navigation\n\t\t\t\tif (lng != \"N/A\" && lat != \"N/A\"){\n\t\t\t\t\t$(\"#content_settings\").append('<div id=\"btn_gotoGoogleMaps\"><img src=\"img/btn_GoogleMaps.png\"/></div>');\n\t\t\t\t\t$(\"#btn_gotoGoogleMaps\").css({\n\t\t\t\t\t\t\"position\": \"absolute\",\t\t\t\n\t\t\t\t\t\t\"bottom\": height_UI_margin + \"px\", \"right\": width_UI_margin + \"px\"\n\t\t\t\t\t});\n\t\t\t\t\t$(\"#btn_gotoGoogleMaps\").on(\"click\", function(){\n\n\t\t\t\t\t\tdoLog('do_navigate');\n\n\t\t\t\t\t\tconsole.log(\"Google Maps clicked\");\n\t\t\t\t\t\tvar url = \"https://www.google.com/maps/dir/\" + user_currentloc.lat +\",\"+ user_currentloc.lng +\"/\" + lng + \",\" + lat;\n\t\t\t\t\t\twindow.open(url, '_blank');\n\t  \n\t\t\t\t\t});\t\t\n\t\t\t\t}\n\t\t\t\telse{\n\t\t\t\t\t$(\"#content_settings\").append('<div id=\"btn_gotoGoogleMaps_disabled\"><img src=\"img/btn_GoogleMaps_disabled.png\"/></div>');\n\t\t\t\t\t$(\"#btn_gotoGoogleMaps\").css({\n\t\t\t\t\t\t\"position\": \"absolute\",\t\t\t\n\t\t\t\t\t\t\"bottom\": height_UI_margin + \"px\", \"left\": width_UI_margin + \"px\"\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t\t//2. goto Yelp\n\t\t\t\tif (url_mobile != \"N/A\"){\n\t\t\t\t\t$(\"#content_settings\").append('<div id=\"btn_gotoYelp\"><img src=\"img/btn_Yelp.png\"/></div>');\n\t\t\t\t\t$(\"#btn_gotoYelp\").css({\n\t\t\t\t\t\t\"position\": \"absolute\",\n\t\t\t\t\t\t\"bottom\": height_UI_margin + \"px\", \"right\": + width_UI_margin + 58 + \"px\"\n\t\t\t\t\t});\t\t\n\t\t\t\t\t$(\"#btn_gotoYelp\").on(\"click\", function(){\n\t\t\t\t\t\twindow.open(url_mobile, '_blank');\t\t\n\t\t\t\t\t});\t\t\t\t\t\t\t\n\t\t\t\t}\n\t\t\t\telse{\n\t\t\t\t\t$(\"#content_settings\").append('<div id=\"btn_gotoGoogleMaps_disabled\"><img src=\"img/btn_Yelp_disabled.png\"/></div>');\n\t\t\t\t\t$(\"#btn_gotoGoogleMaps\").css({\n\t\t\t\t\t\t\"position\": \"absolute\",\t\t\t\n\t\t\t\t\t\t\"bottom\": height_UI_margin + \"px\", \"left\": width_UI_margin + 130 + \"px\"\n\t\t\t\t\t});\n\t\t\t\t}\n\t\t\t\t//Close\n\t\t\t\t$(\".content_main_heading_close\").on(\"mouseover\", function(){$(this).css({cursor:\"pointer\"});})\n\t\t\t\t$(\".content_main_heading_close\").on(\"click\", function(){\n\t\t\t\t\tcloseSettings();\n\t\t\t\t\t//console.log(\"close popup!!!\");\n\t\t\t\t});\n\t\t\t}\n\t\t},\n\t\terror: function(request, error){\n\t\t\tif(mode_debug){console.log(error);}\n\t\t}\n\t});\n\n\n}\n\nfunction constructPopup(subject, text, casecase){\n\n\t$(\"body\").append(html_popup);\n\t//Include black layer\n\t$(\"#popup_blacklayer\").css({\n\t\t\"position\": \"absolute\", \n\t\t\"height\": height_screen + \"px\", \"width\": width_screen + \"px\", \n\t\t\"top\": 0 + \"px\", \"left\": 0 + \"px\", background: \"rgba(0,0,0,0.5)\"});\n\n\t//Include subject and text\n\t$(\"#popup_heading\").append(subject);\n\t$(\"#popup_content\").append(text);\n\tif (casecase == \"signout\"){\n\t\t$(\"#your_id\").append(user_info.id);\n\t}\n\n\t//Set popup\n\t$(\"#popup\").css({\n\t\t\"position\": \"absolute\", \n\t\t\"height\": height_screen*0.5 + \"px\", \"width\": width_screen*0.7 + \"px\", \n\t\t\"top\": height_screen*0.25, \"left\": width_screen*0.15 + \"px\", background: \"white\"});\n\t$(\"#popup_content\").css({\"height\": height_screen*0.7 - 150 + \"px\"});\n\n\t//Present popup\n\t$(\"#popup\").animate({opacity:1},time_screen_trans);\n\n\t//casewise events\n\tif (casecase == \"TOT\"){\n\t\t//Initialize the checked property\n\t\t$(\"#TOT_\"+map_TOT).prop(\"checked\", \"true\");\n\t\t//On change\n\t\t$('input[name=TOT]').on(\"change\", function(){\n\t\t\t//console.log($(this));\n\t\t\tmap_TOT_temp = $(this).attr(\"value\");\n\t\t\tif(mode_debug){console.log(map_TOT_temp + \" clicked\");}\n\t\t});\n\t\t//On okay\n\t\t$(\"#popup_TOT_btn_okay\").on(\"click\", function(){\n\t\t\tif(casecase == \"TOT\"){\n\t\t\t\tif (map_TOT != map_TOT_temp){\n\t\t\t\t\tmap_TOT = map_TOT_temp;\n\n\t\t\t\t\t//Update button image\n\t\t\t\t\t$(\"#btn_TOT img\").attr(\"src\", 'img/btn_TOT_'+map_TOT+'.png');\n\t\t\t\t\t//console.log('<div id=\"btn_TOT\"><img src=\"img/btn_TOT_'+map_TOT+'.png\"/></div>');\n\t\t\t\t\tif(mode_debug){console.log(\"value changed to\" + map_TOT);}\n\t\t\t\t\t\n\t\t\t\t\t// MJ\n\t\t\t\t\tswitch(parseInt(map_TOT)) {\n\t\t\t\t\t\tcase 0: // vehicle\n\t\t\t\t\t\t\ttg.setTransportTypeAndGo('auto');\n\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\tcase 1: // bycicle\n\t\t\t\t\t\t\ttg.setTransportTypeAndGo('bicycle');\n\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t\tcase 2: // foot\n\t\t\t\t\t\t\ttg.setTransportTypeAndGo('pedestrian');\n\t\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t\t// MJ\n\n\t\t\t\t\tdoLog('change_transportation');\n\t\t\t\t}\n\t\t\t}\t\t\t\n\t\t\t$(\"#popup\").animate({opacity:0},time_screen_trans, function(){\n\t\t\t\t$(this).remove();\n\t\t\t\t$(\"#popup_blacklayer\").remove();\n\t\t\t});\t\t\t\n\t\t});\n\t\t//On cancel\n\t\t$(\"#popup_TOT_btn_cancel\").on(\"click\", function(){\n\t\t\t$(\"#popup\").animate({opacity:0},time_screen_trans, function(){\n\t\t\t\t$(this).remove();\n\t\t\t\t$(\"#popup_blacklayer\").remove();\n\t\t\t});\n\t\t});\n\t}\n\tif (casecase==\"signout\"){\n\t\t//On signout\n\t\t$(\"#popup_signout_okay\").on(\"click\", function(){\n\t\t\tuser_info = {\n\t\t\t\t\"id\":\"\",\n\t\t\t\t\"loc_home\":{lng:0, lat:0, address:\"\"},\n\t\t\t\t\"loc_office\":{lng:0, lat:0, address:\"\"},\n\t\t\t\t\"loc_fav\":\"\",\n\t\t\t\t\"log\": {}\n\t\t\t};\n\t\t\t//Reset cookie\n\t\t\tif(mode_debug){console.log(\"before nullify cookies:\" + document.cookie);}\n\t\t\tdocument.cookie = (\"user_n=\" + \"\");\n\t\t\tdocument.cookie  = (\"user_p=\" + \"\");\n\t\t\tif(mode_debug){console.log(\"after setting cookies:\" + document.cookie)};\n\n\t\t\t$(\"#popup\").animate({opacity:0},time_screen_trans, function(){\n\t\t\t\t$(this).remove();\n\t\t\t\t$(\"#popup_blacklayer\").remove();\n\t\t\t\t$(\"#header\").remove();\n\t\t\t\t$(\"#bottom\").remove();\n\t\t\t\t$(\"body\").append('<div id=\"main\"><div id=\"content\"></div></div>');\n\t\t\t\t$(\"#main\").css({\n\t\t\t\t\t\"background-color\": \"#66CBE6\",\n\t\t\t\t\tposition:\"relative\",\n\t\t\t\t\ttop: \"0px\", left:\"0px\",\n\t\t\t\t\twidth: $(window).width()+\"px\",\n\t\t\t\t\theight: $(window).height()+\"px\",\n\t\t\t\t\tmargin: \"0 auto\",\n\t\t\t\t\twidth: \"1000px\",\n\t\t\t\t\tcolor: \"rgba(255,255,255,1)\",\n\t\t\t\t\t\"z-index\": \"100\"\n\t\t\t\t});\n\t\t\t\tload_login1();\n\t\t\t});\n\t\t});\t\t\n\t\t//On cancel\n\t\t$(\"#popup_signout_cancel\").on(\"click\", function(){\n\t\t\t$(\"#popup\").animate({opacity:0},time_screen_trans, function(){\n\t\t\t\t$(this).remove();\n\t\t\t\t$(\"#popup_blacklayer\").remove();\n\t\t\t});\n\t\t});\n\t}\n\n\t//Close popup\n\t$(\"#popup_close\").on(\"click\", function(){\n\t\t$(\"#popup\").animate({opacity:0},time_screen_trans, function(){\n\t\t\t$(this).remove();\n\t\t\t$(\"#popup_blacklayer\").remove();\n\t\t});\n\t});\n}\n\nfunction validateEmail(email) {\n\tvar re = /^(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$/;\n\treturn re.test(email);\n}\n\nfunction getCurrentLocation() {\n  return new Promise((resolve, reject) => {\n\tconst timeOutForGettingLocation = 5000; // 5 sec\n\tlet timeOutTimer;\n\n\tif (!navigator.geolocation) {\n\t  reject('Geolocation is not supported by this browser.');\n\t}\n\telse {\n\t  navigator.geolocation.getCurrentPosition((pos) => {\n\t\tclearTimeout(timeOutTimer);\n\t\tresolve({\n\t\t  lat: pos.coords.latitude,\n\t\t  lng: pos.coords.longitude,\n\t\t});\n\t  });\n\n\t  timeOutTimer = setTimeout(() => {\n\t\treject('Time out for getting geolocation');\n\t  }, timeOutForGettingLocation);\n\t}\n  });\n}\n\nfunction doLog(type) {\n\tif (map_mode === 1) { // DC\n\t\tuser_log.mode_frequency.DC[type]++;\n\t\tconsole.log('$ user_log.mode_frequency.DC.' + type + '(' + \n\t\t\tuser_log.mode_frequency.DC[type] + ')');\n\t}\n\telse { // WM\n\t\tuser_log.mode_frequency.WM[type]++;\n\t\tconsole.log('$ user_log.mode_frequency.WM.' + type + '(' + \n\t\t\tuser_log.mode_frequency.WM[type] + ')');\n\t}\n}\n\nfunction checkDestID(string){\n\tvar safeChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-';\n\tvar returnString = [];\n\tfor (i=0;i<string.length;i++){\n\t\tif(safeChars.indexOf(string[i])>=0){\n\t\t\treturnString.push(string[i]);\n\t\t}\n\t}\n\treturnString = returnString.join(\"\");\n\treturn returnString;\n}\n\nfunction start_log() {\n\n\tconsole.log('start log');\n\tlogTimer = setInterval(save_log, saveLogInterval);\n}\n\nfunction end_log() {\n\tclearInterval(logTimer);\n}\n\nfunction save_log() {\n\tconst curTime = Math.floor(Date.now() / 1000);\n\tconst elapsed = curTime - time_mode_start;\n\ttime_mode_start = curTime;\n\n\tif (map_mode === 0) { // 0: WM\n\t\tuser_log.mode_duration.WM += elapsed;\n\t} \n\telse if (map_mode === 1) { // 1: DC\n\t\tuser_log.mode_duration.DC += elapsed;\n\t}\n\telse { // 2: List\n\t\tuser_log.mode_duration.List += elapsed;\n\t}\n\n\tconst dateStr = (time_month + 1) + '_' + time_day;\n\tuser_log.date = dateStr;\n\n\tlet str = 'wm ' + user_log.mode_duration.WM + ' ,dc ' + user_log.mode_duration.DC +\n\t\t' ,list ' + user_log.mode_duration.List;\n\tstr += ' z[' + user_log.mode_frequency.WM.zoom + ',' + \n\t\tuser_log.mode_frequency.DC.zoom + '] p[' + user_log.mode_frequency.WM.pan + \n\t\t',' + user_log.mode_frequency.DC.pan + '] org[' + \n\t\tuser_log.mode_frequency.WM.change_origin + ',' + \n\t\tuser_log.mode_frequency.DC.change_origin + '] tot[' + \n\t\tuser_log.mode_frequency.WM.change_transportation + ',' + \n\t\tuser_log.mode_frequency.DC.change_transportation + '] iso[' +\n\t\tuser_log.mode_frequency.DC.highlight_isochrone + '] ciso[' + \n\t\tuser_log.mode_frequency.DC.highlight_custom + '] de[' +\n\t\tuser_log.mode_frequency.WM.see_loc_detail + ',' +\n\t\tuser_log.mode_frequency.DC.see_loc_detail + '] nav[' + \n\t\tuser_log.mode_frequency.WM.do_navigate + ',' + \n\t\tuser_log.mode_frequency.DC.do_navigate + '] sw[' + \n\t\tuser_log.mode_frequency.switching + ']';\n\n\t//console.log(user_log);\n\tconsole.log(str);\n\n\tconst durationObj = {WM: user_log.mode_duration.WM, DC: user_log.mode_duration.DC, \n\t\tList: user_log.mode_duration.List};\n\tconst zoomObj = {WM: user_log.mode_frequency.WM.zoom, \n\t\tDC: user_log.mode_frequency.DC.zoom};\n\tconst panObj = {WM: user_log.mode_frequency.WM.pan, \n\t\tDC: user_log.mode_frequency.DC.pan};\n\tconst originObj = {WM: user_log.mode_frequency.WM.change_origin, \n\t\tDC: user_log.mode_frequency.DC.change_origin};\n\tconst totObj = {WM: user_log.mode_frequency.WM.change_transportation, \n\t\tDC: user_log.mode_frequency.DC.change_transportation};\n\tconst isoObj = {DC: user_log.mode_frequency.DC.highlight_isochrone};\n\tconst cIsoObj = {DC: user_log.mode_frequency.DC.highlight_custom};\n\tconst filterObj = {WM: user_log.mode_frequency.WM.filter, \n\t\tDC: user_log.mode_frequency.DC.filter};\n\tconst detailObj = {WM: user_log.mode_frequency.WM.see_loc_detail, \n\t\tDC: user_log.mode_frequency.DC.see_loc_detail};\n\tconst navObj = {WM: user_log.mode_frequency.WM.do_navigate, \n\t\tDC: user_log.mode_frequency.DC.do_navigate};\n\n\tconst data = {\n\t\tuser_id: user_info.id, \n\t\tdate: dateStr, \n\t\ttype: user_log.type,\n\t\tduration: JSON.stringify(durationObj),\n\t\tzoom: JSON.stringify(zoomObj),\n\t\tpan: JSON.stringify(panObj),\n\t\torigin: JSON.stringify(originObj),\n\t\ttot: JSON.stringify(totObj),\n\t\tiso: JSON.stringify(isoObj),\n\t\tcustom_iso: JSON.stringify(cIsoObj),\n\t\tfilter: JSON.stringify(filterObj),\n\t\tdetail: JSON.stringify(detailObj),\n\t\tnav: JSON.stringify(navObj),\n\t\tswitching: user_log.mode_frequency.switching,\n\t}\n\n\treset_log();\n\n\t$.ajax({\n\t\turl: path_save_log,\n\t\tdata:data,\n\t\ttype: 'POST',\n\t\tdataType: 'json',\n\t\tasync: true,\n\t\tsuccess: function(data){\n\t\t\tif(data.res) {\n\t\t\t  console.log('log saved.');\n\t\t\t}\n\t\t},\n\t\terror: function(request, error){\n\t\t\tif(mode_debug){console.log(error);}\n\t\t}\n\t});\n}\n\nfunction reset_log() {\n\tuser_log.mode_duration.DC = 0;\n\tuser_log.mode_duration.WM = 0;\n\tuser_log.mode_duration.List = 0;\n\tuser_log.mode_frequency.DC.zoom = 0;\n\tuser_log.mode_frequency.DC.pan = 0;\n\tuser_log.mode_frequency.DC.change_origin = 0;\n\tuser_log.mode_frequency.DC.change_transportation = 0;\n\tuser_log.mode_frequency.DC.highlight_isochrone = 0;\n\tuser_log.mode_frequency.DC.highlight_custom = 0;\n\tuser_log.mode_frequency.DC.filter = 0;\n\tuser_log.mode_frequency.DC.see_loc_detail = 0;\n\tuser_log.mode_frequency.DC.do_navigate = 0;\n\tuser_log.mode_frequency.WM.zoom = 0;\n\tuser_log.mode_frequency.WM.pan = 0;\n\tuser_log.mode_frequency.WM.change_origin = 0;\n\tuser_log.mode_frequency.WM.change_transportation = 0;\n\tuser_log.mode_frequency.WM.filter = 0;\n\tuser_log.mode_frequency.WM.see_loc_detail = 0;\n\tuser_log.mode_frequency.WM.do_navigate = 0;\n\tuser_log.mode_frequency.switching = 0;\n}\n\n//Get cookies\nfunction getCookie(cname) {\n\tvar name = cname + \"=\";\n\tvar ca = document.cookie.split(';');\n\tfor(var i = 0; i < ca.length; i++) {\n\t\tvar c = ca[i];\n\t\twhile (c.charAt(0) == ' ') {\n\t\t\tc = c.substring(1);\n\t\t}\n\t\tif (c.indexOf(name) == 0) {\n\t\t\treturn c.substring(name.length, c.length);\n\t\t}\n\t}\n\treturn \"\";\n}",
+			"file": "/Users/elska/Sites/TG/tg/PC/lib/traffigram_web_temp.js",
+			"file_size": 78125,
+			"file_write_time": 131584769840000000,
+			"settings":
+			{
+				"buffer_size": 78143,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/TG/css/traffigram.css",
+			"settings":
+			{
+				"buffer_size": 10190,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/TG/index.html",
+			"settings":
+			{
+				"buffer_size": 6889,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/TG/js/tg.js",
+			"settings":
+			{
+				"buffer_size": 628,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/TG/js/tg_controller.js",
+			"settings":
+			{
+				"buffer_size": 6977,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/TG/js/tg_filter_controller.js",
+			"settings":
+			{
+				"buffer_size": 4117,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/TG/view/content_tod.html",
+			"settings":
+			{
+				"buffer_size": 1298,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/TG/view/content_filter.html",
+			"settings":
+			{
+				"buffer_size": 323,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/elska/Sites/TG/tg/infovis18/test1/ol/VectorImageTile.js",
+		"/Users/elska/Sites/TG/tg/infovis18/test1/ol/geom/MultiPolygon.js",
+		"/Users/elska/Sites/TG/tg/infovis18/test1/ol/View.js",
+		"/Users/elska/Sites/TG/tg/infovis18/test1/ol/source/VectorTile.js",
+		"/Users/elska/Sites/TG/tg/infovis18/test1/ol/VectorTile.js",
+		"/Users/elska/Sites/TG/tg/infovis18/test1/ol/format/MVT.js",
+		"/Users/elska/Sites/patrickmyoo/data/eng/369 - Dialog/4 31-40.studie",
+		"/Users/elska/Sites/patrickmyoo/data/eng/369 - Dialog/5 41-50.studie",
+		"/Users/elska/Sites/patrickmyoo/data/eng/369 - Dialog/6 51-60.studie",
+		"/Users/elska/Sites/TG/tg/PC/traffigram.css",
+		"/test_test_com__rsd1",
+		"/Users/elska/Sites/TG/tg/PC/traffigram_new.css",
+		"/Users/elska/Sites/TG/tg/PC/view/content_tod.html",
+		"/Users/elska/Sites/TG/tg/PC/js/tg_controller.js",
+		"/Users/elska/Sites/TG/tg/PC/js/tg.js",
+		"/Users/elska/Sites/TG/tg/PC/pc.html",
+		"/Users/elska/Sites/TG/tg/app/dist/css/traffigram.css",
+		"/Users/elska/Sites/TG/tg/PC/js/tgController.js",
+		"/Users/elska/Sites/TG/tg/PC/lib/traffigram_web.js",
+		"/Users/elska/Sites/TG/tg/app/dist/data/tod_th.js",
+		"/Users/elska/Sites/TG/tg/app/src/api/tg_travel_time_api.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_graph.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_roads.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_origin.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_water.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_map.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_grid.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_control.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_locations.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_data.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_core.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_app.js",
+		"/Users/elska/Sites/TG/tg/evaluation/index.html",
+		"/Users/elska/Sites/TG/tg/anal_results/anal.js",
+		"/Users/elska/Sites/tests/test.html",
+		"/Users/elska/Desktop/Doctor.Strange.2016.1080p.HDRip.X264.AC3-EVO[PRiME]/Doctor.Strange.2016.1080p.HDRip.X264.AC3-EVO[PRiME].txt",
+		"/Users/elska/Desktop/Doctor.Strange.2016.1080p.HDRip.X264.AC3-EVO[PRiME]/Doctor.Strange.2016.1080p.HDRip.X264.AC3-EVO[PRiME].smi",
+		"/Users/elska/Sites/TG/tg/evaluation/data/unq_edges_lv0.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/node/eval_core.js",
+		"/Users/elska/Sites/TG/tg/evaluation/css/traffigram.css",
+		"/Users/elska/Sites/TG/old/tg/js/traffigram_map.js",
+		"/Users/elska/Sites/TG/old/tg/js/traffigram_map2.js",
+		"/Users/elska/Sites/TG/tg/app/note.txt",
+		"/Users/elska/Sites/TG/tg/app/src/map/note.js",
+		"/Users/elska/Sites/TG/tg/WEB/full.html",
+		"/Users/elska/Sites/TG/tg/WEB_TEMP/index.html",
+		"/Users/elska/Sites/TG/tg/app/dist/data/tod.js",
+		"/Users/elska/Sites/TG/tg/WEB/traffigram.css",
+		"/Users/elska/Sites/TG/tg/WEB/getParameters.js",
+		"/Users/elska/Sites/TG/tg/WEB/index.html",
+		"/Users/elska/Sites/TG/tg/app/src/tg_data_mobile.js",
+		"/Users/elska/Sites/TG/tg/app/dist/mobile.html",
+		"/Users/elska/Sites/tests/phpinfo.php",
+		"/Users/elska/Sites/TG/tg/WEB/a.html",
+		"/Users/elska/Sites/TG/tg/tg_php.js",
+		"/Users/elska/Sites/TG/tg/tg.js",
+		"/Users/elska/Sites/TG/tg/app/src/node/tg_node.js",
+		"/Users/elska/Sites/TG/tg/app/src/node/tg_location_node.js",
+		"/Users/elska/Sites/TG/tg/app/src/node/tg_control_point.js",
+		"/Users/elska/Sites/TG/tg/app/src/map/Find Results",
+		"/Users/elska/Sites/TG/tg/app/dist/conv_tod.html",
+		"/Users/elska/Sites/TG/tg/app/dist/test.html",
+		"/Users/elska/Sites/tests/test_json/test_json.html",
+		"/Users/elska/Sites/tests/test_json/json.js",
+		"/Users/elska/Sites/tests/test_json/in.json",
+		"/Users/elska/Sites/tests/test_ol/app_drag.html",
+		"/Users/elska/Sites/TG/tg/app/src/tgConfig.js",
+		"/Users/elska/Sites/TG/tg/app/src/tg_data.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgRoadNetwork.js",
+		"/Users/elska/Sites/TG/tg/app/src/temp_module.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgObjects.js",
+		"/Users/elska/Sites/TG/tg/app/src/map/tg_map_landuse.js",
+		"/Users/elska/Sites/TG/tg/app/src/tg_travel_time_api.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/map_control.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/tgMapAux.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/university",
+		"/Users/elska/Sites/TG/tg/app/package.json",
+		"/Users/elska/Sites/TG/tg/app/webpack.config.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgUtil.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgGraph.js",
+		"/Users/elska/Sites/TG/tg/app/src/memo.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgData.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMain.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/map_landuse.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/tgMapRoads.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/tgMapWater.js",
+		"/Users/elska/Desktop/pullingFromCitygram/README.md",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/addOns/cg_local_demo/README.md",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/vendor/osc.js",
+		"/Users/elska/Sites/node/fetchTest.js",
+		"/Users/elska/Sites/node/fetchTest.html",
+		"/Users/elska/Sites/node/FetchServer.js",
+		"/Users/elska/Sites/tests/MyServer1.rdp",
+		"/Users/elska/Sites/tests/temp.html",
+		"/Users/elska/Sites/node/webpack/entry.js",
+		"/Users/elska/Sites/node/webpack/style.css",
+		"/Users/elska/Sites/node/webpack/index.html",
+		"/Users/elska/Sites/node/webpack/content.js",
+		"/Users/elska/Sites/node/webpack/bundle.js",
+		"/Users/elska/Sites/node/webpack/webpack.config.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/modules/cgAzureFileApi.js",
+		"/Users/elska/Downloads/STRF/feature/MFCC/X_MFCC.csv",
+		"/Users/elska/Downloads/STRF/feature/MFCC/01_bubble/csv/bubble1.csv",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/viz/globe/threex.atmospherematerial.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/viz/globe/cgGlobe.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/main/infoModal.html",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/main/launchPageA.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/server/cg/cgs-dev.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/test/timerTest.html",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/test_fileapi_azure.html",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/modules/cgSendData.js",
+		"/Users/elska/Downloads/rms_1.csv",
+		"/Users/elska/Sites/node/test.json",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/modules/cgFileApi.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/css/webbeacon.css",
+		"/Users/elska/Sites/TG/tg/data/rawData_seattle.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_22.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_21.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_13.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_12.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_11.js",
+		"/Users/elska/Downloads/nr_seattle_cluster_1_2.js",
+		"/Users/elska/Downloads/nr_seattle_merge.js",
+		"/Users/elska/Downloads/nr_seattle_el2.js",
+		"/Users/elska/Downloads/nr_seattle_el1.js",
+		"/Users/elska/Downloads/nr_seattle_rdp.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_rdp.js"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+			"/Users/elska/Sites/TG/tg/app",
+			"/Users/elska/Sites/TG/old/tg",
+			"/Users/elska/Sites/TG/old",
+			"/Users/elska/Sites/TG/tg/app/src",
+			"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client",
+			"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/analysis,/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"SimpleGeometry",
+			"format",
+			"tileClass",
+			"vectorimagetile",
+			"format",
+			"signInModal",
+			"tg_input_style",
+			"setting",
+			"width",
+			"launchMap",
+			"tg",
+			"width_panel",
+			"height_screen_safe",
+			"search_orig",
+			"content_main_heading",
+			"user_filter",
+			"filter_heading",
+			"openFilter",
+			"QuantCDQInit",
+			"content_filter",
+			"filter",
+			"catIdx",
+			"btn_gotoCat",
+			"showList",
+			"content_filter",
+			"content_main_textarea_list",
+			"content_list_textarea",
+			"content_main_heading",
+			"content_list",
+			"currentTOD",
+			"content_list",
+			"goToList",
+			"content_TOD",
+			"content_list_textarea",
+			"content_main_textarea_list",
+			"content_main_heading",
+			"content_main_textarea_TOD",
+			"content_list_textarea",
+			"content_main_textarea_list",
+			"constructlist",
+			"catIdx",
+			"map_TOD",
+			"content_main_textarea_list",
+			"content_list",
+			"showAllTOT",
+			"onTOT",
+			"showAllTOT",
+			"#map_search",
+			"search_orig",
+			"orig",
+			"width_switch",
+			"width_button",
+			"width_UI_margin",
+			"height_UI_margin",
+			"btn_gotoCat",
+			"your_address",
+			"your_address_true",
+			"content_main_heading",
+			"content_main_head_text",
+			"remove_map_UI",
+			"background-color",
+			"map_TOT",
+			"content_map_inside",
+			"btn_t",
+			"create_map_UI",
+			"height_UI_margin",
+			"load_TOD_construct_DOM",
+			"content_main_textarea_TOD",
+			"content_main_heading_TOD",
+			"html_TOD",
+			"content_tod",
+			"bottom_inside",
+			"content_map_wrapper",
+			"header_inside",
+			"header_inside_left",
+			"load_map",
+			"height_screen_safe",
+			"content_map",
+			"path_login7",
+			"path_js",
+			"this.tgGrids",
+			"selectOutliner",
+			"tgbb",
+			"street",
+			"name",
+			"street",
+			"zoom",
+			"tgbb",
+			"isItNotOverlappedWithLocsAndPlaces",
+			"clearLayers",
+			"dispLayers",
+			"removeNodeLayer",
+			"nodeLayer",
+			"places",
+			"isItNotOverlappedPlaces",
+			" name.length",
+			"tgbb",
+			"lngPerPx",
+			"addNewStreetLayer",
+			"dispRoads",
+			"waitForGettingRoadData",
+			"timerFinishGettingWaterData",
+			"dispRoads",
+			"newRoadObjects",
+			"nameAlign",
+			"align",
+			"textstyle",
+			"dispLayers",
+			"mobile",
+			"tgbb",
+			"calNonOverlappedLocationNames",
+			"tgbb",
+			"appMode",
+			"pc",
+			"updateLocationGroups",
+			"disableHighlightMode",
+			".\t      X1  X3  X5",
+			"updateControlPointLayer",
+			"dispWaterObjects",
+			"splitGrid",
+			"addNodeLayer",
+			"tps",
+			"assigntimes",
+			"time = 0",
+			"setcenter",
+			"calDispRoads",
+			"this.",
+			"tgloca"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "/Users/elska/Sites/TG/tg/PC/index.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3219,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1814,
+								1814
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 562.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/Users/elska/Sites/TG/tg/PC/lib/traffigram_global.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 11298,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9193,
+								9193
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 2980.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/Users/elska/Sites/TG/tg/PC/lib/traffigram_web_temp.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 78143,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								36121,
+								36121
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 22128.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/Users/elska/Sites/TG/tg/TG/css/traffigram.css",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10190,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								294,
+								294
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 4,
+					"file": "/Users/elska/Sites/TG/tg/TG/index.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6889,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4851,
+								4851
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/Users/elska/Sites/TG/tg/TG/js/tg.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 628,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								566,
+								566
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "/Users/elska/Sites/TG/tg/TG/js/tg_controller.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6977,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4355,
+								4355
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "/Users/elska/Sites/TG/tg/TG/js/tg_filter_controller.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4117,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								342,
+								342
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "/Users/elska/Sites/TG/tg/TG/view/content_tod.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1298,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								513,
+								513
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "/Users/elska/Sites/TG/tg/TG/view/content_filter.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 323,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								148,
+								148
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.5,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "ui.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 1,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

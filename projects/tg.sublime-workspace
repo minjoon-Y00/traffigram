@@ -1,0 +1,1433 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"con",
+				"continue"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "/Users/elska/Sites/TG/tg/test/parser.js",
+			"settings":
+			{
+				"buffer_size": 11466,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/dist/index.html",
+			"settings":
+			{
+				"buffer_size": 22697,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "//const TgApp = require('./tg_app');\n\n/*console.log(pts_lv0);\nconsole.log(pts_lv1);\nconsole.log(pts_lv2);\nconsole.log(locs_lv0);\nconsole.log(locs_lv1);\nconsole.log(locs_lv2);\nconsole.log(nodes_lv0);\nconsole.log(nodes_lv1);\nconsole.log(nodes_lv2);\nconsole.log(edges_lv0);\nconsole.log(edges_lv1);\nconsole.log(edges_lv2);\nconsole.log(nodes_lv0);\nconsole.log(nodes_lv1);\nconsole.log(nodes_lv2);\n\nlet cnt = 0;\nfor(let n of nodes_lv0) {\n  if (n.conIndexes) cnt++;\n}\nconsole.log(cnt);\ncnt = 0;\nfor(let n of nodes_lv1) {\n  if (n.conIndexes) cnt++;\n}\nconsole.log(cnt);\ncnt = 0;\nfor(let n of nodes_lv2) {\n  if (n.conIndexes) cnt++;\n}\nconsole.log(cnt);*/\n\n\n\nlet tg = new TgApp('ol_map');\ntg.setCenter(0);\n\n\n$(\"#origin0RB\").change((ev) => {\n  if (ev.target.checked) { tg.setCenter(0); }\n});\n\n$(\"#origin1RB\").change((ev) => {\n  if (ev.target.checked) { tg.setCenter(1); }\n});\n\n$(\"#origin2RB\").change((ev) => {\n  if (ev.target.checked) { tg.setCenter(2); }\n});\n\n$(\"#origin3RB\").change((ev) => {\n  if (ev.target.checked) { tg.setCenter(3); }\n});\n\n$(\"#origin4RB\").change((ev) => {\n  if (ev.target.checked) { tg.setCenter(4); }\n});\n\n$(\"#origin5RB\").change((ev) => {\n  if (ev.target.checked) { tg.setCenter(5); }\n});\n\n$(\"#origin6RB\").change((ev) => {\n  if (ev.target.checked) { tg.setCenter(6); }\n});\n\n$(\"#origin7RB\").change((ev) => {\n  if (ev.target.checked) { tg.setCenter(7); }\n});\n\n$(\"#origin8RB\").change((ev) => {\n  if (ev.target.checked) { tg.setCenter(8); }\n});\n\n$(\"#origin9RB\").change((ev) => {\n  if (ev.target.checked) { tg.setCenter(9); }\n});\n\n$(\"#fineRB\").change((ev) => {\n  if (ev.target.checked) { tg.setZoom(0); }\n});\n\n$(\"#mediumRB\").change((ev) => {\n  if (ev.target.checked) { tg.setZoom(1); }\n});\n\n$(\"#coarseRB\").change((ev) => {\n  if (ev.target.checked) { tg.setZoom(2); }\n});\n\n$(\"#debugBtn\").click((ev) => {\n  tg.debug();\n});\n\n$(\"#debugBtn2\").click((ev) => {\n  tg.debug2();\n});\n\n/*\nlet tg;\n\ngetCurrentLocation()\n.then((data) => {\n\n  // create the main app object\n  tg = new TgApp('ol_map');\n\n  console.log('got lat & lng from geolocation: ' + data.lat + ', ' + data.lng);\n\n  const seattle = {lat: 47.6115744, lng: -122.343777}\n\n  if ((data.lat > seattle.lat - 1) && (data.lat < seattle.lat + 1) &&\n      (data.lng > seattle.lng - 1) && (data.lng < seattle.lng + 1)) {\n    //console.log('ok. here is in seattle.');\n    tg.setOriginByOtherLatLng(data.lat, data.lng);\n  }\n  else {\n    tg.setOriginAsDefault();\n  }\n\n  // ui for origin setting\n  const otherAddress = '1000 4th Ave, Seattle, WA 98104';\n  $(\"#yourHomeInput\").val(tg.data.origin.home.address);\n  $(\"#yourOfficeInput\").val(tg.data.origin.office.address);\n  $(\"#otherPlaceInput\").val(otherAddress);\n\n})\n.catch((error) => {\n  console.error(error);\n  tg = new TgApp('ol_map');\n  tg.setOriginAsDefault();\n});\n*/\n\n\n\n/*\n * For the origin setting\n */\n/*const myHome = {\n\taddress: '4225 24th Ave. NE, Seattle, WA',\n\tlat: 47.6631772,\n\tlng: -122.3104933,\n};\n\nconst myOffice = {\n\taddress: '3960 Benton Lane NE, Seattle, WA',\n}\n\nconst otherPlace = {\n\taddress: '1000 4th Ave, Seattle, WA 98104',\n}*/\n\n\n//const favorites = [\"Tilikum Place Cafe\", \"Radiator Whiskey\", \"The Zig Zag CafÃ©\",\n//  \"Pike Place Chowder\", \"Art of The Table\", \"SkyCity at the Needle\", \n//  \"Canlis\", \"Von's Gustobistro\", \"Purple CafÃ© and Wine Bar\", \"LecÅsho\", \"Olde 99 Pub\"];\n\n//tg.map.tgLocs.setFavorites(favorites);\n\n\n// default: myHome\n//tg.setOriginAsHome();\n//tg.setOriginAsOffice();\n//tg.setOriginByAddress(otherAddress);\n\n\n\nfunction getCurrentLocation() {\n  return new Promise((resolve, reject) => {\n    const timeOutForGettingLocation = 5000; // 2 sec\n    let timeOutTimer;\n\n    if (!navigator.geolocation) {\n      reject('Geolocation is not supported by this browser.');\n    }\n    else {\n      navigator.geolocation.getCurrentPosition((pos) => {\n        clearTimeout(timeOutTimer);\n        resolve({\n          lat: pos.coords.latitude,\n          lng: pos.coords.longitude,\n        });\n      });\n\n      timeOutTimer = setTimeout(() => {\n        reject('Time out for getting geolocation');\n      }, timeOutForGettingLocation);\n    }\n  });\n}\n\n\n\n\n\n$(\"#originYourHomeRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.initMap();\n  \ttg.setOriginAsHome();\n  }\n});\n\n$(\"#originYourOfficeRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.initMap();\n  \ttg.setOriginAsOffice();\n  }\n});\n\n$(\"#originOtherPlaceRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.initMap();\n  \tconst address = $(\"#otherPlaceInput\").val();\n  \ttg.setOriginByAddress(address);\n  }\n});\n\n$(\"#originYourLocationRB\").change(function(ev){\n  if (ev.target.checked) {\n    tg.initMap();\n    tg.setOriginAsCurrentLocation();\n  }\n});\n\n/*\n * For the mode of the map (EM <-> DC)\n */\n\n$(\"#emModeRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.goToEm();\n  }\n});\n\n$(\"#dcSGapModeRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.goToDc('shapePreserving');\n  }\n});\n\n$(\"#dcGapModeRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.goToDc('noIntersection');\n  }\n});\n\n$(\"#dcOriginalModeRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.goToDc('originalDC');\n  }\n});\n\n$(\"#dcNoWarpModeRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.goToDc('noWarping');\n  }\n});\n\n/*\n * For the mode of the transportation\n */\n$(\"#transportVehiclesRB\").change(function(ev){\n\tif (ev.target.checked) {\n\t\ttg.setTransportTypeAndGo('auto');\n\t} \n});\n\n$(\"#transportBicyclesRB\").change(function(ev){\n\tif (ev.target.checked) {\n\t\ttg.setTransportTypeAndGo('bicycle');\n\t} \n});\n\n$(\"#transportOnFootRB\").change(function(ev){\n\tif (ev.target.checked) {\n\t\ttg.setTransportTypeAndGo('pedestrian');\n\t} \n});\n\n/*\n * For the type of the destination\n */\n/*$(\"#locationRestaurantRB\").change(function(ev){\n\tif (ev.target.checked) {\n\t\ttg.map.tgLocs.changeType('food');\n\t} \n});\n\n$(\"#locatioBarRB\").change(function(ev){\n\tif (ev.target.checked) {\n\t\ttg.map.tgLocs.changeType('bar');\n\t} \n});\n\n$(\"#locationParkRB\").change(function(ev){\n\tif (ev.target.checked) {\n\t\ttg.map.tgLocs.changeType('park');\n\t} \n});\n\n$(\"#locationMuseumRB\").change(function(ev){\n\tif (ev.target.checked) {\n\t\ttg.map.tgLocs.changeType('museum');\n\t} \n});*/\n\n\n\n/*\n * For general ui\n */\n\nfunction zoomIn() {\n\ttg.zoomIn();\n}\n\nfunction zoomOut() {\n\ttg.zoomOut();\n}\n\n\n\n\n// Visual Elements Representation Options (For debugging)\n\n$(\"#dispWaterCB\").change(function(ev){ \n\ttg.map.tgWater.turn(ev.target.checked);\n\ttg.map.tgWater.render();\n});\n\n$(\"#dispRoadsCB\").change(function(ev){ \n\ttg.map.tgRoads.turn(ev.target.checked);\n\ttg.map.tgRoads.render();\n});\n\n$(\"#dispSRCCB\").change(function(ev){ \n  tg.map.tgSRC.turn(ev.target.checked);\n  tg.map.tgSRC.render();\n});\n\n$(\"#dispLanduseCB\").change(function(ev){ \n\ttg.map.tgLanduse.turn(ev.target.checked);\n\ttg.map.tgLanduse.render();\n});\n\n$(\"#dispLocationCB\").change(function(ev){\n\ttg.map.tgLocs.turn(ev.target.checked);\n\ttg.map.tgLocs.render();\n});\n\n$(\"#dispPlaceCB\").change(function(ev){ \n\ttg.map.tgPlaces.turn(ev.target.checked);\n\ttg.map.tgPlaces.render();\n});\n\n$(\"#dispNodesCB\").change(function(ev){ \n\ttg.map.dispNodeLayer = ev.target.checked\n\ttg.map.updateLayers()\n});\n\n$(\"#dispOriginCB\").change(function(ev){ \n\ttg.map.tgOrigin.turn(ev.target.checked);\n\ttg.map.tgOrigin.render();\n});\n\n$(\"#dispBoundingBoxCB\").change(function(ev){ \n\ttg.map.tgBB.turn(ev.target.checked);\n\ttg.map.tgBB.render();\n});\n\n$(\"#dispControlPointsCB\").change(function(ev){\n\ttg.map.dispControlPointLayer = ev.target.checked\n\ttg.map.updateLayers()\n});\n\n$(\"#dispGridCB\").change(function(ev){\n\ttg.map.tgGrids.turn(ev.target.checked);\n\ttg.map.tgGrids.render();\n});\n\n$(\"#dispIsochroneCB\").change(function(ev){\n\ttg.map.tgIsochrone.turn(ev.target.checked);\n\ttg.map.tgIsochrone.render();\n});\n\n/*$(\"#dispWaterNodeCB\").change(function(ev){ \n\ttg.map.dispWaterNodeLayer = ev.target.checked;\n\ttg.map.updateLayers();\n});\n\n$(\"#dispRoadNodeCB\").change(function(ev){ \n\ttg.map.dispRoadNodeLayer = ev.target.checked;\n\ttg.map.updateLayers();\n});\n\n$(\"#dispLanduseNodeCB\").change(function(ev){ \n\ttg.map.dispLanduseNodeLayer = ev.target.checked;\n\ttg.map.updateLayers();\n});*/\n\n$(\"#tod_0_all\").click((ev) => { tg.map.tgLocs.changeType(0, -1); });\n$(\"#tod_0_0\").click((ev) => { tg.map.tgLocs.changeType(0, 0); });\n$(\"#tod_0_1\").click((ev) => { tg.map.tgLocs.changeType(0, 1); });\n$(\"#tod_0_2\").click((ev) => { tg.map.tgLocs.changeType(0, 2); });\n$(\"#tod_0_3\").click((ev) => { tg.map.tgLocs.changeType(0, 3); });\n$(\"#tod_0_4\").click((ev) => { tg.map.tgLocs.changeType(0, 4); });\n$(\"#tod_0_5\").click((ev) => { tg.map.tgLocs.changeType(0, 5); });\n$(\"#tod_0_6\").click((ev) => { tg.map.tgLocs.changeType(0, 6); });\n$(\"#tod_0_7\").click((ev) => { tg.map.tgLocs.changeType(0, 7); });\n$(\"#tod_0_8\").click((ev) => { tg.map.tgLocs.changeType(0, 8); });\n$(\"#tod_0_9\").click((ev) => { tg.map.tgLocs.changeType(0, 9); });\n$(\"#tod_0_10\").click((ev) => { tg.map.tgLocs.changeType(0, 10); });\n\n$(\"#tod_1_all\").click((ev) => { tg.map.tgLocs.changeType(1, -1); });\n$(\"#tod_1_0\").click((ev) => { tg.map.tgLocs.changeType(1, 0); });\n$(\"#tod_1_1\").click((ev) => { tg.map.tgLocs.changeType(1, 1); });\n$(\"#tod_1_2\").click((ev) => { tg.map.tgLocs.changeType(1, 2); });\n$(\"#tod_1_3\").click((ev) => { tg.map.tgLocs.changeType(1, 3); });\n$(\"#tod_1_4\").click((ev) => { tg.map.tgLocs.changeType(1, 4); });\n$(\"#tod_1_5\").click((ev) => { tg.map.tgLocs.changeType(1, 5); });\n\n$(\"#tod_2_all\").click((ev) => { tg.map.tgLocs.changeType(2, -1); });\n$(\"#tod_2_0\").click((ev) => { tg.map.tgLocs.changeType(2, 0); });\n$(\"#tod_2_1\").click((ev) => { tg.map.tgLocs.changeType(2, 1); });\n$(\"#tod_2_2\").click((ev) => { tg.map.tgLocs.changeType(2, 2); });\n$(\"#tod_2_3\").click((ev) => { tg.map.tgLocs.changeType(2, 3); });\n$(\"#tod_2_4\").click((ev) => { tg.map.tgLocs.changeType(2, 4); });\n$(\"#tod_2_5\").click((ev) => { tg.map.tgLocs.changeType(2, 5); });\n$(\"#tod_2_6\").click((ev) => { tg.map.tgLocs.changeType(2, 6); });\n$(\"#tod_2_7\").click((ev) => { tg.map.tgLocs.changeType(2, 7); });\n\n$(\"#tod_3_all\").click((ev) => { tg.map.tgLocs.changeType(3, -1); });\n$(\"#tod_3_0\").click((ev) => { tg.map.tgLocs.changeType(3, 0); });\n$(\"#tod_3_1\").click((ev) => { tg.map.tgLocs.changeType(3, 1); });\n$(\"#tod_3_2\").click((ev) => { tg.map.tgLocs.changeType(3, 2); });\n$(\"#tod_3_3\").click((ev) => { tg.map.tgLocs.changeType(3, 3); });\n$(\"#tod_3_4\").click((ev) => { tg.map.tgLocs.changeType(3, 4); });\n$(\"#tod_3_5\").click((ev) => { tg.map.tgLocs.changeType(3, 5); });\n$(\"#tod_3_6\").click((ev) => { tg.map.tgLocs.changeType(3, 6); });\n$(\"#tod_3_7\").click((ev) => { tg.map.tgLocs.changeType(3, 7); });\n\n$(\"#tod_4_all\").click((ev) => { tg.map.tgLocs.changeType(4, -1); });\n$(\"#tod_4_0\").click((ev) => { tg.map.tgLocs.changeType(4, 0); });\n$(\"#tod_4_1\").click((ev) => { tg.map.tgLocs.changeType(4, 1); });\n$(\"#tod_4_2\").click((ev) => { tg.map.tgLocs.changeType(4, 2); });\n$(\"#tod_4_3\").click((ev) => { tg.map.tgLocs.changeType(4, 3); });\n$(\"#tod_4_4\").click((ev) => { tg.map.tgLocs.changeType(4, 4); });\n$(\"#tod_4_5\").click((ev) => { tg.map.tgLocs.changeType(4, 5); });\n$(\"#tod_4_6\").click((ev) => { tg.map.tgLocs.changeType(4, 6); });\n\nif ($(\"#ratingSlider\")) {\n  $(\"#ratingSlider\").slider({ \n    id: \"ratingSlider\", \n    step: 1,\n    value: [4, 8],\n    ticks: [0, 1, 2, 3, 4, 5, 6, 7, 8],\n    ticks_labels: ['1', '', '2', '', '3', '', '4', '', '5'],\n    tooltip: 'hide',\n    //min: 0, max: 5, step: 0.5, value: 3, \n    //tooltip: 'always'\n  });\n  $(\"#ratingSlider\").on(\"change\", function(e) {\n    if ((e.value.oldValue[0] !== e.value.newValue[0]) || \n      (e.value.oldValue[1] !== e.value.newValue[1])) {\n\n      const low = e.value.newValue[0] / 2 + 1;\n      const high = e.value.newValue[1] / 2 + 1;\n      //console.log(low + ', ' + high);\n\n      tg.map.tgLocs.doFilter('ratings', low, high);\n    }\n  });\n}\n\nif ($(\"#numRatingSlider\")) {\n  $(\"#numRatingSlider\").slider({ \n    id: \"numRatingSlider\", \n    step: 1,\n    value: [1, 6],\n    ticks: [0, 1, 2, 3, 4, 5, 6],\n    ticks_labels: ['0', '5', '10', '50', '100', '500', '1000+'],\n    tooltip: 'hide',\n  });\n\n  $(\"#numRatingSlider\").on(\"change\", function(e) {\n    if ((e.value.oldValue[0] !== e.value.newValue[0]) || \n      (e.value.oldValue[1] !== e.value.newValue[1])) {\n\n      const labels = [0, 5, 10, 50, 100, 500, 1000];\n      const low = labels[e.value.newValue[0]];\n      const high = labels[e.value.newValue[1]];\n      //console.log(low + ', ' + high);\n\n      tg.map.tgLocs.doFilter('numRatings', low, high);\n    }\n  });\n}\n\nif ($(\"#priceRangeSlider\")) {\n  $(\"#priceRangeSlider\").slider({ \n    id: \"priceRangeSlider\", \n    step: 1,\n    value: [0, 3],\n    ticks: [0, 1, 2, 3],\n    ticks_labels: ['$', '$$', '$$$', '$$$$'],\n    tooltip: 'hide',\n  });\n\n\n  $(\"#priceRangeSlider\").on(\"change\", function(e) {\n    if ((e.value.oldValue[0] !== e.value.newValue[0]) || \n      (e.value.oldValue[1] !== e.value.newValue[1])) {\n\n      const low = e.value.newValue[0] + 1;\n      const high = e.value.newValue[1] + 1;\n      //console.log(low + ', ' + high);\n\n      tg.map.tgLocs.doFilter('priceRange', low, high);\n    }\n  });\n}\n\nif ($(\"#maxLocsSlider\")) {\n  $(\"#maxLocsSlider\").slider({ \n    id: \"maxLocsSlider\", \n    step: 1,\n    value: 2,\n    ticks: [1, 2, 3, 4, 5],\n    ticks_labels: ['10', '20', '30', '40', '50+'],\n    tooltip: 'hide',\n  });\n\n  $(\"#maxLocsSlider\").on(\"change\", function(e) {\n    if (e.value.oldValue !== e.value.newValue) {\n      const val = e.value.newValue * 10;\n      //console.log(val);\n\n      tg.map.tgLocs.doFilter('maxLocs', val);\n    }\n  });\n}\n\n\n\n\n\n  \n\n  \n\n\n\n/*\n// Center Options\n$(\"#centerDowntownSeattleRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.map.initMap();\n  \ttg.map.setArea('seattleDowntown');\n  }\n});\n\n$(\"#centerUWSeattleRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.map.initMap();\n  \ttg.map.setArea('seattleUw');\n  }\n});\n\n$(\"#centerLombardSFRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.map.initMap();\n  \ttg.map.setArea('sfLombard');\n  }\n});\n\n$(\"#centerNYUNYRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.map.initMap();\n  \ttg.map.setArea('nyNyu');\n  }\n});\n\n$(\"#centerStanfordPaloAltoRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.map.initMap();\n  \ttg.map.setArea('paloAltoStanford');\n  }\n});\n\n$(\"#centerCitadelleQuebecRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.map.initMap();\n  \ttg.map.setArea('quebecCitadelle');\n  }\n});\n\n$(\"#centerYourPositionRB\").change(function(ev){\n  if (ev.target.checked) {\n  \ttg.map.initMap();\n  \ttg.map.setCenterUserPosition();\n  }\n});*/\n\n\n\n/*\n// Roads Options\n$(\"#roadTypeHighwayCB\").change(function(ev){\n\tif (ev.target.checked) tg.map.addRoadType('highway');\n\telse tg.map.removeRoadType('highway');\n\ttg.map.updateLayers();\n})\n\n$(\"#roadTypePrimaryCB\").change(function(ev){\n\tif (ev.target.checked) tg.map.addRoadType('primary');\n\telse tg.map.removeRoadType('primary');\n\ttg.map.updateLayers(); \n})\n\n$(\"#roadTypeSecondaryCB\").change(function(ev){\n\tif (ev.target.checked) tg.map.addRoadType('secondary');\n\telse tg.map.removeRoadType('secondary');\n\ttg.map.updateLayers(); \n})\n\n$(\"#roadTypeTertiaryCB\").change(function(ev){\n\tif (ev.target.checked) tg.map.addRoadType('tertiary');\n\telse tg.map.removeRoadType('tertiary');\n\ttg.map.updateLayers(); \n})\n\n$(\"#roadTypeResidentialCB\").change(function(ev){\n\tif (ev.target.checked) tg.map.addRoadType('residential');\n\telse tg.map.removeRoadType('residential');\n\ttg.map.updateLayers();  \n})\n\n$(\"#roadTypeLinksCB\").change(function(ev){\n\tif (ev.target.checked) tg.map.addRoadType('links');\n\telse tg.map.removeRoadType('links');\n\ttg.map.updateLayers();  \n})*/\n\n/*var randomSlider = new Slider(\"#randomSlider\");\n//$(\"#randomSlider\").on(\"change\", function(evt) {\n$(\"#randomSlider\").on(\"slideStop\", function(evt) {\n  tg.data.randomness = evt.value / 100;\n  tg.data.moveControlPoints();\n  tg.map.updateLayers();\n});*/\n\n",
+			"file": "/Users/elska/Sites/TG/tg/app/src/main.js",
+			"file_size": 15724,
+			"file_write_time": 131523850070000000,
+			"settings":
+			{
+				"buffer_size": 15718,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/tg_data_full.js",
+			"settings":
+			{
+				"buffer_size": 6183,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/tg_data.js",
+			"settings":
+			{
+				"buffer_size": 5435,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/dist/css/traffigram.css",
+			"settings":
+			{
+				"buffer_size": 1246,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/tg_app.js",
+			"settings":
+			{
+				"buffer_size": 2811,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_vector_tile.js",
+			"settings":
+			{
+				"buffer_size": 3836,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_util.js",
+			"settings":
+			{
+				"buffer_size": 3240,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/tg_map.js",
+			"settings":
+			{
+				"buffer_size": 20502,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/api/tg_travel_time_api.js",
+			"settings":
+			{
+				"buffer_size": 4005,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_bounding_box.js",
+			"settings":
+			{
+				"buffer_size": 26808,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/tg_util.js",
+			"settings":
+			{
+				"buffer_size": 9799,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/tg_graph.js",
+			"settings":
+			{
+				"buffer_size": 6788,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_perception.js",
+			"settings":
+			{
+				"buffer_size": 10450,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_water.js",
+			"settings":
+			{
+				"buffer_size": 25945,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_roads.js",
+			"settings":
+			{
+				"buffer_size": 26160,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_locations.js",
+			"settings":
+			{
+				"buffer_size": 18917,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_landuse.js",
+			"settings":
+			{
+				"buffer_size": 12137,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_origin.js",
+			"settings":
+			{
+				"buffer_size": 9905,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_grid.js",
+			"settings":
+			{
+				"buffer_size": 3492,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_src.js",
+			"settings":
+			{
+				"buffer_size": 13546,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_control.js",
+			"settings":
+			{
+				"buffer_size": 29886,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_isochrone.js",
+			"settings":
+			{
+				"buffer_size": 6582,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_interactions.js",
+			"settings":
+			{
+				"buffer_size": 9066,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_places.js",
+			"settings":
+			{
+				"buffer_size": 8492,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/elska/Sites/TG/tg/test/mapbox-streets-v6-style.js",
+		"/Users/elska/Sites/TG/tg/test/mapbox_ol_test.html",
+		"/Users/elska/Sites/TG/tg/test/mapbox_test.html",
+		"/Users/elska/Sites/TG/tg/app/src/from/tg_data.js",
+		"/Users/elska/Sites/TG/tg/app/src/from/tg_data_full.js",
+		"/Users/elska/Sites/TG/tg/app/src/map/tg_map_vector_time.js",
+		"/Users/elska/Sites/TG/tg/m4/index.html",
+		"/Users/elska/Sites/TG/tg/test/parser.html.js",
+		"/Users/elska/Sites/patrickmyoo/data/eng/369 - Dialog/5 41-50.studie",
+		"/Users/elska/Sites/TG/tg/app/dist/data/tod_th.js",
+		"/Users/elska/Sites/TG/tg/app/src/api/tg_travel_time_api.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_graph.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_roads.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_origin.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_water.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_map.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_grid.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_control.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_locations.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_data.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_core.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/eval_app.js",
+		"/Users/elska/Sites/TG/tg/evaluation/index.html",
+		"/Users/elska/Sites/TG/tg/anal_results/anal.js",
+		"/Users/elska/Sites/tests/test.html",
+		"/Users/elska/Desktop/Doctor.Strange.2016.1080p.HDRip.X264.AC3-EVO[PRiME]/Doctor.Strange.2016.1080p.HDRip.X264.AC3-EVO[PRiME].txt",
+		"/Users/elska/Desktop/Doctor.Strange.2016.1080p.HDRip.X264.AC3-EVO[PRiME]/Doctor.Strange.2016.1080p.HDRip.X264.AC3-EVO[PRiME].smi",
+		"/Users/elska/Sites/TG/tg/evaluation/data/unq_edges_lv0.js",
+		"/Users/elska/Sites/TG/tg/evaluation/js/node/eval_core.js",
+		"/Users/elska/Sites/TG/tg/evaluation/css/traffigram.css",
+		"/Users/elska/Sites/TG/old/tg/js/traffigram_map.js",
+		"/Users/elska/Sites/TG/old/tg/js/traffigram_map2.js",
+		"/Users/elska/Sites/TG/tg/app/note.txt",
+		"/Users/elska/Sites/TG/tg/app/src/map/note.js",
+		"/Users/elska/Sites/TG/tg/WEB/full.html",
+		"/Users/elska/Sites/TG/tg/app/dist/css/traffigram.css",
+		"/Users/elska/Sites/TG/tg/WEB_TEMP/index.html",
+		"/Users/elska/Sites/TG/tg/app/dist/data/tod.js",
+		"/Users/elska/Sites/TG/tg/WEB/traffigram.css",
+		"/Users/elska/Sites/TG/tg/WEB/getParameters.js",
+		"/Users/elska/Sites/TG/tg/WEB/index.html",
+		"/Users/elska/Sites/TG/tg/app/src/tg_data_mobile.js",
+		"/Users/elska/Sites/TG/tg/app/dist/mobile.html",
+		"/Users/elska/Sites/tests/phpinfo.php",
+		"/Users/elska/Sites/TG/tg/WEB/a.html",
+		"/Users/elska/Sites/TG/tg/tg_php.js",
+		"/Users/elska/Sites/TG/tg/tg.js",
+		"/Users/elska/Sites/TG/tg/app/src/node/tg_node.js",
+		"/Users/elska/Sites/TG/tg/app/src/node/tg_location_node.js",
+		"/Users/elska/Sites/TG/tg/app/src/node/tg_control_point.js",
+		"/Users/elska/Sites/TG/tg/app/src/map/Find Results",
+		"/Users/elska/Sites/TG/tg/app/dist/conv_tod.html",
+		"/Users/elska/Sites/TG/tg/app/dist/test.html",
+		"/Users/elska/Sites/tests/test_json/test_json.html",
+		"/Users/elska/Sites/tests/test_json/json.js",
+		"/Users/elska/Sites/tests/test_json/in.json",
+		"/Users/elska/Sites/tests/test_ol/app_drag.html",
+		"/Users/elska/Sites/TG/tg/app/src/tgConfig.js",
+		"/Users/elska/Sites/TG/tg/app/src/tg_data.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgRoadNetwork.js",
+		"/Users/elska/Sites/TG/tg/app/src/temp_module.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgObjects.js",
+		"/Users/elska/Sites/TG/tg/app/src/map/tg_map_landuse.js",
+		"/Users/elska/Sites/TG/tg/app/src/tg_travel_time_api.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/map_control.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/tgMapAux.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/university",
+		"/Users/elska/Sites/TG/tg/app/package.json",
+		"/Users/elska/Sites/TG/tg/app/webpack.config.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgUtil.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgGraph.js",
+		"/Users/elska/Sites/TG/tg/app/src/memo.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgData.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMain.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/map_landuse.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/tgMapRoads.js",
+		"/Users/elska/Sites/TG/tg/app/src/tgMap/tgMapWater.js",
+		"/Users/elska/Desktop/pullingFromCitygram/README.md",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/addOns/cg_local_demo/README.md",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/vendor/osc.js",
+		"/Users/elska/Sites/node/fetchTest.js",
+		"/Users/elska/Sites/node/fetchTest.html",
+		"/Users/elska/Sites/node/FetchServer.js",
+		"/Users/elska/Sites/tests/MyServer1.rdp",
+		"/Users/elska/Sites/tests/temp.html",
+		"/Users/elska/Sites/node/webpack/entry.js",
+		"/Users/elska/Sites/node/webpack/style.css",
+		"/Users/elska/Sites/node/webpack/index.html",
+		"/Users/elska/Sites/node/webpack/content.js",
+		"/Users/elska/Sites/node/webpack/bundle.js",
+		"/Users/elska/Sites/node/webpack/webpack.config.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/modules/cgAzureFileApi.js",
+		"/Users/elska/Downloads/STRF/feature/MFCC/X_MFCC.csv",
+		"/Users/elska/Downloads/STRF/feature/MFCC/01_bubble/csv/bubble1.csv",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/viz/globe/threex.atmospherematerial.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/viz/globe/cgGlobe.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/main/infoModal.html",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/main/launchPageA.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/server/cg/cgs-dev.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/test/timerTest.html",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/test_fileapi_azure.html",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/modules/cgSendData.js",
+		"/Users/elska/Downloads/rms_1.csv",
+		"/Users/elska/Sites/node/test.json",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/modules/cgFileApi.js",
+		"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/css/webbeacon.css",
+		"/Users/elska/Sites/TG/tg/data/rawData_seattle.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_22.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_21.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_13.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_12.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_cluster_11.js",
+		"/Users/elska/Downloads/nr_seattle_cluster_1_2.js",
+		"/Users/elska/Downloads/nr_seattle_merge.js",
+		"/Users/elska/Downloads/nr_seattle_el2.js",
+		"/Users/elska/Downloads/nr_seattle_el1.js",
+		"/Users/elska/Downloads/nr_seattle_rdp.js",
+		"/Users/elska/Sites/TG/tg/data/nr_seattle_rdp.js"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+			"/Users/elska/Sites/TG/tg/app",
+			"/Users/elska/Sites/TG/old/tg",
+			"/Users/elska/Sites/TG/old",
+			"/Users/elska/Sites/TG/tg/app/src",
+			"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client",
+			"/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client/analysis,/Users/elska/Sites/CG/citygram_2016/CG_Beacon/client"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"gaussian",
+			"travel",
+			".target",
+			"tgcontrol",
+			"makeOriginalDCGrid",
+			"originaldc",
+			"updatedisp",
+			"calTargetNodes",
+			"landuse",
+			".node",
+			"nointer",
+			"this.totalNumOfRequest",
+			"this.numOfRequest",
+			"this.travelTimeApi.",
+			"getTravelTimeOfControlPoints",
+			"calculatecontro",
+			"setrandomtravel",
+			"getTravelTimeOfControlPoints",
+			"gettraveltimeofcontrol",
+			"pede",
+			"pedestrian",
+			"transportTypes",
+			"currentTransport",
+			"this.currentTransport",
+			"getTravelTime",
+			"requestTravel",
+			"requesttravel",
+			"request",
+			"std",
+			"calFilteredLocs",
+			"tglocs",
+			"displaylocsindc",
+			"tgperc",
+			"displaylocsindc",
+			"tglocs",
+			"tgroad",
+			"tggrid",
+			"update",
+			"this.warpingMode",
+			"tgutil",
+			"tgori",
+			"tgcontrol",
+			"tggrids",
+			"tggrid",
+			"requestControlPoints()",
+			"this.tgControl",
+			"setcenter",
+			"this.dispRoads",
+			"tgLocs.render",
+			"updatelayer",
+			"processFeature",
+			"this.features",
+			"this.dispRoads",
+			"setZIndex",
+			"zinde",
+			"indexz",
+			"tgroads.render",
+			"this.dispRoads",
+			"road",
+			"init",
+			"this.styleFunc",
+			"addNewLayer",
+			"processNewWaterObjects",
+			"tgWater",
+			"zoom",
+			"dispWaterObjects",
+			"minZoom",
+			"transform",
+			"stylefunc",
+			"this.stylefunc",
+			"road",
+			"getCoordinates",
+			"time)",
+			",time)",
+			"2);",
+			"pan",
+			"this.tgGrids",
+			"selectOutliner",
+			"tgbb",
+			"street",
+			"name",
+			"street",
+			"zoom",
+			"tgbb",
+			"isItNotOverlappedWithLocsAndPlaces",
+			"clearLayers",
+			"dispLayers",
+			"removeNodeLayer",
+			"nodeLayer",
+			"places",
+			"isItNotOverlappedPlaces",
+			" name.length",
+			"tgbb",
+			"lngPerPx",
+			"addNewStreetLayer",
+			"dispRoads",
+			"waitForGettingRoadData",
+			"timerFinishGettingWaterData",
+			"dispRoads",
+			"newRoadObjects",
+			"nameAlign",
+			"align",
+			"textstyle",
+			"dispLayers",
+			"mobile",
+			"tgbb",
+			"calNonOverlappedLocationNames",
+			"tgbb",
+			"appMode",
+			"pc",
+			"updateLocationGroups",
+			"disableHighlightMode",
+			".\t      X1  X3  X5",
+			"updateControlPointLayer",
+			"dispWaterObjects",
+			"splitGrid",
+			"addNodeLayer",
+			"tps",
+			"assigntimes",
+			"time = 0",
+			"setcenter",
+			"calDispRoads",
+			"this.",
+			"tgloca",
+			"node",
+			"locs_lv0",
+			"request",
+			"setcenter"
+		],
+		"highlight": false,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 14,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "/Users/elska/Sites/TG/tg/test/parser.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 11466,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3236,
+								3236
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/Users/elska/Sites/TG/tg/app/dist/index.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 22697,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								492,
+								492
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/Users/elska/Sites/TG/tg/app/src/main.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15718,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								539,
+								539
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 20,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/Users/elska/Sites/TG/tg/app/src/tg_data_full.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6183,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3117,
+								3117
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1585.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 14,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "/Users/elska/Sites/TG/tg/app/src/tg_data.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5435,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2702,
+								2702
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1499.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 13,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/Users/elska/Sites/TG/tg/app/dist/css/traffigram.css",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1246,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								141,
+								141
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 24,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "/Users/elska/Sites/TG/tg/app/src/tg_app.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2811,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2095,
+								2095
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1550.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 19,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_vector_tile.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3836,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								678,
+								678
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_util.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3240,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1883,
+								1883
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1538.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 21,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "/Users/elska/Sites/TG/tg/app/src/tg_map.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 20502,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13105,
+								13105
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 8329.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "/Users/elska/Sites/TG/tg/app/src/api/tg_travel_time_api.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4005,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3204,
+								3204
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1335.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_bounding_box.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 26808,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1937,
+								1937
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 17,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "/Users/elska/Sites/TG/tg/app/src/tg_util.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9799,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								415,
+								415
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 18,
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "/Users/elska/Sites/TG/tg/app/src/tg_graph.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6788,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3136,
+								3136
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1422.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_perception.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10450,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								192,
+								192
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 2,
+			"sheets":
+			[
+				{
+					"buffer": 15,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_water.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 25945,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								14533,
+								14533
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 16,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_roads.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 26160,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2184,
+								2184
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 996.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 22,
+					"type": "text"
+				},
+				{
+					"buffer": 17,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_locations.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 18917,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								15305,
+								15305
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 10941.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 18,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_landuse.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 12137,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6197,
+								6197
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 4252.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 19,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_origin.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9905,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3330,
+								3330
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 20,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_grid.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3492,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1424,
+								1424
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 703.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 21,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_src.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13546,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3226,
+								3226
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 15,
+					"type": "text"
+				},
+				{
+					"buffer": 22,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_control.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 29886,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								685,
+								685
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 23,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_isochrone.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6582,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5162,
+								5162
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 16,
+					"type": "text"
+				},
+				{
+					"buffer": 24,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_interactions.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9066,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4388,
+								4408
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 25,
+					"type": "text"
+				},
+				{
+					"buffer": 25,
+					"file": "/Users/elska/Sites/TG/tg/app/src/map/tg_map_places.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8492,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5700,
+								5700
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 23,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.5,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "tg.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"~/Sites/TG/tg/projects/ui.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

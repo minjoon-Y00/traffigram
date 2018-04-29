@@ -43,8 +43,8 @@ class TgMapControl {
 		 */
 		this.grids = [];
 
-		this.transportTypes = ['auto', 'bicycle', 'pedestrian'];
-		this.currentTransport = 'auto';
+		this.transportTypes = ['driving', 'cycling', 'walking', 'traffic'];
+		this.currentTransport = 'driving';
 
 		/** 
 		 * api object for getting travel time.
@@ -188,64 +188,88 @@ class TgMapControl {
 		//console.log(this.grids);
 	}
 
-	getTravelTimeOfControlPoints(cb) {
-		// check locations that need a travel time by looking in cache.
-		let newPointsArray = [];
-		this.travelTimeApi.clearEndLocations();
+	getTravelTimeOfControlPoints() {
+		return new Promise((resolve, reject) => {
 
-		for(let point of this.controlPoints) {
-			const key = point.original.lat.toFixed(3) + ' ' + point.original.lng.toFixed(3);
-			
-			// if a point is not in the cache, add it to travelTimeApi.
-			if (!this.travelTimeCache[this.currentTransport].has(key)) {
-				this.travelTimeApi.addEndLocation(point.original.lat, point.original.lng);
-				newPointsArray.push(point);
+			// check locations that need a travel time by looking into cache.
+			let newPointsArray = [];
+
+			let ptIdxs = [];
+
+			for(let ptIdx = 0; ptIdx < this.controlPoints.length; ++ptIdx) {
+				const pt = this.controlPoints[ptIdx];
+				const key = pt.original.lat.toFixed(3) + ' ' + pt.original.lng.toFixed(3);
+				
+				// pass the origin point
+				if (ptIdx === parseInt(this.controlPoints.length / 2)) continue;
+
+				// if a point is not in the cache, add it to travelTimeApi.
+				if (!this.travelTimeCache[this.currentTransport].has(key)) {
+					this.travelTimeApi.addLocation(pt.original.lat, pt.original.lng);
+					newPointsArray.push(pt);
+				}
+				// if a point is in the cache, assign cached travel time to it.
+				else {
+					pt.travelTime = this.travelTimeCache[this.currentTransport].get(key);
+				}
 			}
-			// if a point is in the cache, assign traveltime to it.
+
+			console.log('numNewPoints: ' + newPointsArray.length);
+
+			// if there is points of which we need travel time,
+			if (newPointsArray.length > 0) {
+
+				this.travelTimeApi.getTravelTime(this.currentTransport)
+				.then((ret) => {
+					for(let idx = 0; idx < newPointsArray.length; ++idx) {
+						const pt = newPointsArray[idx];
+						const key = pt.original.lat.toFixed(3) + ' ' + pt.original.lng.toFixed(3);
+						pt.travelTime = ret[idx + 1]; // ret[0] is travel time of origin (= 0)
+						this.travelTimeCache[this.currentTransport].set(key, pt.travelTime);
+					}
+					resolve();
+				})
+				.catch(reject);
+			}
+			// if we don't need to request traveltime,
 			else {
-				point.travelTime = this.travelTimeCache[this.currentTransport].get(key);
+				resolve();
 			}
-		}
-
-		console.log('numNewPoints: ' + newPointsArray.length);
-		//console.log(newPointsArray);
-
-		// if there is points of which we need travel time,
-		if (newPointsArray.length > 0) {
-			this.travelTimeApi.getTravelTime(this.currentTransport, (times) => {
-
-				if (times.length !== newPointsArray.length) {
-					console.log('ERROR: times.length !== newPointsArray.length');
-					console.log('times.length: ' + times.length);
-					console.log('newPointsArray.length: ' + newPointsArray.length);
-					return;
-				}
-
-				for(let index = 0; index < newPointsArray.length; index++) {
-					const point = newPointsArray[index];
-					const key = point.original.lat.toFixed(3) + ' ' + point.original.lng.toFixed(3);
-					point.travelTime = times[index];
-					this.travelTimeCache[this.currentTransport].set(key, point.travelTime);
-				}
-
-				if (cb) cb();
-			});
-		}
-		// if we don't need to request traveltime,
-		else {
-			if (cb) cb();
-		}
+		});
 	}
 
 	/**
 	 * Calculate the control points.
 	 */
-	calculateControlPoints(cb) {
-		this.calUniformControlPoints();
-		this.calGridLines();
-		this.calConnectedNodes();
-		this.calGrids();
-		this.getTravelTimeOfControlPoints(cb);
+	calculateControlPoints() {
+		return new Promise((resolve, reject) => {
+
+			this.calUniformControlPoints();
+			this.calGridLines();
+			this.calConnectedNodes();
+			this.calGrids();
+			this.getTravelTimeOfControlPoints()
+			.then(resolve).catch(reject);
+		});
+	}
+
+	setRandomTravelTime() {
+		const k = 100; // travel time per distance
+		const cLat = this.map.tgOrigin.origin.original.lat;
+		const cLng = this.map.tgOrigin.origin.original.lng;
+
+		const rand = (this.data.randomTime) ? this.data.randomTime : 0; // 0 - 100
+
+		for(let point of this.controlPoints) {
+			point.travelTime = 
+					k * this.map.calDistanceFromLatLng(point.original.lat, point.original.lng);
+			point.travelTime += rand * 10 * Math.random();
+		}
+
+		this.controlPoints[12].travelTime = 0;
+
+
+
 	}
 
 	/*calculateAnglesOfControlPoints() {
@@ -728,8 +752,7 @@ class TgMapControl {
 	 * @param {number} lng
 	 */
 	setOrigin(lat, lng) {
-		this.travelTimeApi.setStartLocation(lat, lng);
-		this.travelTimeApi.clearEndLocations();
+		this.travelTimeApi.setOrigin(lat, lng);
 		for(let type of this.transportTypes) {
 			this.travelTimeCache[type].clear();
 		}
@@ -922,7 +945,7 @@ class TgMapControl {
 	makeShapePreservingGridByFFT() {
 		//const s = (new Date()).getTime();
 
-		const threshold = this.data.var.shapePreservingDegree;
+		const threshold = this.data.var.shapePreservingDegree; // 1.0
 		const dt = 0.1;
 		const eps = 0.000001;
 		const setRealPosition = function(point, pct) {

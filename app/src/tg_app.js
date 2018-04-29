@@ -4,7 +4,6 @@
 
 class TgApp {
 	constructor(map_id) {
-		console.log(TgData);
 		this.data = TgData;
 		this.graph = new TgGraph(this, this.data);
 		this.map = new TgMap(this, map_id);
@@ -106,7 +105,7 @@ class TgApp {
 	}
 
 	turn(type, on) {
-		console.log(type + ' ' + on);
+		//console.log('type: ' + type + ' on: ' + on);
 
 		switch(type) {
 			case 'water':
@@ -123,6 +122,15 @@ class TgApp {
   			break;
   		case 'origin':
   			this.map.tgOrigin.turn(on);
+  			break;
+  		case 'grid':
+  			this.map.tgGrids.turn(on);
+  			break;
+  		case 'isochrone':
+  			this.map.tgIsochrone.turn(on);
+  			break;
+  		case 'perc':
+  			this.map.tgPerc.turn(on);
   			break;
 		}
 	}

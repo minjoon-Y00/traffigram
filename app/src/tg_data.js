@@ -113,9 +113,10 @@ var TgData = {
 			],
 			locationCluster: 'img/mapbtn_dest_cluster.png',
 			origin: {
-				auto: 'img/mapbtn_origin_car.png',
-				bicycle: 'img/mapbtn_origin_bicycle.png',
-				pedestrian: 'img/mapbtn_origin_foot.png',
+				driving: 'img/mapbtn_origin_car.png',
+				traffic: 'img/mapbtn_origin_car.png',
+				cycling: 'img/mapbtn_origin_bicycle.png',
+				walking: 'img/mapbtn_origin_foot.png',
 				home: 'img/mapbtn_home.png',
 				office: 'img/mapbtn_office.png',
 			}, 

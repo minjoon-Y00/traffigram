@@ -1,9 +1,10 @@
 class TgTravelTimeApi {
 	constructor(data) {
 		this.data = data;
-		this.centerLocation = {};
+		this.org = {lat: null, lng: null};
 		this.locations = [];
-		this.maxNumLocation = 48;
+
+		this.maxNumLocation = 25;
 		this.totalNumOfRequest = 0;
 		this.numOfRequest = 0;
 		this.timeoutTime = 500; //ms
@@ -11,115 +12,52 @@ class TgTravelTimeApi {
 		this.callbackFunction = null;
 	}
 
-	setStartLocation(lat, lng) {
-		this.centerLocation = {lat:lat, lon:lng};
+	setOrigin(lat, lng) {
+		this.org.lat = lat;
+		this.org.lng = lng;
 	}
 
-	addEndLocation(lat, lng) {
-		this.locations.push({lat:lat, lon:lng});
-	}
-
-	clearLocations() {
-		this.centerLocation = {};
+	resetLocation() {
 		this.locations = [];
 	}
 
-	clearEndLocations() {
-		this.locations = [];
+	addLocation(lat, lng) {
+		this.locations.push({lat:lat, lng:lng});
 	}
 
-	getTravelTime(mode, cb) {
-		//console.log('***');
-		//console.log(this.locations);
+	getTravelTime(mode) {
+		return new Promise((resolve, reject) => {
 
-		// [0, max) -> 1
-		// [max, max*2) -> 2
-		// ...
-		this.times = [];
-		this.numOfRequest = 0;
-		this.totalNumOfRequest = parseInt(this.locations.length / this.maxNumLocation) + 1;
-		this.callbackFunction = cb;
-		this.queuedLocations = this.deepClone(this.locations);
+			if (this.locations.length === 0) 
+				reject('travel time api: no locations.');
+			else if (this.locations.length > this.maxNumLocation - 1) 
+				reject('travel time api: locations > max locations.');
+			else {
 
-		this.requestTravelTime(mode);
+				let str = 'https://api.mapbox.com/directions-matrix/v1/mapbox/';
+		
+				if (mode === 'traffic') str += 'driving-traffic/';
+				else str += mode + '/';
+
+				str += this.org.lng + ',' + this.org.lat + ';';
+
+				for(let i = 0; i < this.locations.length; ++i) { 
+					str += this.locations[i].lng + ',' + this.locations[i].lat;
+					if (i < this.locations.length - 1) str += ';';
+				}
+
+				str += '?sources=0&destinations=all&access_token=' + this.data.var.apiKeyVectorTile;
+			
+				$.get(str, (ret) => {
+					console.log('result: ', ret);
+					this.resetLocation();
+					resolve(ret.durations[0]);
+				})
+				.fail((err) => {
+					this.resetLocation();
+					reject(err);
+		  	});
+			}
+		});
 	}
-
-	deepClone(input) {
-		return JSON.parse(JSON.stringify(input));
-	}
-
-	// mode: 'auto', 'bicycle' or 'pedestrian'
-	requestTravelTime(mode) {
-
-		let locations;
-
-		// if locations.length > max (e.g. 49, 50, ...)
-		if (this.locations.length > this.maxNumLocation) {
-			locations = this.locations.slice(0, this.maxNumLocation); // [0, max) (e.g. [0, 47])
-			this.locations = this.locations.slice(this.maxNumLocation); // [max, len] (e.g. [48, ...])
-		}
-		// if queuedLocations.length <= max
-		else {
-			locations = this.locations;
-		}
-
-		locations.unshift(this.centerLocation);
-
-		const json = {locations: locations, costing: mode};
-
-		let str = 'https://matrix.mapzen.com/one_to_many?json=';
-		str += JSON.stringify(json);
-		str += '&api_key=' + this.data.var.apiKeyTimeMatrix;
-
-		$.get(str, this.processTravelTime.bind(this))
-		.fail((error) => {
-			//console.log(error);
-			console.log('make fake result.');
-			this.makeFakeResult(locations);
-  	});
-	}
-
-	makeFakeResult(locations) {
-		let result = {};
-		result.one_to_many = [];
-		result.one_to_many.push(new Array(locations.length));
-
-		const origin = {lat: locations[0].lat, lng: locations[0].lon};
-
-		for(let i = 0; i < locations.length; i++) {
-			result.one_to_many[0][i] = {
-				time: TgUtil.distance(origin.lat, origin.lng, 
-					locations[i].lat, locations[i].lon) * 1000
-			};
-		}
-
-		this.processTravelTime(result);
-	}
-
-	processTravelTime(result) {
-		//console.log('result: ');
-		//console.log(result);
-
-		for(let index = 1; index < result.one_to_many[0].length; index++) {
-			this.times.push(result.one_to_many[0][index].time);
-		}
-
-		//console.log('this.numOfRequest + 1: ' + this.numOfRequest + 1);
-		//console.log('this.totalNumOfRequest: ' + this.totalNumOfRequest);
-
-		if (++this.numOfRequest === this.totalNumOfRequest) {
-			this.finishGettingTravelTime();
-		}
-		else {
-			//console.log('requesting...');
-			setTimeout(this.requestTravelTime.bind(this), this.timeoutTime);
-		}
-	}
-
-	finishGettingTravelTime() {
-		console.log('received travel time data.');
-		this.callbackFunction(this.times);
-	}
-}	
-
-//module.exports = TgTravelTimeApi;
+}

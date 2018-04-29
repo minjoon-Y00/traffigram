@@ -260,15 +260,16 @@ class TgMapRoads {
 
 	finishGettingRoadObjects() {
 
-		console.log('#FIN GETTING ROADS');
+		// console.log('#FIN GETTING ROADS');
 		this.addStreetLayer()
 
-		for(let type in this.dispRoads) {
-			console.log(type + ': ' + this.dispRoads[type].length);
-		}
+		// for(let type in this.dispRoads) {
+			// console.log(type + ': ' + this.dispRoads[type].length);
+		// }
 	}
 
 	addStreetLayer() {
+		return;
 		const currentZoom = this.data.zoom.current;
 		if (currentZoom <= 14) return;
 
@@ -442,7 +443,7 @@ class TgMapRoads {
 				this.dispRoadTypes.push(type);
 			}
 		}
-		//console.log(this.dispRoadTypes);
+		console.log(this.dispRoadTypes);
 	}
 
 	calDispRoads() {
@@ -549,8 +550,11 @@ class TgMapRoads {
 	}
 
 	addNewLayer() {
+		if (!this.display) return;
+
 		const viz = this.data.viz;
-		const transform = this.graph.transformReal.bind(this.graph);
+		let transform;
+		if (this.graph) transform = this.graph.transformReal.bind(this.graph);
 
 		for(let type of this.dispRoadTypes) {
 			let arr = [];
