@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Time map study</title>
+		<!-- utf-8 -->
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+		<!-- mobile -->
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- logo -->
+		<link href='img/logo.png' type='image/gif' rel='short icon'/>
+		<!-- CSS --> 
+		<link href='DC_AMT_2018.css' type='text/css' rel='stylesheet'/>
+		<!-- Google font-->
+		<link href="https://fonts.googleapis.com/css?family=Fjalla+One|Roboto+Condensed:300,400,400i" rel="stylesheet">
+		<!-- JS Include your JS here
+		<script type="text/javascript" src=""></script> -->
+	</head>	
+	<body>
+		<div id="CANVAS">
+			<div id="HEADER">
+				<div id="HEADER_LEFT">
+					<div id="header_logo"><img src="img/logo.png" width="50px", height="50px"/></div>
+					<div id="header_subject">Time map study</div>
+				</div>
+				<!--Progress bar, set the current step to "header_step_on" and the rest to "header_step_off"-->
+				<div id="HEADER_RIGHT">
+					<div id="header_step_0" class="header_step_on">Intro<div class="step_rect"></div></div>
+					<div id="header_step_1" class="header_step_off">Task 1<div class="step_rect"></div></div>
+					<div id="header_step_2" class="header_step_off">Task 2<div class="step_rect"></div></div>
+					<div id="header_step_3" class="header_step_off">Task 3<div class="step_rect"></div></div>
+					<div id="header_step_4" class="header_step_off">Task 4<div class="step_rect"></div></div>
+					<div id="header_step_5" class="header_step_off">Task 5<div class="step_rect"></div></div>
+					<div id="header_step_6" class="header_step_off">Task 6<div class="step_rect"></div></div>
+				</div>
+			</div>
+			<div id="MAIN">
+				<div class="MAIN_1COL">
+
+					<!--Question-->
+					<div class="MAIN_QUESTION">A question can be placed using div class <span class="MAIN_STRESS">MAIN_QUESTION</span>. You can put anything you like all along the way. A question can also stress using class <span class="MAIN_STRESS">MAIN_STRESS</span>. Perhaps this will be sufficient for the description or too long.</div>
+
+					<!--Image-->
+					<div class="MAIN_IMAGE">Image can be placed using <span class="MAIN_STRESS">MAIN_IMAGE</span>. The width and height can be resizable, but by default the width is <span class="MAIN_STRESS">600px</span> and height is <span class="MAIN_STRESS">500px</span></div>
+
+					<!-- Input:checkbox -->
+					<div class="MAIN_INPUT">
+						<label><input type="checkbox" id="check" name="proceed" value="0" style="margin-right:10px;">Check box can be used</label>
+					</div>
+
+					<!-- Input:button, set class name to input_button when ready to go next-->
+					<div class="MAIN_INPUT">
+						<div class="input_button_disabled">Next</div>
+					</div>
+				</div>				
+			</div>
+		</div>
+	</body>
+</html>

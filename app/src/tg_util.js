@@ -20,6 +20,22 @@ class tgUtil {
 	  return d
 	}
 
+	distanceMiles(lat1, lng1, lat2, lng2) {
+	  //var R = 6371 // km
+	  var R = 3959 // 6371*0.621371 // miles
+	  var dLat = (lat2 - lat1) * Math.PI / 180
+	  var dLng = (lng2 - lng1) * Math.PI / 180
+	  var a = Math.sin(dLat / 2) * 
+	          Math.sin(dLat / 2) +
+	          Math.cos(lat1 * Math.PI / 180 ) * 
+	          Math.cos(lat2 * Math.PI / 180 ) * 
+	          Math.sin(dLng / 2) * 
+	          Math.sin(dLng / 2)
+	  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+	  var d = R * c
+	  return d
+	}
+
 	D2(lat1, lng1, lat2, lng2) {
 	  return Math.sqrt((lat1 - lat2)*(lat1 - lat2) + (lng1 - lng2)*(lng1 - lng2))
 	}
@@ -341,6 +357,37 @@ class tgUtil {
 	  }
 	}
 
+	gaussian(mean, stdev) {
+    var y2;
+    var use_last = false;
+    return function() {
+        var y1;
+        if(use_last) {
+           y1 = y2;
+           use_last = false;
+        }
+        else {
+            var x1, x2, w;
+            do {
+                 x1 = 2.0 * Math.random() - 1.0;
+                 x2 = 2.0 * Math.random() - 1.0;
+                 w  = x1 * x1 + x2 * x2;               
+            } while( w >= 1.0);
+            w = Math.sqrt((-2.0 * Math.log(w))/w);
+            y1 = x1 * w;
+            y2 = x2 * w;
+            use_last = true;
+       }
+
+       var retval = mean + stdev * y1;
+       if(retval > 0) 
+           return retval;
+       return -retval;
+  	}
+	}
+
 }
 var TgUtil = new tgUtil();
 //module.exports = new TgUtil();
+
+

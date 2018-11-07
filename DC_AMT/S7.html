@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Time map study</title>
+		<!-- utf-8 -->
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+		<!-- mobile -->
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- logo -->
+		<link href='img/logo.png' type='image/gif' rel='short icon'/>
+		<!-- CSS --> 
+		<link href='DC_AMT_2018.css' type='text/css' rel='stylesheet'/>
+		<!-- Google font-->
+		<link href="https://fonts.googleapis.com/css?family=Fjalla+One|Roboto+Condensed:300,400,400i" rel="stylesheet">
+		<!-- JS Include your JS here
+		<script type="text/javascript" src=""></script> -->
+	</head>	
+	<body>
+		<div id="CANVAS">
+			<div id="HEADER">
+				<div id="HEADER_LEFT">
+					<div id="header_logo"><img src="img/logo.png" width="50px", height="50px"/></div>
+					<div id="header_subject">Time map study</div>
+				</div>
+				<!--Progress bar, set the current step to "header_step_on" and the rest to "header_step_off"-->
+				<div id="HEADER_RIGHT">
+					<div id="header_step_0" class="header_step_off">Intro<div class="step_rect"></div></div>
+					<div id="header_step_1" class="header_step_off">Task 1<div class="step_rect"></div></div>
+					<div id="header_step_2" class="header_step_off">Task 2<div class="step_rect"></div></div>
+					<div id="header_step_3" class="header_step_off">Task 3<div class="step_rect"></div></div>
+					<div id="header_step_4" class="header_step_on">Task 4<div class="step_rect"></div></div>
+					<div id="header_step_5" class="header_step_off">Task 5<div class="step_rect"></div></div>
+					<div id="header_step_6" class="header_step_off">Task 6<div class="step_rect"></div></div>
+				</div>
+			</div>
+			<div id="MAIN">
+
+				<div class="MAIN_2COL">
+					<div class="MAIN_2COL_1">
+						<!--Image-->
+						<div class="MAIN_IMAGE"></div>
+						<div class="MAIN_QUESTION">Q. <span class="MAIN_STRESS">Sort</span> the five points from the <span class="MAIN_STRESS">East</span> to the <span class="MAIN_STRESS">West</span> based on their physical locations.</div>
+					</div>
+
+					<div class="MAIN_2COL_2">
+						<div class="MAIN_2COL_2_TEXT">Instruction</div>
+						<div> The location you choose at the the dropbox at the <span class="MAIN_STRESS">top</span> should be located <span class="MAIN_STRESS">more East</span> than locations you chose at the dropbox at the <span class="MAIN_STRESS">bottom</span>.</div>
+						<div class="MAIN_2COL_2_DROPBOX">1. 
+							<select name="1">
+								<option value="loc1_0">Choose a location</option>
+								<option value="loc1_1">Location 1</option>
+								<option value="loc1_2">Location 2</option>
+								<option value="loc1_3">Location 3</option>
+								<option value="loc1_4">Loaction 4</option>
+								<option value="loc1_5">Loaction 5</option>
+							</select>
+							<!--Insert img once a user set the value of this dropbox-->
+							<span class="input_check"><img src="img/check.png" width="20px;" height="20px;"/></span>
+						</div>
+						<div class="MAIN_2COL_2_DROPBOX">2. 
+							<select name="2">
+								<option value="loc2_0">Choose a location</option>
+								<option value="loc2_1">Location 1</option>
+								<option value="loc2_2">Location 2</option>
+								<option value="loc2_3">Location 3</option>
+								<option value="loc2_4">Loaction 4</option>
+								<option value="loc2_5">Loaction 5</option>
+							</select>
+							<!--Insert img once a user set the value of this dropbox-->
+							<span class="input_check"><img src="img/check.png" width="20px;" height="20px;"/></span>
+						</div>
+						<div class="MAIN_2COL_2_DROPBOX">3. 
+							<select name="3">
+								<option value="loc3_0">Choose a location</option>
+								<option value="loc3_1">Location 1</option>
+								<option value="loc3_2">Location 2</option>
+								<option value="loc3_3">Location 3</option>
+								<option value="loc3_4">Loaction 4</option>
+								<option value="loc3_5">Loaction 5</option>
+							</select>
+							<!--Insert img once a user set the value of this dropbox-->
+							<span class="input_check"></span>
+						</div>
+						<div class="MAIN_2COL_2_DROPBOX">4. 
+							<select name="4">
+								<option value="loc4_0">Choose a location</option>
+								<option value="loc4_1">Location 1</option>
+								<option value="loc4_2">Location 2</option>
+								<option value="loc4_3">Location 3</option>
+								<option value="loc4_4">Loaction 4</option>
+								<option value="loc4_5">Loaction 5</option>
+							</select>
+						</div>
+						<div class="MAIN_2COL_2_DROPBOX">5. 
+							<select name="5">
+								<option value="loc5_0">Choose a location</option>
+								<option value="loc5_1">Location 1</option>
+								<option value="loc5_2">Location 2</option>
+								<option value="loc5_3">Location 3</option>
+								<option value="loc5_4">Loaction 4</option>
+								<option value="loc5_5">Loaction 5</option>
+							</select>
+							<!--Insert img once a user set the value of this dropbox-->
+							<span class="input_check"></span>
+						</div>
+					</div>
+				</div>	
+				<div class="MAIN_1COL" style="margin-top:20px;">
+					<!-- Input:button, set class name to input_button when ready to go next-->
+					<div class="MAIN_INPUT">
+    					<div class="input_button_disabled">Next</div>
+    				</div>					
+				</div>			
+			</div>
+		</div>
+	</body>
+</html>

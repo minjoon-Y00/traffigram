@@ -28,6 +28,11 @@ class TgMapLocations {
 		this.locationsInBox = [];
 		this.locationGroups = [];
 		this.favorites = [];
+
+		this.numRandomLoc = 10;
+
+		this.markerImg1 = null;
+		this.markerImg2 = null;
 	}
 
 	turn(tf) {
@@ -285,11 +290,10 @@ class TgMapLocations {
 	}
 
 	request(param) {
-		if ((!param) || (param.calLocsInBox)) {
-			this.calLocsInBox();
-		}
+		//if ((!param) || (param.calLocsInBox)) this.calLocsInBox();
+		//this.calFilteredLocs();
 
-		this.calFilteredLocs();
+		this.calLocs();
 
 		//console.log(this.locations);
 
@@ -375,7 +379,217 @@ class TgMapLocations {
 		return this.highLightMode;
 	}
 
+	calLocs() {
+		// const top = this.data.box.top;
+		// const bottom = this.data.box.bottom;
+		// const right = this.data.box.right;
+		// const left = this.data.box.left;
+
+		let top = this.data.box.top;
+		let bottom = this.data.box.bottom;
+		let right = this.data.box.right;
+		let left = this.data.box.left;
+		const latPerPx = this.data.var.latPerPx;
+		const lngPerPx = this.data.var.lngPerPx;
+
+		const height = top - bottom;
+		const weight = right - left;
+
+		const org = {lat: this.map.tgOrigin.origin.original.lat, 
+			  lng: this.map.tgOrigin.origin.original.lng};
+
+		top = org.lat + height / 2;
+		bottom = org.lat - height / 2;
+		right = org.lng + weight / 2;
+		left = org.lng - weight / 2;
+
+
+		let dispTypes = [];
+		if (this.map.tgRoads.dispRoadTypes.indexOf("primary") >= 0) dispTypes.push("primary");
+		if (this.map.tgRoads.dispRoadTypes.indexOf("secondary") >= 0) dispTypes.push("secondary");
+		if (this.map.tgRoads.dispRoadTypes.indexOf("tertiary") >= 0) dispTypes.push("tertiary");
+		if (this.map.tgRoads.dispRoadTypes.indexOf("residential") >= 0) dispTypes.push("tresidential");
+
+		// console.log(this.numRandomLoc);
+		// console.log(this.map.tgRoads.dispRoadTypes);
+		// console.log(this.map.tgRoads.dispRoads);
+		// console.log(dispTypes);
+
+		let sumRoads = 0;
+		for(let type of dispTypes) {
+			sumRoads += this.map.tgRoads.dispRoads[type].length;
+		}
+		if (sumRoads == 0) { 
+			console.log('No road in calLocs');
+			return;
+		}
+
+		// console.log('top: ' + top);
+		// console.log('bottom: ' + bottom);
+		// console.log('right: ' + right);
+		// console.log('left: ' + left);
+
+
+
+		this.locations = [];
+		//const names = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+		let names = ["Baboon", "Badger", "Beaver", "Doggy", "Dunkey", "Dolphin", "Camel", "Cheetah", 
+			"Giraffe", "Goose", "Gorilla", "Monkey", "Mouse", "Mongoose", "Koala", "Kraken", "Horse", 
+			"Human", "Impala", "Racoon", "Ragdoll", "Sheep", "Shrimp", "Snake", "Zebra"];
+
+		const widthPx = this.data.var.locTextLngMarginPx;
+		const heightPx = this.data.var.locTextLatMarginPx;
+
+		while(this.locations.length < this.numRandomLoc) {
+			const typeIdx = Math.floor(Math.random() * dispTypes.length);
+			const roadObj = this.map.tgRoads.dispRoads[dispTypes[typeIdx]];
+			const roadIdx = Math.floor(Math.random() * roadObj.length);
+			const roadObj2 = roadObj[roadIdx];
+			const road2Idx = Math.floor(Math.random() * roadObj2.length);
+			const lng = roadObj2[road2Idx][0];
+			const lat = roadObj2[road2Idx][1];
+
+			if ((lat < top) && (lat > bottom) && (lng < right) && (lng > left)) {
+
+				const bb = {
+					left: lng - (widthPx * lngPerPx), 
+					right: lng + (widthPx * lngPerPx),
+					top: lat - (heightPx * latPerPx),
+					bottom: lat + (heightPx * latPerPx),
+				};
+
+				if (!this.map.tgBB.isItNotOverlappedByLocs(this.locations, [], bb)) {
+					console.log('overlapped!!!');
+					continue;
+				}
+
+				let loc = {};
+				loc.node = new TgLocationNode(lat, lng);
+				loc.bb = bb;
+				const nameIdx = Math.floor(Math.random() * names.length);
+				loc.name = names[nameIdx];
+				names.splice(nameIdx, 1);
+				loc.time = 0;
+				this.locations.push(loc);
+			}
+		}	
+
+		//console.log(this.locations);
+	}
+
+	calRandomImages() {
+		const viz = this.data.viz;
+		let markerIdx1, markerIdx2;
+		let lenMarkers = viz.image.randomMarkers.length;
+		markerIdx1 = Math.floor(Math.random() * viz.image.randomMarkers.length);
+		this.markerImg1 = viz.image.randomMarkers[markerIdx1];
+		while(!markerIdx2 || (markerIdx1 === markerIdx2))
+			markerIdx2 = Math.floor(Math.random() * viz.image.randomMarkers.length);
+		this.markerImg2 = viz.image.randomMarkers[markerIdx2];
+	}
+
 	updateLayer() {
+
+		//console.log(this.locations);
+		
+		const viz = this.data.viz;
+		var arr = [];	
+
+		if (!this.markerImg1) this.calRandomImages();
+
+		const anchorStyleFunc = 
+			this.mapUtil.imageStyleFunc(this.markerImg1, 1, {scale: 0.5, opacity: 0.6});
+			//this.mapUtil.nodeStyleFunc(viz.color.anchor, viz.radius.anchor);
+		const locStyleFunc = 
+			//this.mapUtil.imageStyleFunc(viz.image.location[this.currentTOD]);
+			this.mapUtil.imageStyleFunc(this.markerImg2, 1, {scale: 0.5, opacity: 0.6});
+		const locStyleFuncTranslucent = 
+			//this.mapUtil.imageStyleFunc(viz.image.location[this.currentTOD], 0.3);	
+			this.mapUtil.imageStyleFunc(this.markerImg2, 0.3, {scale: 0.5, opacity: 0.3});	
+		const lineStyleFunc = 
+			this.mapUtil.lineStyleFunc(viz.color.locationLine, viz.width.locationLine);
+
+		let highlightedLocs = [];
+
+				// display locations
+		for(let loc of this.locations) {
+
+			// pass though if the location in the cluster
+			//if (loc.group) continue;
+
+			const dispLoc = loc.node.dispLoc;
+			const dispAnchor = loc.node.dispAnchor;
+
+			// for highlight mode
+			let imageStyleFunc = locStyleFunc;
+			let displayLinesAndAnchor = true;
+
+			if (this.highLightMode) {
+				if ((loc.time > this.highLightTime)) {
+					displayLinesAndAnchor = false;
+					imageStyleFunc = locStyleFuncTranslucent;
+				}
+				else {
+					highlightedLocs.push(loc);
+				}
+			}
+
+			if (displayLinesAndAnchor) {
+				// lines
+				this.mapUtil.addFeatureInFeatures(
+					arr, new ol.geom.LineString(
+						[[dispAnchor.lng, dispAnchor.lat], [dispLoc.lng, dispLoc.lat]]), 
+					lineStyleFunc, 'locLine');
+
+				// anchor images
+				this.mapUtil.addFeatureInFeatures(
+					arr, new ol.geom.Point([dispAnchor.lng, dispAnchor.lat]), 
+					anchorStyleFunc, 'locAnchor');
+			}
+
+			// circle images
+			let circleImageStyleFunc = imageStyleFunc;
+
+			this.mapUtil.addFeatureInFeatures(
+				arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), circleImageStyleFunc,
+				'loc', loc);
+
+			// time display (for debugging)
+			if (this.displayTimeOfLocs) {
+				const timeStr = parseInt(loc.time/60) + '';
+				const timeStyleFunc = 
+					this.mapUtil.textStyle({text: timeStr, color: '#000', font: viz.font.text});
+				this.mapUtil.addFeatureInFeatures(
+					arr, new ol.geom.Point([dispLoc.lng, dispLoc.lat]), timeStyleFunc, 'loc');
+			}
+		}
+
+		this.removeLayer();
+		if (arr.length > 0) {
+			this.layer = this.mapUtil.olVectorFromFeatures(arr);
+			this.layer.setZIndex(viz.z.location);
+		  this.mapUtil.addLayer(this.layer);
+			//console.log('tgLocs.updateLayer():' + arr.length);
+		}
+
+		if (this.highLightMode) {
+			if (typeof data_currentset != 'undefined') {
+				//console.log('highlightedLocs: ');
+				//console.log(highlightedLocs);
+	      data_currentset = highlightedLocs;
+
+	      if (this.data.var.appMode === 'pc') {
+          if (typeof openList != 'undefined') openList();
+        }
+	    }
+		}
+
+	}
+
+	updateLayer_() {
+
+		//console.log(this.locations);
 		const viz = this.data.viz;
 		var arr = [];
 		const anchorStyleFunc = 
@@ -579,7 +793,9 @@ class TgMapLocations {
 							font: viz.font.text, 
 							offsetX: loc.nameOffsetX, 
 							offsetY: loc.nameOffsetY, 
-							align: loc.nameAlign
+							align: loc.nameAlign,
+							strokeColor: viz.color.textPlaceStroke,
+							strokeWidth: viz.width.textPlaceStroke,
 						});
 
 					this.mapUtil.addFeatureInFeatures(arr,
@@ -664,6 +880,9 @@ class TgMapLocations {
 	}
 
 	calDispNodes(kind, value) {
+		if (kind === 'original') value = 0;
+		else if (kind === 'real') value = 1;
+		
 		// update disp for locations
 		for(let loc of this.locations) {
 			loc.node.dispAnchor = 

@@ -3,163 +3,225 @@
  */
 
 // constants
-const org = {lat: 47.680274999999995, lng: -122.32732399999999}; // origin point
+const org = {lat: 47.680275, lng: -122.327324}; // origin point
 const pxPerM = 0.172966822; // px/meter
 const cmPerPx = 0.0156; // cm/px
 const cmPerM = cmPerPx * pxPerM; // cm/meter
-
+const Wt = 5.166 // weight for time error
+const stepSize = 20;
 // points
 // array of 24 points, having the following variables
 // 1) o = {lat:x, lng:x} (original points)
 // 2) t = {lat:x, lng:x} (warped points, using the naive(not Gap or S-Gap) method)
 // 3) time = x (travel time in second)
 
-calQByAllSteps();
-//calQByEachPoint();
+// global variables
+let Css, Cts;
+let meterPerMin;
 
-function calQByEachPoint() {
+// entry point
 
-	let Csps = new Array(11);
-	let Ctps = new Array(11);
+calCsCt();
+calIsochrone();
+calQ();
+findMinimumSteps();
+
+const sMap = new simpleMap();
+sMap.init(org, points);
+//sMap.dispBaseMap();
+sMap.dispGrid();
+sMap.dispIsochrone([2, 4, 6, 8]);
+
+console.log(sMap.pts);	
+
+// for(let pt of sMap.pts) console.log(pt.time);
+// console.log('');
+// for(let pt of sMap.pts) console.log(pt.t.meter);
+
+/*let S = 0, T = 0
+for(let pt of points) {
+	S += distance(pt.o.lat, pt.o.lng, org.lat, org.lng) * 1000; // m
+	T += pt.time;
+}
+console.log(S + ' ' + T + ' ' + (S / T)); // 4.9981804736374285
+*/
+
+// calculate two arrays (Css and Cts), which stores Cs and Ct per each step
+function calCsCt() {
+	Css = new Array(stepSize + 1);
+	Cts = new Array(stepSize + 1);
 
 	// calculate S
 	for(let pt of points) {
 		pt.S = distance(pt.o.lat, pt.o.lng, org.lat, org.lng) * 1000; // m
+		pt.t.meter = distance(pt.t.lat, pt.t.lng, org.lat, org.lng) * 1000; // m
+		pt.Ls = new Array(stepSize + 1);
 	}
 
-	// 11 steps (0, 0.1, 0.2, ..., 1)
-	for(let i = 0; i <= 10; ++i) {
-		const step = i * 0.1;
+	// step = [0, 1, ..., stepSize + 1]
+	for(let step = 0; step <= stepSize; ++step) {
+		// w = [0, ..., 1]
+		const w = step * (1 / stepSize);
+		let Cs = 0, Ct = 0;
 
 		// For each point
 		for(let pt of points) {
 
-			// (mLat, mLng) between o ~ t by linear interpolation
-			const mLat = pt.o.lat * (1 - step) + pt.t.lat * step;
-			const mLng = pt.o.lng * (1 - step) + pt.t.lng * step;
+			// (r.lat, r.lng) between o (t=0) ~ t (t=1)
+			const r = {
+				lat: pt.o.lat * (1 - w) + pt.t.lat * w,
+				lng: pt.o.lng * (1 - w) + pt.t.lng * w,
+			}
 
 			// calculate L, Cs, Ct
-			pt.L = distance(mLat, mLng, org.lat, org.lng) * 1000; // m
+			pt.L = distance(r.lat, r.lng, org.lat, org.lng) * 1000; // m
 			pt.L *= cmPerM; // cm
+			pt.Ls[step] = pt.L;
 			pt.Cs = pt.S / pt.L;
 			pt.Ct = pt.time / pt.L;
+			Cs += pt.Cs;
+			Ct += pt.Ct;
 		}
+		Css[step] = Cs / points.length;
+		Cts[step] = Ct / points.length;
+	}
+	// console.log('Css:', Css);
+	// console.log('Cts:', Cts);
+}
 
-		// calculate Csp, Ctp
-		let Csp = 0, Ctp = 0;
-		for(let pt of points) {Csp += pt.Cs; Ctp += pt.Ct}
-		Csp /= points.length;
-		Ctp /= points.length;
-		Csps[i] = Csp;
-		Ctps[i] = Ctp;
+function calIsochrone() {
+
+const extent = this.olMap.getView().calculateExtent(this.olMap.getSize());
+	  const bottomLeft = 
+	  		ol.proj.transform(ol.extent.getBottomLeft(extent), 'EPSG:3857', 'EPSG:4326');
+	  const topRight = 
+	  		ol.proj.transform(ol.extent.getTopRight(extent), 'EPSG:3857', 'EPSG:4326');
+
+	  box.left = bottomLeft[0];
+	  box.bottom = bottomLeft[1];
+	  box.right = topRight[0];
+	  box.top = topRight[1];
+
+  	vars.latPerPx = (box.top - box.bottom) / this.olMapHeightPX;
+  	vars.lngPerPx = (box.right - box.left) / this.olMapWidthPX;
 
 
+  	  	this.olMapHeightPX = $('#ol_map').css('height'); 
+  	this.olMapHeightPX = 
+  			Number(this.olMapHeightPX.slice(0, this.olMapHeightPX.length - 2)); // 900
+  	this.olMapWidthPX = $('#ol_map').css('width');  
+  	this.olMapWidthPX = 
+  			Number(this.olMapWidthPX.slice(0, this.olMapWidthPX.length - 2)); // 600
 
+
+	let totalDistT = 0, totalTime = 0, maxTime = 0;
+	for(let pt of points) {
+		totalDistT += distance(pt.t.lat, pt.t.lng, org.lat, org.lng) * 1000; // m
+		totalTime += pt.time;
+		if (maxTime < pt.time) maxTime = pt.time;
+	}
+	totalTime /= 60; // min
+	maxTime /= 60; // min
+	meterPerMin = totalDistT / totalTime;
+	console.log('meterPerMin: ' + meterPerMin); // 319.0107904444213
+	console.log('maxTime: ' + maxTime); // 16.396666666666665
+
+	let isoArr = [4, 8, 12, 16];
+	calLt(isoArr);
+
+
+}
+
+function calLt(isoArr) {
+
+	let meterArr = [];
+	for(let min of isoArr) meterArr.push(min * meterPerMin);
+
+	console.log('meterArr:,' + meterArr);
+
+	for(let pt of points) {
+		const OT = distance(pt.t.lat, pt.t.lng, org.lat, org.lng) * 1000; // m
+
+		let minMeter = 987654321;
+		let minIndex = -1;
+		for(let i = 0; i < meterArr.length; ++i) {
+			if (Math.abs(OT - meterArr[i]) < minMeter) {
+				minMeter = Math.abs(OT - meterArr[i]);
+				minIndex = i;
+			}
+		}
+		pt.Lt = Math.abs(OT - meterArr[minIndex]) * cmPerM;
+	}
+}
+
+// calculate Q_accuracy per each point and step
+function qAccuracy(pt, step) {
+	const Sp = pt.Ls[step] * Css[step];
+	const Tp = pt.Ls[step] * Cts[step];
+	let Q = (pt.S - Sp) * (pt.S - Sp);
+	Q += Wt * Wt * (pt.time - Tp) * (pt.time - Tp);
+
+	const Kvs = 0.06;
+	//Q += Kvs * Sp;
+
+	if (!pt.Qn) pt.Qn = [];
+	pt.Qn[step] = Math.sqrt(Q) + Kvs * Sp;
+
+
+	//if (!pt.Q1) pt.Q1 = [];
+	//if (!pt.Q2) pt.Q2 = [];
+	//pt.Q1[step] = Math.abs(pt.S - Sp);
+	//pt.Q1[step] = (pt.S - Sp) * (pt.S - Sp);
+	//pt.Q2[step] = Wt * Math.abs(pt.time - Tp);
+	//pt.Q2[step] = Wt * Wt * (pt.time - Tp) * (pt.time - Tp);
+
+	return Math.sqrt(Q);
+}
+
+// calculate Q
+function calQ() {
+	for(let pt of points) {
+		pt.Q = new Array(stepSize + 1);	
+
+		for(let step = 0; step <= stepSize; ++step) {
+			pt.Q[step] = qAccuracy(pt, step);
+		}		
+	}
+}
+
+// calculate the step having minimum Q
+function findMinimumSteps() {
+	for(let pt of points) {
+		pt.minQ = 987654321;
+		pt.minStep = -1;
+		for(let i = 0; i < pt.Q.length; ++i) {
+			if (pt.Q[i] < pt.minQ) { pt.minQ = pt.Q[i]; pt.minStep = i; }
+		}
+		//console.log(pt.Q);
+		//console.log(pt.minStep);
+	}
+	for(let pt of points) {
+		//console.log(pt);
+		const w = pt.minStep * (1 / stepSize);
+		if (!pt.r) pt.r = {};
+		pt.r.lat = pt.o.lat * (1 - w) + pt.t.lat * w;
+		pt.r.lng = pt.o.lng * (1 - w) + pt.t.lng * w;
 	}
 
-	console.log('Csps: ', Csps);
-	console.log('Ctps: ', Ctps);
-	
-	// For each point
-	for(let pt of points) {
-
-		console.log('-----');
-
-		// calculate S
-		pt.S = distance(pt.o.lat, pt.o.lng, org.lat, org.lng) * 1000; // m
-
-		// 11 steps (0, 0.1, 0.2, ..., 1)
-		for(let i = 0; i <= 10; ++i) {
-			const step = i * 0.1;
-
-			// (mLat, mLng) between o ~ t by linear interpolation
-			const mLat = pt.o.lat * (1 - step) + pt.t.lat * step;
-			const mLng = pt.o.lng * (1 - step) + pt.t.lng * step;
-
-			// calculate L, Cs, Ct
-			pt.L = distance(mLat, mLng, org.lat, org.lng) * 1000; // m
-			pt.L *= cmPerM; // cm
-			pt.Cs = pt.S / pt.L;
-			pt.Ct = pt.time / pt.L;
-
-			// calculate Csp, Ctp
-			let Csp = Csps[i], Ctp = Ctps[i];
-
-			// let Csp = 0, Ctp = 0;
-			// for(let pt of points) {Csp += pt.Cs; Ctp += pt.Ct}
-			// Csp /= points.length;
-			// Ctp /= points.length;
-
-			// calculate Q
-			let Q = 0;
-			let Wt = 5.166 // weight for time error (200m / 1min)
-			// calculate Lp, Sp, Tp
-			// Assume that Lp is one sample of mean of L
-			pt.Lp = pt.L;
-			pt.Sp = pt.Lp * Csp;
-			pt.Tp = pt.Lp * Ctp;
-
-			Q = Math.sqrt((pt.S - pt.Sp)*(pt.S - pt.Sp) + Wt * (pt.time - pt.Tp)*(pt.time - pt.Tp));
-
-			console.log(step.toFixed(1) + ' Q: ' + Q);
+	for(let idx = 0; idx < points.length; ++idx) {
+		const pt = points[idx];
+		pt.minQn = 987654321;
+		pt.minStepN = -1;
+		for(let i = 0; i < pt.Qn.length; ++i) {
+			if (pt.Qn[i] < pt.minQn) { pt.minQn = pt.Qn[i]; pt.minStepN = i; }
+		}
+		if (pt.minStep != pt.minStepN) {
+			console.log(idx + ' => ' + pt.minStep + ' ' + pt.minStepN);
 		}
 	}
 }
 
-function calQByAllSteps() {
-	// calculate S
-	for(let pt of points) {
-		pt.S = distance(pt.o.lat, pt.o.lng, org.lat, org.lng) * 1000; // m
-	}
 
-	// 11 steps (0, 0.1, 0.2, ..., 1)
-	for(let step = 0; step <= 1; step += 0.1) {
-		console.log('-------');
-		console.log('step: ' + step.toFixed(1));
-
-		// For each point
-		for(let pt of points) {
-
-			// (mLat, mLng) between o ~ t by linear interpolation
-			const mLat = pt.o.lat * (1 - step) + pt.t.lat * step;
-			const mLng = pt.o.lng * (1 - step) + pt.t.lng * step;
-
-			// calculate L, Cs, Ct
-			pt.L = distance(mLat, mLng, org.lat, org.lng) * 1000; // m
-			pt.L *= cmPerM; // cm
-			pt.Cs = pt.S / pt.L;
-			pt.Ct = pt.time / pt.L;
-		}
-
-		// calculate Csp, Ctp
-		let Csp = 0, Ctp = 0;
-		for(let pt of points) {Csp += pt.Cs; Ctp += pt.Ct}
-		Csp /= points.length;
-		Ctp /= points.length;
-
-		// calculate Q
-		let Q = 0;
-		let Wt = 5.166 // weight for time error (200m / 1min)
-		for(let pt of points) {
-			// calculate Lp, Sp, Tp
-			// Assume that Lp is one sample of mean of L
-			pt.Lp = pt.L;
-			pt.Sp = pt.Lp * Csp;
-			pt.Tp = pt.Lp * Ctp;
-
-			Q += Math.sqrt((pt.S - pt.Sp)*(pt.S - pt.Sp) + Wt * (pt.time - pt.Tp)*(pt.time - pt.Tp));
-		}
-		Q /= points.length;
-
-		console.log('Csp: ' + Csp);
-		console.log('Ctp: ' + Ctp);
-		console.log('Q: ' + Q);
-	}
-}
-
-
-
-//console.log('points:', points);
 
 
 function distance(lat1, lng1, lat2, lng2) {
@@ -173,3 +235,4 @@ function distance(lat1, lng1, lat2, lng2) {
   const d = R * c;
   return d;
 }
+

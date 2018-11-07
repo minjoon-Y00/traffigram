@@ -244,9 +244,9 @@ class TgMapBoundingBox {
 
 		// make location group
 		for(let twoLocs of distBetweenLocGrps) {
-			if (TgUtil.intersectRect(twoLocs.loc1.bb, twoLocs.loc2.bb)) {
+			//if (TgUtil.intersectRect(twoLocs.loc1.bb, twoLocs.loc2.bb))
+			if (false)
 				this.addIntoGroupOrmakeNewGroup(locGrps, twoLocs.loc1, twoLocs.loc2);
-			}
 			else break;
 		}
 		this.updateLocationGroups(locGrps);
@@ -257,7 +257,8 @@ class TgMapBoundingBox {
 			const targetLocGrp = locGrps.shift();
 			let overlapped = false;
 			for(let locGrp of locGrps) {
-				if (TgUtil.intersectRect(targetLocGrp.bb, locGrp.bb)) {
+				if (false) {
+				//if (TgUtil.intersectRect(targetLocGrp.bb, locGrp.bb)) {
 					overlapped = true;
 					locGrp = this.mergeLocationGoup(locGrp, targetLocGrp);
 				}
@@ -272,7 +273,8 @@ class TgMapBoundingBox {
 		for(let locGrp of locGrps) {
 			for(let loc of locs) {
 				if (loc.group) continue;
-				if (TgUtil.intersectRect(locGrp.bb, loc.bb)) {
+				if (false) {
+				//if (TgUtil.intersectRect(locGrp.bb, loc.bb)) {
 					locGrp.locs.push(loc);
 					loc.group = locGrp;
 					this.updateLocationGroup(locGrp);

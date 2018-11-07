@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Time map study</title>
+		<!-- utf-8 -->
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+		<!-- mobile -->
+		<!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+		<!-- logo -->
+		<link href='img/logo.png' type='image/gif' rel='short icon'/>
+		<!-- CSS --> 
+		<link href='dc_amt_2018.css' type='text/css' rel='stylesheet'/>
+		<!-- Google font-->
+		<!-- <link href="https://fonts.googleapis.com/css?family=Fjalla+One|Roboto+Condensed:300,400,400i" rel="stylesheet"> -->
+	</head>
+	<body>
+		<div id="dcApp">
+			<div id="CANVAS">
+				<div id="HEADER">
+					<div id="HEADER_LEFT">
+						<div id="header_logo"><img src="img/logo.png" width="50px" height="50px"/></div>
+						<div id="header_subject">Time map study</div>
+					</div>
+					<!--Progress bar, set the current step to "header_step_on" and the rest to "header_step_off"-->
+					<div id="HEADER_RIGHT">
+						<div id="header_step_0" class="header_step_on">Intro<div class="step_rect"></div></div>
+						<div id="header_step_1" class="header_step_off">Task 1<div class="step_rect"></div></div>
+						<div id="header_step_2" class="header_step_off">Task 2<div class="step_rect"></div></div>
+						<div id="header_step_3" class="header_step_off">Task 3<div class="step_rect"></div></div>
+						<div id="header_step_4" class="header_step_off">Task 4<div class="step_rect"></div></div>
+						<div id="header_step_5" class="header_step_off">Task 5<div class="step_rect"></div></div>
+						<div id="header_step_6" class="header_step_off">Task 6<div class="step_rect"></div></div>
+					</div>
+				</div>
+
+				<div id="MAIN">
+
+
+<!-- flow 1-1 -->
+<div v-if="(stage === 'f1_1')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">Hi! We are a research team at the University of Washington.
+			<br> We study how to effectively visualize <span class="MAIN_STRESS">travel time on a map</span>. In general, the distances between any two points on a map indicate a physical distance between them, like below!</div>
+
+		<!--Image-->
+		<div class="MAIN_IMAGE"><img src="./img/sample640x480.png"></div>
+
+		<!-- Input:checkbox -->
+		<div class="MAIN_INPUT">
+			<label><input type="checkbox" id="check" v-model="cb1_1" style="margin-right:10px;">I got the idea of the time map</label>
+		</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div v-bind:class="{input_button_disabled: !cb1_1, input_button: cb1_1}" v-on:click="onClick('cb1_1')">Got it!</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 1-2 -->
+<div v-if="(stage === 'f1_2')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">In our <span class="MAIN_STRESS">"Time map"</span>, the distances between a car in the center(<span class="MAIN_STRESS">the origin</span>) and the rest of points indicate actual travel time between them. Guess how long will it take to <span class="MAIN_STRESS">"The Kraken bar"</span>?
+		</div>
+
+		<!-- Input:text -->
+		<div class="MAIN_INPUT">
+			<input class="input_text" placeholder="6" type="text" onfocus="this.placeholder = ''" onblur="this.placeholder = ''" style="margin-right:5px; width:100px;" v-model="tx1_2" ></input> minute(s)</div>
+
+		<div class="MAIN_QUESTION" v-show="tx1_2_wrong"><span class="MAIN_STRESS">Please, try another answer.</span></div>
+
+		<!--Image-->
+		<div class="MAIN_IMAGE"><img src="./img/sample640x480.png"></div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div v-bind:class="{input_button_disabled: !tx1_2, input_button: tx1_2}" v-on:click="onClick('cb1_2')">Next</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 1-3 -->
+<div v-if="(stage === 'f1_3')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">Correct! It is approximately 6 minutes.</div>
+
+		<!--Image-->
+		<div class="MAIN_IMAGE"><img src="./img/sample640x480.png"></div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb1_3')">Next</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 1-4 -->
+<div v-if="(stage === 'f1_4')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">Some cases, a location stretches an “anchor”. Tail of the anchor indicate the physical location of the place (X icon). Meanwhile, the head of the anchor indicates a travel time to the place (O icon). <br/> 
+		Here, (<span class="MAIN_STRESS">show example</span>)</div>
+
+		<!--Image-->
+		<div class="MAIN_IMAGE"><img src="./img/sample640x480.png"></div>
+
+		<!-- Input:checkbox -->
+		<div class="MAIN_INPUT">
+			<label><input type="checkbox" id="check" v-model="cb1_4" style="margin-right:10px;">I got the idea of the anchor</label>
+		</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div v-bind:class="{input_button_disabled: !cb1_4, input_button: cb1_4}" v-on:click="onClick('cb1_4')">Next</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 1-5 -->
+<div v-if="(stage === 'f1_5')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">Now, you will read travel time information or assume physical distances using time maps. You will answer XX questions in total, which will take approximately 15 minutes.</div>
+		<div class="MAIN_QUESTION"><span class="MAIN_STRESS">COMPENSATION AT THE END DO YOUR BEST GUESS WHEN ANSWERING QUESTION ATTENTION TASK – YOU MAY NOT BE ABLE TO GET COMPENSATION</span></div>
+		<div class="MAIN_QUESTION">Thank you for your participation!</div>
+
+		<!-- Input:checkbox -->
+		<div class="MAIN_INPUT">
+			<label><input type="checkbox" id="check" v-model="cb1_5" style="margin-right:10px;">I carefully read the information above</label>
+		</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div v-bind:class="{input_button_disabled: !cb1_5, input_button: cb1_5}" v-on:click="onClick('cb1_5')">Next</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 2-1 -->
+<div v-if="(stage === 'f2_1')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">In next slide, we would like to have your answer on: </div>
+		<div class="MAIN_QUESTION">The <span class="MAIN_STRESS">travel time</span> required to get to <span class="MAIN_STRESS">"point name"</span> from the <span class="MAIN_STRESS">origin</span>.</div>
+		<div class="MAIN_QUESTION">Once you made your mind on the time, immediately click on “Answer” button below the map. When answering, a map will not showing on a screen.</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb2_1')">Show me the time map</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 2-2 -->
+<div v-if="(stage === 'f2_2')">
+	<div class="MAIN_1COL">
+
+		<!--Image-->
+		<div class="MAIN_IMAGE"><img src="./img/sample640x480.png"></div>
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">The <span class="MAIN_STRESS">travel time</span> required to get to <span class="MAIN_STRESS">"point name"</span> from the <span class="MAIN_STRESS">origin</span>.</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb2_2')">Answer</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 2-3 -->
+<div v-if="(stage === 'f2_3')">
+	<div class="MAIN_1COL">
+
+		<!-- Input:text -->
+		<div class="MAIN_INPUT">
+			My estimation: <input class="input_text" placeholder="6" type="text" onfocus="this.placeholder = ''" onblur="this.placeholder = ''" style="margin-right:5px; width:100px;" v-model="tx2_3" ></input> minute(s)</div>
+
+		<div class="MAIN_QUESTION" v-show="tx2_3_wrong"><span class="MAIN_STRESS">Please, try another answer.</span></div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div v-bind:class="{input_button_disabled: !tx2_3, input_button: tx2_3}" v-on:click="onClick('cb2_3')">Next</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 3-1 -->
+<div v-if="(stage === 'f3_1')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">In next slide, we would like to have your answer on: </div>
+		<div class="MAIN_QUESTION"><span class="MAIN_STRESS">How much of travel time differences</span> are there between <span class="MAIN_STRESS">location A</span> and <span class="MAIN_STRESS">location B</span> from the <span class="MAIN_STRESS">origin</span>?</div>
+		<div class="MAIN_QUESTION">Once you made your mind on the time, immediately click on “Answer” button below the map. When answering, a map will not showing on a screen.</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb3_1')">Show me the time map</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 3-2 -->
+<div v-if="(stage === 'f3_2')">
+	<div class="MAIN_1COL">
+
+		<!--Image-->
+		<div class="MAIN_IMAGE"><img src="./img/sample640x480.png"></div>
+
+		<!--Question-->
+		<div class="MAIN_QUESTION"><span class="MAIN_STRESS">How many locations</span> you reach between <span class="MAIN_STRESS">travel time A</span> and <span class="MAIN_STRESS">travel time B</span> from the <span class="MAIN_STRESS">origin</span>?</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb3_2')">Answer</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 3-3 -->
+<div v-if="(stage === 'f3_3')">
+	<div class="MAIN_1COL">
+
+		<!-- Input:text -->
+		<div class="MAIN_INPUT">
+			My estimation: <input class="input_text" placeholder="6" type="text" onfocus="this.placeholder = ''" onblur="this.placeholder = ''" style="margin-right:5px; width:100px;" v-model="tx3_3" ></input> locations</div>
+
+		<div class="MAIN_QUESTION" v-show="tx3_3_wrong"><span class="MAIN_STRESS">Please, try another answer.</span></div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div v-bind:class="{input_button_disabled: !tx3_3, input_button: tx3_3}" v-on:click="onClick('cb3_3')">Next</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 4-1 -->
+<div v-if="(stage === 'f4_1')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">In next slide, we would like to have your answer on: </div>
+		<div class="MAIN_QUESTION"><span class="MAIN_STRESS">How much of travel time differences</span> are there between <span class="MAIN_STRESS">location A</span> and <span class="MAIN_STRESS">location B</span> from the <span class="MAIN_STRESS">origin</span>?</div>
+		<div class="MAIN_QUESTION">Once you made your mind on the time, immediately click on “Answer” button below the map. When answering, a map will not showing on a screen.</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb4_1')">Show me the time map</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 4-2 -->
+<div v-if="(stage === 'f4_2')">
+	<div class="MAIN_1COL">
+
+		<!--Image-->
+		<div class="MAIN_IMAGE"><img src="./img/sample640x480.png"></div>
+
+		<!--Question-->
+		<div class="MAIN_QUESTION"><span class="MAIN_STRESS">How much of travel time differences</span> are there between <span class="MAIN_STRESS">location A</span> and <span class="MAIN_STRESS">location B</span> from the <span class="MAIN_STRESS">origin</span>?</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb4_2')">Answer</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 4-3 -->
+<div v-if="(stage === 'f4_3')">
+	<div class="MAIN_1COL">
+
+		<!-- Input:text -->
+		<div class="MAIN_INPUT">
+			My estimation: <input class="input_text" placeholder="6" type="text" onfocus="this.placeholder = ''" onblur="this.placeholder = ''" style="margin-right:5px; width:100px;" v-model="tx4_3" ></input> minute(s)</div>
+
+		<div class="MAIN_QUESTION" v-show="tx4_3_wrong"><span class="MAIN_STRESS">Please, try another answer.</span></div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div v-bind:class="{input_button_disabled: !tx4_3, input_button: tx4_3}" v-on:click="onClick('cb4_3')">Next</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 5-1 -->
+<div v-if="(stage === 'f5_1')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">In next slide, we would like to have your answer on: </div>
+		<div class="MAIN_QUESTION">How <span class="MAIN_STRESS">location A</span> and <span class="MAIN_STRESS">location B</span> are <span class="MAIN_STRESS">physically distant</span> each other?</div>
+		<div class="MAIN_QUESTION">Once you made your mind on the time, immediately click on “Answer” button below the map. When answering, a map will not showing on a screen.</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb5_1')">Show me the time map</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 5-2 -->
+<div v-if="(stage === 'f5_2')">
+	<div class="MAIN_1COL">
+
+		<!--Image-->
+		<div class="MAIN_IMAGE"><img src="./img/sample640x480.png"></div>
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">How <span class="MAIN_STRESS">location A</span> and <span class="MAIN_STRESS">location B</span> are <span class="MAIN_STRESS">physically distant</span> each other?</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb5_2')">Answer</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 5-3 -->
+<div v-if="(stage === 'f5_3')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">How <span class="MAIN_STRESS">location A</span> and <span class="MAIN_STRESS">location B</span> are <span class="MAIN_STRESS">physically distant</span> each other?</div>
+
+		<!-- Input:text -->
+		<div class="MAIN_INPUT">
+			My estimation: <input class="input_text" placeholder="6" type="text" onfocus="this.placeholder = ''" onblur="this.placeholder = ''" style="margin-right:5px; width:100px;" v-model="tx5_3" ></input> mile(s)</div>
+
+		<div class="MAIN_QUESTION" v-show="tx5_3_wrong"><span class="MAIN_STRESS">Please, try another answer.</span></div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div v-bind:class="{input_button_disabled: !tx5_3, input_button: tx5_3}" v-on:click="onClick('cb5_3')">Next</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 6-1 -->
+<div v-if="(stage === 'f6_1')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">In next slide, we would like to have your answer on: </div>
+		<div class="MAIN_QUESTION"><span class="MAIN_STRESS">Sort locations</span> based on their physical locations from the <span class="MAIN_STRESS">East</span> to the <span class="MAIN_STRESS">West</span></div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb6_1')">Show me the time map</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 6-2 -->
+<div v-if="(stage === 'f6_2')">
+	<div class="MAIN_2COL">
+		<div class="MAIN_2COL_1">
+			<!--Image-->
+			<div class="MAIN_IMAGE"><img src="./img/sample640x480.png"></div>
+			<div class="MAIN_QUESTION"><span class="MAIN_STRESS">Sort locations</span> based on their physical locations from the <span class="MAIN_STRESS">East</span> to the <span class="MAIN_STRESS">West</span></div>
+		</div>
+
+		<div class="MAIN_2COL_2">
+			<div class="MAIN_2COL_2_TEXT">Sort the location from the East</div>
+			<div class="MAIN_2COL_2_DROPBOX">1. 
+				<select name="1">
+					<option value="loc1_0">Choose a location</option>
+					<option value="loc1_1">Location 1</option>
+					<option value="loc1_2">Location 2</option>
+					<option value="loc1_3">Location 3</option>
+					<option value="loc1_4">Loaction 4</option>
+					<option value="loc1_5">Loaction 5</option>
+				</select>
+				<!--Insert img once a user set the value of this dropbox-->
+				<span class="input_check"><img src="img/check.png" width="20px;" height="20px;"/></span>
+			</div>
+			<div class="MAIN_2COL_2_DROPBOX">2. 
+				<select name="2">
+					<option value="loc2_0">Choose a location</option>
+					<option value="loc2_1">Location 1</option>
+					<option value="loc2_2">Location 2</option>
+					<option value="loc2_3">Location 3</option>
+					<option value="loc2_4">Loaction 4</option>
+					<option value="loc2_5">Loaction 5</option>
+				</select>
+				<!--Insert img once a user set the value of this dropbox-->
+				<span class="input_check"><img src="img/check.png" width="20px;" height="20px;"/></span>
+			</div>
+			<div class="MAIN_2COL_2_DROPBOX">3. 
+				<select name="3">
+					<option value="loc3_0">Choose a location</option>
+					<option value="loc3_1">Location 1</option>
+					<option value="loc3_2">Location 2</option>
+					<option value="loc3_3">Location 3</option>
+					<option value="loc3_4">Loaction 4</option>
+					<option value="loc3_5">Loaction 5</option>
+				</select>
+				<!--Insert img once a user set the value of this dropbox-->
+				<span class="input_check"></span>
+			</div>
+			<div class="MAIN_2COL_2_DROPBOX">4. 
+				<select name="4">
+					<option value="loc4_0">Choose a location</option>
+					<option value="loc4_1">Location 1</option>
+					<option value="loc4_2">Location 2</option>
+					<option value="loc4_3">Location 3</option>
+					<option value="loc4_4">Loaction 4</option>
+					<option value="loc4_5">Loaction 5</option>
+				</select>
+			</div>
+			<div class="MAIN_2COL_2_DROPBOX">5. 
+				<select name="5">
+					<option value="loc5_0">Choose a location</option>
+					<option value="loc5_1">Location 1</option>
+					<option value="loc5_2">Location 2</option>
+					<option value="loc5_3">Location 3</option>
+					<option value="loc5_4">Loaction 4</option>
+					<option value="loc5_5">Loaction 5</option>
+				</select>
+				<!--Insert img once a user set the value of this dropbox-->
+				<span class="input_check"></span>
+			</div>
+			<div class="MAIN_2COL_2_TEXT">To the West</div>
+
+		</div>
+	</div>	
+	<div class="MAIN_1COL" style="margin-top:20px;">
+		<!-- Input:button, set class name to input_button when ready to go next-->
+		<div class="MAIN_INPUT">
+				<div class="input_button" v-on:click="onClick('cb6_2')">Next</div>
+			</div>					
+	</div>			
+</div>
+
+<!-- flow 7-1 -->
+<div v-if="(stage === 'f7_1')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">In next slide, we would like to have your answer on: </div>
+		<div class="MAIN_QUESTION"><span class="MAIN_STRESS">Sort locations</span> based on their physical locations from the <span class="MAIN_STRESS">South</span> to the <span class="MAIN_STRESS">North</span></div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb7_1')">Show me the time map</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 7-2 -->
+<div v-if="(stage === 'f7_2')">
+	<div class="MAIN_2COL">
+		<div class="MAIN_2COL_1">
+			<!--Image-->
+			<div class="MAIN_IMAGE"><img src="./img/sample640x480.png"></div>
+			<div class="MAIN_QUESTION"><span class="MAIN_STRESS">Sort locations</span> based on their physical locations from the <span class="MAIN_STRESS">South</span> to the <span class="MAIN_STRESS">North</span></div>
+		</div>
+
+		<div class="MAIN_2COL_2">
+			<div class="MAIN_2COL_2_TEXT">Sort the location from the South</div>
+			<div class="MAIN_2COL_2_DROPBOX">1. 
+				<select name="1">
+					<option value="loc1_0">Choose a location</option>
+					<option value="loc1_1">Location 1</option>
+					<option value="loc1_2">Location 2</option>
+					<option value="loc1_3">Location 3</option>
+					<option value="loc1_4">Loaction 4</option>
+					<option value="loc1_5">Loaction 5</option>
+				</select>
+				<!--Insert img once a user set the value of this dropbox-->
+				<span class="input_check"><img src="img/check.png" width="20px;" height="20px;"/></span>
+			</div>
+			<div class="MAIN_2COL_2_DROPBOX">2. 
+				<select name="2">
+					<option value="loc2_0">Choose a location</option>
+					<option value="loc2_1">Location 1</option>
+					<option value="loc2_2">Location 2</option>
+					<option value="loc2_3">Location 3</option>
+					<option value="loc2_4">Loaction 4</option>
+					<option value="loc2_5">Loaction 5</option>
+				</select>
+				<!--Insert img once a user set the value of this dropbox-->
+				<span class="input_check"><img src="img/check.png" width="20px;" height="20px;"/></span>
+			</div>
+			<div class="MAIN_2COL_2_DROPBOX">3. 
+				<select name="3">
+					<option value="loc3_0">Choose a location</option>
+					<option value="loc3_1">Location 1</option>
+					<option value="loc3_2">Location 2</option>
+					<option value="loc3_3">Location 3</option>
+					<option value="loc3_4">Loaction 4</option>
+					<option value="loc3_5">Loaction 5</option>
+				</select>
+				<!--Insert img once a user set the value of this dropbox-->
+				<span class="input_check"></span>
+			</div>
+			<div class="MAIN_2COL_2_DROPBOX">4. 
+				<select name="4">
+					<option value="loc4_0">Choose a location</option>
+					<option value="loc4_1">Location 1</option>
+					<option value="loc4_2">Location 2</option>
+					<option value="loc4_3">Location 3</option>
+					<option value="loc4_4">Loaction 4</option>
+					<option value="loc4_5">Loaction 5</option>
+				</select>
+			</div>
+			<div class="MAIN_2COL_2_DROPBOX">5. 
+				<select name="5">
+					<option value="loc5_0">Choose a location</option>
+					<option value="loc5_1">Location 1</option>
+					<option value="loc5_2">Location 2</option>
+					<option value="loc5_3">Location 3</option>
+					<option value="loc5_4">Loaction 4</option>
+					<option value="loc5_5">Loaction 5</option>
+				</select>
+				<!--Insert img once a user set the value of this dropbox-->
+				<span class="input_check"></span>
+			</div>
+			<div class="MAIN_2COL_2_TEXT">To the North</div>
+
+		</div>
+	</div>	
+	<div class="MAIN_1COL" style="margin-top:20px;">
+		<!-- Input:button, set class name to input_button when ready to go next-->
+		<div class="MAIN_INPUT">
+				<div class="input_button" v-on:click="onClick('cb7_2')">Next</div>
+			</div>					
+	</div>			
+</div>
+
+<!-- flow 8-1 -->
+<div v-if="(stage === 'f8_1')">
+	<div class="MAIN_3COL">
+		<div class="MAIN_3COL_EACH">
+			<!--Image 1--> <div class="MAIN_IMAGE_SMALL">Image can be placed using <span class="MAIN_STRESS">MAIN_IMAGE_SMALL</span>. The width and height can be resizable, but by default the width is <span class="MAIN_STRESS">420px</span> and height is <span class="MAIN_STRESS">350px</span>.</div>
+		</div> <div class="MAIN_3COL_SEP">&nbsp;</div>
+		<div class="MAIN_3COL_EACH">
+			<!--Image 2--><div class="MAIN_IMAGE_SMALL"></div>
+		</div> <div class="MAIN_3COL_SEP">&nbsp;</div>
+		<div class="MAIN_3COL_EACH">
+			<!--Image 3--> <div class="MAIN_IMAGE_SMALL"></div>
+		</div>
+	</div>
+
+	<div class="MAIN_1COL" style="margin-top:30px; width:1300px;">
+		<!-- Input:button, set class name to input_button when ready to go next-->
+		<div class="MAIN_QUESTION" style="text-align:left;margin-left:10px;"> <span style="font-weight:400;">Q1</span>. <span class="MAIN_STRESS">Mental load</span>: How much mental and perceptual activity was required?</div>
+	</div>
+
+	<div class="MAIN_3COL" style="margin-top:-15px;">
+		<div class="MAIN_3COL_EACH">
+			<!--Slider 1--> <div class="MAIN_SLIDER"></div>
+		</div>
+		<div class="MAIN_3COL_SEP">&nbsp;</div>
+		<div class="MAIN_3COL_EACH">
+			<!--Slider 2--> <div class="MAIN_SLIDER"></div>
+		</div>
+		<div class="MAIN_3COL_SEP">&nbsp;</div>
+		<div class="MAIN_3COL_EACH">
+			<!--Slider 3--> <div class="MAIN_SLIDER"></div>
+		</div>
+	</div>
+
+	<div class="MAIN_1COL" style="margin-top:30px; width:1300px;">
+		<!-- Input:button, set class name to input_button when ready to go next-->
+		<div class="MAIN_QUESTION" style="text-align:left;margin-left:10px;"> <span style="font-weight:400;">Q2</span>. <span class="MAIN_STRESS">Frustration Level</span>: How irritated, stressed, and annoyed versus content, relaxed, and complacent did you feel during the task?</div>
+	</div>
+
+	<div class="MAIN_3COL" style="margin-top:-15px;">
+		<div class="MAIN_3COL_EACH">
+			<!--Slider 1--> <div class="MAIN_SLIDER"></div>
+		</div>
+		<div class="MAIN_3COL_SEP">&nbsp;</div>
+		<div class="MAIN_3COL_EACH">
+			<!--Slider 2--> <div class="MAIN_SLIDER"></div>
+		</div>
+		<div class="MAIN_3COL_SEP">&nbsp;</div>
+		<div class="MAIN_3COL_EACH">
+			<!--Slider 3--> <div class="MAIN_SLIDER"></div>
+		</div>
+	</div>
+
+	<div class="MAIN_1COL" style="margin-top:20px;">
+		<!-- Input:button, set class name to input_button when ready to go next-->
+		<div class="MAIN_INPUT" style="margin-top:50px;">
+			<div class="input_button" v-on:click="onClick('cb8_1')">Next</div>
+		</div>					
+	</div>
+</div>
+
+<!-- flow 9-1 -->
+<div v-if="(stage === 'f9_1')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">In next slide, we would like to have your answer on: </div>
+		<div class="MAIN_QUESTION">The <span class="MAIN_STRESS"> travel time</span> required to get to <span class="MAIN_STRESS">"point name"</span> from the <span class="MAIN_STRESS">origin.</span> Disregard this above question and take a look at the question in the next slide.</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb9_1')">Show me the time map</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 9-2 -->
+<div v-if="(stage === 'f9_2')">
+	<div class="MAIN_1COL">
+
+		<!--Image-->
+		<div class="MAIN_IMAGE"><img src="./img/sample640x480.png"></div>
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">How many of rectangles are there in this screen?</div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb9_2')">Answer</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 9-3 -->
+<div v-if="(stage === 'f9_3')">
+	<div class="MAIN_1COL">
+
+		<!-- Input:text -->
+		<div class="MAIN_INPUT">
+			My estimation: <input class="input_text" placeholder="6" type="text" onfocus="this.placeholder = ''" onblur="this.placeholder = ''" style="margin-right:5px; width:100px;" v-model="tx9_3" ></input> locations</div>
+
+		<div class="MAIN_QUESTION" v-show="tx9_3_wrong"><span class="MAIN_STRESS">Please, try another answer.</span></div>
+
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div v-bind:class="{input_button_disabled: !tx9_3, input_button: tx9_3}" v-on:click="onClick('cb9_3')">Next</div>
+		</div>
+	</div>	
+</div>
+
+<!-- flow 10-1 -->
+<div v-if="(stage === 'f10_1')">
+	<div class="MAIN_1COL">
+
+		<!--Question-->
+		<div class="MAIN_QUESTION">Payment!</div>
+		
+		<!-- Button -->
+		<div class="MAIN_INPUT">
+			<div class="input_button" v-on:click="onClick('cb10_1')">Show me the money!!!</div>
+		</div>
+	</div>	
+</div>
+	
+
+
+				</div> <!-- div_MAIN -->
+			</div> <!-- div_CANVAS -->
+		</div> <!-- div_dcApp -->
+		<!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+		<script src="./dc_amt_2018.js"></script>
+	</body>
+</html>

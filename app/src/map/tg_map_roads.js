@@ -22,7 +22,7 @@ class TgMapRoads {
 	  this.roadTypes = [];
 
 	  for(let type in this.data.zoom.disp) {
-	  	//[motorway, motorway_link, main, street, street_limited];
+	  	//[motorway, motorway_link, primary, secondary, tertiary, residential];
 	  	this.roadTypes.push(type);
 	  }
 
@@ -51,7 +51,14 @@ class TgMapRoads {
 	  	this.styleFunc[type] = this.mapUtil.lineStyleFunc(
 				this.data.viz.color.road[type], this.data.viz.width.road[type]
 			);
+			const type_bg = type + '_bg';
+			if (this.data.viz.color.road[type_bg]) {
+				this.styleFunc[type_bg] = this.mapUtil.lineStyleFunc(
+					this.data.viz.color.road[type_bg], this.data.viz.width.road[type_bg]
+				);
+			}
 		}
+		console.log(this.styleFunc);
 	}
 
 	turn(tf) {
@@ -71,9 +78,37 @@ class TgMapRoads {
 		this.clearLayers();
 	}
 
-	addRoadObjects(type, zoom, coords) {
+	addRoadObjects(detail_type, zoom, coords) {
+		// motorway, trunk, 
+				// primary, secondary, tertiary, residential
+				// pedestrian, living_street, service
+				// motorway_link, trunk_link, primary_link, secondary_link, tertiary_link, 
 
-		if (this.roadTypes.indexOf(type) < 0) return null;
+		let type = '';
+		switch(detail_type) {
+			case 'motorway':
+			case 'trunk':
+				type = 'motorway';
+				break;
+			case 'motorway_link':
+			case 'trunk_link':
+				type = 'motorway_link';
+				break;
+			case 'primary':
+				type = 'primary';
+				break;
+			case 'secondary':
+				type = 'secondary';
+				break;
+			case 'tertiary':
+				type = 'tertiary';
+				break;
+			case 'residential':
+				type = 'residential';
+				break;
+			default:
+				return;
+		}
 
 		coords.orgFeature.setStyle(this.styleFunc[type]);
 
@@ -443,7 +478,7 @@ class TgMapRoads {
 				this.dispRoadTypes.push(type);
 			}
 		}
-		console.log(this.dispRoadTypes);
+		//console.log(this.dispRoadTypes);
 	}
 
 	calDispRoads() {
@@ -633,12 +668,28 @@ class TgMapRoads {
 		this.clearLayers();
 		this.updateDispRoads();
 
+		// background roads
+		for(let type of this.dispRoadTypes) {
+			let arr = [];
+			const type_bg = type + '_bg';
+			for(let road of this.dispRoads[type]) {
+				if(this.styleFunc[type_bg]) {
+					this.mapUtil.addFeatureInFeatures(
+						arr, new ol.geom.LineString(road), this.styleFunc[type_bg]);
+				}
+			}
+			this.layer[type_bg] = this.mapUtil.olVectorFromFeatures(arr);
+			this.layer[type_bg].setZIndex(viz.z[type_bg]);
+			this.mapUtil.addLayer(this.layer[type_bg]);
+			this.dispLayers.push(this.layer[type_bg]);
+		}
+
+		// roads
 		for(let type of this.dispRoadTypes) {
 			let arr = [];
 
 			for(let road of this.dispRoads[type]) {
 				if (road.dispMode === 1) { // original
-					//console.log('skipped1.');
 					arr.push(road.orgFeature);
 				}
 				/*else if (road.dispMode === 2) { // real

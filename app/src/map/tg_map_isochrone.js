@@ -105,7 +105,179 @@ class TgMapIsochrone {
 		this.mapUtil.removeLayer(this.layer);
 	}
 
+	calIsochrone() {
+		const ctrPts = this.map.tgControl.controlPoints;
+
+		// let maxTime = 0;
+		// for(let pt of ctrPts)
+		// 	if (maxTime < pt.travelTime) maxTime = pt.travelTime;
+		// console.log('maxTime: ' + maxTime);
+
+		const intervals = [1, 2, 3, 4, 5, 10, 15, 20, 30];
+		for(let itv = 0; itv < intervals.length; ++itv) intervals[itv] *= 60;
+
+		let minDist = 987654321; 
+		let minItv = -1;
+		let minTimes = -1;
+
+		for(let itv of intervals) {
+			for(let times = 3; times <= 5; ++times) {
+
+				let sum = 0;
+				for(let pt of ctrPts) {
+					if (!pt.travelTime) continue;
+
+					let minDif = 987654321;
+					for(let i = 0; i <= times; ++i) {
+						const dif = Math.abs(pt.travelTime - itv * i);
+						if (dif < minDif) minDif = dif;
+					}
+					sum += minDif;
+					//if (sum > minDist) break;
+				}
+				
+				// console.log(itv + ' ' + times + ' = ' + sum);
+
+				if (sum < minDist) {
+					minDist = sum;
+					minItv = itv;
+					minTimes = times;
+				}
+			}
+		}
+
+		//console.log('minItv: ' + minItv);
+		//console.log('minTimes: ' + minTimes);
+
+		return {interval: minItv, num: minTimes};
+	}
+
 	updateLayer() {
+		if (!this.graph.factor) return;
+		const itvNum = this.calIsochrone();
+		this.drawIsochrone(itvNum);
+	}
+		
+	drawIsochrone(itvNum) {
+
+	/*	console.log('control points', this.map.tgControl.controlPoints);
+
+		const org = {lat: this.map.tgOrigin.origin.original.lat, 
+			  lng: this.map.tgOrigin.origin.original.lng};
+
+		let sumD = 0;
+		let sumT = 0;
+		let idx = 0;
+		for(let pt of this.map.tgControl.controlPoints) {
+
+			pt.target.m = TgUtil.distance(org.lat, org.lng, pt.target.lat, pt.target.lng) * 1000;
+			idx++;
+			if (!pt.travelTime) continue;
+
+			sumT += pt.travelTime;
+	  	sumD += pt.target.m;
+
+	  	const t = pt.travelTime;
+	  	const d = pt.target.m;
+			console.log((idx - 1) + ' T_D: ' + (t / d));
+
+		}
+
+		const sumT_D = sumT / sumD;
+		console.log('sumT_D: ' + sumT_D);
+
+	  const d = TgUtil.distance(org.lat, org.lng, 
+	  		org.lat + (this.data.box.heightLat / 2), org.lng) * 1000;
+	  console.log('d * sumT_D: ' + d * sumT_D);
+*/
+
+		const viz = this.data.viz;
+		let features = [];
+		const originLat = this.map.tgOrigin.origin.original.lat;
+  	const originLng = this.map.tgOrigin.origin.original.lng;
+		const lngPerPx = this.data.box.widthLng  / this.map.olMapWidthPX;
+		//const maxTime = (this.data.box.heightLat / 2) * this.graph.factor;
+		//const maxTime = (this.data.box.widthLng / 2) * this.graph.factor;
+		//const maxTime = d * sumT_D;
+		//const pxPerTime = (this.map.olMapHeightPX / 2) / maxTime; // 0.64
+
+		//console.log('maxTime2: ' + maxTime);
+		//console.log('pxPerTime: ' + pxPerTime);
+		//console.log('')
+
+		// maxTime2: 494.33920460317927
+		// maxTime: 1058.9
+
+		/*
+		node.len = node.travelTime / this.factor;
+
+				const yPx = this.tg.map.hMapHalfPx + node.len * Math.cos(node.deg);
+				const xPx = this.tg.map.wMapHalfPx + node.len * Math.sin(node.deg);
+	    	const latlng = this.tg.map.pxToLatlng(yPx, xPx);
+		*/
+
+
+
+		for(let num = 0; num < itvNum.num; num++) {
+			const time = (num + 1) * itvNum.interval; // e.g. 300, 600, ...
+			//const radiusPx = time * pxPerTime;
+			const radiusPx = time / this.graph.factor;
+			let offsetLng;
+			let offsetLat;
+
+			// circle
+			this.mapUtil.addFeatureInFeatures(
+				features, new ol.geom.Point(
+					[originLng, originLat]),
+					this.mapUtil.isochroneStyle(radiusPx, 
+						viz.color.isochrone, viz.width.isochrone));
+
+			// red box
+			if (this.mobile) {
+				offsetLng = 0;
+				offsetLat = radiusPx * latPerPx;
+			}
+			else {
+				offsetLng = (radiusPx + 33) * lngPerPx;
+				offsetLat = 0;
+			}
+			
+			this.mapUtil.addFeatureInFeatures(
+					features, new ol.geom.Point(
+							[originLng + offsetLng, originLat + offsetLat]),
+							this.mapUtil.imageStyle(viz.image.red10min),
+							'isochrone', time);
+
+			// text
+			if (this.mobile) {
+				offsetLng = -this.data.var.isochroneTextPx * lngPerPx;
+				offsetLat = radiusPx * latPerPx;
+			}
+			else {
+				offsetLng = (radiusPx + 19) * lngPerPx;
+				offsetLat = 0; //-this.data.var.isochroneTextPx * lngPerPx;
+			}
+			
+			const text = (time / 60) + '';
+			this.mapUtil.addFeatureInFeatures(
+					features, new ol.geom.Point(
+							[originLng + offsetLng, originLat + offsetLat]),
+							this.mapUtil.textStyle({
+									text: text, 
+									color: viz.color.isochroneText, 
+									font: viz.font.isochroneText,
+							}),
+					'isochrone', time);
+		}
+
+		this.removeLayer();
+		this.layer = this.mapUtil.olVectorFromFeatures(features);
+		this.layer.setZIndex(viz.z.isochrone);
+	  this.mapUtil.addLayer(this.layer);
+	}
+
+
+	updateLayer_old() {
 		if (!this.graph.factor) return;
 
 		const viz = this.data.viz;
@@ -198,7 +370,6 @@ class TgMapIsochrone {
 				offsetLng = (radiusPx + 33) * lngPerPx;
 				offsetLat = 0;
 			}
-			console.log('new');
 			
 			this.mapUtil.addFeatureInFeatures(
 					features, new ol.geom.Point(

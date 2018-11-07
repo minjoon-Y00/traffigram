@@ -69,7 +69,7 @@ class TgMapPerc {
 			let modified = transform(pt.node.original.lat, pt.node.original.lng);
 			pt.node[kind].lat = modified.lat;
 			pt.node[kind].lng = modified.lng;
-			console.log(pt);
+			//console.log(pt);
 		}
 	}
 

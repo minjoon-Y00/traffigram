@@ -23,23 +23,30 @@ class TgMapVectorTile {
 	}
 
 	calCoords(arr) {
-		const len = arr.length / 2;
-		let coords = new Array(len);
-		for(let i = 0; i < len; ++i) {
-			coords[i] = ol.proj.transform(
-				[arr[2 * i], arr[2 * i + 1]], 'EPSG:3857', 'EPSG:4326'
-			);
+		try {
+			const len = arr.length / 2;
+			let coords = new Array(len);
+			for(let i = 0; i < len; ++i) {
+				coords[i] = ol.proj.transform(
+					[arr[2 * i], arr[2 * i + 1]], 'EPSG:3857', 'EPSG:4326'
+				);
+			}
+			return coords;
 		}
-		return coords;
+		catch(err) {
+			console.log(err);
+			console.log(arr);
+		}
 	}
 
 	calMultiCoords(feature) {
-		const len = feature.g.length;
+		const len = feature.ends_.length;
 		let coords = new Array(len);
 		for(let i = 0; i < len; ++i) {
-			//feature.g[i] // [20, 28]
-			const s = (i === 0) ? 0 : feature.g[i - 1];
-			coords[i] = this.calCoords(feature.b.slice(s, feature.g[i]));
+			//feature.ends_[i] // [20, 28]
+			//const s = (i === 0) ? 0 : feature.flatCoordinates_[i - 1];
+			const s = (i === 0) ? 0 : feature.ends_[i - 1];
+			coords[i] = this.calCoords(feature.flatCoordinates_.slice(s, feature.ends_[i]));
 		}		
 		return coords;
 	}
@@ -52,19 +59,15 @@ class TgMapVectorTile {
     		(layer !== 'road') && (layer !== 'bridge') && 
     		(layer !== 'landuse')) return;
     
-    //if (layer !== 'waterway') return;
-    //if (layer !== 'road') return;
-   // if (layer !== 'landuse') return;
-
 		const geoType = feature.getGeometry().getType();
 		let coords = null;
 
-		//console.log(geoType);
+		//console.log(feature.getGeometry());
 
 		if (geoType === 'Polygon') {
-			
-			if (feature.g.length === 1) {
-				coords = [this.calCoords(feature.b)];
+
+			if (feature.ends_.length === 1) {
+				coords = [this.calCoords(feature.flatCoordinates_)];
 			}
 			else {
 				coords = this.calMultiCoords(feature);
@@ -93,13 +96,17 @@ class TgMapVectorTile {
     }
     else if (geoType === 'LineString') {
 
-			coords = this.calCoords(feature.b);
+			coords = this.calCoords(feature.flatCoordinates_);
 			for(let i = 0; i < coords.length; i++) {
 				coords[i].node = new TgNode(coords[i][1], coords[i][0]);
 			}
 
 			coords.orgFeature = new ol.Feature({geometry: new ol.geom.LineString(coords)});
-			coords.geo = 'ls'
+			coords.geo = 'ls';
+
+    }
+    else {
+    	console.log(geoType);
     }
 
     // add to each module
@@ -112,10 +119,18 @@ class TgMapVectorTile {
 			coords.dispMode = 1; // original
 			//coords.realFeature = null;
 
-			if ((layer === 'water')||(layer === 'waterway'))
+			//if ((layer === 'water')||(layer === 'waterway'))
+			if (layer === 'water')
 				this.map.tgWater.addWaterObjects(zoom, coords);
-			else if ((layer === 'road')||(layer === 'bridge'))
-				this.map.tgRoads.addRoadObjects(type, zoom, coords);
+			else if ((layer === 'road')||(layer === 'bridge')) {
+				//console.log(type + ' : '  + feature.properties_.type);
+				// motorway, trunk, 
+				// primary, secondary, tertiary, residential
+				// pedestrian, living_street, service
+				// motorway_link, trunk_link, primary_link, secondary_link, tertiary_link, 
+				this.map.tgRoads.addRoadObjects(feature.properties_.type, zoom, coords);
+				//this.map.tgRoads.addRoadObjects(type, zoom, coords);
+			}
 			else if (layer === 'landuse')
 				this.map.tgLanduse.addObject(type, coords);
     }

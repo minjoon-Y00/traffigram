@@ -80,10 +80,13 @@ class TgApp {
 
 	goToEm() {
 		this.map.goToEm();
+		//this.map.goToEm(false); // no animation
 	}
 
 	goToDc(dcMode) {
 		this.map.warpingMode = dcMode;
+		//this.map.goToDc(false); // no animation
+
   	if (this.map.currentMode !== 'DC') this.map.goToDc(true); // animation
   	else this.map.goToDc(false); // no animation
 	}
@@ -104,8 +107,37 @@ class TgApp {
 		this.map.zoomOut();
 	}
 
+	randomCtlPts(val) {
+		this.map.tgControl.addRandomnessToCtlPts(val);
+
+		if (this.map.currentMode === 'DC') {
+			this.map.goToDc(false);
+		}
+	}
+
+	randomLocs(val) {
+		console.log(val);
+		this.map.tgLocs.numRandomLoc = val;
+
+		//this.map.tgLocs.calLocs();
+		this.map.tgLocs.request();
+
+		this.map.tgLocs.render();
+
+		if (this.map.currentMode === 'DC') {
+			//this.map.goToDc(false);
+		}
+	}
+
+	changeMarkers() {
+		this.map.tgLocs.calRandomImages();
+		this.map.tgLocs.updateLayer();
+
+		console.log('here!');
+	}
+
 	turn(type, on) {
-		//console.log('type: ' + type + ' on: ' + on);
+		console.log('type: ' + type + ' on: ' + on);
 
 		switch(type) {
 			case 'water':
@@ -131,6 +163,22 @@ class TgApp {
   			break;
   		case 'perc':
   			this.map.tgPerc.turn(on);
+  			break;
+
+  		case 'gridOriginal':
+  			this.map.tgGrids.dispType.o = on;
+  			break;
+  		case 'gridTarget':
+  			this.map.tgGrids.dispType.t = on;
+  			break;
+  		case 'gridGAP':
+  			this.map.tgGrids.dispType.gap = on;
+  			break;
+  		case 'gridPGAP':
+  			this.map.tgGrids.dispType.pgap = on;
+  			break;
+  		case 'gridCtlPts':
+  			this.map.tgGrids.displayControlPoints = on;
   			break;
 		}
 	}

@@ -85,8 +85,10 @@ class TgMapControl {
 				lat: half.lat - (half.lat * marginRate), 
 				lng: half.lng - (half.lng * marginRate)};
 		const step = {
-				lat: apprHalf.lat / 2, 
-				lng: apprHalf.lng / 2};
+				lat: apprHalf.lat / 3, 
+				//lat: apprHalf.lat / 2, 
+				lng: apprHalf.lng / 3};
+				//lng: apprHalf.lng / 2};
 		const start = {
 				lat: center.lat - apprHalf.lat, 
 				lng: center.lng - apprHalf.lng};
@@ -188,6 +190,50 @@ class TgMapControl {
 		//console.log(this.grids);
 	}
 
+	calNeighborLines() {
+		const addPointIndexes = function(pt, a, b) {
+			if (a > b) {
+				let t = b; b = a; a = t;
+			}
+
+			let found = false;
+			for(let line of pt.neighborLines) {
+				if ((line[0] == a)&&(line[1] == b)) {found = true; break;}
+			}
+			if (!found) pt.neighborLines.push([a, b]);
+		}
+
+		for(let pt of this.controlPoints) {
+			pt.neighborLines = [];
+
+			for(let grid of pt.connectedGrids) {
+				for(let idx = 0; idx < grid.pointIndexes.length - 1; ++idx) {
+					addPointIndexes(pt, 
+							grid.pointIndexes[idx], 
+							grid.pointIndexes[idx + 1]);
+				}
+				addPointIndexes(pt, 
+						grid.pointIndexes[grid.pointIndexes.length - 1], 
+						grid.pointIndexes[0]);
+			}
+		}
+
+		// for corner points
+		for(let idx = 0; idx < this.controlPoints.length; ++idx) {
+			if (this.controlPoints[idx].connectedGrids.length === 1) {
+				for(let neighborIdx of this.controlPoints[idx].connectedGrids[0].pointIndexes) {
+					if (idx === neighborIdx) continue;
+
+					//console.log(neighborIdx);
+					//console.log(this.controlPoints[neighborIdx]);
+
+					for(let line of this.controlPoints[neighborIdx].neighborLines)
+						addPointIndexes(this.controlPoints[idx], line[0], line[1]);
+				}
+			}
+		}
+	}
+
 	getTravelTimeOfControlPoints() {
 		return new Promise((resolve, reject) => {
 
@@ -211,6 +257,7 @@ class TgMapControl {
 				// if a point is in the cache, assign cached travel time to it.
 				else {
 					pt.travelTime = this.travelTimeCache[this.currentTransport].get(key);
+					pt.travelTimeOrg = pt.travelTime;
 				}
 			}
 
@@ -221,10 +268,13 @@ class TgMapControl {
 
 				this.travelTimeApi.getTravelTime(this.currentTransport)
 				.then((ret) => {
+
+					//console.log('ret:', ret);
 					for(let idx = 0; idx < newPointsArray.length; ++idx) {
 						const pt = newPointsArray[idx];
 						const key = pt.original.lat.toFixed(3) + ' ' + pt.original.lng.toFixed(3);
 						pt.travelTime = ret[idx + 1]; // ret[0] is travel time of origin (= 0)
+						pt.travelTimeOrg = pt.travelTime;
 						this.travelTimeCache[this.currentTransport].set(key, pt.travelTime);
 					}
 					resolve();
@@ -248,6 +298,7 @@ class TgMapControl {
 			this.calGridLines();
 			this.calConnectedNodes();
 			this.calGrids();
+			this.calNeighborLines();
 			this.getTravelTimeOfControlPoints()
 			.then(resolve).catch(reject);
 		});
@@ -267,9 +318,30 @@ class TgMapControl {
 		}
 
 		this.controlPoints[12].travelTime = 0;
+	}
 
+	addRandomnessToCtlPts(val) {
+		// const k = 100; // travel time per distance
+		// const cLat = this.map.tgOrigin.origin.original.lat;
+		// const cLng = this.map.tgOrigin.origin.original.lng;
 
+		let v = TgUtil.gaussian(0, val);
+		//for(let i = 0; i < 10; ++i) console.log(v());
 
+		for(let pt of this.controlPoints) {
+			if (!pt.travelTime) continue;
+			pt.travelTime = pt.travelTimeOrg + v();
+		}
+
+		// const rand = (this.data.randomTime) ? this.data.randomTime : 0; // 0 - 100
+
+		// for(let point of this.controlPoints) {
+		// 	point.travelTime = 
+		// 			k * this.map.calDistanceFromLatLng(point.original.lat, point.original.lng);
+		// 	point.travelTime += rand * 10 * Math.random();
+		// }
+
+		// this.controlPoints[12].travelTime = 0;
 	}
 
 	/*calculateAnglesOfControlPoints() {
@@ -860,7 +932,14 @@ class TgMapControl {
 			point.real.lng = point.target.lng;
 		}
 		console.log('makeOriginalDCGrid');
-		
+	}
+
+	setTimesByJson(times) {
+		const mid = (this.controlPoints.length - 1) / 2;
+		for(let i = 0; i < mid; ++i) 
+			this.controlPoints[i].travelTime = times[i];
+		for(let i = mid + 1; i < this.controlPoints.length; ++i) 
+			this.controlPoints[i].travelTime = times[i];
 	}
 
 	makeNonIntersectedGrid() {
@@ -872,6 +951,11 @@ class TgMapControl {
 		const setRealPosition = function(point, pct) {
 			point.real.lat = point.original.lat * (1 - pct) + point.target.lat * pct;
 			point.real.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
+
+			if (!point.gap) point.gap = {};
+			point.gap.lat = point.real.lat;
+			point.gap.lng = point.real.lng;
+			point.gap.w = pct;
 		}
 
 		for(let point of this.controlPoints) point.intersected = false;
@@ -951,9 +1035,13 @@ class TgMapControl {
 		const setRealPosition = function(point, pct) {
 			point.real.lat = point.original.lat * (1 - pct) + point.target.lat * pct;
 			point.real.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
+
+			point.sgap.lat = point.original.lat * (1 - pct) + point.target.lat * pct;
+			point.sgap.lng = point.original.lng * (1 - pct) + point.target.lng * pct;
 		}
 
 		for(let point of this.controlPoints) point.done = false;
+		for(let point of this.controlPoints) point.sgap = {};
 
 		for(let pct = dt; pct < 1 + eps; pct += dt) {
 			//console.log('pct = ' + pct);
@@ -991,6 +1079,1068 @@ class TgMapControl {
 		}
 		//const e = (new Date()).getTime();
 		//console.log('### time: ' + (e - s) + ' ms.');
+	}
+
+/*	makeGlobalPreception() {
+
+		const org = {lat: this.map.tgOrigin.origin.original.lat, 
+			  lng: this.map.tgOrigin.origin.original.lng};
+		const pxPerM = 0.172966822; // px/meter
+		const cmPerPx = 0.0156; // cm/px
+		const cmPerM = cmPerPx * pxPerM; // cm/meter
+
+		// calculate S
+		for(let pt of this.controlPoints) {
+			pt.S = TgUtil.distance(pt.original.lat, pt.original.lng, org.lat, org.lng) * 1000; // m
+		}
+
+		let Qs = [];
+		// 11 steps (0, 0.1, 0.2, ..., 1)
+		for(let step = 0; step <= 1; step += 0.05) {
+
+			// For each point
+			let idx = 0;
+			for(let pt of this.controlPoints) {
+				idx++;
+				if (idx === 13) continue;
+
+				// (mLat, mLng) between o ~ t by linear interpolation
+				const tLat = pt.original.lat * (1 - step) + pt.target.lat * step;
+				const tLng = pt.original.lng * (1 - step) + pt.target.lng * step;
+				const sLat = pt.original.lat * (1 - step) + pt.real.lat * step;
+				const sLng = pt.original.lng * (1 - step) + pt.real.lng * step;
+
+				// calculate Ls, Lt, Cs, Ct
+				pt.Ls = TgUtil.distance(sLat, sLng, org.lat, org.lng) * 1000; // m
+				pt.Ls *= cmPerM; // cm
+				pt.Lt = TgUtil.distance(tLat, tLng, org.lat, org.lng) * 1000; // m
+				pt.Lt *= cmPerM; // cm
+				pt.Cs = pt.S / pt.Ls;
+				pt.Ct = pt.travelTime / pt.Lt;
+			}
+
+			// calculate Csp, Ctp
+			let Cgs = 0, Cgt = 0;
+			
+			idx = 0;
+			for(let pt of this.controlPoints) {
+				idx++;
+				if (idx === 13) continue;
+
+				Cgs += pt.Cs; 
+				Cgt += pt.Ct;
+			}
+			Cgs /= this.controlPoints.length - 1;
+			Cgt /= this.controlPoints.length - 1;
+
+			// calculate Q
+			let Q = 0;
+			let Wt = 11.6144 // weight for time error (10: 200m / 1min)
+			
+			idx = 0;
+			for(let pt of this.controlPoints) {
+				idx++;
+				if (idx === 13) continue;
+
+				// calculate Lp, Sp, Tp
+				// Assume that Lp is one sample of mean of L
+				pt.Lp = pt.L;
+				pt.Sp = pt.Lp * Csp;
+				pt.Tp = pt.Lp * Ctp;
+
+				Q += Math.sqrt((pt.S - pt.Sp)*(pt.S - pt.Sp) + 
+						Wt * (pt.travelTime - pt.Tp)*(pt.travelTime - pt.Tp));
+			}
+			Q /= this.controlPoints.length - 1;
+			Qs.push(Q);
+
+			//console.log('Csp: ' + Csp);
+			//console.log('Ctp: ' + Ctp);
+			//console.log('Q: ' + Q);
+			console.log(step.toFixed(2) + ' Q: ' + Q);
+		}
+
+		let finalStep = 0;
+		for(let i = 0; i < Qs.length - 1; ++i) {
+			if (Qs[i] < Qs[i + 1]) {
+				finalStep = i * 0.05;
+				break;
+			}
+		}
+		console.log('finalStep: ' + finalStep);
+
+		for(let pt of this.controlPoints) {
+			pt.real.lat = pt.original.lat * (1 - finalStep) + pt.target.lat * finalStep;
+			pt.real.lng = pt.original.lng * (1 - finalStep) + pt.target.lng * finalStep;
+
+		}
+	}*/
+
+	calQ(pts) {
+		const oa_ver = 2;
+		const op_ver = 2;
+		const cmPerPx = 0.0156; // cm/px
+		const k = 5.166 // weight for time error
+		const kL = 0.06;
+
+		let Cd = 0, Ct = 0;
+		let lenT_true = 0;
+		for(let pt of pts) {
+			pt.Lcm = pt.L * cmPerPx; // cm
+			pt.Lisocm = pt.Liso * cmPerPx; // cm
+			Cd += pt.D_true / pt.Lcm;
+
+			if (pt.T_true) {
+				//Ct += pt.T_true / pt.Lcm;
+				Ct += pt.T_true / pt.Lisocm;
+				lenT_true++;
+			}
+		}
+		Cd /= pts.length;
+		Ct /= lenT_true;
+
+		//console.log('lenT_true: ' + lenT_true);
+
+		//console.log(Cd + ' <> ' + Ct);
+
+		for(let pt of pts) {
+			pt.D = Cd * pt.Lcm;
+			//pt.T = Ct * pt.Lcm;
+			pt.T = Ct * pt.Lisocm + pt.Tiso;
+		}
+
+		let OA = 0, OP = 0;
+
+		// OA
+		if (oa_ver === 1) {
+			for(let pt of pts) {
+				let v = (pt.D_true - pt.D) * (pt.D_true - pt.D);
+				v += k * k * (pt.T_true - pt.T) * (pt.T_true - pt.T);
+				OA += Math.sqrt(v);
+			}
+			OA /= pts.length;
+		}
+		else if (oa_ver === 2) {
+			let oa1 = 0;
+			for(let pt of pts) {
+				for(let i = 0; i < pts.length; ++i) {
+					let d = TgUtil.D2(pt.r.yPx, pt.r.xPx, pts[i].r.yPx, pts[i].r.xPx);
+					oa1 += Math.abs(d - pt.D_trues[i]);
+				}
+				oa1 += Math.abs(pt.D_true - pt.D);
+			}
+			oa1 /= ((pts.length + 1) * (pts.length + 1));
+
+			let oa2 = 0;
+			for(let pt of pts) {
+				if (pt.T_true) oa2 += Math.abs(pt.T_true - pt.T);
+			}
+			oa2 *= k;
+			oa2 /= lenT_true;
+
+			OA = oa1 + oa2;
+			//console.log(OA);
+		}
+
+		// OP
+
+		if (op_ver === 1) {
+			for(let pt of pts) OP += 2 * pt.Lcm * kL;
+			OP /= pts.length;
+		}
+		else if (op_ver === 2) {
+			let op1 = 0;
+			for(let pt of pts) {
+				for(let i = 0; i < pts.length; ++i) {
+					let l = TgUtil.D2(pt.r.yPx, pt.r.xPx, pts[i].r.yPx, pts[i].r.xPx);
+					op1 += l * cmPerPx * kL;
+				}
+				op1 += pt.Lcm * kL;
+			}
+			op1 /= ((pts.length + 1) * (pts.length + 1));
+
+			let op2 = 0;
+			for(let pt of pts) {
+				if (pt.T_true) op2 += pt.Lisocm * kL;
+			}
+			op2 /= lenT_true;
+
+			OP = op1 + op2;
+			//console.log(OP);
+		}
+
+		return OA * OP;
+	}
+
+	makeLocalPreception() {
+		this.makeNonIntersectedGrid();
+		this.makeLocalPreception_inner();
+	}
+
+	checkIntersection(pt) {
+		for(let i = 0; i < pt.ctrPt.neighborLines.length; ++i) {
+			const idx1s = pt.ctrPt.neighborLines[i][0];
+			const idx1e = pt.ctrPt.neighborLines[i][1];
+
+			for(let j = i + 1; j < pt.ctrPt.neighborLines.length; ++j) {
+				const idx2s = pt.ctrPt.neighborLines[j][0];
+				const idx2e = pt.ctrPt.neighborLines[j][1];
+
+				if ((idx1s === idx2s) || (idx1s === idx2e) || (idx1e === idx2s) || (idx1e === idx2e))
+					continue;
+
+				const p1s = this.controlPoints[idx1s].real;
+				const p1e = this.controlPoints[idx1e].real;
+				const p2s = this.controlPoints[idx2s].real;
+				const p2e = this.controlPoints[idx2e].real;
+
+				if (TgUtil.intersects(
+						p1s.lat, p1s.lng, p1e.lat, p1e.lng, 
+						p2s.lat, p2s.lng, p2e.lat, p2e.lng)) {
+
+					//console.log('pt:', pt);
+					//console.log('i[0,1]:', pt.ctrPt.neighborLines[i]);
+					//console.log('j[0,1]:', pt.ctrPt.neighborLines[j]);
+					return true;
+					//return false;
+				}
+			}
+		}
+		return false;
+/*		for(let line1 of this.gridLines) {
+				for(let line2 of this.gridLines) {
+
+					//if ((line1.start.intersected)||(line1.end.intersected)||
+						//(line2.start.intersected)||(line2.end.intersected)) continue;
+
+					if (TgUtil.intersects(
+							line1.start.real.lat, line1.start.real.lng, 
+							line1.end.real.lat, line1.end.real.lng, 
+							line2.start.real.lat, line2.start.real.lng, 
+							line2.end.real.lat, line2.end.real.lng)) {
+
+						if ((line1.end.index !== line2.start.index)
+								&&(line1.start.index !== line2.end.index)) {
+
+							// if intersected, move it back.
+
+							if (!line1.start.intersected) {
+								setRealPosition(line1.start, pct - dt);
+								line1.start.intersected = true;
+							}
+
+							if (!line1.end.intersected) {
+								setRealPosition(line1.end, pct - dt);
+								line1.end.intersected = true;
+							}
+
+							if (!line2.start.intersected) {
+								setRealPosition(line2.start, pct - dt);
+								line2.start.intersected = true;
+							}
+
+							if (!line2.end.intersected) {
+								setRealPosition(line2.end, pct - dt);
+								line2.end.intersected = true;
+							}
+
+							//console.log('intersected: ');
+							//console.log(line1.start.index + ' ' + line1.end.index);
+							//console.log(line2.start.index + ' ' + line2.end.index);
+						}
+					}
+				}*/
+
+
+	}
+
+	makeLocalPreception_inner() {
+
+		const calL = function(pt, w) {
+			pt.w = w;
+
+			pt.r.yPx = pt.o.yPx * (1 - w) + pt.t.yPx * w;
+			pt.r.xPx = pt.o.xPx * (1 - w) + pt.t.xPx * w;
+			pt.L = TgUtil.D2(pt.r.yPx, pt.r.xPx, c.yPx, c.xPx);
+
+			pt.Liso = INF;
+			for(let px of radPxs) {
+				const l = pt.L - px;
+				if (l < pt.Liso) {pt.Liso = l; pt.Tiso = px;}
+			}
+
+			pt.ctrPt.real.lat = pt.ctrPt.original.lat * (1 - w) + pt.ctrPt.target.lat * w;
+			pt.ctrPt.real.lng = pt.ctrPt.original.lng * (1 - w) + pt.ctrPt.target.lng * w;
+		}
+
+		const itvNum = this.map.tgIsochrone.calIsochrone();
+		let radPxs = [];
+		for(let num = 0; num < itvNum.num; num++) {
+			const time = (num + 1) * itvNum.interval;
+			const radiusPx = time / this.graph.factor;
+			radPxs.push(radiusPx);
+		}
+
+		//console.log('itvNum', itvNum);
+		//console.log('radPxs', radPxs);
+		//const s = (new Date()).getTime();
+
+	  const c = this.map.latlngToPx(
+	  		this.map.tgOrigin.origin.original.lat, 
+	  		this.map.tgOrigin.origin.original.lng
+	  	);
+		const stepSize = 10; //20;
+		const INF = 987654321;
+		let pts = [];
+
+		for(let i = 0; i < this.controlPoints.length; ++i) {
+			const pt = this.controlPoints[i];
+
+			if (i === parseInt(this.controlPoints.length / 2)) {
+				pt.pts = {w: 0};
+				continue;
+			}
+
+			let obj = {};
+			obj.o = this.map.latlngToPx(pt.original.lat, pt.original.lng);
+			obj.o.lat = pt.original.lat;
+			obj.o.lng = pt.original.lng;
+
+			obj.t = this.map.latlngToPx(pt.target.lat, pt.target.lng);
+			obj.t.lat = pt.target.lat;
+			obj.t.lng = pt.target.lng;
+
+			obj.r = {yPx:0, xPx:0};
+
+			obj.D_true = TgUtil.D2(obj.o.yPx, obj.o.xPx, c.yPx, c.xPx);
+			obj.T_true = pt.travelTime;
+
+			pt.pts = obj;
+			obj.ctrPt = pt;
+
+			pts.push(obj);
+		}
+
+		for(let pt of pts) {
+			pt.D_trues = [];
+			for(let pt2 of pts) {
+				let t = TgUtil.D2(pt.o.yPx, pt.o.xPx, pt2.o.yPx, pt2.o.xPx);
+				pt.D_trues.push(t);
+			}
+		}
+
+		console.log(pts);
+
+
+
+
+		let gMinQ = INF, gMinW = 0;
+		let eps = 0.00001;
+		for(let step = 0; step <= stepSize; ++step) {
+			const w = step * (1 / stepSize);
+
+			for(let pt of pts) calL(pt, w);
+
+			let intersected = false;
+			for(let pt of pts) {
+				if (this.checkIntersection(pt)) {
+					intersected = true;
+					break;
+				}
+			}
+
+			if (intersected) {
+				console.log('PRE INTERSECTED!!!');
+				gMinW = (step - 1) * (1 / stepSize);
+				break;
+			}
+
+			const Q = this.calQ(pts);
+			if (Q < gMinQ) { gMinQ = Q; gMinW = w; }
+			//console.log(step + ':' + Q);
+		}
+		console.log('# gMinQ: ' + gMinQ + ' gMinW: ' + gMinW);
+
+		for(let pt of pts) {
+			calL(pt, gMinW);
+			pt.minW = gMinW;
+		}
+
+		for(let pt of pts) {
+			let minQ = INF;
+
+			// + way
+			for(let step = gMinW * stepSize + 1; step <= stepSize + eps; ++step) {
+				const w = step * (1 / stepSize);
+				calL(pt, w);
+
+				if (this.checkIntersection(pt)) {
+					//console.log('+ INTERSECTED!!!' + step);
+					//if (step) pt.w = (step - 1) * (1 / stepSize);
+					//else pt.w = 0;
+					break;
+				}
+
+				const Q = this.calQ(pts);
+				if (Q < minQ) { minQ = Q; pt.minW = w; }
+			}
+
+			// - way
+			for(let step = gMinW * stepSize - 1; step >= -eps; --step) {
+				const w = step * (1 / stepSize);
+				calL(pt, w);
+
+				if (this.checkIntersection(pt)) {
+					//console.log('- INTERSECTED!!!' + step);
+					//if (step) pt.w = (step + 1) * (1 / stepSize);
+					//else pt.w = 0;
+					break;
+				}
+
+				const Q = this.calQ(pts);
+				if (Q < minQ) { minQ = Q; pt.minW = w; }
+			}
+			calL(pt, pt.minW);
+		}
+
+
+/*
+
+		for(let pt of pts) {
+			let minQ = INF;
+			pt.w = 0;
+			for(let step = 0; step <= stepSize; ++step) {
+				const w = step * (1 / stepSize);
+				calL(pt, w);
+
+				if (this.checkIntersection(pt)) {
+					console.log('INTERSECTED!!!' + step);
+					if (step) pt.w = (step - 1) * (1 / stepSize);
+					else pt.w = 0;
+					
+					//calL(pt, (step - 1) * (1 / stepSize));
+					break;
+				}
+
+				const Q = this.calQ(pts);
+				if (Q < minQ) { minQ = Q; pt.w = w; }
+				//console.log(step + ':' + this.calQ(pts));
+			}
+
+			//console.log('minQ:' + minQ + ' minW:' + pt.w);
+			calL(pt, pt.w);
+		}
+*/
+		
+
+		for(let pt of this.controlPoints) {
+			const w = pt.pts.w;
+			//pt.real.lat = pt.original.lat * (1 - w) + pt.target.lat * w;
+			//pt.real.lng = pt.original.lng * (1 - w) + pt.target.lng * w;
+			pt.pgap = {};
+			pt.pgap.lat = pt.original.lat * (1 - w) + pt.target.lat * w;
+			pt.pgap.lng = pt.original.lng * (1 - w) + pt.target.lng * w;
+		}
+
+
+
+		/*const mid = parseInt(this.controlPoints.length / 2); // 12
+		for(let i = 0; i < mid; ++i) {
+			const pt = this.controlPoints[i];
+			console.log(pt.gap.w + ' : ' + pts[i].w);
+			pt.real.lat = pt.original.lat * (1 - pts[i].w) + pt.target.lat * pts[i].w;
+			pt.real.lng = pt.original.lng * (1 - pts[i].w) + pt.target.lng * pts[i].w;
+			pt.pgap = {};
+			pt.pgap.lat = pt.original.lat * (1 - pts[i].w) + pt.target.lat * pts[i].w;
+			pt.pgap.lng = pt.original.lng * (1 - pts[i].w) + pt.target.lng * pts[i].w;
+		}
+
+		for(let i = mid + 1; i < this.controlPoints.length; ++i) {
+			const pt = this.controlPoints[i];
+			console.log(pt.gap.w + ' : ' + pts[i - 1].w);
+			pt.real.lat = pt.original.lat * (1 - pts[i - 1].w) + pt.target.lat * pts[i - 1].w;
+			pt.real.lng = pt.original.lng * (1 - pts[i - 1].w) + pt.target.lng * pts[i - 1].w;
+			pt.pgap = {};
+			pt.pgap.lat = pt.original.lat * (1 - pts[i - 1].w) + pt.target.lat * pts[i - 1].w;
+			pt.pgap.lng = pt.original.lng * (1 - pts[i - 1].w) + pt.target.lng * pts[i - 1].w;
+		}
+
+		const pt = this.controlPoints[mid];
+		pt.real.lat = pt.original.lat;
+		pt.real.lng = pt.original.lng;
+		pt.pgap = {};
+		pt.pgap.lat = pt.original.lat;
+		pt.pgap.lng = pt.original.lng;*/
+
+
+
+		//const e = (new Date()).getTime();
+		//console.log('elapsed: ' + (e - s) + ' ms');
+
+		//console.log(this.controlPoints);
+
+
+		return;
+
+
+
+
+
+		// Cal Cs and Ct
+		this.Css = new Array(stepSize + 1);
+		this.Cts = new Array(stepSize + 1);
+
+	  //  let ctlPtsPx = [];
+		// for(let pt of this.controlPoints) {
+		// 	let obj = {};
+		// 	obj.original = this.map.latlngToPx(pt.original.lat, pt.original.lng);
+		// 	obj.target = this.map.latlngToPx(pt.target.lat, pt.target.lng);
+		// 	ctlPtsPx.push(obj);
+	  //  }
+
+		// calculate S
+		// let idx = 0;
+		// for(let pt of this.controlPoints) {
+		// 	if (idx++ === parseInt(this.controlPoints.length / 2)) continue;
+
+		// 	pt.S = TgUtil.D2(
+		// 		ctlPtsPx[idx - 1].original.yPx, 
+		// 		ctlPtsPx[idx - 1].original.xPx, 
+		// 		cPx.yPx, cPx.xPx);
+		// 	// pt.S = TgUtil.distance(pt.original.lat, pt.original.lng, org.lat, org.lng) * 1000; // m
+		// 	// pt.t.meter = distance(pt.t.lat, pt.t.lng, org.lat, org.lng) * 1000; // m
+		// 	pt.Ls = new Array(stepSize + 1);
+		// }
+
+		// step = [0, 1, ..., stepSize + 1]
+		for(let step = 0; step <= stepSize; ++step) {
+			// w = [0, ..., 1]
+			const w = step * (1 / stepSize);
+			let Cs = 0, Ct = 0;
+
+			// For each point
+			idx = 0;
+			for(let pt of this.controlPoints) {
+				idx++;
+				if (!pt.S) continue;
+
+				// (r.lat, r.lng) between o (t=0) ~ t (t=1)
+				const r = {
+					yPx: ctlPtsPx[idx - 1].original.yPx * (1 - w) + ctlPtsPx[idx - 1].target.yPx * w,
+					xPx: ctlPtsPx[idx - 1].original.xPx * (1 - w) + ctlPtsPx[idx - 1].target.xPx * w,
+					// lat: pt.original.lat * (1 - w) + pt.target.lat * w,
+					// lng: pt.original.lng * (1 - w) + pt.target.lng * w,
+				}
+
+				// calculate L, Cs, Ct
+				pt.L = TgUtil.D2(r.yPx, r.xPx, cPx.yPx, cPx.xPx);
+				// pt.L = TgUtil.distance(r.lat, r.lng, org.lat, org.lng) * 1000; // m
+				//pt.L *= cmPerM; // cm
+				pt.L *= cmPerPx; // cm
+				pt.Ls[step] = pt.L;
+				pt.Cs = pt.S / pt.L;
+				pt.Ct = pt.travelTime / pt.L;
+				Cs += pt.Cs;
+				Ct += pt.Ct;
+			}
+			this.Css[step] = Cs / this.controlPoints.length;
+			this.Cts[step] = Ct / this.controlPoints.length;
+		}
+
+		for(let pt of this.controlPoints) {
+			if (!pt.S) continue;
+
+			pt.Q = new Array(stepSize + 1);	
+
+			for(let step = 0; step <= stepSize; ++step) {
+				pt.Q[step] = this.qAccuracy(pt, step);
+			}		
+		}
+
+		// console.log(this.Css);
+		// console.log(this.Cts);
+		//for(let pt of this.controlPoints) console.log(pt.Q);
+
+		for(let pt of this.controlPoints) {
+			if (!pt.S) continue;
+
+			pt.minQ = 987654321;
+			pt.minStep = -1;
+			for(let i = 0; i < pt.Q.length; ++i) {
+				if (pt.Q[i] < pt.minQ) { pt.minQ = pt.Q[i]; pt.minStep = i; }
+			}
+			//console.log(pt.Q);
+			//console.log(pt.minStep);
+		}
+		for(let pt of this.controlPoints) {
+			if (!pt.S) continue;
+
+			//console.log(pt);
+			const w = pt.minStep * (1 / stepSize);
+			if (!pt.r) pt.r = {};
+			pt.real.lat = pt.original.lat * (1 - w) + pt.target.lat * w;
+			pt.real.lng = pt.original.lng * (1 - w) + pt.target.lng * w;
+
+			pt.pgap.lat = pt.original.lat * (1 - w) + pt.target.lat * w;
+			pt.pgap.lng = pt.original.lng * (1 - w) + pt.target.lng * w;
+		}
+
+		for(let idx = 0; idx < this.controlPoints.length; ++idx) {
+			const pt = this.controlPoints[idx];
+
+			if (!pt.S) continue;
+
+			pt.minQn = 987654321;
+			pt.minStepN = -1;
+			for(let i = 0; i < pt.Qn.length; ++i) {
+				if (pt.Qn[i] < pt.minQn) { pt.minQn = pt.Qn[i]; pt.minStepN = i; }
+			}
+			if (pt.minStep != pt.minStepN) {
+				console.log(idx + ' => ' + pt.minStep + ' ' + pt.minStepN);
+
+				const w = pt.minStepN * (1 / stepSize);
+				pt.real.lat = pt.original.lat * (1 - w) + pt.target.lat * w;
+				pt.real.lng = pt.original.lng * (1 - w) + pt.target.lng * w;
+
+				pt.pgap.lat = pt.original.lat * (1 - w) + pt.target.lat * w;
+				pt.pgap.lng = pt.original.lng * (1 - w) + pt.target.lng * w;
+			}
+		}
+
+		let finalSteps = [];
+		for(let pt of this.controlPoints) {
+			if (!pt.S) continue;
+			finalSteps.push(pt.minStepN  * (1 / stepSize));
+		}
+		console.log(finalSteps);
+
+		console.log(this.controlPoints);
+
+	}
+
+
+
+	makeLocalPreception_org() {
+		const org = {lat: this.map.tgOrigin.origin.original.lat, 
+			  lng: this.map.tgOrigin.origin.original.lng};
+		const stepSize = 20;
+		const cmPerPx = 0.0156; // cm/px
+		const cmPerM = cmPerPx * this.map.pxPerMeter; // cm/meter
+
+		// Cal Cs and Ct
+		this.Css = new Array(stepSize + 1);
+		this.Cts = new Array(stepSize + 1);
+
+		//0 1 2 3 4
+		//5 6 7 8 9
+		//10 11 12 13 14
+		//15 16 17 18 19
+		//20 21 22 23 24
+
+	  const cPx = this.map.latlngToPx(org.lat, org.lng);
+
+	  //const clatlng = this.tg.map.pxToLatlng(yPx, xPx);
+
+		for(let pt of this.controlPoints) {
+			pt.pgap = {lat: pt.original.lat, lng: pt.original.lng};
+		}
+
+	  let ctlPtsPx = [];
+		for(let pt of this.controlPoints) {
+			let obj = {};
+			obj.original = this.map.latlngToPx(pt.original.lat, pt.original.lng);
+			obj.target = this.map.latlngToPx(pt.target.lat, pt.target.lng);
+			ctlPtsPx.push(obj);
+	  }
+
+		// calculate S
+		let idx = 0;
+		for(let pt of this.controlPoints) {
+			if (idx++ === parseInt(this.controlPoints.length / 2)) continue;
+
+			pt.S = TgUtil.D2(
+				ctlPtsPx[idx - 1].original.yPx, 
+				ctlPtsPx[idx - 1].original.xPx, 
+				cPx.yPx, cPx.xPx);
+			// pt.S = TgUtil.distance(pt.original.lat, pt.original.lng, org.lat, org.lng) * 1000; // m
+			// pt.t.meter = distance(pt.t.lat, pt.t.lng, org.lat, org.lng) * 1000; // m
+			pt.Ls = new Array(stepSize + 1);
+		}
+
+		// step = [0, 1, ..., stepSize + 1]
+		for(let step = 0; step <= stepSize; ++step) {
+			// w = [0, ..., 1]
+			const w = step * (1 / stepSize);
+			let Cs = 0, Ct = 0;
+
+			// For each point
+			idx = 0;
+			for(let pt of this.controlPoints) {
+				idx++;
+				if (!pt.S) continue;
+
+				// (r.lat, r.lng) between o (t=0) ~ t (t=1)
+				const r = {
+					yPx: ctlPtsPx[idx - 1].original.yPx * (1 - w) + ctlPtsPx[idx - 1].target.yPx * w,
+					xPx: ctlPtsPx[idx - 1].original.xPx * (1 - w) + ctlPtsPx[idx - 1].target.xPx * w,
+					// lat: pt.original.lat * (1 - w) + pt.target.lat * w,
+					// lng: pt.original.lng * (1 - w) + pt.target.lng * w,
+				}
+
+				// calculate L, Cs, Ct
+				pt.L = TgUtil.D2(r.yPx, r.xPx, cPx.yPx, cPx.xPx);
+				// pt.L = TgUtil.distance(r.lat, r.lng, org.lat, org.lng) * 1000; // m
+				//pt.L *= cmPerM; // cm
+				pt.L *= cmPerPx; // cm
+				pt.Ls[step] = pt.L;
+				pt.Cs = pt.S / pt.L;
+				pt.Ct = pt.travelTime / pt.L;
+				Cs += pt.Cs;
+				Ct += pt.Ct;
+			}
+			this.Css[step] = Cs / this.controlPoints.length;
+			this.Cts[step] = Ct / this.controlPoints.length;
+		}
+
+		for(let pt of this.controlPoints) {
+			if (!pt.S) continue;
+
+			pt.Q = new Array(stepSize + 1);	
+
+			for(let step = 0; step <= stepSize; ++step) {
+				pt.Q[step] = this.qAccuracy(pt, step);
+			}		
+		}
+
+		// console.log(this.Css);
+		// console.log(this.Cts);
+		//for(let pt of this.controlPoints) console.log(pt.Q);
+
+		for(let pt of this.controlPoints) {
+			if (!pt.S) continue;
+
+			pt.minQ = 987654321;
+			pt.minStep = -1;
+			for(let i = 0; i < pt.Q.length; ++i) {
+				if (pt.Q[i] < pt.minQ) { pt.minQ = pt.Q[i]; pt.minStep = i; }
+			}
+			//console.log(pt.Q);
+			//console.log(pt.minStep);
+		}
+		for(let pt of this.controlPoints) {
+			if (!pt.S) continue;
+
+			//console.log(pt);
+			const w = pt.minStep * (1 / stepSize);
+			if (!pt.r) pt.r = {};
+			pt.real.lat = pt.original.lat * (1 - w) + pt.target.lat * w;
+			pt.real.lng = pt.original.lng * (1 - w) + pt.target.lng * w;
+
+			pt.pgap.lat = pt.original.lat * (1 - w) + pt.target.lat * w;
+			pt.pgap.lng = pt.original.lng * (1 - w) + pt.target.lng * w;
+		}
+
+		for(let idx = 0; idx < this.controlPoints.length; ++idx) {
+			const pt = this.controlPoints[idx];
+
+			if (!pt.S) continue;
+
+			pt.minQn = 987654321;
+			pt.minStepN = -1;
+			for(let i = 0; i < pt.Qn.length; ++i) {
+				if (pt.Qn[i] < pt.minQn) { pt.minQn = pt.Qn[i]; pt.minStepN = i; }
+			}
+			if (pt.minStep != pt.minStepN) {
+				console.log(idx + ' => ' + pt.minStep + ' ' + pt.minStepN);
+
+				const w = pt.minStepN * (1 / stepSize);
+				pt.real.lat = pt.original.lat * (1 - w) + pt.target.lat * w;
+				pt.real.lng = pt.original.lng * (1 - w) + pt.target.lng * w;
+
+				pt.pgap.lat = pt.original.lat * (1 - w) + pt.target.lat * w;
+				pt.pgap.lng = pt.original.lng * (1 - w) + pt.target.lng * w;
+			}
+		}
+
+		let finalSteps = [];
+		for(let pt of this.controlPoints) {
+			if (!pt.S) continue;
+			finalSteps.push(pt.minStepN  * (1 / stepSize));
+		}
+		console.log(finalSteps);
+
+	}
+
+	qAccuracy(pt, step) {
+		const Wt = 5.166 // weight for time error
+		const Kvs = 0.06;
+
+		const Sp = pt.Ls[step] * this.Css[step];
+		const Tp = pt.Ls[step] * this.Cts[step];
+		let Q = (pt.S - Sp) * (pt.S - Sp);
+		Q += Wt * Wt * (pt.travelTime - Tp) * (pt.travelTime - Tp);
+
+		//Q += Kvs * Sp;
+
+		if (!pt.Qn) pt.Qn = [];
+		pt.Qn[step] = Math.sqrt(Q) + Kvs * Sp;
+
+
+		//if (!pt.Q1) pt.Q1 = [];
+		//if (!pt.Q2) pt.Q2 = [];
+		//pt.Q1[step] = Math.abs(pt.S - Sp);
+		//pt.Q1[step] = (pt.S - Sp) * (pt.S - Sp);
+		//pt.Q2[step] = Wt * Math.abs(pt.time - Tp);
+		//pt.Q2[step] = Wt * Wt * (pt.time - Tp) * (pt.time - Tp);
+
+		return Math.sqrt(Q);
+	}
+
+	makeLocalPreception_L2() {
+		const org = {lat: this.map.tgOrigin.origin.original.lat, 
+			  lng: this.map.tgOrigin.origin.original.lng};
+
+		const cmPerPx = 0.0156; // cm/px
+		const cmPerM = cmPerPx * this.pxPerMeter; // cm/meter
+		
+		let Cgss = new Array(21);
+		let Cgt = 0;
+
+		// calculate S
+		for(let pt of this.controlPoints) {
+			pt.S = TgUtil.distance(pt.original.lat, pt.original.lng, org.lat, org.lng) * 1000; // m
+		}
+
+		// Lt
+		let idx = 0;
+		for(let pt of this.controlPoints) {
+			idx++;
+			if (idx === 13) continue;
+
+			pt.Lt = TgUtil.distance(pt.target.lat, pt.target.lng, org.lat, org.lng) * 1000; // m
+			pt.Lt *= cmPerM; // cm
+			pt.Ct = pt.travelTime / pt.Lt;
+			Cgt += pt.Ct;
+		}
+		Cgt /= this.controlPoints.length - 1;
+
+		let Qs = [];
+		for(let i = 0; i <= 20; ++i) {
+			const step = i * 0.05;
+
+			// For each point
+			let Cgs = 0;
+			idx = 0;
+			for(let pt of this.controlPoints) {
+				idx++;
+				if (idx === 13) continue;
+
+				// (mLat, mLng) between o ~ t by linear interpolation
+				const sLat = pt.original.lat * (1 - step) + pt.target.lat * step;
+				const sLng = pt.original.lng * (1 - step) + pt.target.lng * step;
+
+				// calculate Ls, Lt, Cs, Ct
+				pt.Ls = TgUtil.distance(sLat, sLng, org.lat, org.lng) * 1000; // m
+				pt.Ls *= cmPerM; // cm
+				pt.Cs = pt.S / pt.Ls;
+				Cgs += pt.Cs; 
+			}
+			Cgs /= this.controlPoints.length - 1;
+			Cgss[i] = Cgs;
+		}
+
+		console.log('Cgss: ', Cgss);
+		console.log('Cgt: ', Cgt);
+
+		let finalSteps = new Array(this.controlPoints.length);
+		for(let i = 0; i < this.controlPoints.length; ++i) finalSteps[i] = 0;
+
+		idx = 0;
+		let prevQ = 987654321;
+		for(let pt of this.controlPoints) {
+
+			idx++;
+			if (idx === 13) continue;
+
+			for(let i = 0; i <= 20; ++i) {
+				const step = i * 0.05;
+
+				pt.Lt = TgUtil.distance(pt.target.lat, pt.target.lng, org.lat, org.lng) * 1000; // m
+				pt.Lt *= cmPerM; // cm
+				pt.LCt = pt.Lt * Cgt;
+
+				const sLat = pt.original.lat * (1 - step) + pt.target.lat * step;
+				const sLng = pt.original.lng * (1 - step) + pt.target.lng * step;
+				pt.Ls = TgUtil.distance(sLat, sLng, org.lat, org.lng) * 1000; // m
+				pt.Ls *= cmPerM; // cm
+				pt.LCs = pt.Ls * Cgss[i];
+
+				const Wt = 11.6144 // weight for time error (10: 200m / 1min)
+				const Q = Math.sqrt((pt.S - pt.LCs) * (pt.S - pt.LCs) + 
+						Wt * (pt.travelTime - pt.LCt) * (pt.travelTime - pt.LCt));
+
+				//console.log('Csp: ' + Csp);
+				//console.log('Ctp: ' + Ctp);
+				//console.log('Q: ' + Q);
+				console.log(step.toFixed(2) + ' Q: ' + Q);
+
+				if (prevQ > Q) {
+					finalSteps[idx - 1] = step;
+				}
+				prevQ = Q;
+			}
+			console.log('-----');
+
+		}
+		console.log('finalSteps: ', finalSteps);
+
+/*		let finalStep = 0;
+		for(let i = 0; i < Qs.length - 1; ++i) {
+			if (Qs[i] < Qs[i + 1]) {
+				finalStep = i * 0.05;
+				break;
+			}
+		}
+		console.log('finalStep: ' + finalStep);
+		*/
+
+		idx = 0;
+		for(let pt of this.controlPoints) {
+			const finalStep = finalSteps[idx] || 0;
+			pt.real.lat = pt.original.lat * (1 - finalStep) + pt.target.lat * finalStep;
+			pt.real.lng = pt.original.lng * (1 - finalStep) + pt.target.lng * finalStep;
+			
+		}
+	}
+
+	makeLocalPreception_L3() {
+		const org = {lat: this.map.tgOrigin.origin.original.lat, 
+			  lng: this.map.tgOrigin.origin.original.lng};
+		const pxPerM = 0.172966822; // px/meter
+		const cmPerPx = 0.0156; // cm/px
+		const cmPerM = cmPerPx * pxPerM; // cm/meter
+		
+		let Csps = new Array(21);
+		let Ctps = new Array(21);
+
+		// calculate S
+		for(let pt of this.controlPoints) {
+			pt.S = TgUtil.distance(pt.original.lat, pt.original.lng, org.lat, org.lng) * 1000; // m
+		}
+
+		let Qs = [];
+		for(let i = 0; i <= 20; ++i) {
+			const step = i * 0.05;
+
+			// For each point
+			let idx = 0;
+			for(let pt of this.controlPoints) {
+				idx++;
+				if (idx === 13) continue;
+
+				// (mLat, mLng) between o ~ t by linear interpolation
+				const mLat = pt.original.lat * (1 - step) + pt.target.lat * step;
+				const mLng = pt.original.lng * (1 - step) + pt.target.lng * step;
+
+				// calculate L, Cs, Ct
+				pt.L = TgUtil.distance(mLat, mLng, org.lat, org.lng) * 1000; // m
+				pt.L *= cmPerM; // cm
+				pt.Cs = pt.S / pt.L;
+				pt.Ct = pt.travelTime / pt.L;
+			}
+
+			// calculate Csp, Ctp
+			let Csp = 0, Ctp = 0;
+			
+			idx = 0;
+			for(let pt of this.controlPoints) {
+				idx++;
+				if (idx === 13) continue;
+
+				Csp += pt.Cs; 
+				Ctp += pt.Ct;
+			}
+			Csp /= this.controlPoints.length - 1;
+			Ctp /= this.controlPoints.length - 1;
+			Csps[i] = Csp;
+			Ctps[i] = Ctp;
+		}
+
+		//console.log('Csps: ', Csps);
+		//console.log('Ctps: ', Ctps);
+
+		let finalSteps = new Array(this.controlPoints.length);
+
+		let idx = 0;
+		let prevQ = 987654321;
+		for(let pt of this.controlPoints) {
+
+			idx++;
+			if (idx === 13) continue;
+
+			for(let i = 0; i <= 20; ++i) {
+				const step = i * 0.05;
+
+				// (mLat, mLng) between o ~ t by linear interpolation
+				const mLat = pt.original.lat * (1 - step) + pt.target.lat * step;
+				const mLng = pt.original.lng * (1 - step) + pt.target.lng * step;
+
+				// calculate L, Cs, Ct
+				pt.L = TgUtil.distance(mLat, mLng, org.lat, org.lng) * 1000; // m
+				pt.L *= cmPerM; // cm
+				pt.Cs = pt.S / pt.L;
+				pt.Ct = pt.travelTime / pt.L;
+				
+
+				// calculate Csp, Ctp
+				let Csp = Csps[i], Ctp = Ctps[i];
+				
+				// calculate Q
+				let Q = 0;
+				let Wt = 11.6144 // weight for time error (10: 200m / 1min)
+				
+				// calculate Lp, Sp, Tp
+				// Assume that Lp is one sample of mean of L
+				pt.Lp = pt.L;
+				pt.Sp = pt.Lp * Csp;
+				pt.Tp = pt.Lp * Ctp;
+
+				Q = Math.sqrt((pt.S - pt.Sp)*(pt.S - pt.Sp) + 
+						Wt * (pt.travelTime - pt.Tp)*(pt.travelTime - pt.Tp));
+
+				//console.log('Csp: ' + Csp);
+				//console.log('Ctp: ' + Ctp);
+				//console.log('Q: ' + Q);
+				//console.log(step.toFixed(2) + ' Q: ' + Q);
+
+				if (prevQ > Q) {
+					finalSteps[idx - 1] = step;
+				}
+				prevQ = Q;
+			}
+			console.log('-----');
+
+		}
+		console.log('finalSteps(L): ', finalSteps);
+
+/*		let finalStep = 0;
+		for(let i = 0; i < Qs.length - 1; ++i) {
+			if (Qs[i] < Qs[i + 1]) {
+				finalStep = i * 0.05;
+				break;
+			}
+		}
+		console.log('finalStep: ' + finalStep);
+		*/
+
+		idx = 0;
+		for(let pt of this.controlPoints) {
+			const finalStep = finalSteps[idx] || 0;
+			pt.real.lat = pt.original.lat * (1 - finalStep) + pt.target.lat * finalStep;
+			pt.real.lng = pt.original.lng * (1 - finalStep) + pt.target.lng * finalStep;
+
+		}
+
 	}
 
 	/*

@@ -96,14 +96,16 @@ class TgMapUtil {
 	 	})
 	}
 
-	imageStyleFunc(src, opacity = 1.0) {
+	imageStyleFunc(src, opacity = 1.0, param) {
+		let opt = {src: src, opacity: opacity};
+		if (param) {
+			if (param.size) opt.size = param.size;
+			if (param.scale) opt.scale = param.scale;
+			if (param.opacity) opt.opacity = param.opacity;
+		}
+
 		return new ol.style.Style({
-			image: new ol.style.Icon({
-	  		src: src,
-	  		opacity: opacity,
-	  		//anchor: [0.5, 0.5],
-      	//anchorXUnits: 'pixels'
-			})
+			image: new ol.style.Icon(opt)
 		})
 	}
 

@@ -1,16 +1,17 @@
 const TgData = {
 	zoom: {
 		max: 18,
-		min: 11,
+		min: 12,
 		init: 14, //13,
 		previos: 0,
 		current: 0,
 		disp: {
 			motorway: {min: 1, max: 20},
 			motorway_link: {min: 1, max: 20},
-			main: {min: 11, max: 20},
-			street: {min: 13, max: 20},
-			street_limited: {min: 13, max: 20},
+			primary: {min: 11, max: 20},
+			secondary: {min: 11, max: 20},
+			tertiary: {min: 11, max: 20},
+			residential: {min: 15, max: 20},
 		}
 	},
 
@@ -20,11 +21,18 @@ const TgData = {
 			waterNode: 20,
 			landuse: 2,
 
-			street: 5,
-			street_limited: 5,
-			main: 5,
+			residential_bg: 4,
+			residential: 4,
+			tertiary_bg: 5,
+			tertiary: 5,
+			secondary_bg: 5,
+			secondary: 5,
+			primary_bg: 5,
+			primary: 5,
 			motorway_link: 6,
+			motorway_bg: 7,
 			motorway: 7,
+
 			roadNode: 8,
 			presets: 9,
 			places: 10,
@@ -44,7 +52,9 @@ const TgData = {
 			controlPoint: '#FFD700',
 			controlPointLine: '#FFD700', 
 			edge: '#888',
-			grid: '#000', //'#FFA07A',
+			grid: 'rgba(255, 0, 0)',
+			gridS: 'rgba(0, 255, 0, 0.5)',
+			gridT: 'rgba(0, 0, 255, 0.5)',
 			isochrone: 'rgba(255, 0, 0, 0.5)',
 			isochroneText: '#FFF',
 			landuse: [
@@ -57,16 +67,21 @@ const TgData = {
 			landuseNode: '#009245',
 			locationLine: 'rgba(0, 0, 0, 0.5)',
 			road: {
-				motorway: 'rgb(254, 216, 157)',
-				motorway_link: 'rgb(254, 241, 185)',
-				main: '#FFF',
-				street: '#FFF',
-				street_limited: '#FFF',
+				motorway: '#f79e20', //'rgb(254, 216, 157)',
+				motorway_bg: 'rgba(231, 146, 8, 0.5)', //(#E79208), //'rgb(254, 216, 157)',
+				motorway_link: '#FFF', //'rgb(254, 141, 15, 0.5)',
+				primary: '#FFF',
+				primary_bg: 'rgba(209, 209, 209, 0.5)', // (#d1d1d1)
+				secondary: '#FFF',
+				secondary_bg: 'rgba(209, 209, 209, 0.5)', // (#d1d1d1)
+				tertiary: '#FFF',
+				tertiary_bg: 'rgba(209, 209, 209, 0.5)', // (#d1d1d1)
+				residential: '#d0c7bc'
 			},
 			roadNode: '#E00B62',
 			text: '#000', // '#686453',
 			textPlace: 'rgba(0, 0, 0, 0.5)', //'#000'
-			textPlaceStroke: 'rgba(255, 255, 255, 0.5)', //'#FFF',
+			textPlaceStroke: 'rgba(255, 255, 255, 0.8)', //'#FFF',
 			textLocation: '#000', //'rgb(122, 62, 44)', 
 			textStreet: 'rgba(0, 0, 0, 0.4)',
 			textNumberOfLocations: '#FFF',
@@ -77,18 +92,25 @@ const TgData = {
 		width: {
 			controlPointLine: 2,
 			edge: 2,
-			grid: 2,
+			grid: 3,
+			gridS: 2,
+			gridT: 2,
 			isochrone: 1,
 			highLightIsochrone: 2,
-			locationLine: 1,
+			locationLine: 3,
 			road: {
-				motorway: 4,
-				motorway_link: 2,
-				main: 3,
-				street: 1,
-				street_limited: 1,
+				motorway: 3,
+				motorway_bg: 5, //4,
+				motorway_link: 3, //2,
+				primary: 3, 
+				primary_bg: 5, //4,
+				secondary: 2, 
+				secondary_bg: 4, //3,
+				tertiary: 2,
+				tertiary_bg: 4, //3,
+				residential: 1,
 			},
-			textPlaceStroke: 2,
+			textPlaceStroke: 5,
 		},
 
 		radius: {
@@ -127,6 +149,18 @@ const TgData = {
 			}, 
 			red10min: 'img/10min.png',
 			//red100min: 'img/100min.png',
+			randomMarkers: [
+				'img/markers/marker0_small.png',
+				'img/markers/marker1_small.png',
+				'img/markers/marker2_small.png',
+				'img/markers/marker3_small.png',
+				'img/markers/marker4_small.png',
+				'img/markers/marker5_small.png',
+				'img/markers/marker6_small.png',
+				'img/markers/marker7_small.png',
+				'img/markers/marker8_small.png',
+				'img/markers/marker9_small.png',
+			],
 		},
 
 		font: {
@@ -236,10 +270,10 @@ const TgData = {
 		appMode: 'pc', // 'mobile'
 		appDispMode: 'normal',
 
-		locBBPx: 20, //50,
-		locGroupBBPx: 30, //45,
-		locTextLngMarginPx: 27, // left/right margin
-		locTextLatMarginPx: 27, // top/bottom margin
+		locBBPx: 15, //20,
+		locGroupBBPx: 30, //30,
+		locTextLngMarginPx: 10, //27, // left/right margin
+		locTextLatMarginPx: 10, //27, // top/bottom margin
 		isochroneTextPx: 14,
 
 

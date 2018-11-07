@@ -102,6 +102,9 @@ class TgMap {
   	this.olMapWidthPX = 
   			Number(this.olMapWidthPX.slice(0, this.olMapWidthPX.length - 2)); // 600
 
+
+
+
 	  // Event Handlers
 		this.olMap.on('moveend', this.onMoveEnd.bind(this));
 
@@ -112,87 +115,68 @@ class TgMap {
 		this.tpsReady = false;
 		this.timerCheckGridSplitInTgMap = null;
 
+		this.goToDcAfterGettingCtlPts = false;
 		this.readyControlPoints = false;
 		this.currentCenter = {lat :0, lng :0};
+
+
 
 		// initialization
 
 		this.tgVecTile.init();
 
-		//if (this.data.elements.water.disp) this.tgWater.init();
-		//if (this.data.elements.road.disp) this.tgRoads.init();
-		//if (this.data.elements.landuse.disp) this.tgLanduse.init();
-		//if (this.data.elements.place.disp) this.tgPlaces.init();
-	  
 	  this.tgOrigin.setPresets();
 
 	  // variables
 
-  	this.tgWater.turn(this.data.elements.water.disp);
-  	$('#dispWaterCB').prop('checked', this.data.elements.water.disp);
-
   	this.tgOrigin.turn(true);
-	  $('#dispOriginCB').prop('checked', true);
-  	
+
+  	this.tgWater.turn(this.data.elements.water.disp);
 	  this.tgRoads.turn(this.data.elements.road.disp);
-	  $('#dispRoadsCB').prop('checked', this.data.elements.road.disp);
-	  
 	  this.tgLanduse.turn(this.data.elements.landuse.disp);
-	  $('#dispLanduseCB').prop('checked', this.data.elements.landuse.disp);
-
-		this.tgLocs.turn(false);
-		// this.tgLocs.turn(true);
-	  // $('#dispLocationCB').prop('checked', true);
-
-	  this.tgIsochrone.turn(false);
-	  // this.tgIsochrone.turn(true);
-	  // $('#dispIsochroneCB').prop('checked', true);
-
-		//this.tgPerc.turn(true);
-
-
-	  /*
-	  this.tgPlaces.turn(this.data.elements.place.disp);
-	  $('#dispPlaceCB').prop('checked', this.data.elements.place.disp);	  
-
-	  
-
-	  
-
-	  
-*/
-	  this.tgGrids.turn(true);
-	  //$('#dispGridCB').prop('checked', true);
-
+		this.tgLocs.turn(true);
+	  //this.tgIsochrone.turn(false);
+	  this.tgIsochrone.turn(true);
+		// this.tgPerc.turn(true);
+	  // this.tgPlaces.turn(this.data.elements.place.disp);
+	  this.tgGrids.turn(false);
 	 	//this.tgBB.turn(true);
-	  //$('#dispBoundingBoxCB').prop('checked', true);
-
-
 	}
 
 	debug() {
 
 	}
 
+	Redraw(width, height) {
+		this.olMap.setSize([width, height]);
+		const extent = this.olMap.getView().calculateExtent(this.olMap.getSize());
+		this.olMap.getView().fit(extent);
+	}
+
 	setCenter(lat, lng) {
 		this.olMap.getView().setCenter(ol.proj.fromLonLat([lng, lat]));
 		this.tgOrigin.setOrigin(lat, lng);
+
 		this.tgControl.setOrigin(lat, lng);
 		this.currentCenter.lat = lat;
 		this.currentCenter.lng = lng;
 		this.tgOrigin.render();
 		this.calBoundaryBox();
+
+
+		if (this.currentMode === 'DC') this.goToDcAfterGettingCtlPts = true;
+
 		this.requestControlPoints();
 
 		this.tgPlaces.needToBeRedrawn();
-		this.tgLocs.request();
+
+		//this.tgLocs.request();
+
 
     if (typeof user_currentloc != 'undefined') {
     	user_currentloc.lng = lng;
 			user_currentloc.lat = lat;
     }
-
-
 	}
 
 	//
@@ -246,7 +230,30 @@ class TgMap {
 	}
 
 	onZoomEnd() {
+		console.log('onZoomEnd.');
 		this.calBoundaryBox();
+
+		//box.heightLat = box.top - box.bottom;
+
+	  const org = {lat: this.tgOrigin.origin.original.lat, 
+			  lng: this.tgOrigin.origin.original.lng};
+	  const distM = TgUtil.distance(org.lat, org.lng, org.lat + this.data.box.heightLat / 2, org.lng) * 1000;
+			//pt.S = TgUtil.distance(pt.original.lat, pt.original.lng, org.lat, org.lng) * 1000; // m
+	  this.pxPerMeter = this.olMapHeightPX / distM;
+
+	  console.log('distM: ' + distM);
+	  console.log('pxPerMeter: ' + this.pxPerMeter);
+
+  	// this.olMapHeightPX = $('#ol_map').css('height'); 
+  	// this.olMapHeightPX = 
+  	// 		Number(this.olMapHeightPX.slice(0, this.olMapHeightPX.length - 2)); // 900
+  	// this.olMapWidthPX = $('#ol_map').css('width');  
+  	// this.olMapWidthPX = 
+  	// 		Number(this.olMapWidthPX.slice(0, this.olMapWidthPX.length - 2)); // 600
+
+
+
+
 
 		if ((this.currentMode === 'DC') && (this.tgLocs.getHighLightMode())) {
 			// return the normal isochrone mode
@@ -259,6 +266,9 @@ class TgMap {
     	this.olMap.getView().setZoom(this.data.zoom.previous);
 		}
 		else {
+
+			//this.goToEm(false);
+
 			this.log('zoom'); // Logging
 
 	    console.log('onZoomEnd : ' + this.data.zoom.previous + '->' 
@@ -270,7 +280,7 @@ class TgMap {
 
 			this.tgRoads.updateDisplayedRoadType(this.data.zoom.current);
 			this.tgPlaces.needToBeRedrawn();
-	    this.tgLocs.request();
+	    // this.tgLocs.request();
 
 			this.recalculateAndDraw();
 		}
@@ -306,7 +316,7 @@ class TgMap {
 			this.tgLanduse.render();
 
 			this.tgPlaces.needToBeRedrawn();
-	    this.tgLocs.request();
+	    // this.tgLocs.request();
     }
 	}
 
@@ -323,7 +333,6 @@ class TgMap {
 		this.tgWater.calDispWater();
 		this.tgLanduse.calDispLanduse();
 		//this.tgPlaces.calDispPlace();
-		
 
 		if (this.currentMode === 'DC') {
 			this.calAllDispNodeAsOriginal();
@@ -333,6 +342,8 @@ class TgMap {
 
 			this.tgLocs.discard();
 			this.tgIsochrone.discard();
+			this.goToDcAfterGettingCtlPts = true;
+
 			//this.tgLocs.setHighLightMode(false, 0);
 		}
 		else {
@@ -353,8 +364,14 @@ class TgMap {
 	  this.tgControl.calculateControlPoints()
 	  .then(() => {
 	  	console.log('received: control points.');
-	  	this.updateLayers();
-			this.dispMapInfo();
+
+			if (this.goToDcAfterGettingCtlPts) {
+				this.goToDc();
+			}
+			else {
+		  	this.updateLayers();
+				this.dispMapInfo();			
+			}
 	  })
 	  .catch(console.log);
 	}
@@ -429,11 +446,52 @@ class TgMap {
 	  box.bottom = bottomLeft[1];
 	  box.right = topRight[0];
 	  box.top = topRight[1];
+	  box.heightLat = box.top - box.bottom;
+	  box.widthLng = box.right - box.left;
 
-  	vars.latPerPx = (box.top - box.bottom) / this.olMapHeightPX;
-  	vars.lngPerPx = (box.right - box.left) / this.olMapWidthPX;
-  	vars.latMargin = (box.top - box.bottom) * (vars.marginPercent * 0.01);
-		vars.lngMargin = (box.right - box.left) * (vars.marginPercent * 0.01);
+	  this.hMapHalfPx = this.olMapHeightPX / 2;
+	  this.wMapHalfPx = this.olMapWidthPX / 2;
+
+  	vars.latPerPx = box.heightLat / this.olMapHeightPX;
+  	vars.lngPerPx = box.widthLng / this.olMapWidthPX;
+  	vars.latMargin = box.heightLat * vars.marginPercent * 0.01;
+		vars.lngMargin = box.widthLng * vars.marginPercent * 0.01;
+		vars.lat_lng = vars.latPerPx / vars.lngPerPx;
+
+		const org = {lat: this.tgOrigin.origin.original.lat, 
+			  lng: this.tgOrigin.origin.original.lng};
+	  const distM = TgUtil.distance(org.lat, org.lng, org.lat + box.heightLat / 2, org.lng) * 1000;
+			//pt.S = TgUtil.distance(pt.original.lat, pt.original.lng, org.lat, org.lng) * 1000; // m
+	  this.pxPerMeter = this.olMapHeightPX / distM;
+
+	  const distMiles = TgUtil.distanceMiles(org.lat, org.lng, org.lat + box.heightLat / 2, org.lng);
+	  this.pxPerMiles = this.olMapHeightPX / distMiles;
+
+	  console.log('this.pxPerMiles:' + this.pxPerMiles);
+
+ 		// console.log('distM: ' + distM);
+	  // console.log('pxPerMeter: ' + this.pxPerMeter);
+	  // console.log('vars.latPerPx: ' + vars.latPerPx);
+	  // console.log('vars.lngPerPx: ' + vars.lngPerPx);
+	  // console.log('vars.lat_lng: ' + vars.lat_lng);
+	  // console.log('this.olMapHeightPX: ' + this.olMapHeightPX);
+	  // console.log('this.olMapWidthPX: ' + this.olMapWidthPX);
+	}
+
+	latlngToPx(lat, lng) {
+		const box = this.data.box;
+  	//const yPx = (box.top - lat) / box.heightLat * this.olMapHeightPX;
+  	const yPx = (lat - box.bottom) / box.heightLat * this.olMapHeightPX;
+  	const xPx = (lng - box.left) / box.widthLng * this.olMapWidthPX;
+  	return {yPx: yPx, xPx: xPx};
+	}
+
+	pxToLatlng(yPx, xPx) {
+		const box = this.data.box;
+		//const lat = box.top - yPx * box.heightLat / this.olMapHeightPX;
+		const lat = yPx * box.heightLat / this.olMapHeightPX + box.bottom;
+		const lng = xPx * box.widthLng / this.olMapWidthPX + box.left;
+		return {lat: lat, lng: lng};
 	}
 
 
@@ -443,7 +501,6 @@ class TgMap {
 	updateLayers() {
 		//var s = (new Date()).getTime();
 
-
 		this.tgWater.render();
 		this.tgRoads.render();
 		this.tgLanduse.render();
@@ -452,6 +509,7 @@ class TgMap {
 		this.tgPerc.render();
 		this.tgPlaces.render();
 		this.tgGrids.render();
+		this.tgIsochrone.render();
 		this.tgPerc.render();
 		
 		this.tgBB.render();
@@ -461,6 +519,8 @@ class TgMap {
 
 	goToEm(animation = true) {
 		if (this.currentMode === 'EM') return;
+
+		animation = false;
 
 		if (animation) {
 			this.timerFrame = 
@@ -476,6 +536,8 @@ class TgMap {
 
 	goToDc(animation = true, noNeedToCalFactor = false) {
 
+		animation = false;
+
 		/*if (!this.tgOrigin.isOriginInTheBox()) {
 			// move the center		
 			this.olView.setCenter(ol.proj.fromLonLat(
@@ -486,7 +548,6 @@ class TgMap {
 		this.tg.graph.calWarping(noNeedToCalFactor);
 
 		//this.tgControl.makeOriginalDCGrid();
-
 
 		switch(this.warpingMode) {
 			case 'shapePreserving':
@@ -500,6 +561,13 @@ class TgMap {
 				break;
 			case 'originalDC':
 				this.tgControl.makeOriginalDCGrid();
+				break;
+			case 'test1':
+				this.tgControl.makeShapePreservingGridByFFT();
+				this.tgControl.makeLocalPreception();
+				break;
+			case 'test2':
+				//this.tgControl.makeLocalPreception();
 				break;
 		}
 
@@ -589,7 +657,6 @@ class TgMap {
   	this.tgPerc.calDispNodes(intermediate, value);
   	this.tgOrigin.calDispNodes(intermediate, value);
 		this.tgLocs.calDispNodes(intermediate, value);
-		this.tgPlaces.calDispNodes(intermediate, value);
 		this.tgGrids.calDispNodes(intermediate, value);
 
 		if (render) {

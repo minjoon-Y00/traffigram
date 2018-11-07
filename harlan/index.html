@@ -6,12 +6,10 @@
 		<!--<link rel="stylesheet" href="https://openlayers.org/en/v3.20.0/css/ol.css" type="text/css">-->
     <link rel="stylesheet" href="../vendor/bootstrap-minty.min.css">
 		<link rel="stylesheet" href="./harlan.css"/>
-		<link rel="stylesheet" href="https://openlayers.org/en/v4.6.4/css/ol.css">
+    <!-- <link rel="stylesheet" href="https://openlayers.org/en/v4.6.4/css/ol.css"> -->
+		<link rel="stylesheet" href="https://openlayers.org/en/v5.0.0/css/ol.css">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.0.0/css/bootstrap-slider.min.css"/>
     <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
-
-
-
 	</head>
 
 	<body ng-controller="harlanController">
@@ -19,9 +17,32 @@
 	  <div id="main">
 			<div id="ol_map" class="ol_map"></div>
 
+      <div id="legend" class="legend" ng-show="isDc">
+      <!-- <div id="legend" class="legend"> -->
+        <img id="mileLine" ng-src="img/markers/horizontal_line.jpg" class="legend_horizontal"/> {{mile}} miles</br>
+        <img ng-src="{{legendMarker1}}" class="legend_marker"/> Time<br>
+        <img ng-src="{{legendMarker2}}" class="legend_marker"/> Position<br>
+      </div>
+
+			<!-- top-left -->
+			<div id="map_search"> <input type="text" id="search_orig" class="tg_input_style" placeholder="Type where you are now!"/></div>
+
+			<!-- top-right -->
 			<div id="btn_settings" ng-click="toggleSettings()"><img style="display:block;" src="img/btn_settings.png"/></div>
 
+			<!-- bottom-left -->
+			<div id="btn_switch">
+  			<span>
+  				<img src="img/btn_s_on.png" class="cursorDefault" ng-show="!isDc"/>
+					<img src="img/btn_s_off.png" ng-show="isDc" ng-click="goToEm()"/>
+  			</span>
+  			<span style="margin-left:-5px">
+  				<img src="img/btn_t_off.png" ng-show="!isDc" ng-click="goToDc()"/>
+					<img src="img/btn_t_on.png" class="cursorDefault" ng-show="isDc"/>
+  			</span>
+  		</div>
 
+  		<!-- bottom-right -->
 			<div id="btn_reset_origin" ng-click="resetOrigin()"><img src="img/btn_resetOrigin.png"/></div>
 			<div id="btn_zoom">
 				<div ng-click="zoomIn()"><img style="display:block;" src="img/btn_zoomin.png"/></div>
@@ -51,15 +72,113 @@
         <label class='checkbox-inline'>
           <input type="checkbox" ng-model="model.cbOrigin" ng-change="updateLayers()"/>Origin
         </label>
-        <label class='checkbox-inline'>
+<!--         <label class='checkbox-inline'>
           <input type="checkbox" ng-model="model.cbGrid" ng-change="updateLayers()"/>Grid
+        </label> -->
+        <label>
+          <input type="checkbox" ng-model="model.cbCtrlPts" ng-change="updateLayers()"/>Control Points
         </label>
         <label class='checkbox-inline'>
           <input type="checkbox" ng-model="model.cbIsochrone" ng-change="updateLayers()"/>Isochrone
         </label>
         <label class='checkbox-inline'>
-        	<input type="checkbox" ng-model="model.cbPerc" ng-change="updateLayers()"/>Perception Points
+          <input type="checkbox" ng-model="model.cbMotorway" ng-change="updateRoads()"/>Motorway
         </label>
+        <label class='checkbox-inline'>
+          <input type="checkbox" ng-model="model.cbMotorwayLink" ng-change="updateRoads()"/>Motorway Link
+        </label>
+        <label class='checkbox-inline'>
+          <input type="checkbox" ng-model="model.cbPrimary" ng-change="updateRoads()"/>Primary
+        </label>
+        <label class='checkbox-inline'>
+          <input type="checkbox" ng-model="model.cbSecondary" ng-change="updateRoads()"/>Secondary
+        </label>
+        <label class='checkbox-inline'>
+          <input type="checkbox" ng-model="model.cbTertiary" ng-change="updateRoads()"/>Tertiary
+        </label>
+        <label class='checkbox-inline'>
+          <input type="checkbox" ng-model="model.cbResidential" ng-change="updateRoads()"/>Residential
+        </label>
+        
+        <!-- <label class='checkbox-inline'>
+        	<input type="checkbox" ng-model="model.cbPerc" ng-change="updateLayers()"/>Perception Points
+        </label> -->
+
+     <h4>Warping Type</h4>
+      	<!-- <label><input type="radio" name="wapingRadio" ng-model="model.warpingType" ng-change="onChangeWarpingType()" value="s_gap">S-GAP (shape preserving)</label><br> -->
+        <!-- <label><input type="radio" name="wapingRadio" ng-model="model.warpingType" ng-change="onChangeWarpingType()" value="original">Original Warping</label><br> --> 
+      	
+      	<label><input type="radio" name="wapingRadio" ng-model="model.warpingType" ng-change="onChangeWarpingType()" value="no_warping">No GAP</label>
+        <label><input type="radio" name="wapingRadio" ng-model="model.warpingType" ng-change="onChangeWarpingType()" value="gap">GAP</label>
+				<label><input type="radio" name="wapingRadio" ng-model="model.warpingType" ng-change="onChangeWarpingType()" value="test1" ng-checked="true">P-GAP</label><br>
+				<!-- <label><input type="radio" name="wapingRadio" ng-model="model.warpingType" value="test2" ng-change="changeWarpingType()">Test2 (local)</label>  -->
+
+      <h4>Grids</h4>
+        <label><input type="radio" name="gridRadio" ng-model="model.gridType" ng-change="onChangeGridType()" value="no_grid">No Grid</label>
+        <label><input type="radio" name="gridRadio" ng-model="model.gridType" ng-change="onChangeGridType()" value="show_grid">Show</label>
+        <label><input type="radio" name="gridRadio" ng-model="model.gridType" ng-change="onChangeGridType()" value="show_all_grid">Show All</label>
+
+<!--         <label style="color: rgba(0, 255, 0, 0.5)">
+          <input type="checkbox" ng-model="model.cbOriginal" ng-change="updateLayers()"/>No GAP
+        </label> -->
+        <!-- <label style="color: rgba(0, 0, 255, 0.5">
+          <input type="checkbox" ng-model="model.cbTarget" ng-change="updateLayers()"/>Original Warping
+        </label> -->
+<!--         <label style="color: rgba(200, 150, 50)">
+          <input type="checkbox" ng-model="model.cbGAP" ng-change="updateLayers()"/>GAP
+        </label>
+        <label style="color: rgba(255, 0, 0)">
+          <input type="checkbox" ng-model="model.cbPGAP" ng-change="updateLayers()"/>P-GAP
+        </label>
+        <label>
+          <input type="checkbox" ng-model="model.cbCtrlPts" ng-change="updateLayers()"/>Control Points
+        </label> -->
+      <h4>Options</h4>
+        <label>
+        	<span>Randomness (sec)</span>
+          <input type="text" style="width:50px" ng-model="model.txRandomCtlPts"/>
+          <button type="button" class="btn btn-primary btn-sm" ng-click="onRandomCtlPts()">Cal</button>
+        </label>
+        <label>
+        	<span># of Random Locs</span>
+          <input type="text" style="width:50px" ng-model="model.txRandomLocs"/>
+          <button type="button" class="btn btn-primary btn-sm" ng-click="onRandomLocs()">Cal</button>
+        </label>
+        <br/><button type="button" class="btn btn-primary btn-sm" ng-click="onChangeMarkers()">Change Markers</button>
+      <h4>Size</h4>
+        <label><input type="radio" name="sizeRadio" ng-model="model.mapSize" ng-change="onChangeMapSize()" value="size1">960x720</label>
+        <label><input type="radio" name="sizeRadio" ng-model="model.mapSize" ng-change="onChangeMapSize()" value="size2">800x600</label>
+        <label><input type="radio" name="sizeRadio" ng-model="model.mapSize" ng-change="onChangeMapSize()" value="size3">640x480</label><br>
+        <label>
+          <span>Manual</span>
+          <input type="text" ng-model="model.mapSizeWidth" style="width:50px" placeholder="width" />
+          <input type="text" ng-model="model.mapSizeHeight" style="width:50px" placeholder="height" />
+          <button type="button" class="btn btn-primary btn-sm" ng-click="onManualSize()">Change</button>
+        </label>  
+      <h4>Isochrone</h4>
+        <span>num: </span>
+        <select ng-model="model.isoNum">
+          <option ng-repeat="x in isoNums" value="{{x}}">{{x}}</option>
+        </select>
+        <span>itv: </span>
+        <select ng-model="model.isoItv">
+          <option ng-repeat="x in isoItvs" value="{{x}}">{{x}}</option>
+        </select>
+        <button type="button" class="btn btn-primary btn-sm" ng-click="onChangeIsochrone()">Change</button>
+      <h4>Set Center</h4>
+        <span>Lat</span>
+        <input type="text" ng-model="model.centerLat" style="width:100px"/>
+        <span>Lng</span>
+        <input type="text" ng-model="model.centerLng" style="width:100px"/>
+        <button type="button" class="btn btn-primary btn-sm" ng-click="setCenter()">Go</button>
+      <h4>Save/Load Times</h4>
+        <button type="button" class="btn btn-primary btn-sm" ng-click="onSaveTimes()">Save Times</button>
+        <!-- <input type="file" id="fileinput" ng-change="readSingleFile()"/> -->
+        <input type="file" id="fileinput"/>
+
+
+
+
 
 
       <!-- <h4>Origin</h4>
@@ -67,7 +186,7 @@
           <label><input type="radio" name="originRadio" ng-model="model.rbOrg" value="{{$index}}" ng-change="changeOrg($index)" ng-checked="{{$index === 0}}">{{org.name}}</label>
         </div> -->
 
-      <h4>Zoom</h4>
+      <!-- <h4>Zoom</h4>
         <button type="button" class="btn btn-primary btn-sm" ng-click="tg.zoomIn()">Zoom In</button>
         <button type="button" class="btn btn-primary btn-sm" ng-click="tg.zoomOut()">Zoom Out</button>
 			
@@ -75,11 +194,7 @@
         <button type="button" class="btn btn-primary btn-sm" ng-click="tg.goToEm()">Standard Map</button>
         <button type="button" class="btn btn-primary btn-sm" ng-click="goToDc()">Time Map</button>
 
-      <h4>Warping Type</h4>
-      	<label><input type="radio" name="wapingRadio" ng-model="model.warpingType" value="s_gap" ng-change="changeWarpingType()" ng-checked="true">S-GAP</label><br>
-      	<label><input type="radio" name="wapingRadio" ng-model="model.warpingType" value="gap" ng-change="changeWarpingType()">GAP</label><br>
-      	<label><input type="radio" name="wapingRadio" ng-model="model.warpingType" value="no_warping" ng-change="changeWarpingType()">No Warping</label><br>
-				<label><input type="radio" name="wapingRadio" ng-model="model.warpingType" value="original" ng-change="changeWarpingType()">OriginalDC</label>
+
 
 			<h4>Randomness</h4>
       	<label style="margin-right:10px">Random Time</label>
@@ -88,7 +203,7 @@
       <h4>Perception</h4>
       	<label style="margin-right:10px">Std dev.</label>
       	<br/>
-        <input id="stdSlider" data-slider-id='stdSlider' type="text" data-slider-min="0" data-slider-max="30" data-slider-step="1" data-slider-value="10"/>
+        <input id="stdSlider" data-slider-id='stdSlider' type="text" data-slider-min="0" data-slider-max="30" data-slider-step="1" data-slider-value="10"/> -->
 		</div>
 
 
@@ -98,9 +213,11 @@
 
 
 
-
+    <!-- <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAafQHcRi3Zoi6JV0PDlNJPoVt2iqx_Fc&libraries=places&language=en"></script> -->
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDCq-l1SJhapC5TAlaSVZUSWvwXTLtTBAI&libraries=places&language=en"></script>
 		<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
-    <script src="https://openlayers.org/en/v4.6.4/build/ol.js"></script>
+    <script src="https://openlayers.org/en/v5.0.0/build/ol.js"></script>
+    <!-- <script src="https://openlayers.org/en/v4.6.4/build/ol.js"></script> -->
 		<!--<script src="https://openlayers.org/en/v3.20.0/build/ol.js"></script>-->
 
 		<script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>

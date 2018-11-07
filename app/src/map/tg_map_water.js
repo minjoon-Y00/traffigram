@@ -581,9 +581,6 @@ class TgMapWater {
 
 	//
 	updateLayer() {
-		console.log('update layer');
-
-
 		const viz = this.data.viz;
 		this.clearLayers();
 		this.updateDispWater();

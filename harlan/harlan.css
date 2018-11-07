@@ -10,8 +10,8 @@ html, body {
 
 	//min-width: 300px;
 	//min-height: 300px;
-	//width: 1000px;
-	//height: 1000px;
+	width: 640px;
+	height: 480px;
 	//position: absolute;
 	//left: 0;
 	//top: 0;
@@ -26,6 +26,27 @@ html, body {
   left: calc(100% - 50px);
 }
 
+#legend {
+	background-color: #FFF;
+	opacity: 0.8;
+	position: absolute;
+	top: 380px;
+	left: 10px;
+	width: 150px;
+	height: 80px;
+	padding: 5px 5px 5px 5px;
+}
+
+.legend_horizontal {
+	height: 15px;
+	width: 50px;
+}
+
+.legend_marker {
+	height: 15px;
+	width: 15px;
+}
+
 #right_panel {
 	background-color: #FFF;
 	opacity: 0.8;
@@ -33,13 +54,22 @@ html, body {
 	position: absolute;
 	right: 10px;
 	top: 80px;
-	width: 300px;
+	width: 400px;
 }
 
 /* Buttons */
-#btn_settings, #btn_reset_origin, #btn_zoom {
+#btn_switch, #btn_settings, #btn_reset_origin, #btn_zoom {
 	position: absolute; 
 	cursor: pointer;
+}
+
+.cursorDefault {
+	cursor: default;
+}
+
+#btn_switch {
+	bottom: 10px;
+	left: 10px;
 }
 
 #btn_settings {
@@ -55,4 +85,26 @@ html, body {
 #btn_zoom {
 	bottom: 10px;
 	right: 10px;
+}
+
+/* Search Bar */
+#map_search {
+	position: absolute;
+	top: 560px; // 10px;
+	left: 10px;
+}
+
+.tg_input_style {
+	font-size: 18px;
+	font-weight: 400;
+	color: #999;
+	border: none;
+	margin: 5px;
+	height: 40px;
+	padding-top: 5px;
+	padding-left: 5px;
+}
+
+#search_orig {
+	width: 400px;
 }
